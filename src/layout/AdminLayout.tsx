@@ -21,7 +21,8 @@ import {
     PanelLeftOpen,
     Home,
     FileText,
-    Bell
+    Bell,
+    Layout
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '@/themes';
@@ -56,6 +57,7 @@ const AdminLayout = () => {
         {id: "notifications", icon: Bell, label: t('admin.notifications') || "Notifications", path: "/admin/notifications"},
         {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
         {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
+        {id: "portal", icon: Layout, label: t('admin.portal') || "Portal", path: "/admin/portal"},
         {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
     ];
 

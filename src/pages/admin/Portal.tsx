@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, ToggleLeft, ToggleRight,
-    GripVertical, ArrowUp, ArrowDown,
+    GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
@@ -26,7 +26,7 @@ import {
     useCreateNavItem, useUpdateNavItem, useDeleteNavItem,
     useCreateBanner, useUpdateBanner, useToggleBanner,
 } from '@/hooks/queries';
-import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest} from '@/lib/api/portal';
+import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type CreateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
@@ -36,19 +36,27 @@ export default function PortalConfigPage() {
                 <h1 className="text-2xl font-bold flex items-center gap-2">
                     <Layout className="h-6 w-6"/>门户配置
                 </h1>
-                <p className="text-muted-foreground text-sm mt-1">管理导航栏、Banner和首页展示内容</p>
+                <p className="text-muted-foreground text-sm mt-1">管理导航栏、Banner、广告位和首页展示内容</p>
             </div>
 
             <Tabs defaultValue="navigation">
                 <TabsList>
                     <TabsTrigger value="navigation">导航管理</TabsTrigger>
                     <TabsTrigger value="banners">Banner管理</TabsTrigger>
+                    <TabsTrigger value="ad-placements">广告位</TabsTrigger>
+                    <TabsTrigger value="ads">广告管理</TabsTrigger>
                 </TabsList>
                 <TabsContent value="navigation" className="mt-4">
                     <NavigationTab/>
                 </TabsContent>
                 <TabsContent value="banners" className="mt-4">
                     <BannersTab/>
+                </TabsContent>
+                <TabsContent value="ad-placements" className="mt-4">
+                    <AdPlacementsTab/>
+                </TabsContent>
+                <TabsContent value="ads" className="mt-4">
+                    <AdsTab/>
                 </TabsContent>
             </Tabs>
         </div>
@@ -391,6 +399,278 @@ const BannersTab: React.FC = () => {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)}>取消</Button>
                         <Button onClick={handleUpdate}>保存</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
+
+const AdPlacementsTab: React.FC = () => {
+    const queryClient = useQueryClient();
+    const [placements, setPlacements] = useState<AdPlacement[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [createForm, setCreateForm] = useState<CreateAdPlacementRequest>({
+        name: '', slug: '', type: 'banner',
+    });
+
+    React.useEffect(() => {
+        adminPortalApi.listAdPlacements().then(d => { setPlacements(d as any || []); setLoading(false); }).catch(() => setLoading(false));
+    }, []);
+
+    const handleCreate = async () => {
+        try {
+            await adminPortalApi.createAdPlacement(createForm);
+            setCreateDialogOpen(false);
+            setCreateForm({name: '', slug: '', type: 'banner'});
+            const d = await adminPortalApi.listAdPlacements();
+            setPlacements(d as any || []);
+        } catch (err) { console.error('Failed to create ad placement:', err); }
+    };
+
+    const handleToggle = async (id: string) => {
+        try {
+            await adminPortalApi.toggleAdPlacement(id);
+            const d = await adminPortalApi.listAdPlacements();
+            setPlacements(d as any || []);
+        } catch (err) { console.error('Failed to toggle:', err); }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await adminPortalApi.deleteAdPlacement(id);
+            const d = await adminPortalApi.listAdPlacements();
+            setPlacements(d as any || []);
+        } catch (err) { console.error('Failed to delete:', err); }
+    };
+
+    const typeLabels: Record<string, string> = {banner: '轮播', card: '卡片', rectangle: '矩形', leaderboard: '横幅'};
+
+    return (
+        <>
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5"/>广告位管理</CardTitle>
+                            <CardDescription>配置门户各位置的展示广告位</CardDescription>
+                        </div>
+                        <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>添加广告位</Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {loading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>名称</TableHead>
+                                    <TableHead>Slug</TableHead>
+                                    <TableHead>类型</TableHead>
+                                    <TableHead>尺寸</TableHead>
+                                    <TableHead>最大广告数</TableHead>
+                                    <TableHead>状态</TableHead>
+                                    <TableHead className="text-right">操作</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {placements.length > 0 ? placements.map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell className="font-medium">{p.name}</TableCell>
+                                        <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code></TableCell>
+                                        <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
+                                        <TableCell className="text-sm">{p.width}×{p.height}</TableCell>
+                                        <TableCell>{p.max_ads}</TableCell>
+                                        <TableCell><Badge variant={p.is_active ? 'default' : 'secondary'}>{p.is_active ? '启用' : '禁用'}</Badge></TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(p.id)}>
+                                                    {p.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
+                                                </Button>
+                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => handleDelete(p.id)}>
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">暂无广告位</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader><DialogTitle>添加广告位</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid gap-2"><Label>名称</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder="如：首页Banner"/></div>
+                        <div className="grid gap-2"><Label>Slug</Label><Input value={createForm.slug} onChange={e => setCreateForm({...createForm, slug: e.target.value})} placeholder="如：home-banner"/></div>
+                        <div className="grid gap-2"><Label>类型</Label>
+                            <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="banner">轮播 (Banner)</SelectItem>
+                                    <SelectItem value="card">卡片 (Card)</SelectItem>
+                                    <SelectItem value="rectangle">矩形 (Rectangle)</SelectItem>
+                                    <SelectItem value="leaderboard">横幅 (Leaderboard)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>宽度(px)</Label><Input type="number" value={createForm.width || 0} onChange={e => setCreateForm({...createForm, width: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>高度(px)</Label><Input type="number" value={createForm.height || 0} onChange={e => setCreateForm({...createForm, height: Number(e.target.value)})}/></div>
+                        </div>
+                        <div className="grid gap-2"><Label>最大广告数</Label><Input type="number" value={createForm.max_ads || 1} onChange={e => setCreateForm({...createForm, max_ads: Number(e.target.value)})}/></div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>取消</Button>
+                        <Button onClick={handleCreate} disabled={!createForm.name || !createForm.slug}>创建</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+};
+
+const AdsTab: React.FC = () => {
+    const [placements, setPlacements] = useState<AdPlacement[]>([]);
+    const [selectedPlacement, setSelectedPlacement] = useState<string>('');
+    const [ads, setAds] = useState<Ad[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [createForm, setCreateForm] = useState<CreateAdRequest>({placement_id: '', title: ''});
+
+    React.useEffect(() => {
+        adminPortalApi.listAdPlacements().then(d => {
+            const list = (d as any || []) as AdPlacement[];
+            setPlacements(list);
+            if (list.length > 0 && !selectedPlacement) setSelectedPlacement(list[0].id);
+        });
+    }, []);
+
+    React.useEffect(() => {
+        if (!selectedPlacement) return;
+        setLoading(true);
+        adminPortalApi.listAds(selectedPlacement).then(d => {
+            const data = d as any;
+            setAds(data?.items || []);
+            setLoading(false);
+        }).catch(() => setLoading(false));
+    }, [selectedPlacement]);
+
+    const handleCreate = async () => {
+        try {
+            await adminPortalApi.createAd({...createForm, placement_id: selectedPlacement});
+            setCreateDialogOpen(false);
+            setCreateForm({placement_id: '', title: ''});
+            const d = await adminPortalApi.listAds(selectedPlacement);
+            setAds((d as any)?.items || []);
+        } catch (err) { console.error('Failed to create ad:', err); }
+    };
+
+    const handleToggle = async (id: string) => {
+        try {
+            await adminPortalApi.toggleAd(id);
+            const d = await adminPortalApi.listAds(selectedPlacement);
+            setAds((d as any)?.items || []);
+        } catch (err) { console.error('Failed to toggle:', err); }
+    };
+
+    const handleDelete = async (id: string) => {
+        try {
+            await adminPortalApi.deleteAd(id);
+            const d = await adminPortalApi.listAds(selectedPlacement);
+            setAds((d as any)?.items || []);
+        } catch (err) { console.error('Failed to delete:', err); }
+    };
+
+    return (
+        <>
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5"/>广告管理</CardTitle>
+                            <CardDescription>管理各广告位下的广告内容</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Select value={selectedPlacement} onValueChange={setSelectedPlacement}>
+                                <SelectTrigger className="w-[200px]"><SelectValue placeholder="选择广告位"/></SelectTrigger>
+                                <SelectContent>
+                                    {placements.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <Button size="sm" onClick={() => setCreateDialogOpen(true)} disabled={!selectedPlacement}><Plus className="w-4 h-4 mr-2"/>添加广告</Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    {loading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>标题</TableHead>
+                                    <TableHead>图片</TableHead>
+                                    <TableHead>链接</TableHead>
+                                    <TableHead>优先级</TableHead>
+                                    <TableHead>展示/点击</TableHead>
+                                    <TableHead>CTR</TableHead>
+                                    <TableHead>状态</TableHead>
+                                    <TableHead className="text-right">操作</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {ads.length > 0 ? ads.map(ad => (
+                                    <TableRow key={ad.id}>
+                                        <TableCell className="font-medium">
+                                            {ad.title}
+                                            {ad.badge_text && <Badge variant="outline" className="ml-2">{ad.badge_text}</Badge>}
+                                        </TableCell>
+                                        <TableCell>{ad.image_url ? <span className="text-xs text-green-600">✓</span> : <span className="text-xs text-muted-foreground">-</span>}</TableCell>
+                                        <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{ad.link_url || '-'}</TableCell>
+                                        <TableCell>{ad.priority}</TableCell>
+                                        <TableCell className="text-sm">{ad.impressions}/{ad.clicks}</TableCell>
+                                        <TableCell className="text-sm">{ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) + '%' : '-'}</TableCell>
+                                        <TableCell><Badge variant={ad.is_active ? 'default' : 'secondary'}>{ad.is_active ? '启用' : '禁用'}</Badge></TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex items-center justify-end gap-1">
+                                                <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(ad.id)}>
+                                                    {ad.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
+                                                </Button>
+                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => handleDelete(ad.id)}>
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{selectedPlacement ? '暂无广告' : '请先选择广告位'}</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader><DialogTitle>添加广告</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid gap-2"><Label>标题</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder="广告标题"/></div>
+                        <div className="grid gap-2"><Label>图片URL</Label><Input value={createForm.image_url || ''} onChange={e => setCreateForm({...createForm, image_url: e.target.value})} placeholder="/uploads/ads/xxx.jpg"/></div>
+                        <div className="grid gap-2"><Label>移动端图片URL</Label><Input value={createForm.image_mobile_url || ''} onChange={e => setCreateForm({...createForm, image_mobile_url: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>链接URL</Label><Input value={createForm.link_url || ''} onChange={e => setCreateForm({...createForm, link_url: e.target.value})} placeholder="https://..."/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>徽章文字</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="推广/NEW"/></div>
+                            <div className="grid gap-2"><Label>优先级</Label><Input type="number" value={createForm.priority || 0} onChange={e => setCreateForm({...createForm, priority: Number(e.target.value)})}/></div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>取消</Button>
+                        <Button onClick={handleCreate} disabled={!createForm.title}>创建</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

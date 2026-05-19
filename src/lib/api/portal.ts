@@ -150,6 +150,101 @@ export interface FeaturedUser {
     subscriber_count: number;
 }
 
+export interface AdPlacement {
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    width: number;
+    height: number;
+    max_ads: number;
+    is_active: boolean;
+    sequence: number;
+}
+
+export interface Ad {
+    id: string;
+    placement_id: string;
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target: string;
+    badge_text?: string;
+    priority: number;
+    is_active: boolean;
+    start_at?: string;
+    end_at?: string;
+    impressions: number;
+    clicks: number;
+}
+
+export interface AdClickLog {
+    id: string;
+    ad_id: string;
+    placement_id: string;
+    ip?: string;
+    user_agent?: string;
+    user_id?: string;
+    referer?: string;
+}
+
+export interface CreateAdPlacementRequest {
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    width?: number;
+    height?: number;
+    max_ads?: number;
+    is_active?: boolean;
+    sequence?: number;
+}
+
+export interface UpdateAdPlacementRequest {
+    name?: string;
+    slug?: string;
+    type?: string;
+    description?: string;
+    width?: number;
+    height?: number;
+    max_ads?: number;
+    is_active?: boolean;
+    sequence?: number;
+}
+
+export interface CreateAdRequest {
+    placement_id: string;
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+}
+
+export interface UpdateAdRequest {
+    placement_id?: string;
+    title?: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+}
+
 export interface PortalConfig {
     modules: {
         articles: boolean;
@@ -242,4 +337,37 @@ export const adminPortalApi = {
 
     getPage: (slug: string) =>
         api.get<CustomPage>(`/p/${slug}`),
+
+    listAdPlacements: () =>
+        api.get<AdPlacement[]>('/admin/ad-placements'),
+
+    createAdPlacement: (data: CreateAdPlacementRequest) =>
+        api.post<AdPlacement>('/admin/ad-placements', data),
+
+    updateAdPlacement: (id: string, data: UpdateAdPlacementRequest) =>
+        api.put<AdPlacement>(`/admin/ad-placements/${id}`, data),
+
+    toggleAdPlacement: (id: string) =>
+        api.post<AdPlacement>(`/admin/ad-placements/${id}/toggle`),
+
+    deleteAdPlacement: (id: string) =>
+        api.del<void>(`/admin/ad-placements/${id}`),
+
+    listAds: (placementId: string) =>
+        api.get<{items: Ad[]; total: number}>(`/admin/ads?placement_id=${placementId}`),
+
+    createAd: (data: CreateAdRequest) =>
+        api.post<Ad>('/admin/ads', data),
+
+    updateAd: (id: string, data: UpdateAdRequest) =>
+        api.put<Ad>(`/admin/ads/${id}`, data),
+
+    toggleAd: (id: string) =>
+        api.post<Ad>(`/admin/ads/${id}/toggle`),
+
+    deleteAd: (id: string) =>
+        api.del<void>(`/admin/ads/${id}`),
+
+    listAdClickLogs: (adId: string, page?: number, pageSize?: number) =>
+        api.get<{items: AdClickLog[]; total: number; page: number; page_size: number}>(`/admin/ads/${adId}/click-logs?page=${page || 1}&page_size=${pageSize || 20}`),
 };
