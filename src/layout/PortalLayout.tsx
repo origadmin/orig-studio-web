@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Outlet} from '@tanstack/react-router';
 import Header from '@/components/portal/Header';
 import Sidebar from '@/components/portal/Sidebar';
+import CategoryChips from '@/components/portal/CategoryChips';
 import {useTheme} from '@/themes';
 
 const PortalLayout = () => {
@@ -35,6 +36,8 @@ const PortalLayout = () => {
                 darkMode={isDark}
                 onToggleDarkMode={toggleDark}
             />
+
+            <CategoryChips/>
 
             <Sidebar
                 collapsed={sidebarCollapsed}

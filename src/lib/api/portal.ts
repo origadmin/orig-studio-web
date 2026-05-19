@@ -45,14 +45,18 @@ export interface Banner {
     badge_text?: string;
     image_url?: string;
     image_mobile_url?: string;
+    bg_color_start?: string;
+    bg_color_end?: string;
+    bg_overlay_opacity?: number;
     primary_btn_text?: string;
     primary_btn_url?: string;
     secondary_btn_text?: string;
     secondary_btn_url?: string;
     is_active: boolean;
     sequence: number;
-    start_time?: string;
-    end_time?: string;
+    start_at?: string;
+    end_at?: string;
+    auto_slide_interval?: number;
     create_time: string;
     update_time: string;
 }
@@ -147,16 +151,30 @@ export interface FeaturedUser {
 }
 
 export interface PortalConfig {
-    navigation: {
-        items: NavItem[];
-        visible_count: number;
+    modules: {
+        articles: boolean;
+        videos: boolean;
+        music: boolean;
     };
-    banners: Banner[];
-    featured_users: FeaturedUser[];
+    layout: 'video' | 'article' | 'mixed' | 'welcome' | 'doc';
     site: {
-        name: string;
-        default_lang: string;
+        site_name: string;
+        site_description: string;
+        allow_registration: boolean;
+        allow_upload: boolean;
+        primary_url?: string;
+        allowed_urls?: string[];
     };
+    navigation: NavItem[];
+    banners: Banner[];
+    categories: {
+        id: number;
+        name: string;
+        slug: string;
+        order: number;
+    }[];
+    pages: CustomPage[];
+    features: Record<string, boolean>;
 }
 
 export interface ModulePortalConfig {
