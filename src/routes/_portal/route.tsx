@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import PortalLayout from '@/layout/PortalLayout';
 import DocPortalLayout from '@/layout/DocPortalLayout';
 import { ModuleConfigProvider, useModuleState } from '@/contexts/ModuleConfigContext';
+import { FeatureFlagsProvider } from '@/contexts/FeatureFlagsContext';
 
 const LayoutSwitcher: React.FC = () => {
     const { layout } = useModuleState();
@@ -17,7 +18,9 @@ const LayoutSwitcher: React.FC = () => {
 export const Route = createFileRoute('/_portal')({
     component: () => (
         <ModuleConfigProvider>
-            <LayoutSwitcher />
+            <FeatureFlagsProvider>
+                <LayoutSwitcher />
+            </FeatureFlagsProvider>
         </ModuleConfigProvider>
     ),
 });
