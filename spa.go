@@ -1,77 +1,93 @@
 package web
 
 import (
-	"io/fs"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterRoutes(r *gin.Engine) {
-	if IsDistEmpty() {
+	handler := NewSPAHandler()
+	if handler.IsEmpty() {
 		return
 	}
 
-	sub, err := fs.Sub(DistFS, "dist")
-	if err != nil {
-		return
-	}
-	fileServer := http.FileServer(http.FS(sub))
-
-	indexHTML, indexErr := fs.ReadFile(sub, "index.html")
-	_ = indexErr
-
-	staticPaths := []string{"/assets", "/static", "/locales"}
-	for _, prefix := range staticPaths {
-		p := prefix
-		r.GET(p+"/*filepath", func(c *gin.Context) {
-			switch p {
-			case "/assets":
-				c.Header("Cache-Control", "public, max-age=31536000, immutable")
-			case "/locales":
-				c.Header("Cache-Control", "public, max-age=3600")
-			default:
-				c.Header("Cache-Control", "public, max-age=86400")
-			}
-			c.Request.URL.Path = p + c.Param("filepath")
-			fileServer.ServeHTTP(c.Writer, c.Request)
+	for _, route := range DefaultStaticRoutes {
+		prefix := route.Prefix
+		cc := route.CacheControl
+		r.GET(prefix+"/*filepath", func(c *gin.Context) {
+			c.Header("Cache-Control", cc)
+			c.Request.URL.Path = prefix + c.Param("filepath")
+			handler.fileServer.ServeHTTP(c.Writer, c.Request)
 		})
 	}
 
-	rootFiles := []string{"/favicon.ico", "/robots.txt", "/manifest.json", "/logo-192.png", "/logo-512.png"}
-	for _, name := range rootFiles {
+	for _, name := range DefaultRootFiles {
 		n := name
 		r.GET(n, func(c *gin.Context) {
-			c.Request.URL.Path = n
-			fileServer.ServeHTTP(c.Writer, c.Request)
+			handler.ServeRootFile(c.Writer, c.Request, n)
 		})
 	}
 
 	r.NoRoute(func(c *gin.Context) {
-		path := c.Request.URL.Path
-
-		if strings.HasPrefix(path, "/api/") ||
-			strings.HasPrefix(path, "/uploads/") ||
-			strings.HasPrefix(path, "/thumbnails/") ||
-			strings.HasPrefix(path, "/hls/") {
-			c.JSON(404, gin.H{"error": "not found"})
-			return
-		}
-
-		c.Header("Cache-Control", "no-cache")
-		if indexErr != nil {
-			c.String(500, "index.html not found in embedded frontend")
-			return
-		}
-		c.Data(200, "text/html; charset=utf-8", indexHTML)
+		handler.ServeSPAFallback(c.Writer, c.Request)
 	})
 }
 
-func IsDistEmpty() bool {
-	if DistFS == nil {
-		return true
+func RegisterGinRoutesWithHandler(r *gin.Engine, handler *SPAHandler) {
+	if handler.IsEmpty() {
+		return
 	}
-	entries, err := fs.ReadDir(DistFS, "dist")
-	return err != nil || len(entries) == 0
+
+	for _, route := range DefaultStaticRoutes {
+		prefix := route.Prefix
+		cc := route.CacheControl
+		r.GET(prefix+"/*filepath", func(c *gin.Context) {
+			c.Header("Cache-Control", cc)
+			c.Request.URL.Path = prefix + c.Param("filepath")
+			handler.fileServer.ServeHTTP(c.Writer, c.Request)
+		})
+	}
+
+	for _, name := range DefaultRootFiles {
+		n := name
+		r.GET(n, func(c *gin.Context) {
+			handler.ServeRootFile(c.Writer, c.Request, n)
+		})
+	}
+
+	r.NoRoute(func(c *gin.Context) {
+		handler.ServeSPAFallback(c.Writer, c.Request)
+	})
+}
+
+func RegisterStdRoutes(mux *http.ServeMux) {
+	handler := NewSPAHandler()
+	if handler.IsEmpty() {
+		return
+	}
+
+	for _, route := range DefaultStaticRoutes {
+		prefix := route.Prefix
+		cc := route.CacheControl
+		mux.Handle(prefix+"/", http.StripPrefix(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", cc)
+			handler.fileServer.ServeHTTP(w, r)
+		})))
+	}
+
+	for _, name := range DefaultRootFiles {
+		n := name
+		mux.HandleFunc(n, func(w http.ResponseWriter, r *http.Request) {
+			handler.ServeRootFile(w, r, n)
+		})
+	}
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || (!IsAPIPath(r.URL.Path) && !IsStaticAssetPath(r.URL.Path) && !IsRootFile(r.URL.Path)) {
+			handler.ServeSPAFallback(w, r)
+			return
+		}
+		handler.fileServer.ServeHTTP(w, r)
+	})
 }
