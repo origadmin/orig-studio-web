@@ -168,9 +168,18 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     // Validate HLS source: must be a non-empty path that looks like an HLS manifest
     const isValidHlsSrc = useCallback((src?: string): boolean => {
         if (!src) return false;
-        // Accept paths containing "hls/" or ending with ".m3u8" — these are
-        // the only valid HLS sources produced by the backend transcoder.
         return src.includes('hls/') || src.endsWith('.m3u8');
+    }, []);
+
+    const canPlayOriginal = useCallback((src?: string): boolean => {
+        if (!src) return false;
+        const lower = src.toLowerCase();
+        if (lower.endsWith('.webm') || lower.endsWith('.ogg') || lower.endsWith('.ogv')) return true;
+        if (lower.endsWith('.mp4') || lower.endsWith('.mov')) {
+            return typeof HTMLVideoElement !== 'undefined' &&
+                HTMLVideoElement.prototype.canPlayType('video/mp4; codecs="avc1.42E01E,mp4a.40.2"') !== '';
+        }
+        return false;
     }, []);
 
     // Initialize HLS player with quality levels
@@ -182,8 +191,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         // attempt to load any source.  Loading the raw upload (e.g. MKV/AVI)
         // causes DEMUXER_ERROR_COULD_NOT_OPEN because the browser cannot
         // demux non-web-friendly containers.
-        if (isProcessing) {
-            // Clear any previous source to avoid stale playback attempts
+        if (isProcessing && !canPlayOriginal(src)) {
             video.removeAttribute('src');
             video.load();
             if (hlsRef.current) {
@@ -363,11 +371,14 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             if (autoPlay) {
                 video.play().catch(console.error);
             }
-        } else if (fullSrc) {
+        } else if (fullSrc && canPlayOriginal(src)) {
             video.src = fullSrc;
             if (autoPlay) {
                 video.play().catch(console.error);
             }
+        } else if (fullSrc && !canPlayOriginal(src)) {
+            setHasError(true);
+            setErrorMessage('Video format not supported by your browser. Please wait for transcoding to complete.');
         }
 
         return () => {};

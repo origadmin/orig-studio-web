@@ -62,7 +62,7 @@ const Tags: React.FC = () => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [currentTag, setCurrentTag] = useState<Tag | null>(null);
     const [formData, setFormData] = useState<Partial<CreateTagRequest & UpdateTagRequest>>({
-        name: '',
+        title: '',
         slug: '',
         description: '',
         color: '',
@@ -99,7 +99,7 @@ const Tags: React.FC = () => {
 
     const resetForm = () => {
         setFormData({
-            name: '',
+            title: '',
             slug: '',
             description: '',
             color: '',
@@ -154,7 +154,7 @@ const Tags: React.FC = () => {
     const openEditDialog = (tag: Tag) => {
         setCurrentTag(tag);
         setFormData({
-            name: tag.name,
+            title: tag.title,
             slug: tag.slug,
             description: tag.description || '',
             color: tag.color || '',
@@ -339,7 +339,7 @@ const Tags: React.FC = () => {
                                                     className="inline-block h-2 w-2 rounded-full shrink-0"
                                                     style={{backgroundColor: getTagColor(tag)}}
                                                 />
-                                                <span className="font-medium">{tag.name}</span>
+                                                <span className="font-medium">{tag.title}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -415,13 +415,13 @@ const Tags: React.FC = () => {
                             </h4>
                             <Input
                                 placeholder={t('admin.enterTagName')}
-                                value={formData.name || ''}
+                                value={formData.title || ''}
                                 onChange={(e) => {
-                                    const newName = e.target.value;
-                                    const newFormData: typeof formData = {...formData, name: newName};
+                                    const newTitle = e.target.value;
+                                    const newFormData: typeof formData = {...formData, title: newTitle};
                                     // Auto-fill slug only if user hasn't manually edited it
                                     if (!slugManuallyEdited) {
-                                        newFormData.slug = generateSlug(newName);
+                                        newFormData.slug = generateSlug(newTitle);
                                     }
                                     setFormData(newFormData);
                                 }}
@@ -504,8 +504,8 @@ const Tags: React.FC = () => {
                             </h4>
                             <Input
                                 placeholder={t('admin.enterTagName')}
-                                value={formData.name || ''}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                value={formData.title || ''}
+                                onChange={(e) => setFormData({...formData, title: e.target.value})}
                             />
                         </div>
                         <div>

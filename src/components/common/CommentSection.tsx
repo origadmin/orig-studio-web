@@ -18,7 +18,7 @@ interface CommentSectionProps {
 
 interface Comment {
     id: string;
-    content?: string;
+    text?: string;
     media_id?: string;
     user_id?: string;
     username?: string;
@@ -103,7 +103,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             const commentsList = response?.items || [];
             const formattedComments: Comment[] = commentsList.map((comment: any) => ({
                 id: comment.id || '',
-                content: comment.content || '',
+                text: comment.text || '',
                 media_id: comment.media_id || '',
                 user_id: comment.user_id || '',
                 username: comment.username || 'Anonymous',
@@ -152,7 +152,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         try {
             setIsSubmitting(true);
             setError(null);
-            await commentApi.create({media_id: mediaId, content: commentText});
+            await commentApi.create({media_id: mediaId, text: commentText});
             setCommentText('');
             setIsFocused(false);
             setShowEmojiPicker(false);
@@ -178,7 +178,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             await commentApi.create({
                 media_id: mediaId,
                 parent_id: replyingTo?.id,
-                content: replyText
+                text: replyText
             });
             setReplyText('');
             setShowReplyEmojiPicker(false);
@@ -547,7 +547,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                     </div>
                                 ) : (
                                     <p className="text-[15px] text-gray-800 dark:text-gray-200 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
-                                        {comment.content || <span className="text-muted-foreground italic">No content</span>}
+                                        {comment.text || <span className="text-muted-foreground italic">No content</span>}
                                     </p>
                                 )}
 

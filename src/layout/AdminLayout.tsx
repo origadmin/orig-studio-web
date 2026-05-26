@@ -57,7 +57,8 @@ const AdminLayout = () => {
         {id: "notifications", icon: Bell, label: t('admin.notifications') || "Notifications", path: "/admin/notifications"},
         {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
         {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
-        {id: "portal", icon: Layout, label: t('admin.portal') || "Portal", path: "/admin/portal"},
+        {id: "portal", icon: Layout, label: t('admin.portal'), path: "/admin/portal"},
+        {id: "permissions", icon: Settings, label: t('admin.permissions') || "Permissions", path: "/admin/permissions"},
         {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
     ];
 
@@ -92,6 +93,10 @@ const AdminLayout = () => {
             breadcrumbs.push({label: t('admin.playlists'), path: "/admin/playlists"});
         } else if (path.startsWith("/admin/articles")) {
             breadcrumbs.push({label: t('admin.articles'), path: "/admin/articles"});
+        } else if (path.startsWith("/admin/portal")) {
+            breadcrumbs.push({label: t('admin.portal'), path: "/admin/portal"});
+        } else if (path.startsWith("/admin/permissions")) {
+            breadcrumbs.push({label: t('admin.permissions'), path: "/admin/permissions"});
         } else if (path.startsWith("/admin/settings")) {
             breadcrumbs.push({label: t('admin.settings'), path: "/admin/settings"});
         }

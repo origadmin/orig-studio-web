@@ -21,17 +21,16 @@ const queryClient = new QueryClient({
     },
 });
 
-/**
- * InnerApp - renders inside AuthProvider so it can access AuthContext.
- * Creates the router with auth context injected, enabling route guards
- * to read authentication state via context.auth instead of localStorage.
- */
+declare module '@tanstack/react-router' {
+    interface Register {
+        router: ReturnType<typeof createRouter<typeof routeTree>>;
+    }
+}
+
 function InnerApp() {
     const auth = useContext(AuthContext);
     if (!auth) throw new Error('InnerApp must be used within AuthProvider');
 
-    // Use ref + getter pattern to avoid router recreation on auth changes.
-    // The router reads authRef.current at access time, always getting the latest value.
     const authRef = useRef(auth);
     authRef.current = auth;
 
@@ -41,12 +40,6 @@ function InnerApp() {
         defaultPreload: 'intent',
         pathParamsAllowedCharacters: ['@'],
     }), []);
-
-    declare module '@tanstack/react-router' {
-        interface Register {
-            router: typeof router;
-        }
-    }
 
     return <RouterProvider router={router}/>;
 }

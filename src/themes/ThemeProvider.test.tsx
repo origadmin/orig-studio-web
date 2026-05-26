@@ -9,7 +9,7 @@ import { ThemeProvider } from './ThemeProvider';
 import { useTheme } from './useTheme';
 
 // Mock fetch for registry loading
-const mockFetch = jest.fn();
+const mockFetch = jest.fn() as any;
 global.fetch = mockFetch;
 
 // Mock localStorage
@@ -38,7 +38,7 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query: string) => ({
+  value: jest.fn().mockImplementation((query: any) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -82,7 +82,7 @@ beforeEach(() => {
   document.documentElement.classList.remove('dark');
 
   // Default: registry fetch succeeds
-  mockFetch.mockImplementation((url: string) => {
+  mockFetch.mockImplementation((url: any) => {
     if (url === '/themes/registry.json') {
       return Promise.resolve({
         ok: true,
@@ -266,7 +266,7 @@ describe('useTheme', () => {
   });
 
   it('should restore saved theme from localStorage', async () => {
-    localStorageMock.getItem.mockImplementation((key: string) => {
+    localStorageMock.getItem.mockImplementation((key: any): any => {
       if (key === 'origstudio-theme') return 'feishu-blue';
       if (key === 'origstudio-color-mode') return 'dark';
       return null;

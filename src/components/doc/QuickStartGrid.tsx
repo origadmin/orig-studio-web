@@ -34,8 +34,7 @@ const QuickStartGrid: React.FC = () => {
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            to="/categories/$slug"
-            params={{ slug: cat.slug }}
+            {...{to: "/categories/$slug", params: { slug: cat.slug }} as any}
             className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary/50 dark:hover:border-primary/50 hover:bg-primary/5 transition-colors"
           >
             <Folder size={20} className="text-primary shrink-0" />

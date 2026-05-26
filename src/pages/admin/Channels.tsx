@@ -416,7 +416,7 @@ const Channels: React.FC = () => {
                                         <TableCell>
                                             <Badge variant="outline">-</Badge>
                                         </TableCell>
-                                        <TableCell>{getStatusBadge(channel.status)}</TableCell>
+                                        <TableCell>{getStatusBadge(channel.status ?? 'unknown')}</TableCell>
                                         <TableCell className="text-muted-foreground">
                                             {formatDateTime(channel.create_time)}
                                         </TableCell>

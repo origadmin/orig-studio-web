@@ -3,7 +3,7 @@ import { api } from "../request";
 
 export interface Tag {
   id: string;
-  name: string;
+  title: string;
   slug: string;
   description?: string;
   color?: string;
@@ -31,15 +31,15 @@ export interface TagQueryParams {
 }
 
 export interface CreateTagRequest {
-  name: string;
-  slug?: string; // Optional: auto-generated from name when empty
+  title: string;
+  slug?: string; // Optional: auto-generated from title when empty
   description?: string;
   color?: string;
   status?: string; // Optional: defaults to active
 }
 
 export interface UpdateTagRequest {
-  name?: string;
+  title?: string;
   slug?: string;
   description?: string;
   color?: string;

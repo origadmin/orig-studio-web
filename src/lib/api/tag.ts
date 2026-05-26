@@ -4,7 +4,7 @@ import {PaginatedResponse} from "./types";
 
 export interface Tag {
     id: string;
-    name: string;
+    title: string;
     slug: string;
     description?: string;
     color?: string;

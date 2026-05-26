@@ -114,14 +114,14 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className = ''}) => {
 
                         <div className="flex gap-3">
                             {currentBanner.primary_btn_text && currentBanner.primary_btn_url && (
-                                <Link to={currentBanner.primary_btn_url.startsWith('/') ? currentBanner.primary_btn_url as '/' | `/search` | `/watch/$id` | `/channel/$token` | `/playlist/$token` | `/user/$username` | `/${string}` : '/'}>
+                                <Link to={(currentBanner.primary_btn_url.startsWith('/') ? currentBanner.primary_btn_url : '/') as any}>
                                     <Button className="bg-white text-gray-900 hover:bg-white/90">
                                         {currentBanner.primary_btn_text}
                                     </Button>
                                 </Link>
                             )}
                             {currentBanner.secondary_btn_text && currentBanner.secondary_btn_url && (
-                                <Link to={currentBanner.secondary_btn_url.startsWith('/') ? currentBanner.secondary_btn_url as '/' | `/search` | `/watch/$id` | `/channel/$token` | `/playlist/$token` | `/user/$username` | `/${string}` : '/'}>
+                                <Link to={(currentBanner.secondary_btn_url.startsWith('/') ? currentBanner.secondary_btn_url : '/') as any}>
                                     <Button variant="outline" className="border-white text-white hover:bg-white/20">
                                         {currentBanner.secondary_btn_text}
                                     </Button>

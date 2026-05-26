@@ -368,7 +368,7 @@ const ReviewFlow: React.FC = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {getStatusBadge(item.status)}
+                                            {getStatusBadge(item.review_status)}
                                         </TableCell>
                                         <TableCell>
                                             <p className="text-sm text-gray-600 dark:text-muted-foreground">{formatDateTime(item.create_time)}</p>
@@ -514,7 +514,7 @@ const ReviewFlow: React.FC = () => {
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     {t('common.status')}
                                 </h4>
-                                {getStatusBadge(currentItem.status)}
+                                {getStatusBadge(currentItem.review_status)}
                             </div>
                             <div className="space-y-2">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">

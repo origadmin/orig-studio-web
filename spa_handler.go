@@ -24,6 +24,9 @@ func NewSPAHandler() *SPAHandler {
 	}
 
 	indexHTML, indexErr := fs.ReadFile(sub, "index.html")
+	if indexErr == nil {
+		indexHTML = []byte(strings.ReplaceAll(string(indexHTML), `<script type="module" src="/src/index.tsx"></script>`, ""))
+	}
 
 	return &SPAHandler{
 		fileServer: http.FileServer(http.FS(sub)),
@@ -87,8 +90,18 @@ var DefaultRootFiles = []string{
 	"/favicon.ico",
 	"/robots.txt",
 	"/manifest.json",
+	"/logo.svg",
+	"/logo-16.png",
+	"/logo-32.png",
+	"/logo-48.png",
+	"/logo-64.png",
+	"/logo-128.png",
 	"/logo-192.png",
+	"/logo-256.png",
 	"/logo-512.png",
+	"/logo-1024.png",
+	"/banner.svg",
+	"/banner.png",
 }
 
 func IsDistEmpty() bool {

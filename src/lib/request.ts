@@ -30,7 +30,7 @@ interface Token {
         username: string;
         nickname?: string;
         email?: string;
-        is_staff: boolean;
+        role?: string;
     };
 }
 
@@ -118,7 +118,7 @@ export const setAuth = (token: Token) => {
             username: token.user.username,
             displayName: token.user.nickname || token.user.username,
             avatarUrl: undefined,
-            roles: token.user.is_staff ? ['admin', 'user'] : ['user']
+            roles: (token.user.role === 'admin') ? ['admin', 'user'] : ['user']
         };
         localStorage.setItem(USER_KEY, JSON.stringify(user));
     }

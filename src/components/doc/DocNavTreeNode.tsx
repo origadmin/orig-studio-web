@@ -53,8 +53,7 @@ const DocNavTreeNode: React.FC<DocNavTreeNodeProps> = ({ node, currentSlug }) =>
         {!hasChildren && <span className="w-4 shrink-0" />}
 
         <Link
-          to="/categories/$slug"
-          params={{ slug: node.slug }}
+          {...{to: "/categories/$slug", params: { slug: node.slug }} as any}
           className="flex items-center gap-1.5 flex-1 min-w-0"
         >
           {expanded ? (

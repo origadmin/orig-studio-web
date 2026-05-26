@@ -866,7 +866,7 @@ const filteredTasks = useMemo(() => {
     const clearMediaFilter = () => {
         const params = new URLSearchParams(location.search);
         params.delete("media_id");
-        navigate({search: params.toString()});
+        navigate({search: (s: any) => ({...s, media_id: undefined})} as any);
     };
 
     // Tab definitions
@@ -1154,7 +1154,7 @@ const filteredTasks = useMemo(() => {
                             </p>
                             {!urlMediaId && !searchQuery && profileFilter === '' && (
                                 <Button variant="default" size="sm" className="mt-2"
-                                        onClick={() => navigate('/admin/media')}>
+                                        onClick={() => navigate({to: '/admin/media'} as any)}>
                                     <Video className="w-4 h-4 mr-2"/>
                                     Go to Media Library
                                 </Button>

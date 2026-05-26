@@ -2,6 +2,7 @@ import React from 'react';
 import {Link} from '@tanstack/react-router';
 import {ExternalLink} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
+import {api} from '@/lib/request';
 import type {Ad} from '@/lib/api/portal';
 
 interface AdCardProps {
@@ -12,7 +13,7 @@ interface AdCardProps {
 const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     const handleClick = async () => {
         try {
-            await fetch(`/api/v1/ads/${ad.id}/click`, {method: 'POST'});
+            await api.post(`/ads/${ad.id}/click`);
         } catch {}
     };
 
@@ -85,7 +86,7 @@ export default AdDisplay;
 export const FeedAdCard: React.FC<{ad: Ad}> = ({ad}) => {
     const handleClick = async () => {
         try {
-            await fetch(`/api/v1/ads/${ad.id}/click`, {method: 'POST'});
+            await api.post(`/ads/${ad.id}/click`);
         } catch {}
     };
 

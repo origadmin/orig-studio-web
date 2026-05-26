@@ -88,7 +88,7 @@ export const CommentTreeRow: React.FC<CommentTreeRowProps> = React.memo(
             ) : (
               <span className="w-5 flex-shrink-0" />
             )}
-            <CommentContentCell content={node.content || ''} status={status} />
+            <CommentContentCell content={node.text || ''} status={status} />
           </div>
         </TableCell>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import {render, screen, waitFor} from '@testing-library/react';
 import {RouterProvider, createMemoryHistory, createRouter} from '@tanstack/react-router';
-import {routeTree} from '@/router';
+import {routeTree} from '@/routes.gen';
 import WatchPage from './Watch';
 
 // Mock the necessary hooks and APIs
@@ -243,8 +243,8 @@ jest.mock('hls.js', () => {
         ],
         currentLevel: -1
     }));
-    mockHls.isSupported = jest.fn().mockReturnValue(true);
-    mockHls.Events = {
+    (mockHls as any).isSupported = jest.fn().mockReturnValue(true);
+    (mockHls as any).Events = {
         MANIFEST_PARSED: 'MANIFEST_PARSED',
         LEVEL_SWITCHED: 'LEVEL_SWITCHED'
     };
@@ -262,7 +262,7 @@ describe('WatchPage', () => {
         const memoryHistory = createMemoryHistory({
             initialEntries: [initialUrl],
         });
-        const router = createRouter({routeTree, history: memoryHistory});
+        const router = createRouter({routeTree, history: memoryHistory, context: {auth: null}} as any);
         return render(<RouterProvider router={router}/>);
     };
 

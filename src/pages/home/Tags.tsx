@@ -10,37 +10,37 @@ import {useTranslation} from 'react-i18next';
 import {colorFromName} from '@/lib/utils/tag-color';
 
 interface TagInfo {
-    name: string;
+    title: string;
     count: number;
     color?: string;
 }
 
 const mockTags: TagInfo[] = [
-    {name: 'Go', count: 128}, {name: 'React', count: 256}, {name: 'Docker', count: 89},
-    {name: 'Kubernetes', count: 67}, {name: 'TypeScript', count: 198}, {name: 'Python', count: 312},
-    {name: 'AWS', count: 145}, {name: 'Vue', count: 134}, {name: 'Redis', count: 56},
-    {name: 'GraphQL', count: 78}, {name: 'MongoDB', count: 45}, {name: 'Linux', count: 203},
-    {name: 'Node.js', count: 167}, {name: 'Rust', count: 34}, {name: 'C++', count: 92},
-    {name: 'Java', count: 187}, {name: 'Swift', count: 41}, {name: 'Flutter', count: 63},
-    {name: 'DevOps', count: 112}, {name: '机器学习', count: 89}, {name: '深度学习', count: 56},
-    {name: '数据科学', count: 73}, {name: '区块链', count: 28}, {name: '网络安全', count: 47},
-    {name: '算法', count: 156}, {name: '系统设计', count: 98}, {name: '前端', count: 221},
-    {name: '后端', count: 178}, {name: '全栈', count: 134}, {name: '微服务', count: 76},
+    {title: 'Go', count: 128}, {title: 'React', count: 256}, {title: 'Docker', count: 89},
+    {title: 'Kubernetes', count: 67}, {title: 'TypeScript', count: 198}, {title: 'Python', count: 312},
+    {title: 'AWS', count: 145}, {title: 'Vue', count: 134}, {title: 'Redis', count: 56},
+    {title: 'GraphQL', count: 78}, {title: 'MongoDB', count: 45}, {title: 'Linux', count: 203},
+    {title: 'Node.js', count: 167}, {title: 'Rust', count: 34}, {title: 'C++', count: 92},
+    {title: 'Java', count: 187}, {title: 'Swift', count: 41}, {title: 'Flutter', count: 63},
+    {title: 'DevOps', count: 112}, {title: '机器学习', count: 89}, {title: '深度学习', count: 56},
+    {title: '数据科学', count: 73}, {title: '区块链', count: 28}, {title: '网络安全', count: 47},
+    {title: '算法', count: 156}, {title: '系统设计', count: 98}, {title: '前端', count: 221},
+    {title: '后端', count: 178}, {title: '全栈', count: 134}, {title: '微服务', count: 76},
 ];
 
 const getTagColor = (tag: TagInfo): string => {
-    return tag.color || colorFromName(tag.name);
+    return tag.color || colorFromName(tag.title);
 };
 
 const TagsPage = () => {
     const {t} = useTranslation();
     const [filter, setFilter] = useState('');
     const filteredTags = mockTags.filter(t =>
-        t.name.toLowerCase().includes(filter.toLowerCase())
+        t.title.toLowerCase().includes(filter.toLowerCase())
     );
 
     const sortedTags = filter
-        ? [...filteredTags].sort((a, b) => a.name.localeCompare(b.name))
+        ? [...filteredTags].sort((a, b) => a.title.localeCompare(b.title))
         : [...filteredTags].sort((a, b) => b.count - a.count);
 
     return (
@@ -72,16 +72,16 @@ const TagsPage = () => {
                     const tagColor = getTagColor(tag);
                     return (
                         <Link
-                            key={tag.name}
+                            key={tag.title}
                             to="/search"
-                            search={{q: tag.name}}
+                            search={{q: tag.title}}
                             className="group flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:shadow-md transition-all"
                             style={{'--tag-color': tagColor} as React.CSSProperties}
                         >
                             <Hash size={16} className="shrink-0" style={{color: tagColor}}/>
                             <div className="min-w-0">
                                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate transition-colors" style={{color: tagColor}}>
-                                    {tag.name}
+                                    {tag.title}
                                 </p>
                                 <p className="text-xs text-muted-foreground">{t('tags.videosCount', {count: tag.count})}</p>
                             </div>

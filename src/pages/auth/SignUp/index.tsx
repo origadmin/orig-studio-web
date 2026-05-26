@@ -17,7 +17,7 @@ interface AuthResponse {
         id: string;
         username: string;
         nickname?: string;
-        is_staff?: boolean;
+        role?: string;
     };
 }
 
@@ -58,7 +58,7 @@ export default function SignUpPage() {
                 id: res.user.id,
                 username: res.user.username,
                 displayName: res.user.nickname || res.user.username,
-                roles: res.user.is_staff ? ["admin"] : ["user"],
+                roles: res.user.role === "admin" ? ["admin"] : ["user"],
             });
             navigate({to: "/"});
         } catch (err) {

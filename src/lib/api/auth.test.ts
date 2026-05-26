@@ -32,7 +32,7 @@ describe('Auth API', () => {
                     id: 1,
                     username: 'testuser',
                     email: 'test@example.com',
-                    is_staff: false,
+                    role: 'user',
                 },
             };
 
@@ -110,7 +110,6 @@ describe('Auth API', () => {
                 id: 1,
                 username: 'testuser',
                 email: 'test@example.com',
-                is_staff: true,
                 role: 'admin',
             };
 

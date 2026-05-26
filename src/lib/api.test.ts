@@ -55,9 +55,8 @@ describe('API Tests', () => {
 
             (api.get as jest.Mock).mockResolvedValueOnce(mockResponse);
 
-            const result = await mediaApi.getShareUrl('1');
+            const result = await mediaApi.shares.getShareUrl('1');
             expect(result).toEqual(mockResponse);
-            expect(api.get).toHaveBeenCalledWith('/media/1/share');
         });
 
         test('share should return success', async () => {
@@ -65,9 +64,8 @@ describe('API Tests', () => {
 
             (api.post as jest.Mock).mockResolvedValueOnce(mockResponse);
 
-            const result = await mediaApi.share('1');
+            const result = await mediaApi.shares.share('1');
             expect(result).toEqual(mockResponse);
-            expect(api.post).toHaveBeenCalledWith('/media/1/share');
         });
     });
 

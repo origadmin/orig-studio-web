@@ -406,7 +406,7 @@ export default function MediaPage() {
                                                     )}
                                                     {(media.preview_file_path || media.preview_file) && (
                                                         <img
-                                                            src={(media.preview_file_path || media.preview_file).startsWith('http') ? (media.preview_file_path || media.preview_file) : `${API_BASE_URL}${(media.preview_file_path || media.preview_file).startsWith('/') ? '' : '/'}${media.preview_file_path || media.preview_file}`}
+                                                            src={(media.preview_file_path || media.preview_file || '').startsWith('http') ? (media.preview_file_path || media.preview_file || '') : `${API_BASE_URL}${(media.preview_file_path || media.preview_file || '').startsWith('/') ? '' : '/'}${media.preview_file_path || media.preview_file}`}
                                                             alt="preview" 
                                                             className="w-full h-full object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                                             onError={(e) => { (e.target as HTMLImageElement).remove(); }}/>

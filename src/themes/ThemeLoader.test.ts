@@ -7,14 +7,14 @@ import { themeLoader, STORAGE_KEYS, STYLE_IDS } from './index';
 import type { ThemeRegistry } from './types';
 
 // Mock fetch globally
-const mockFetch = jest.fn();
+const mockFetch = jest.fn() as any;
 global.fetch = mockFetch;
 
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
   return {
-    getItem: jest.fn((key: string) => store[key] ?? null),
+    getItem: jest.fn((key: string): string | null => store[key] ?? null),
     setItem: jest.fn((key: string, value: string) => {
       store[key] = value;
     }),

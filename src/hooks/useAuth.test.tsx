@@ -35,7 +35,7 @@ describe('useAuth Hook', () => {
     describe('login', () => {
         it('should login and update auth state', async () => {
             const mockUser = {
-                id: 1,
+                id: '1',
                 username: 'testuser',
                 displayName: 'Test User',
                 roles: ['user']

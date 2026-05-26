@@ -74,7 +74,7 @@ const SubscriptionsPage = () => {
                     {subscriptions.map((user) => (
                         <div key={user.id}
                              className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                            <Link to={user.username ? `/@${user.username}` : `/u/${user.user_id}`} className="flex items-center gap-3">
+                            <Link to={(user.username ? `/@${user.username}` : `/u/${user.user_id}`) as any} className="flex items-center gap-3">
                                 <Avatar className="h-12 w-12">
                                     <AvatarImage src={user.avatar}/>
                                     <AvatarFallback>{user.username?.[0] || 'U'}</AvatarFallback>

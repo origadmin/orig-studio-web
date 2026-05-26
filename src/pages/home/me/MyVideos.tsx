@@ -38,7 +38,7 @@ const MyVideos = () => {
 
     const mediaList = data?.items || [];
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string | number) => {
         if (window.confirm('确定要删除这个视频吗？')) {
             await deleteMutation.mutateAsync(id?.toString() || '');
             // 检查当前页面是否还有数据
@@ -46,7 +46,7 @@ const MyVideos = () => {
                 if (page > 1) {
                     // 如果当前页面只有一条数据且不是第一页，则切换到上一页
                     setPage(page - 1);
-                } else if (data?.total > 0) {
+                } else if ((data?.total ?? 0) > 0) {
                     // 如果是第一页且总数据大于0，则重新加载当前页
                     setPage(1);
                 }

@@ -40,8 +40,8 @@ global.matchMedia = global.matchMedia || function () {
 };
 
 // 防止测试卡住
-global.setTimeout = jest.useRealTimers ? setTimeout : jest.fn().mockReturnValue(123) as any;
-global.clearTimeout = jest.useRealTimers ? clearTimeout : jest.fn() as any;
+global.setTimeout = setTimeout as any;
+global.clearTimeout = clearTimeout as any;
 
 // Mock window.scrollTo
 global.scrollTo = jest.fn();

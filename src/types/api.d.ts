@@ -2018,7 +2018,7 @@ export interface components {
         };
         "api.v1.services.media.ToggleMediaLikeRequest": {
             media_id?: string;
-            type?: string;
+            like_type?: string;
         };
         "api.v1.services.media.ToggleMediaLikeResponse": {
             is_liked?: boolean;
@@ -2168,7 +2168,7 @@ export interface components {
             create_time?: string;
             /** Format: date-time */
             update_time?: string;
-            content?: string;
+            text?: string;
             user_id?: string;
             media_id?: string;
             parent_id?: string;
@@ -2238,7 +2238,7 @@ export interface components {
             create_time?: string;
             user_id?: string;
             media_id?: string;
-            type?: string;
+            like_type?: string;
         };
         /** @description Media is the model entity for Media. */
         "api.v1.services.types.Media": {
@@ -2421,7 +2421,7 @@ export interface components {
             create_time?: string;
             /** Format: date-time */
             update_time?: string;
-            name?: string;
+            title?: string;
             slug?: string;
             description?: string;
             color?: string;
@@ -2448,7 +2448,6 @@ export interface components {
             /** Format: enum */
             status?: number;
             is_superuser?: boolean;
-            is_staff?: boolean;
             last_login_ip?: string;
             login_ip?: string;
             /** Format: date-time */

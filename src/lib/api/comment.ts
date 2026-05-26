@@ -3,7 +3,7 @@ import {api} from "../request";
 
 export interface Comment {
     id: string;
-    content?: string;
+    text?: string;
     media_id?: string;
     user_id?: string;
     username?: string;
@@ -16,7 +16,7 @@ export interface Comment {
 
 export interface AdminComment {
     id: string;
-    content?: string;
+    text?: string;
     status?: string;
     media_id?: string;
     user_id?: string;
@@ -84,19 +84,19 @@ export const commentApi = {
         return api.get<CommentListResponse>('/comments', params || {});
     },
     get: (id: string) => api.get<Comment>(`/comments/${id}`),
-    create: (data: { media_id?: string; content_id?: string; parent_id?: string; content: string }) => {
+    create: (data: { media_id?: string; content_id?: string; parent_id?: string; text: string }) => {
         return api.post<Comment>("/comments", {
             comment: {
-                content: data.content,
+                text: data.text,
                 ...(data.media_id && { media_id: data.media_id }),
                 ...(data.content_id && { content_id: data.content_id }),
                 ...(data.parent_id && { parent_id: data.parent_id }),
             }
         });
     },
-    update: (id: string, data: { content: string }) =>
+    update: (id: string, data: { text: string }) =>
         api.put<Comment>(`/comments/${id}`, {
-            comment: { content: data.content }
+            comment: { text: data.text }
         }),
     delete: (id: string) => api.del<void>(`/comments/${id}`),
 

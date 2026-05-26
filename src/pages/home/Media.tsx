@@ -1,7 +1,7 @@
 // 用户端 - 媒体浏览页面
 import {useState, useEffect} from "react";
 import {Link} from "@tanstack/react-router";
-import {mediaApi, categoryApi, type Media, type Category, normalizeMediaList} from "@/lib/api";
+import {mediaApi, categoryApi, type Media, type Category} from "@/lib/api";
 import {useTranslation} from 'react-i18next';
 
 export default function MediaPage() {
@@ -25,7 +25,7 @@ export default function MediaPage() {
                 categoryApi.getAll()
             ]);
             const mediaRes = await mediaApi.list(params);
-            setMediaList(normalizeMediaList(mediaRes.items || []));
+            setMediaList(mediaRes.items || []);
             setCategories((catRes as any)?.items || catRes || []);
         } catch (err: any) {
             setError(err.message);
@@ -130,8 +130,7 @@ export default function MediaPage() {
                         {mediaList.map((media) => (
                             <Link
                                 key={media.id}
-                                to="/v/$id"
-                                params={{id: media.id}}
+                                {...{to: "/v/$id", params: {id: media.id}} as any}
                                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
                             >
                                 <div className="relative aspect-video bg-gray-100">
@@ -161,9 +160,9 @@ export default function MediaPage() {
                                         {media.description}
                                     </p>
                                     <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                                        <span>👁 {media.views}</span>
-                                        <span>❤️ {media.likes}</span>
-                                        <span>{formatSize(media.size)}</span>
+                                        <span>👁 {media.view_count}</span>
+                                        <span>❤️ {media.like_count}</span>
+                                        <span>{formatSize(Number(media.size) || 0)}</span>
                                     </div>
                                 </div>
                             </Link>

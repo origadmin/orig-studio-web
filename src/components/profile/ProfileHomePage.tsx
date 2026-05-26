@@ -171,7 +171,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     const handleManageClick = (tab: typeof OWNER_TABS[number]) => {
         if (tab.key === 'followers' && profile) {
-            navigate({to: tab.manageTo, params: {id: profile.id}, search: {tab: 'followers'}});
+            navigate({to: tab.manageTo, params: {id: profile.id}, search: {tab: 'followers'} as any});
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
         }
@@ -230,7 +230,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         onManage={() => handleManageClick(OWNER_TABS[1])}
                         renderItem={(ch) => (
                             <div key={ch.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
-                                 onClick={() => navigate({to: '/c/$token', params: {token: ch.token || ch.short_token}})}>
+                                 onClick={() => navigate({to: '/c/$token', params: {token: ch.token || ch.short_token}} as any)}>
                                 <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                                     {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 rounded-lg object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
                                 </div>

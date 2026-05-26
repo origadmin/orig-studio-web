@@ -2004,7 +2004,7 @@ export interface components {
         };
         "api.v1.services.media.ToggleMediaLikeRequest": {
             media_id?: string;
-            type?: string;
+            like_type?: string;
         };
         "api.v1.services.media.ToggleMediaLikeResponse": {
             is_liked?: boolean;
@@ -2185,8 +2185,8 @@ export interface components {
              * @description update_time.field.comment
              */
             update_time?: string;
-            /** @description comment.field.content */
-            content?: string;
+            /** @description comment.field.text */
+            text?: string;
             /** @description comment.field.user_id */
             user_id?: string;
             /** @description comment.field.media_id */
@@ -2268,8 +2268,8 @@ export interface components {
             user_id?: string;
             /** @description like.field.media_id */
             media_id?: string;
-            /** @description like.field.type */
-            type?: string;
+            /** @description like.field.like_type */
+            like_type?: string;
         };
         /** @description Media is the model entity for Media. */
         "api.v1.services.types.Media": {
@@ -2612,8 +2612,8 @@ export interface components {
              * @description update_time.field.comment
              */
             update_time?: string;
-            /** @description tag.field.name */
-            name?: string;
+            /** @description tag.field.title */
+            title?: string;
             /** @description tag.field.slug */
             slug?: string;
             /** @description tag.field.description */
@@ -2665,8 +2665,6 @@ export interface components {
             status?: number;
             /** @description user.field.is_superuser */
             is_superuser?: boolean;
-            /** @description user.field.is_staff */
-            is_staff?: boolean;
             /** @description user.field.is_active */
             is_active?: boolean;
             /** @description user.field.last_login_ip */

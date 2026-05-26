@@ -157,6 +157,7 @@ const WatchPage = () => {
                         ref={videoPlayerRef}
                         src={media.url || ''}
                         hlsSrc={media.hls_file}
+                        isProcessing={isProcessing}
                         poster={media.poster || media.thumbnail}
                         spriteVttUrl={media.sprite_status === 'success' && media.short_token ? spriteApi.getVttUrl(media.short_token) : undefined}
                         enableSpritePreview={true}
@@ -217,13 +218,12 @@ const WatchPage = () => {
                                 </Button>
                             )}
 
-                            {/* Fallback to MP4 indicator for non-success states */}
                             {media.encoding_status !== 'success' && media.url && (
                                 <Badge
                                     variant="outline"
                                     className="gap-1 bg-black/60 text-yellow-300 border-yellow-500/30 backdrop-blur-md text-[10px] px-1.5 py-0 h-5"
                                 >
-                                    MP4 Fallback
+                                    {media.url.toLowerCase().match(/\.(mp4|webm|ogg|ogv|mov)$/) ? 'Original Preview' : 'Original (Unsupported)'}
                                 </Badge>
                             )}
                         </div>
@@ -274,7 +274,7 @@ const WatchPage = () => {
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-4">
                                 {mediaUser ? (
-                                    <Link to={`/@${mediaUser.username}`}>
+                                    <Link to={`/@${mediaUser.username}` as any}>
                                         <Avatar className="h-12 w-12 ring-2 ring-gray-100 dark:ring-gray-800">
                                             <AvatarImage src={getImageUrl(mediaUser.avatar, 'avatar')} loading="lazy"
                                                          onError={(e) => handleImageError(e, 'avatar')}/>
@@ -289,7 +289,7 @@ const WatchPage = () => {
                                 <div>
                                     {mediaUser ? (
                                         <>
-                                            <Link to={`/@${mediaUser.username}`}
+                                            <Link to={`/@${mediaUser.username}` as any}
                                                   className="font-bold text-gray-900 dark:text-white hover:text-info transition-colors">
                                                 {mediaUser.nickname || mediaUser.username}
                                             </Link>

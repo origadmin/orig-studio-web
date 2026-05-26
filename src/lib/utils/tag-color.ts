@@ -25,8 +25,8 @@ export function colorFromName(name: string): string {
   return TAG_COLOR_PALETTE[hash % TAG_COLOR_PALETTE.length];
 }
 
-export function getTagColor(tag: { color?: string; name: string }): string {
-  return tag.color || colorFromName(tag.name);
+export function getTagColor(tag: { color?: string; title: string }): string {
+  return tag.color || colorFromName(tag.title);
 }
 
 export function isValidHexColor(s: string): boolean {

@@ -323,6 +323,9 @@ export const adminPortalApi = {
     toggleBanner: (id: string) =>
         api.post<Banner>(`/admin/banners/${id}/toggle`),
 
+    deleteBanner: (id: string) =>
+        api.del<void>(`/admin/banners/${id}`),
+
     listPages: () =>
         api.get<CustomPageListResponse>('/admin/pages'),
 

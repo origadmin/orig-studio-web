@@ -54,7 +54,7 @@ const HomePage = () => {
         page_size: 12,
     });
 
-    let items = [];
+    let items: any[] = [];
     if (data && data.pages) {
         for (const page of data.pages) {
             if (page && page.items) {

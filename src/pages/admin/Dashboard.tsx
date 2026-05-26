@@ -365,7 +365,7 @@ const StatCard = ({icon, label, value, trend, trendUp, small = false, color = "p
     };
     
     // 确保 color 是一个有效的颜色值
-    const validColor = colorMap[color] || colorMap.primary;
+    const validColor = colorMap[color as keyof typeof colorMap] || colorMap.primary;
     
     return (
         <Card className="relative overflow-hidden border-none shadow-sm bg-card ring-1 ring-border">

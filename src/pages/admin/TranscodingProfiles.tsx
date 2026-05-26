@@ -146,8 +146,8 @@ export default function TranscodingProfiles() {
                 const aVal = a[sortConfig.key];
                 const bVal = b[sortConfig.key];
 
-                if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+                if (aVal != null && bVal != null && aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aVal != null && bVal != null && aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
         } else {
@@ -719,7 +719,7 @@ export default function TranscodingProfiles() {
                                                     checked={editingProfile?.is_active ?? true}
                                                     onCheckedChange={(checked) => setEditingProfile({
                                                         ...editingProfile,
-                                                        is_active: checked
+                                                        is_active: checked === true
                                                     })}
                                                 />
                                                 <label htmlFor="active" className="ml-2 text-sm font-medium leading-none">

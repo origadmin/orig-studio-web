@@ -56,7 +56,7 @@ export const interactionApi = {
 
         // Toggle like/dislike
         toggle: (mediaId: string, type: 'like' | 'dislike' = 'like') =>
-            api.post<LikeResponse>("/interactions/likes", {media_id: mediaId, type}),
+            api.post<LikeResponse>("/interactions/likes", {media_id: mediaId, like_type: type}),
 
         // Batch get like status
         getStatusBatch: (mediaIds: string[]) =>

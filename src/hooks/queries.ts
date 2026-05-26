@@ -577,6 +577,100 @@ export function useToggleBanner() {
     });
 }
 
+export function useDeleteBanner() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPortalApi.deleteBanner(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
+            queryClient.invalidateQueries({queryKey: ['portal', 'config']});
+        },
+    });
+}
+
+export function useAdminAdPlacements() {
+    return useQuery({
+        queryKey: ['admin', 'adPlacements'],
+        queryFn: async () => {
+            const res = await adminPortalApi.listAdPlacements();
+            return res;
+        },
+    });
+}
+
+export function useCreateAdPlacement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Parameters<typeof adminPortalApi.createAdPlacement>[0]) =>
+            adminPortalApi.createAdPlacement(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
+        },
+    });
+}
+
+export function useToggleAdPlacement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPortalApi.toggleAdPlacement(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
+        },
+    });
+}
+
+export function useDeleteAdPlacement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPortalApi.deleteAdPlacement(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
+        },
+    });
+}
+
+export function useAdminAds(placementId: string) {
+    return useQuery({
+        queryKey: ['admin', 'ads', placementId],
+        queryFn: async () => {
+            const res = await adminPortalApi.listAds(placementId);
+            return res;
+        },
+        enabled: !!placementId,
+    });
+}
+
+export function useCreateAd() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Parameters<typeof adminPortalApi.createAd>[0]) =>
+            adminPortalApi.createAd(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
+        },
+    });
+}
+
+export function useToggleAd() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPortalApi.toggleAd(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
+        },
+    });
+}
+
+export function useDeleteAd() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPortalApi.deleteAd(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
+        },
+    });
+}
+
 // ==================== Review Hooks ====================
 
 /**

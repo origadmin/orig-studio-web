@@ -78,6 +78,9 @@ interface FormData {
     module_videos: boolean;
     module_music: boolean;
     homepage_layout: string;
+    keep_original_files: string;
+    keep_original_after_remux: string;
+    keep_original_after_transcode: string;
 }
 
 interface SystemInfo {
@@ -151,6 +154,9 @@ const defaultFormData: FormData = {
     module_videos: true,
     module_music: false,
     homepage_layout: 'auto',
+    keep_original_files: 'true',
+    keep_original_after_remux: 'false',
+    keep_original_after_transcode: 'true',
 };
 
 const Settings: React.FC = () => {
@@ -263,6 +269,9 @@ const Settings: React.FC = () => {
                     module_videos: getSettingValue('module_videos') === 'true',
                     module_music: getSettingValue('module_music') === 'true',
                     homepage_layout: getSettingValue('homepage_layout') || prev.homepage_layout,
+                    keep_original_files: getSettingValue('keep_original_files') || prev.keep_original_files,
+                    keep_original_after_remux: getSettingValue('keep_original_after_remux') || prev.keep_original_after_remux,
+                    keep_original_after_transcode: getSettingValue('keep_original_after_transcode') || prev.keep_original_after_transcode,
                 }));
             }
         } catch (error) {
@@ -395,6 +404,9 @@ const Settings: React.FC = () => {
                 {key: 'module_videos', value: String(formData.module_videos)},
                 {key: 'module_music', value: String(formData.module_music)},
                 {key: 'homepage_layout', value: formData.homepage_layout},
+                {key: 'keep_original_files', value: formData.keep_original_files},
+                {key: 'keep_original_after_remux', value: formData.keep_original_after_remux},
+                {key: 'keep_original_after_transcode', value: formData.keep_original_after_transcode},
             ];
             await settingsApi.update({settings});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
@@ -718,6 +730,77 @@ const Settings: React.FC = () => {
                             </CardContent>
                         </Card>
                     )}
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <HardDrive className="h-5 w-5"/>
+                                {t('settings.originalFileRetention')}
+                            </CardTitle>
+                            <CardDescription>{t('settings.originalFileRetentionDesc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between p-3 rounded-lg border">
+                                <div className="space-y-0.5">
+                                    <Label className="text-sm font-medium">{t('settings.keepOriginalFiles')}</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('settings.keepOriginalFilesDesc')}
+                                    </p>
+                                </div>
+                                <Switch
+                                    checked={formData.keep_original_files === 'true'}
+                                    onCheckedChange={(checked: boolean) =>
+                                        handleInputChange('keep_original_files', String(checked))
+                                    }
+                                />
+                            </div>
+
+                            {formData.keep_original_files === 'false' && (
+                                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-sm font-medium">
+                                                {t('settings.keepOriginalAfterRemux')}
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                {t('settings.keepOriginalAfterRemuxDesc')}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={formData.keep_original_after_remux === 'true'}
+                                            onCheckedChange={(checked: boolean) =>
+                                                handleInputChange('keep_original_after_remux', String(checked))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                                        <div className="space-y-0.5">
+                                            <Label className="text-sm font-medium">
+                                                {t('settings.keepOriginalAfterTranscode')}
+                                            </Label>
+                                            <p className="text-xs text-muted-foreground">
+                                                {t('settings.keepOriginalAfterTranscodeDesc')}
+                                            </p>
+                                        </div>
+                                        <Switch
+                                            checked={formData.keep_original_after_transcode === 'true'}
+                                            onCheckedChange={(checked: boolean) =>
+                                                handleInputChange('keep_original_after_transcode', String(checked))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                                        <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0"/>
+                                        <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                                            {t('settings.originalFileWarning')}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </TabsContent>
 
                 <TabsContent value="media" className="space-y-6">
