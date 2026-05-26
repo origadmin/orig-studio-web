@@ -354,7 +354,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
             } else {
                 await mediaApi.report(mediaId, data);
             }
-            toast.success(t('report.submitted') || 'Report submitted successfully');
+            toast.success(t('report.submitted'));
         } catch (err: any) {
             throw err;
         }
@@ -419,7 +419,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     <Bookmark className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`}/>
                 )}
                 <span
-                    className="font-medium">{isFavorited ? t('watch.favorited') || 'Favorited' : t('watch.favorite') || 'Favorite'}</span>
+                    className="font-medium">{isFavorited ? t('watch.favorited') : t('watch.favorite')}</span>
             </Button>
 
             {/* Share Button */}
@@ -456,16 +456,16 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={fetchPlaylists}>
                         <Bookmark className="w-4 h-4 mr-2"/>
-                        {t('watch.saveToPlaylist') || 'Save to playlist'}
+                        {t('watch.saveToPlaylist')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDownload} disabled={isDownloading}>
                         <Download className="w-4 h-4 mr-2"/>
-                        {isDownloading ? t('common.loading') : (t('watch.download') || 'Download')}
+                        {isDownloading ? t('common.loading') : (t('watch.download'))}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
                         <Flag className="w-4 h-4 mr-2"/>
-                        {t('report.reportVideo') || 'Report Video'}
+                        {t('report.reportVideo')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -474,9 +474,9 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
             <Dialog open={showShareModal} onOpenChange={setShowShareModal}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('watch.shareVideo') || 'Share Video'}</DialogTitle>
+                        <DialogTitle>{t('watch.shareVideo')}</DialogTitle>
                         <DialogDescription>
-                            {t('watch.shareDescription') || 'Share this video with your friends'}
+                            {t('watch.shareDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -497,7 +497,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                 onClick={handleCopyLink}
                                 className={copied ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'}
                             >
-                                {copied ? <Check className="w-4 h-4"/> : t('watch.copyLink') || 'Copy'}
+                                {copied ? <Check className="w-4 h-4"/> : t('watch.copyLink')}
                             </Button>
                         </div>
 
@@ -593,10 +593,10 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Bookmark className="w-5 h-5 text-emerald-600"/>
-                            {t('watch.saveToPlaylist') || 'Save to Playlist'}
+                            {t('watch.saveToPlaylist')}
                         </DialogTitle>
                         <DialogDescription>
-                            {t('watch.selectPlaylist') || 'Select a playlist to save this video'}
+                            {t('watch.selectPlaylist')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -628,7 +628,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                             </span>
                                             {isAdded && (
                                                 <span className="ml-auto text-xs text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-                                                    {t('watch.added') || 'Added'}
+                                                    {t('watch.added')}
                                                 </span>
                                             )}
                                             {isSaving && !isAdded && (
@@ -644,7 +644,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         {playlists.length > 0 && (
                             <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
                                 <span className="text-xs text-gray-500 uppercase tracking-wider px-1">
-                                    {t('watch.orCreateNew') || 'Or create new'}
+                                    {t('watch.orCreateNew')}
                                 </span>
                             </div>
                         )}
@@ -657,7 +657,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                 onClick={() => setShowCreateForm(true)}
                             >
                                 <BookmarkPlus className="w-4 h-4 mr-2"/>
-                                {t('watch.createNewPlaylist') || '+ Create new playlist'}
+                                {t('watch.createNewPlaylist')}
                             </Button>
                         ) : (
                             <div className="space-y-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -665,7 +665,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                     type="text"
                                     value={newPlaylistName}
                                     onChange={(e) => setNewPlaylistName(e.target.value)}
-                                    placeholder={t('watch.playlistNamePlaceholder') || 'Enter playlist name...'}
+                                    placeholder={t('watch.playlistNamePlaceholder')}
                                     className="w-full px-3 py-2 rounded-md border border-input dark:border-gray-600 bg-white dark:bg-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                                     autoFocus
                                     onKeyDown={(e) => {
@@ -696,7 +696,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                         {isCreatingPlaylist ? (
                                             <Loader2 className="w-4 h-4 animate-spin mr-1"/>
                                         ) : null}
-                                        {t('watch.create') || 'Create'}
+                                        {t('watch.create')}
                                     </Button>
                                 </div>
                             </div>
@@ -710,14 +710,14 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                     {t('watch.noPlaylists') || "You don't have any playlists yet"}
                                 </p>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    {t('watch.createFirstPlaylist') || 'Create your first playlist to organize your videos'}
+                                    {t('watch.createFirstPlaylist')}
                                 </p>
                                 <Button
                                     onClick={() => setShowCreateForm(true)}
                                     className="bg-emerald-600 hover:bg-emerald-700"
                                 >
                                     <BookmarkPlus className="w-4 h-4 mr-2"/>
-                                    {t('watch.createPlaylist') || 'Create Playlist'}
+                                    {t('watch.createPlaylist')}
                                 </Button>
                             </div>
                         )}
@@ -731,13 +731,13 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <LogIn className="w-5 h-5"/>
-                            {t('auth.loginRequired') || 'Login Required'}
+                            {t('auth.loginRequired')}
                         </DialogTitle>
                         <DialogDescription>
-                            {loginAction === 'like' && (t('watch.loginToLike') || 'Please login to like this video')}
-                            {loginAction === 'dislike' && (t('watch.loginToDislike') || 'Please login to dislike this video')}
-                            {loginAction === 'favorite' && (t('watch.loginToFavorite') || 'Please login to save this video')}
-                            {loginAction === 'save' && (t('watch.loginToSave') || 'Please login to save to playlist')}
+                            {loginAction === 'like' && (t('watch.loginToLike'))}
+                            {loginAction === 'dislike' && (t('watch.loginToDislike'))}
+                            {loginAction === 'favorite' && (t('watch.loginToFavorite'))}
+                            {loginAction === 'save' && (t('watch.loginToSave'))}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-end gap-3 mt-4">
@@ -745,7 +745,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                             variant="outline"
                             onClick={() => setShowLoginDialog(false)}
                         >
-                            {t('common.cancel') || 'Cancel'}
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             className="bg-emerald-600 hover:bg-emerald-700"
@@ -755,7 +755,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                             }}
                         >
                             <LogIn className="w-4 h-4 mr-2"/>
-                            {t('auth.signin') || 'Sign In'}
+                            {t('auth.signin')}
                         </Button>
                     </div>
                 </DialogContent>

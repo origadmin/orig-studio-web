@@ -67,37 +67,37 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
         },
         channels: {
             icon: <Tv className="w-20 h-20"/>,
-            title: t('profile.noChannels') || 'No channels yet',
-            desc: isOwner ? (t('profile.noChannelsDescOwner') || 'Create your first channel to start publishing') : (t('profile.noChannelsDescVisitor') || 'This user has no channels'),
+            title: t('profile.noChannels'),
+            desc: isOwner ? (t('profile.noChannelsDescOwner')) : (t('profile.noChannelsDescVisitor')),
             action: isOwner ? (
                 <Button onClick={() => navigate({to: '/me/channels'})}>
                     <Tv className="w-4 h-4 mr-1"/>
-                    {t('profile.createChannel') || 'Create Channel'}
+                    {t('profile.createChannel')}
                 </Button>
             ) : null,
         },
         articles: {
             icon: <FileText className="w-20 h-20"/>,
-            title: t('profile.noArticles') || 'No articles yet',
-            desc: isOwner ? (t('profile.noArticlesDescOwner') || 'Write your first article') : (t('profile.noArticlesDescVisitor') || 'This user has no articles'),
+            title: t('profile.noArticles'),
+            desc: isOwner ? (t('profile.noArticlesDescOwner')) : (t('profile.noArticlesDescVisitor')),
             action: null,
         },
         followers: {
             icon: <UserCheck className="w-20 h-20"/>,
-            title: t('profile.noFollowers') || 'No followers yet',
-            desc: isOwner ? (t('profile.noFollowersDescOwner') || 'Share your profile to get followers') : (t('profile.noFollowersDescVisitor') || 'This user has no followers'),
+            title: t('profile.noFollowers'),
+            desc: isOwner ? (t('profile.noFollowersDescOwner')) : (t('profile.noFollowersDescVisitor')),
             action: null,
         },
         favorites: {
             icon: <Heart className="w-20 h-20"/>,
-            title: t('profile.noFavorites') || 'No favorites yet',
-            desc: isOwner ? (t('profile.noFavoritesDescOwner') || 'Videos you favorite will appear here') : (t('profile.noFavoritesDescVisitor') || 'This user has no favorites'),
+            title: t('profile.noFavorites'),
+            desc: isOwner ? (t('profile.noFavoritesDescOwner')) : (t('profile.noFavoritesDescVisitor')),
             action: null,
         },
         history: {
             icon: <History className="w-20 h-20"/>,
-            title: t('profile.noHistory') || 'No watch history',
-            desc: isOwner ? (t('profile.noHistoryDescOwner') || 'Videos you watch will appear here') : (t('profile.noHistoryDescVisitor') || 'No watch history'),
+            title: t('profile.noHistory'),
+            desc: isOwner ? (t('profile.noHistoryDescOwner')) : (t('profile.noHistoryDescVisitor')),
             action: null,
         },
     };

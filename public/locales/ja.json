@@ -44,7 +44,14 @@
     "retry": "再試行",
     "reply": "返信",
     "creating": "作成中...",
-    "unlimited": "無制限"
+    "unlimited": "無制限",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "optional": "オプション",
+    "deleted": "削除済み",
+    "error": "エラー",
+    "loadMore": "もっと読み込む"
   },
   "nav": {
     "home": "ホーム",
@@ -169,7 +176,14 @@
   },
   "search": {
     "title": "検索",
-    "resultsFor": "「{{query}}」の検索結果"
+    "resultsFor": "「{{query}}」の検索結果",
+    "placeholder": "動画、タグ、ユーザーを検索...",
+    "search": "検索",
+    "filterByCategory": "カテゴリで絞り込み",
+    "clearFilters": "フィルターをクリア",
+    "allCategories": "すべてのカテゴリ",
+    "results": "件の結果",
+    "enterQuery": "検索キーワードを入力..."
   },
   "watch": {
     "nextUp": "次の動画",
@@ -221,7 +235,10 @@
     "loginToLike": "いいねするにはログインしてください",
     "loginToDislike": "低評価するにはログインしてください",
     "loginToFavorite": "お気に入りに保存するにはログインしてください",
-    "loginToSave": "プレイリストに保存するにはログインしてください"
+    "loginToSave": "プレイリストに保存するにはログインしてください",
+    "commentBlocked": "このコメントはブロックされています",
+    "loadMore": "もっとコメントを読み込む",
+    "loading": "読み込み中..."
   },
   "report": {
     "reportVideo": "動画を報告",
@@ -520,12 +537,45 @@
   },
   "notifications": {
     "title": "通知",
-    "unreadCount": "{{count}}件の未読通知",
+    "noNotifications": "通知はまだありません",
+    "markAllAsRead": "すべて既読にする",
+    "markingAllRead": "すべて既読にしています...",
+    "markAsRead": "既読にする",
+    "read": "既読",
+    "unread": "未読",
+    "unreadCount": "{{count}} 件未読",
+    "viewAll": "すべての通知を見る",
+    "allNotifications": "すべての通知",
+    "create": "通知を作成",
     "noNew": "新しい通知はありません",
     "all": "すべて",
-    "unread": "未読",
-    "markAllRead": "すべて既読",
-    "empty": "通知はまだありません"
+    "empty": "通知はまだありません",
+    "sendToAll": "全ユーザーに送信",
+    "sendToUser": "特定のユーザーに送信",
+    "broadcast": "ブロードキャスト",
+    "targetUser": "対象ユーザー",
+    "actionType": "アクションタイプ",
+    "deliveryMethod": "配信方法",
+    "inApp": "アプリ内通知",
+    "email": "メール",
+    "notifyOption": "プッシュ通知",
+    "totalSent": "送信総数",
+    "totalRead": "既読総数",
+    "recentActivity": "最近のアクティビティ",
+    "sendNotification": "通知を送信",
+    "notificationHistory": "通知履歴",
+    "config": "通知設定",
+    "configDesc": "通知の配信と表示設定を構成",
+    "enableEmail": "メール通知を有効にする",
+    "enableInApp": "アプリ内通知を有効にする",
+    "enablePush": "プッシュ通知を有効にする",
+    "defaultMethod": "デフォルト配信方法",
+    "retentionDays": "保持期間（日）",
+    "batchSend": "一括送信",
+    "batchSendDesc": "複数のユーザーに一度に通知を送信",
+    "selectUsers": "ユーザーを選択",
+    "allUsers": "すべてのユーザー",
+    "preview": "プレビュー"
   },
   "history": {
     "title": "視聴履歴",
@@ -572,7 +622,8 @@
     "all": "すべて",
     "loadFailed": "読み込みに失敗しました：{{error}}",
     "retry": "再試行",
-    "noMedia": "メディアコンテンツが見つかりません"
+    "noMedia": "メディアコンテンツが見つかりません",
+    "editDesc": "メディア情報を編集"
   },
   "auth": {
     "loginRequired": "ログインが必要です",
@@ -608,7 +659,8 @@
       "signIn": "サインイン",
       "passwordMismatch": "パスワードが一致しません",
       "passwordTooShort": "パスワードは6文字以上必要です"
-    }
+    },
+    "loginToSubscribe": "このチャンネルを登録するにはログインしてください"
   },
   "admin": {
     "dashboard": "ダッシュボード",
@@ -620,7 +672,7 @@
     "categories": "カテゴリ",
     "channels": "チャンネル",
     "tags": "タグ",
-    "comments": "コメント",
+    "comments": "コメント数",
     "notifications": "通知管理",
     "content": "コンテンツ",
     "articles": "記事",
@@ -936,7 +988,6 @@
     "loadFailed": "読み込みに失敗しました",
     "unknownError": "不明なエラー",
     "views": "閲覧数",
-    "comments": "コメント数",
     "updated": "更新日",
     "na": "N/A",
     "mediaManagement": "メディア管理",
@@ -1005,7 +1056,8 @@
         "seoTitle": "SEOタイトル",
         "seoDescription": "SEO説明"
       }
-    }
+    },
+    "deleteCategory": "カテゴリを削除"
   },
   "settings": {
     "title": "システム設定",
@@ -1200,7 +1252,9 @@
     "previousArticle": "前の記事",
     "nextArticle": "次の記事",
     "searchDocs": "ドキュメントを検索...",
-    "toggleSidebar": "サイドバーを切り替え"
+    "toggleSidebar": "サイドバーを切り替え",
+    "failedToLoadCategories": "カテゴリの読み込みに失敗しました",
+    "closeSidebar": "サイドバーを閉じる"
   },
   "error": {
     "404Title": "ページが見つかりません",
@@ -1240,48 +1294,6 @@
     "watchLater": "後で見る",
     "share": "共有",
     "loadingMore": "もっと読み込み中..."
-  },
-  "notifications": {
-    "title": "通知",
-    "noNotifications": "通知はまだありません",
-    "markAllAsRead": "すべて既読にする",
-    "markingAllRead": "すべて既読にしています...",
-    "markAsRead": "既読にする",
-    "read": "既読",
-    "unread": "未読",
-    "unreadCount": "{{count}} 件未読",
-    "viewAll": "すべての通知を見る",
-    "allNotifications": "すべての通知",
-    "create": "通知を作成",
-    "noNew": "新しい通知はありません",
-    "all": "すべて",
-    "empty": "通知はまだありません",
-    "sendToAll": "全ユーザーに送信",
-    "sendToUser": "特定のユーザーに送信",
-    "broadcast": "ブロードキャスト",
-    "targetUser": "対象ユーザー",
-    "actionType": "アクションタイプ",
-    "deliveryMethod": "配信方法",
-    "inApp": "アプリ内通知",
-    "email": "メール",
-    "notifyOption": "プッシュ通知",
-    "totalSent": "送信総数",
-    "totalRead": "既読総数",
-    "recentActivity": "最近のアクティビティ",
-    "sendNotification": "通知を送信",
-    "notificationHistory": "通知履歴",
-    "config": "通知設定",
-    "configDesc": "通知の配信と表示設定を構成",
-    "enableEmail": "メール通知を有効にする",
-    "enableInApp": "アプリ内通知を有効にする",
-    "enablePush": "プッシュ通知を有効にする",
-    "defaultMethod": "デフォルト配信方法",
-    "retentionDays": "保持期間（日）",
-    "batchSend": "一括送信",
-    "batchSendDesc": "複数のユーザーに一度に通知を送信",
-    "selectUsers": "ユーザーを選択",
-    "allUsers": "すべてのユーザー",
-    "preview": "プレビュー"
   },
   "review": {
     "pending": "審査待ち",
@@ -1375,7 +1387,9 @@
     "noVideo": "関連動画なし",
     "publishSettings": "公開設定",
     "unsavedChanges": "保存されていない変更があります。離れますか？",
-    "requiredFields": "タイトルと内容は必須です"
+    "requiredFields": "タイトルと内容は必須です",
+    "featureDisabled": "記事機能は利用できません",
+    "featureDisabledDesc": "この機能は管理者によって無効化されています"
   },
   "mediaEdit": {
     "featured": "おすすめ",
@@ -1399,5 +1413,45 @@
     "setFeatured": "おすすめに設定",
     "unfeature": "おすすめ解除",
     "setFeature": "おすすめに設定"
+  },
+  "permissions": {
+    "title": "権限管理",
+    "description": "権限グループ、メンバー割り当て、ユーザー権限を管理",
+    "backToList": "リストに戻る",
+    "createGroup": "権限グループを作成",
+    "searchGroups": "権限グループを検索...",
+    "permissionCount": "権限数",
+    "memberCount": "メンバー数",
+    "noGroups": "権限グループなし",
+    "noDescription": "説明なし",
+    "permissionList": "権限リスト",
+    "noPermissions": "権限なし",
+    "categoryScope": "カテゴリスコープ",
+    "manageMembers": "メンバーを管理",
+    "viewUserPermissions": "ユーザー権限を表示",
+    "groupMemberManagement": "グループメンバー管理",
+    "addMember": "メンバーを追加",
+    "userId": "ユーザーID",
+    "joinedAt": "参加日時",
+    "remove": "削除",
+    "noMembers": "メンバーなし",
+    "userPermissionView": "ユーザー権限表示",
+    "userPermissionViewDesc": "ユーザーIDを入力して権限の詳細を表示",
+    "enterUserId": "ユーザーIDを入力",
+    "role": "ロール",
+    "belongGroups": "所属権限グループ",
+    "effectivePermissions": "有効な権限",
+    "source": "ソース",
+    "scope": "スコープ",
+    "createGroupDesc": "新しい権限グループを作成して権限を設定",
+    "groupNamePlaceholder": "権限グループ名",
+    "groupDescPlaceholder": "権限グループの説明",
+    "permissionsCommaSeparated": "権限（カンマ区切り）",
+    "categoryScopeCommaOptional": "カテゴリスコープ（カンマ区切り、オプション）",
+    "categoryScopeComma": "カテゴリスコープ（カンマ区切り）",
+    "editGroup": "権限グループを編集",
+    "editGroupDesc": "権限グループ「{{name}}」の設定を変更",
+    "deleteGroupConfirm": "権限グループ「{{name}}」を永久に削除します。この操作は取り消せません。",
+    "addMemberDesc": "ユーザーIDを入力、カンマで区切り"
   }
 }

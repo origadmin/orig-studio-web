@@ -260,13 +260,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
     const videoCount = channels.reduce((sum, ch) => sum + (ch.media_count || 0), 0);
 
     const tabs = [
-        {id: 'home', label: t('channel.tabHome') || 'Home', icon: Home},
+        {id: 'home', label: t('channel.tabHome'), icon: Home},
         {id: 'channels', label: t('profile.tabChannels'), icon: Tv},
-        {id: 'videos', label: t('channel.tabVideos') || 'Videos', icon: Film},
-        {id: 'articles', label: t('profile.tabArticles') || 'Articles', icon: FileText},
-        {id: 'playlists', label: t('channel.tabPlaylists') || 'Playlists', icon: ListVideo},
+        {id: 'videos', label: t('channel.tabVideos'), icon: Film},
+        {id: 'articles', label: t('profile.tabArticles'), icon: FileText},
+        {id: 'playlists', label: t('channel.tabPlaylists'), icon: ListVideo},
         ...(isMe ? [{id: 'followers', label: t('profile.tabFollowers'), icon: Users}] : []),
-        {id: 'about', label: t('channel.tabAbout') || 'About', icon: Info},
+        {id: 'about', label: t('channel.tabAbout'), icon: Info},
     ];
 
     return (
@@ -341,7 +341,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                 onClick={() => setDescriptionExpanded(!descriptionExpanded)}
                                                 className="text-primary hover:underline text-sm mt-0.5"
                                             >
-                                                {descriptionExpanded ? (t('channel.showLess') || 'Show less') : (t('channel.showMore') || 'Show more')}
+                                                {descriptionExpanded ? (t('channel.showLess')) : (t('channel.showMore'))}
                                             </button>
                                         )}
                                     </div>
@@ -447,7 +447,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                 <p className="text-lg font-medium mb-2">{isMe ? t('profile.noChannelsSelf') : t('profile.noChannels')}</p>
                                 {isMe && (
                                     <Link to="/me/channels" className="text-primary hover:underline text-sm">
-                                        {t('profile.createChannel') || 'Create a channel'}
+                                        {t('profile.createChannel')}
                                     </Link>
                                 )}
                             </div>
@@ -461,7 +461,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                 onClick={() => setActiveTab('channels')}
                                                 className="text-sm text-primary hover:underline font-medium"
                                             >
-                                                {t('home.viewAll') || 'View all'}
+                                                {t('home.viewAll')}
                                             </button>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -496,12 +496,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                 {videos.length > 0 && (
                                     <section>
                                         <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-lg font-semibold">{t('home.latestVideos') || 'Latest Videos'}</h2>
+                                            <h2 className="text-lg font-semibold">{t('home.latestVideos')}</h2>
                                             <button
                                                 onClick={() => setActiveTab('videos')}
                                                 className="text-sm text-primary hover:underline font-medium"
                                             >
-                                                {t('home.viewAll') || 'View all'}
+                                                {t('home.viewAll')}
                                             </button>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

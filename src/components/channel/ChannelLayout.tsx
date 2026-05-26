@@ -286,9 +286,9 @@ const VideosTabContent: React.FC<{
     }, [isLoading, videos.length, searchKeyword, onEmptyChange]);
 
     const sortOptions = [
-        {value: 'newest', label: t('channel.sortNewest') || 'Newest'},
-        {value: 'popular', label: t('channel.sortPopular') || 'Most popular'},
-        {value: 'oldest', label: t('channel.sortOldest') || 'Oldest'},
+        {value: 'newest', label: t('channel.sortNewest')},
+        {value: 'popular', label: t('channel.sortPopular')},
+        {value: 'oldest', label: t('channel.sortOldest')},
     ];
 
     if (isLoading) {
@@ -323,7 +323,7 @@ const VideosTabContent: React.FC<{
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
-                            placeholder={t('channel.searchVideos') || 'Search videos...'}
+                            placeholder={t('channel.searchVideos')}
                             value={searchKeyword}
                             onChange={(e) => setSearchKeyword(e.target.value)}
                             className="pl-9 h-9 w-48 sm:w-64"
@@ -347,7 +347,7 @@ const VideosTabContent: React.FC<{
             {videos.length === 0 && searchKeyword ? (
                 <div className="text-center py-12 text-muted-foreground">
                     <Search className="w-12 h-12 mx-auto mb-3 opacity-50"/>
-                    <p>{t('channel.noSearchResults') || 'No videos found'}</p>
+                    <p>{t('channel.noSearchResults')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -371,7 +371,7 @@ const VideosTabContent: React.FC<{
                         variant="outline"
                         size="sm"
                     >
-                        {t('channel.loadMore') || 'Load more'}
+                        {t('channel.loadMore')}
                     </Button>
                 </div>
             )}
@@ -430,7 +430,7 @@ const AboutTabContent: React.FC<{
         {label: t('channel.subscribers'), value: formatCount(subscriberCount), icon: '👥'},
         {label: t('channel.videoCount'), value: String(channel.media_count || 0), icon: '🎬'},
         {label: t('channel.views'), value: formatCount(channel.total_views || 0), icon: '👁️'},
-        {label: t('channel.joinDate'), value: channel.create_time ? new Date(channel.create_time).toLocaleDateString() : t('channel.notAvailable') || 'N/A', icon: '📅'},
+        {label: t('channel.joinDate'), value: channel.create_time ? new Date(channel.create_time).toLocaleDateString() : t('channel.notAvailable'), icon: '📅'},
     ];
 
     const links = channel.links || [];
@@ -456,7 +456,7 @@ const AboutTabContent: React.FC<{
                         </p>
                     ) : (
                         <p className="text-muted-foreground/60 italic">
-                            {t('channel.noDescription') || 'This channel has no description yet.'}
+                            {t('channel.noDescription')}
                         </p>
                     )}
                 </div>

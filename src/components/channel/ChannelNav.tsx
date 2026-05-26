@@ -16,11 +16,11 @@ const ChannelNav: React.FC<ChannelNavProps> = ({
     const {t} = useTranslation();
 
     const tabs = [
-        {id: 'home', label: t('channel.tabHome') || 'Home', icon: Home},
-        {id: 'videos', label: t('channel.tabVideos') || 'Videos', icon: Film},
-        {id: 'community', label: t('channel.tabCommunity') || 'Community', icon: MessageSquare},
-        ...(_isOwner ? [{id: 'subscriptions', label: t('channel.tabSubscriptions') || 'Subscriptions', icon: Users}] : []),
-        {id: 'about', label: t('channel.tabAbout') || 'About', icon: Info},
+        {id: 'home', label: t('channel.tabHome'), icon: Home},
+        {id: 'videos', label: t('channel.tabVideos'), icon: Film},
+        {id: 'community', label: t('channel.tabCommunity'), icon: MessageSquare},
+        ...(_isOwner ? [{id: 'subscriptions', label: t('channel.tabSubscriptions'), icon: Users}] : []),
+        {id: 'about', label: t('channel.tabAbout'), icon: Info},
     ];
 
     return (

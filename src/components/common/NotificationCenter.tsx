@@ -181,7 +181,7 @@ const NotificationCenter: React.FC = () => {
                                     )}
                                     <Button variant="ghost" size="sm" onClick={exitBatchMode}>
                                         <X className="w-4 h-4 mr-1"/>
-                                        {t('common.cancel') || 'Cancel'}
+                                        {t('common.cancel')}
                                     </Button>
                                 </>
                             ) : (
@@ -194,7 +194,7 @@ const NotificationCenter: React.FC = () => {
                                                 onClick={() => setBatchMode(true)}
                                             >
                                                 <CheckSquare className="w-4 h-4 mr-1"/>
-                                                {t('notifications.selectUsers') || 'Select'}
+                                                {t('notifications.selectUsers')}
                                             </Button>
                                             <Button
                                                 variant="ghost"
@@ -237,7 +237,7 @@ const NotificationCenter: React.FC = () => {
                                     <span className="text-sm text-muted-foreground">
                                         {selectedIds.size > 0
                                             ? t('notifications.selectUsers') + ` (${selectedIds.size}/${notifications.length})`
-                                            : t('notifications.allUsers') || 'Select all'}
+                                            : t('notifications.allUsers')}
                                     </span>
                                 </div>
                             )}

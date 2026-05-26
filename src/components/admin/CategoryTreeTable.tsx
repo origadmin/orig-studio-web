@@ -56,20 +56,20 @@ export const CategoryTreeTable: React.FC<CategoryTreeTableProps> = React.memo(
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t('admin.categoryList') || 'Category List'}</CardTitle>
+              <CardTitle>{t('admin.categoryList')}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={onExpandAll}>
                 <ChevronsDown className="mr-2 h-4 w-4" />
-                {t('admin.expandAll') || 'Expand All'}
+                {t('admin.expandAll')}
               </Button>
               <Button size="sm" variant="outline" onClick={onCollapseAll}>
                 <ChevronsUp className="mr-2 h-4 w-4" />
-                {t('admin.collapseAll') || 'Collapse All'}
+                {t('admin.collapseAll')}
               </Button>
               <Button size="sm" onClick={onCreate}>
                 <Plus className="mr-2 h-4 w-4" />
-                {t('admin.newCategory') || 'New Category'}
+                {t('admin.newCategory')}
               </Button>
             </div>
           </div>
@@ -83,16 +83,16 @@ export const CategoryTreeTable: React.FC<CategoryTreeTableProps> = React.memo(
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('admin.name') || 'Name'}</TableHead>
+                  <TableHead>{t('admin.name')}</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>{t('admin.description') || 'Description'}</TableHead>
+                  <TableHead>{t('admin.description')}</TableHead>
                   <TableHead className="text-right">
-                    {t('admin.mediaCount') || 'Media'}
+                    {t('admin.mediaCount')}
                   </TableHead>
-                  <TableHead>{t('admin.order') || 'Order'}</TableHead>
-                  <TableHead>{t('admin.status') || 'Status'}</TableHead>
+                  <TableHead>{t('admin.order')}</TableHead>
+                  <TableHead>{t('admin.status')}</TableHead>
                   <TableHead className="text-right">
-                    {t('admin.actions') || 'Actions'}
+                    {t('admin.actions')}
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -114,7 +114,7 @@ export const CategoryTreeTable: React.FC<CategoryTreeTableProps> = React.memo(
                 ) : (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8">
-                      {t('admin.noCategoriesFound') || 'No categories found'}
+                      {t('admin.noCategoriesFound')}
                     </TableCell>
                   </TableRow>
                 )}

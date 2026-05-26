@@ -213,7 +213,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                     ">
                         <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
                             <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
-                                {t('subscriptions.notifications') || 'Notifications'}
+                                {t('subscriptions.notifications')}
                             </p>
                         </div>
 
@@ -228,7 +228,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                         >
                             <Bell className="w-4 h-4"/>
                             <span className="flex-1">
-                                {t('subscriptions.all') || 'All'}
+                                {t('subscriptions.all')}
                             </span>
                             {notificationPref === 'all' && (
                                 <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
@@ -246,7 +246,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                         >
                             <Bell className="w-4 h-4"/>
                             <span className="flex-1">
-                                {t('subscriptions.personalized') || 'Personalized'}
+                                {t('subscriptions.personalized')}
                             </span>
                             {notificationPref === 'personalized' && (
                                 <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
@@ -264,7 +264,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                         >
                             <BellOff className="w-4 h-4"/>
                             <span className="flex-1">
-                                {t('subscriptions.none') || 'None'}
+                                {t('subscriptions.none')}
                             </span>
                             {notificationPref === 'none' && (
                                 <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
@@ -285,7 +285,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                         >
                             <UserPlus className="w-4 h-4 rotate-180"/>
                             <span>
-                                {t('subscriptions.unsubscribe') || 'Unsubscribe'}
+                                {t('subscriptions.unsubscribe')}
                             </span>
                         </button>
                     </div>
@@ -296,9 +296,9 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
             <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>{t('auth.loginRequired') || 'Login Required'}</DialogTitle>
+                        <DialogTitle>{t('auth.loginRequired')}</DialogTitle>
                         <DialogDescription>
-                            {t('auth.loginToSubscribe') || 'Please login to subscribe to this channel.'}
+                            {t('auth.loginToSubscribe')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="sm:justify-start">
@@ -321,7 +321,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-left">
                             <AlertTriangle className="w-5 h-5 text-warning"/>
-                            {t('subscriptions.confirmUnsubscribe') || 'Unsubscribe?'}
+                            {t('subscriptions.confirmUnsubscribe')}
                         </DialogTitle>
                         <DialogDescription>
                             {t('subscriptions.unsubscribeMessage') || "You won't receive notifications from this channel anymore."}
@@ -338,7 +338,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                             className="flex-1"
                         >
                             {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : (
-                                t('subscriptions.unsubscribe') || 'Unsubscribe'
+                                t('subscriptions.unsubscribe')
                             )}
                         </Button>
                     </DialogFooter>

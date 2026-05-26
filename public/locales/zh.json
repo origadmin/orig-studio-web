@@ -44,7 +44,14 @@
     "retry": "重试",
     "reply": "回复",
     "creating": "创建中...",
-    "unlimited": "无限制"
+    "unlimited": "无限制",
+    "back": "返回",
+    "next": "下一页",
+    "previous": "上一页",
+    "optional": "可选",
+    "deleted": "已删除",
+    "error": "出错了",
+    "loadMore": "加载更多"
   },
   "nav": {
     "home": "主页",
@@ -169,7 +176,14 @@
   },
   "search": {
     "title": "搜索",
-    "resultsFor": "搜索 \"{{query}}\" 的结果"
+    "resultsFor": "搜索 \"{{query}}\" 的结果",
+    "placeholder": "搜索视频、标签、用户...",
+    "search": "搜索",
+    "filterByCategory": "按分类筛选",
+    "clearFilters": "清除筛选",
+    "allCategories": "全部分类",
+    "results": "个结果",
+    "enterQuery": "输入搜索词..."
   },
   "watch": {
     "nextUp": "接下来播放",
@@ -221,7 +235,10 @@
     "loginToLike": "请登录后点赞",
     "loginToDislike": "请登录后踩",
     "loginToFavorite": "请登录后收藏",
-    "loginToSave": "请登录后保存到播放列表"
+    "loginToSave": "请登录后保存到播放列表",
+    "commentBlocked": "该评论已被屏蔽",
+    "loadMore": "加载更多评论",
+    "loading": "加载中..."
   },
   "report": {
     "reportVideo": "举报视频",
@@ -520,12 +537,45 @@
   },
   "notifications": {
     "title": "通知",
-    "unreadCount": "{{count}} 条未读通知",
+    "noNotifications": "暂无通知",
+    "markAllAsRead": "标记全部已读",
+    "markingAllRead": "正在标记全部已读...",
+    "markAsRead": "标记为已读",
+    "read": "已读",
+    "unread": "未读",
+    "unreadCount": "{{count}} 条未读",
+    "viewAll": "查看全部通知",
+    "allNotifications": "全部通知",
+    "create": "创建通知",
     "noNew": "没有新通知",
     "all": "全部",
-    "unread": "未读",
-    "markAllRead": "全部已读",
-    "empty": "暂无通知"
+    "empty": "暂无通知",
+    "sendToAll": "发送给所有用户",
+    "sendToUser": "发送给指定用户",
+    "broadcast": "广播",
+    "targetUser": "目标用户",
+    "actionType": "操作类型",
+    "deliveryMethod": "投递方式",
+    "inApp": "站内通知",
+    "email": "邮件",
+    "notifyOption": "推送通知",
+    "totalSent": "已发送总数",
+    "totalRead": "已读总数",
+    "recentActivity": "最近活动",
+    "sendNotification": "发送通知",
+    "notificationHistory": "通知历史",
+    "config": "通知设置",
+    "configDesc": "配置通知投递和显示设置",
+    "enableEmail": "启用邮件通知",
+    "enableInApp": "启用站内通知",
+    "enablePush": "启用推送通知",
+    "defaultMethod": "默认投递方式",
+    "retentionDays": "保留天数",
+    "batchSend": "批量发送",
+    "batchSendDesc": "一次向多个用户发送通知",
+    "selectUsers": "选择用户",
+    "allUsers": "所有用户",
+    "preview": "预览"
   },
   "history": {
     "title": "历史记录",
@@ -572,7 +622,8 @@
     "all": "全部",
     "loadFailed": "加载失败: {{error}}",
     "retry": "重试",
-    "noMedia": "暂无媒体内容"
+    "noMedia": "暂无媒体内容",
+    "editDesc": "修改媒体信息"
   },
   "auth": {
     "loginRequired": "需要登录",
@@ -608,7 +659,8 @@
       "signIn": "Sign in",
       "passwordMismatch": "Passwords do not match",
       "passwordTooShort": "Password must be at least 6 characters"
-    }
+    },
+    "loginToSubscribe": "请登录后订阅此频道"
   },
   "admin": {
     "dashboard": "平台概览",
@@ -620,7 +672,7 @@
     "categories": "分类",
     "channels": "频道",
     "tags": "标签",
-    "comments": "评论",
+    "comments": "评论数",
     "notifications": "通知管理",
     "content": "内容",
     "articles": "文章",
@@ -936,7 +988,6 @@
     "loadFailed": "加载失败",
     "unknownError": "未知错误",
     "views": "浏览量",
-    "comments": "评论数",
     "updated": "更新时间",
     "na": "无",
     "mediaManagement": "媒体管理",
@@ -1005,7 +1056,8 @@
         "seoTitle": "SEO 标题",
         "seoDescription": "SEO 描述"
       }
-    }
+    },
+    "deleteCategory": "删除分类"
   },
   "settings": {
     "title": "系统设置",
@@ -1200,7 +1252,9 @@
     "previousArticle": "上一篇",
     "nextArticle": "下一篇",
     "searchDocs": "搜索文档...",
-    "toggleSidebar": "切换侧边栏"
+    "toggleSidebar": "切换侧边栏",
+    "failedToLoadCategories": "加载分类失败",
+    "closeSidebar": "关闭侧边栏"
   },
   "error": {
     "404Title": "页面不存在",
@@ -1240,48 +1294,6 @@
     "watchLater": "稍后观看",
     "share": "分享",
     "loadingMore": "加载更多..."
-  },
-  "notifications": {
-    "title": "通知",
-    "noNotifications": "暂无通知",
-    "markAllAsRead": "标记全部已读",
-    "markingAllRead": "正在标记全部已读...",
-    "markAsRead": "标记为已读",
-    "read": "已读",
-    "unread": "未读",
-    "unreadCount": "{{count}} 条未读",
-    "viewAll": "查看全部通知",
-    "allNotifications": "全部通知",
-    "create": "创建通知",
-    "noNew": "没有新通知",
-    "all": "全部",
-    "empty": "暂无通知",
-    "sendToAll": "发送给所有用户",
-    "sendToUser": "发送给指定用户",
-    "broadcast": "广播",
-    "targetUser": "目标用户",
-    "actionType": "操作类型",
-    "deliveryMethod": "投递方式",
-    "inApp": "站内通知",
-    "email": "邮件",
-    "notifyOption": "推送通知",
-    "totalSent": "已发送总数",
-    "totalRead": "已读总数",
-    "recentActivity": "最近活动",
-    "sendNotification": "发送通知",
-    "notificationHistory": "通知历史",
-    "config": "通知设置",
-    "configDesc": "配置通知投递和显示设置",
-    "enableEmail": "启用邮件通知",
-    "enableInApp": "启用站内通知",
-    "enablePush": "启用推送通知",
-    "defaultMethod": "默认投递方式",
-    "retentionDays": "保留天数",
-    "batchSend": "批量发送",
-    "batchSendDesc": "一次向多个用户发送通知",
-    "selectUsers": "选择用户",
-    "allUsers": "所有用户",
-    "preview": "预览"
   },
   "review": {
     "pending": "待审核",
@@ -1375,7 +1387,9 @@
     "noVideo": "未关联视频",
     "publishSettings": "发布设置",
     "unsavedChanges": "你有未保存的更改，确定要离开吗？",
-    "requiredFields": "标题和内容为必填项"
+    "requiredFields": "标题和内容为必填项",
+    "featureDisabled": "文章功能不可用",
+    "featureDisabledDesc": "该功能已被管理员禁用"
   },
   "mediaEdit": {
     "featured": "推荐",
@@ -1399,5 +1413,45 @@
     "setFeatured": "已设为推荐",
     "unfeature": "取消推荐",
     "setFeature": "设为推荐"
+  },
+  "permissions": {
+    "title": "权限管理",
+    "description": "管理权限组、成员分配和用户权限",
+    "backToList": "返回列表",
+    "createGroup": "创建权限组",
+    "searchGroups": "搜索权限组...",
+    "permissionCount": "权限数",
+    "memberCount": "成员数",
+    "noGroups": "暂无权限组",
+    "noDescription": "无描述",
+    "permissionList": "权限列表",
+    "noPermissions": "无权限",
+    "categoryScope": "分类范围",
+    "manageMembers": "管理成员",
+    "viewUserPermissions": "查看用户权限",
+    "groupMemberManagement": "组成员管理",
+    "addMember": "添加成员",
+    "userId": "用户ID",
+    "joinedAt": "加入时间",
+    "remove": "移除",
+    "noMembers": "暂无成员",
+    "userPermissionView": "用户权限查看",
+    "userPermissionViewDesc": "输入用户ID查看其权限详情",
+    "enterUserId": "输入用户ID",
+    "role": "角色",
+    "belongGroups": "所属权限组",
+    "effectivePermissions": "有效权限",
+    "source": "来源",
+    "scope": "范围",
+    "createGroupDesc": "创建新的权限组并配置权限",
+    "groupNamePlaceholder": "权限组名称",
+    "groupDescPlaceholder": "权限组描述",
+    "permissionsCommaSeparated": "权限 (逗号分隔)",
+    "categoryScopeCommaOptional": "分类范围 (逗号分隔, 可选)",
+    "categoryScopeComma": "分类范围 (逗号分隔)",
+    "editGroup": "编辑权限组",
+    "editGroupDesc": "修改权限组 \"{{name}}\" 的配置",
+    "deleteGroupConfirm": "将永久删除权限组 \"{{name}}\"，此操作无法撤销。",
+    "addMemberDesc": "输入用户ID，多个用逗号分隔"
   }
 }

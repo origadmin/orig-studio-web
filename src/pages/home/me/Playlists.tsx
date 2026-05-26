@@ -179,7 +179,7 @@ const PlaylistsPage = () => {
                                         size="icon"
                                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                                         onClick={() => setDeleteTarget(pl)}
-                                        title={t('common.delete') || 'Delete'}
+                                        title={t('common.delete')}
                                     >
                                         <Trash2 className="w-3.5 h-3.5"/>
                                     </Button>
@@ -198,7 +198,7 @@ const PlaylistsPage = () => {
                         className="bg-emerald-600 hover:bg-emerald-700"
                     >
                         <Plus className="w-4 h-4 mr-2"/>
-                        {t('playlists.newList') || 'Create Playlist'}
+                        {t('playlists.newList')}
                     </Button>
                 </div>
             )}
@@ -209,19 +209,19 @@ const PlaylistsPage = () => {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <ListVideo className="w-5 h-5 text-emerald-600"/>
-                            {t('playlists.createPlaylist') || 'Create Playlist'}
+                            {t('playlists.createPlaylist')}
                         </DialogTitle>
                         <DialogDescription>
-                            {t('playlists.createPlaylistDesc') || 'Create a new playlist to organize your videos'}
+                            {t('playlists.createPlaylistDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                         <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.title') || 'Title'}</label>
+                            <label className="text-sm font-medium mb-1 block">{t('playlists.title')}</label>
                             <Input
                                 value={newTitle}
                                 onChange={(e) => setNewTitle(e.target.value)}
-                                placeholder={t('playlists.titlePlaceholder') || 'Enter playlist title'}
+                                placeholder={t('playlists.titlePlaceholder')}
                                 autoFocus
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && newTitle.trim() && !isCreating) {
@@ -231,11 +231,11 @@ const PlaylistsPage = () => {
                             />
                         </div>
                         <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.description') || 'Description'}</label>
+                            <label className="text-sm font-medium mb-1 block">{t('playlists.description')}</label>
                             <Input
                                 value={newDescription}
                                 onChange={(e) => setNewDescription(e.target.value)}
-                                placeholder={t('playlists.descriptionPlaceholder') || 'Enter playlist description (optional)'}
+                                placeholder={t('playlists.descriptionPlaceholder')}
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ const PlaylistsPage = () => {
                                 className="rounded border-gray-300"
                             />
                             <label htmlFor="new-is-public" className="text-sm">
-                                {t('playlists.makePublic') || 'Make playlist public'}
+                                {t('playlists.makePublic')}
                             </label>
                         </div>
                         <div className="flex justify-end gap-2">
@@ -265,7 +265,7 @@ const PlaylistsPage = () => {
                                 className="bg-emerald-600 hover:bg-emerald-700"
                             >
                                 {isCreating ? <Spinner className="w-4 h-4 mr-1"/> : <Plus className="w-4 h-4 mr-1"/>}
-                                {t('watch.create') || 'Create'}
+                                {t('watch.create')}
                             </Button>
                         </div>
                     </div>
@@ -276,7 +276,7 @@ const PlaylistsPage = () => {
             <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('playlists.deletePlaylist') || 'Delete Playlist'}</DialogTitle>
+                        <DialogTitle>{t('playlists.deletePlaylist')}</DialogTitle>
                         <DialogDescription>
                             {t('playlists.deleteConfirm', {title: deleteTarget?.title}) || `Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
                         </DialogDescription>
@@ -287,7 +287,7 @@ const PlaylistsPage = () => {
                         </Button>
                         <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                             {isDeleting ? <Spinner className="w-4 h-4 mr-1"/> : null}
-                            {t('common.delete') || 'Delete'}
+                            {t('common.delete')}
                         </Button>
                     </div>
                 </DialogContent>

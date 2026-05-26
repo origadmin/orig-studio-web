@@ -88,7 +88,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             setTimeout(() => setShareCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy share link:', err);
-            setShareError(t('channel.shareCopyFailed') || 'Failed to copy link');
+            setShareError(t('channel.shareCopyFailed'));
         }
     }, [channelShareUrl, t]);
 
@@ -190,8 +190,8 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                                         className="text-primary hover:underline text-xs sm:text-sm mt-0.5"
                                     >
                                         {descriptionExpanded
-                                            ? (t('channel.showLess') || 'Show less')
-                                            : (t('channel.showMore') || 'Show more')
+                                            ? (t('channel.showLess'))
+                                            : (t('channel.showMore'))
                                         }
                                     </button>
                                 )}
@@ -201,7 +201,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                                 to="/me/channels"
                                 className="text-xs sm:text-sm text-muted-foreground/60 hover:text-primary transition-colors italic"
                             >
-                                {t('channel.addDescription') || 'Add a description...'}
+                                {t('channel.addDescription')}
                             </Link>
                         ) : null}
                     </div>
@@ -307,7 +307,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('channel.shareChannel') || 'Share Channel'}</DialogTitle>
+                        <DialogTitle>{t('channel.shareChannel')}</DialogTitle>
                         <DialogDescription>
                             {t('channel.shareDescription', {channel: channel.name}) || `Share ${channel.name} with your friends`}
                         </DialogDescription>
@@ -329,7 +329,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                                 onClick={handleCopyShareLink}
                                 className={shareCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'}
                             >
-                                {shareCopied ? <Check className="w-4 h-4"/> : (t('watch.copyLink') || 'Copy')}
+                                {shareCopied ? <Check className="w-4 h-4"/> : (t('watch.copyLink'))}
                             </Button>
                         </div>
 

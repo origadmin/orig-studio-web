@@ -51,10 +51,10 @@ const MyArticles = () => {
         mutationFn: (id: string) => userArticleApi.delete(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['myArticles']});
-            toast.success(t('common.deleted') || 'Deleted');
+            toast.success(t('common.deleted'));
         },
         onError: (err: any) => {
-            toast.error(t('myArticles.deleteFailed') || 'Failed to delete', {
+            toast.error(t('myArticles.deleteFailed'), {
                 description: err?.message || '',
             });
         },

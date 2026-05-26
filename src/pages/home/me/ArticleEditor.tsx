@@ -290,8 +290,8 @@ export default function UserArticleEditor({mode}: { mode: 'create' | 'edit' }) {
             const status = err?.status || err?.response?.status;
             const msg = err?.message || err?.response?.data?.message || '';
             if (status === 403 || msg.toLowerCase().includes('forbidden') || msg.toLowerCase().includes('disabled')) {
-                toast.error(t('articleEditor.featureDisabled') || 'Article feature is not available', {
-                    description: t('articleEditor.featureDisabledDesc') || 'This feature has been disabled by the administrator.',
+                toast.error(t('articleEditor.featureDisabled'), {
+                    description: t('articleEditor.featureDisabledDesc'),
                 });
             } else {
                 toast.error(t('articleEditor.saveFailed'), {
@@ -367,7 +367,7 @@ export default function UserArticleEditor({mode}: { mode: 'create' | 'edit' }) {
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" size="sm" onClick={handleBack}>
                             <ArrowLeft className="w-4 h-4 mr-1"/>
-                            {t('common.back') || 'Back'}
+                            {t('common.back')}
                         </Button>
                         <h1 className="text-lg font-semibold">
                             {mode === 'create' ? t('articleEditor.createTitle') : t('articleEditor.editTitle')}

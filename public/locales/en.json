@@ -44,7 +44,14 @@
     "retry": "Retry",
     "reply": "Reply",
     "creating": "Creating...",
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "optional": "optional",
+    "deleted": "Deleted",
+    "error": "Error",
+    "loadMore": "Load more"
   },
   "nav": {
     "home": "Home",
@@ -169,7 +176,14 @@
   },
   "search": {
     "title": "Search",
-    "resultsFor": "Results for \"{{query}}\""
+    "resultsFor": "Results for \"{{query}}\"",
+    "placeholder": "Search videos, tags, users...",
+    "search": "Search",
+    "filterByCategory": "Filter by Category",
+    "clearFilters": "Clear Filters",
+    "allCategories": "All Categories",
+    "results": "results",
+    "enterQuery": "Enter a search term..."
   },
   "watch": {
     "nextUp": "Next Up",
@@ -221,7 +235,10 @@
     "loginToLike": "Please login to like this video",
     "loginToDislike": "Please login to dislike this video",
     "loginToFavorite": "Please login to save this video",
-    "loginToSave": "Please login to save to playlist"
+    "loginToSave": "Please login to save to playlist",
+    "commentBlocked": "This comment has been blocked",
+    "loadMore": "Load more comments",
+    "loading": "Loading..."
   },
   "report": {
     "reportVideo": "Report Video",
@@ -520,12 +537,45 @@
   },
   "notifications": {
     "title": "Notifications",
-    "unreadCount": "{{count}} unread notifications",
+    "noNotifications": "No notifications yet",
+    "markAllAsRead": "Mark all as read",
+    "markingAllRead": "Marking all as read...",
+    "markAsRead": "Mark as read",
+    "read": "Read",
+    "unread": "Unread",
+    "unreadCount": "{{count}} unread",
+    "viewAll": "View all notifications",
+    "allNotifications": "All Notifications",
+    "create": "Create Notification",
     "noNew": "No new notifications",
     "all": "All",
-    "unread": "Unread",
-    "markAllRead": "Mark all as read",
-    "empty": "No notifications yet"
+    "empty": "No notifications yet",
+    "sendToAll": "Send to all users",
+    "sendToUser": "Send to specific user",
+    "broadcast": "Broadcast",
+    "targetUser": "Target User",
+    "actionType": "Action Type",
+    "deliveryMethod": "Delivery Method",
+    "inApp": "In-App",
+    "email": "Email",
+    "notifyOption": "Push Notification",
+    "totalSent": "Total Sent",
+    "totalRead": "Total Read",
+    "recentActivity": "Recent Activity",
+    "sendNotification": "Send Notification",
+    "notificationHistory": "Notification History",
+    "config": "Notification Settings",
+    "configDesc": "Configure notification delivery and display settings",
+    "enableEmail": "Enable Email Notifications",
+    "enableInApp": "Enable In-App Notifications",
+    "enablePush": "Enable Push Notifications",
+    "defaultMethod": "Default Delivery Method",
+    "retentionDays": "Retention Period (days)",
+    "batchSend": "Batch Send",
+    "batchSendDesc": "Send notifications to multiple users at once",
+    "selectUsers": "Select Users",
+    "allUsers": "All Users",
+    "preview": "Preview"
   },
   "history": {
     "title": "History",
@@ -572,7 +622,8 @@
     "all": "All",
     "loadFailed": "Load failed: {{error}}",
     "retry": "Retry",
-    "noMedia": "No media content found"
+    "noMedia": "No media content found",
+    "editDesc": "Edit media information"
   },
   "auth": {
     "loginRequired": "Login Required",
@@ -608,14 +659,15 @@
       "signIn": "Sign in",
       "passwordMismatch": "Passwords do not match",
       "passwordTooShort": "Password must be at least 6 characters"
-    }
+    },
+    "loginToSubscribe": "Please login to subscribe to this channel"
   },
   "admin": {
     "dashboard": "Dashboard",
     "dashboardDesc": "Real-time statistics for your media platform.",
     "media": "Media",
-    "transcodingProfiles": "Transcoding",
-    "transcodingStatus": "Status",
+    "transcodingProfiles": "Transcoding Profiles",
+    "transcodingStatus": "Transcoding Status",
     "users": "Users",
     "categories": "Categories",
     "channels": "Channels",
@@ -936,7 +988,6 @@
     "loadFailed": "Failed to load",
     "unknownError": "Unknown error",
     "views": "Views",
-    "comments": "Comments",
     "updated": "Updated",
     "na": "N/A",
     "mediaManagement": "Media Management",
@@ -1005,7 +1056,8 @@
         "seoTitle": "SEO Title",
         "seoDescription": "SEO Description"
       }
-    }
+    },
+    "deleteCategory": "Delete Category"
   },
   "settings": {
     "title": "System Settings",
@@ -1200,7 +1252,9 @@
     "previousArticle": "Previous",
     "nextArticle": "Next",
     "searchDocs": "Search docs...",
-    "toggleSidebar": "Toggle sidebar"
+    "toggleSidebar": "Toggle sidebar",
+    "failedToLoadCategories": "Failed to load categories",
+    "closeSidebar": "Close sidebar"
   },
   "error": {
     "404Title": "Page Not Found",
@@ -1240,48 +1294,6 @@
     "watchLater": "Watch Later",
     "share": "Share",
     "loadingMore": "Loading more..."
-  },
-  "notifications": {
-    "title": "Notifications",
-    "noNotifications": "No notifications yet",
-    "markAllAsRead": "Mark all as read",
-    "markingAllRead": "Marking all as read...",
-    "markAsRead": "Mark as read",
-    "read": "Read",
-    "unread": "Unread",
-    "unreadCount": "{{count}} unread",
-    "viewAll": "View all notifications",
-    "allNotifications": "All Notifications",
-    "create": "Create Notification",
-    "noNew": "No new notifications",
-    "all": "All",
-    "empty": "No notifications yet",
-    "sendToAll": "Send to all users",
-    "sendToUser": "Send to specific user",
-    "broadcast": "Broadcast",
-    "targetUser": "Target User",
-    "actionType": "Action Type",
-    "deliveryMethod": "Delivery Method",
-    "inApp": "In-App",
-    "email": "Email",
-    "notifyOption": "Push Notification",
-    "totalSent": "Total Sent",
-    "totalRead": "Total Read",
-    "recentActivity": "Recent Activity",
-    "sendNotification": "Send Notification",
-    "notificationHistory": "Notification History",
-    "config": "Notification Settings",
-    "configDesc": "Configure notification delivery and display settings",
-    "enableEmail": "Enable Email Notifications",
-    "enableInApp": "Enable In-App Notifications",
-    "enablePush": "Enable Push Notifications",
-    "defaultMethod": "Default Delivery Method",
-    "retentionDays": "Retention Period (days)",
-    "batchSend": "Batch Send",
-    "batchSendDesc": "Send notifications to multiple users at once",
-    "selectUsers": "Select Users",
-    "allUsers": "All Users",
-    "preview": "Preview"
   },
   "review": {
     "pending": "Pending Review",
@@ -1375,7 +1387,9 @@
     "noVideo": "No video associated",
     "publishSettings": "Publish Settings",
     "unsavedChanges": "You have unsaved changes. Leave anyway?",
-    "requiredFields": "Title and content are required"
+    "requiredFields": "Title and content are required",
+    "featureDisabled": "Article feature is not available",
+    "featureDisabledDesc": "This feature has been disabled by the administrator"
   },
   "mediaEdit": {
     "featured": "Featured",
@@ -1399,5 +1413,45 @@
     "setFeatured": "Featured",
     "unfeature": "Unfeature",
     "setFeature": "Set as Featured"
+  },
+  "permissions": {
+    "title": "Permission Management",
+    "description": "Manage permission groups, member assignments and user permissions",
+    "backToList": "Back to List",
+    "createGroup": "Create Permission Group",
+    "searchGroups": "Search permission groups...",
+    "permissionCount": "Permissions",
+    "memberCount": "Members",
+    "noGroups": "No permission groups",
+    "noDescription": "No description",
+    "permissionList": "Permission List",
+    "noPermissions": "No permissions",
+    "categoryScope": "Category Scope",
+    "manageMembers": "Manage Members",
+    "viewUserPermissions": "View User Permissions",
+    "groupMemberManagement": "Group Member Management",
+    "addMember": "Add Member",
+    "userId": "User ID",
+    "joinedAt": "Joined At",
+    "remove": "Remove",
+    "noMembers": "No members",
+    "userPermissionView": "User Permission View",
+    "userPermissionViewDesc": "Enter user ID to view permission details",
+    "enterUserId": "Enter user ID",
+    "role": "Role",
+    "belongGroups": "Belonging Groups",
+    "effectivePermissions": "Effective Permissions",
+    "source": "Source",
+    "scope": "Scope",
+    "createGroupDesc": "Create a new permission group and configure permissions",
+    "groupNamePlaceholder": "Permission group name",
+    "groupDescPlaceholder": "Permission group description",
+    "permissionsCommaSeparated": "Permissions (comma-separated)",
+    "categoryScopeCommaOptional": "Category Scope (comma-separated, optional)",
+    "categoryScopeComma": "Category Scope (comma-separated)",
+    "editGroup": "Edit Permission Group",
+    "editGroupDesc": "Modify configuration of permission group \"{{name}}\"",
+    "deleteGroupConfirm": "Will permanently delete permission group \"{{name}}\". This action cannot be undone.",
+    "addMemberDesc": "Enter user IDs, separated by commas"
   }
 }

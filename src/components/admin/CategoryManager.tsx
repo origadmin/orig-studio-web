@@ -191,7 +191,7 @@ const CategoryManager: React.FC = () => {
                             <span className="font-medium">{category.name}</span>
                             {isParentDisabled(category) && (
                                 <span className="text-xs text-warning ml-1 whitespace-nowrap">
-                                    ({t('admin.parentDisabled') || 'Parent Disabled'})
+                                    ({t('admin.parentDisabled')})
                                 </span>
                             )}
                         </div>
@@ -471,7 +471,7 @@ const CategoryManager: React.FC = () => {
                                         .filter(category => (!currentCategory || category.id !== currentCategory.id) && (category.status === 1 || category.id === formData.parent_id))
                                         .map(category => (
                                             <SelectItem key={category.id} value={String(category.id)}>
-                                                {category.name}{category.status !== 1 ? ` (${t('admin.disabled') || 'Disabled'})` : ''}
+                                                {category.name}{category.status !== 1 ? ` (${t('admin.disabled')})` : ''}
                                             </SelectItem>
                                         ))}
                                 </SelectContent>

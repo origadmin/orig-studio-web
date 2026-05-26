@@ -100,24 +100,24 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
   const getTitle = (): string => {
     switch (mode) {
       case 'create':
-        return t('admin.newCategory') || 'New Category';
+        return t('admin.newCategory');
       case 'edit':
-        return t('admin.editCategory') || 'Edit Category';
+        return t('admin.editCategory');
       case 'addChild':
-        return t('admin.addChildCategory') || 'Add Child Category';
+        return t('admin.addChildCategory');
     }
   };
 
   const getDescription = (): string => {
     switch (mode) {
       case 'create':
-        return t('admin.createNewCategory') || 'Create a new category';
+        return t('admin.createNewCategory');
       case 'edit':
-        return t('admin.editCategoryDesc') || 'Edit category details';
+        return t('admin.editCategoryDesc');
       case 'addChild':
         return currentCategory
           ? `Create a sub-category under ${currentCategory.name}`
-          : t('admin.createNewCategory') || 'Create a new category';
+          : t('admin.createNewCategory');
     }
   };
 
@@ -125,9 +125,9 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
     switch (mode) {
       case 'create':
       case 'addChild':
-        return t('admin.create') || 'Create';
+        return t('admin.create');
       case 'edit':
-        return t('admin.save') || 'Save';
+        return t('admin.save');
     }
   };
 
@@ -144,39 +144,39 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
         <div className="space-y-4 py-4">
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t('admin.name') || 'Name'} *
+              {t('admin.name')} *
             </label>
             <Input
               value={formData.name || ''}
               onChange={e => setFormData({ name: e.target.value })}
-              placeholder={t('admin.enterCategoryName') || 'Enter category name'}
+              placeholder={t('admin.enterCategoryName')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t('admin.slug') || 'Slug'} *
+              {t('admin.slug')} *
             </label>
             <Input
               value={formData.slug || ''}
               onChange={e => setFormData({ slug: e.target.value })}
-              placeholder={t('admin.enterCategorySlug') || 'Enter category slug'}
+              placeholder={t('admin.enterCategorySlug')}
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t('admin.description') || 'Description'}
+              {t('admin.description')}
             </label>
             <Textarea
               value={formData.description || ''}
               onChange={e => setFormData({ description: e.target.value })}
               placeholder={
-                t('admin.enterCategoryDescription') || 'Enter category description'
+                t('admin.enterCategoryDescription')
               }
             />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t('admin.parent') || 'Parent Category'}
+              {t('admin.parent')}
             </label>
             {isParentSelectorDisabled && currentCategory ? (
               <Input
@@ -191,14 +191,14 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
                 onChange={parentId => setFormData({ parent_id: parentId })}
                 excludeId={excludeId}
                 placeholder={
-                  t('admin.selectParentCategory') || 'Select parent category'
+                  t('admin.selectParentCategory')
                 }
               />
             )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">
-              {t('admin.order') || 'Order'}
+              {t('admin.order')}
             </label>
             <Input
               type="number"
@@ -211,7 +211,7 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('admin.cancel') || 'Cancel'}
+            {t('admin.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting ? '...' : getSubmitLabel()}

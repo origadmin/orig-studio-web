@@ -47,13 +47,13 @@ const ArticleHomeLayout: React.FC = () => {
         return (
             <div className="text-center py-12">
                 <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground"/>
-                <h2 className="text-xl font-semibold mb-2">{t('channel.noArticles') || 'No Articles Yet'}</h2>
-                <p className="text-muted-foreground mb-6">{t('channel.noArticlesSelf') || 'Check back later for new content.'}</p>
+                <h2 className="text-xl font-semibold mb-2">{t('channel.noArticles')}</h2>
+                <p className="text-muted-foreground mb-6">{t('channel.noArticlesSelf')}</p>
                 {isAuthenticated && (
                     <>
                         <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="mb-2">
                             <Plus size={16} className="mr-2"/>
-                            {t('channel.create.title') || 'Create Channel'}
+                            {t('channel.create.title')}
                         </Button>
                         <CreateChannelDialog
                             open={createDialogOpen}

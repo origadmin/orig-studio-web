@@ -121,7 +121,7 @@ async function uploadPart(
 
     if (!response.ok) {
         if (response.status === 429) {
-            const retryAfter = parseInt(response.headers.get('Retry-After') || '60', 10) * 1000;
+            const retryAfter = parseInt(response.headers.get('Retry-After') || '0', 10) * 1000;
             throw new RateLimitError(retryAfter);
         }
         throw new Error(`Upload part failed: ${response.statusText}`);

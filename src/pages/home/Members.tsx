@@ -19,9 +19,9 @@ const formatNumber = (n: number, t: (key: string) => string) => n >= 10000 ? `${
 // Role label mapping for display
 const getRoleLabel = (role: string, t: (key: string) => string): {label: string, icon: React.ReactNode} => {
     const roles: Record<string, {label: string, icon: React.ReactNode}> = {
-        admin: {label: t('admin.admin') || 'Admin', icon: <Shield className="w-3 h-3"/>},
-        editor: {label: t('admin.editor') || 'Editor', icon: <Edit className="w-3 h-3"/>},
-        user: {label: t('admin.user') || 'User', icon: <UserIcon className="w-3 h-3"/>},
+        admin: {label: t('admin.admin'), icon: <Shield className="w-3 h-3"/>},
+        editor: {label: t('admin.editor'), icon: <Edit className="w-3 h-3"/>},
+        user: {label: t('admin.user'), icon: <UserIcon className="w-3 h-3"/>},
     };
     return roles[role] || {label: role, icon: <UserIcon className="w-3 h-3"/>};
 };
@@ -30,12 +30,12 @@ const getRoleLabel = (role: string, t: (key: string) => string): {label: string,
 const getStatusLabel = (status: number | string, t: (key: string) => string): string => {
     const statusLabel = getUserStatusLabel(status);
     const statusMap: Record<string, string> = {
-        active: t('admin.active') || 'Active',
-        inactive: t('admin.inactive') || 'Inactive',
-        pending: t('admin.pending') || 'Pending',
-        suspended: t('admin.suspended') || 'Suspended',
-        rejected: t('admin.rejected') || 'Rejected',
-        unspecified: t('admin.unspecified') || 'Unspecified',
+        active: t('admin.active'),
+        inactive: t('admin.inactive'),
+        pending: t('admin.pending'),
+        suspended: t('admin.suspended'),
+        rejected: t('admin.rejected'),
+        unspecified: t('admin.unspecified'),
     };
     return statusMap[statusLabel] || statusLabel;
 };

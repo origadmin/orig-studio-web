@@ -47,9 +47,9 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
                 onOpenChange(false);
             } catch (err: any) {
                 if (err?.message?.includes('already reported')) {
-                    setError(t('report.alreadyReported') || 'You have already reported this content');
+                    setError(t('report.alreadyReported'));
                 } else {
-                    setError(err?.message || t('report.submitFailed') || 'Failed to submit report');
+                    setError(err?.message || t('report.submitFailed'));
                 }
             } finally {
                 setSubmitting(false);
@@ -84,11 +84,11 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                {t('report.reason') || 'Reason'} *
+                                {t('report.reason')} *
                             </label>
                             <Select value={reason} onValueChange={setReason}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder={t('report.selectReason') || 'Select a reason'}/>
+                                    <SelectValue placeholder={t('report.selectReason')}/>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {REPORT_REASONS.map(r => (
@@ -102,12 +102,12 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
-                                {t('report.description') || 'Description'} ({t('common.optional') || 'optional'})
+                                {t('report.description')} ({t('common.optional')})
                             </label>
                             <Textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                placeholder={t('report.descriptionPlaceholder') || 'Add more details...'}
+                                placeholder={t('report.descriptionPlaceholder')}
                                 rows={3}
                             />
                         </div>
@@ -123,7 +123,7 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
                             onClick={() => handleOpenChange(false)}
                             disabled={submitting}
                         >
-                            {t('common.cancel') || 'Cancel'}
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleSubmit}
@@ -133,10 +133,10 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
                             {submitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                    {t('report.submitting') || 'Submitting...'}
+                                    {t('report.submitting')}
                                 </>
                             ) : (
-                                t('report.submit') || 'Submit Report'
+                                t('report.submit')
                             )}
                         </Button>
                     </DialogFooter>

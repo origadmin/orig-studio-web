@@ -68,11 +68,11 @@ export const CommentActionMenu: React.FC<CommentActionMenuProps> = React.memo(
             <>
               <DropdownMenuItem onClick={() => onApprove(node.id)}>
                 <Check className="mr-2 h-4 w-4" />
-                {t('admin.approve') || 'Approve'}
+                {t('admin.approve')}
               </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onReject(node.id)}>
                 <X className="mr-2 h-4 w-4" />
-                {t('admin.reject') || 'Reject'}
+                {t('admin.reject')}
               </DropdownMenuItem>
             </>
           )}
@@ -80,7 +80,7 @@ export const CommentActionMenu: React.FC<CommentActionMenuProps> = React.memo(
             <>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onReject(node.id)}>
                 <X className="mr-2 h-4 w-4" />
-                {t('admin.reject') || 'Reject'}
+                {t('admin.reject')}
               </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onBlock(node.id)}>
                 <ShieldOff className="mr-2 h-4 w-4" />
@@ -91,7 +91,7 @@ export const CommentActionMenu: React.FC<CommentActionMenuProps> = React.memo(
           {status === 'rejected' && (
             <DropdownMenuItem onClick={() => onApprove(node.id)}>
               <Check className="mr-2 h-4 w-4" />
-              {t('admin.approve') || 'Approve'}
+              {t('admin.approve')}
             </DropdownMenuItem>
           )}
           {status === 'blocked' && (
@@ -124,7 +124,7 @@ export const CommentActionMenu: React.FC<CommentActionMenuProps> = React.memo(
             onClick={() => onDelete(node.id)}
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            {t('admin.delete') || 'Delete'}
+            {t('admin.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

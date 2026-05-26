@@ -19,7 +19,7 @@ export const CascadingStatusHint: React.FC<CascadingStatusHintProps> = React.mem
 
     return (
       <span className="text-xs text-warning whitespace-nowrap">
-        ({t('admin.parentDisabled') || 'Parent Disabled'})
+        ({t('admin.parentDisabled')})
       </span>
     );
   }

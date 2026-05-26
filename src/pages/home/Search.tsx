@@ -99,7 +99,7 @@ const SearchPage = () => {
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"/>
                         <Input
                             type="text"
-                            placeholder={t('search.placeholder') || 'Search videos...'}
+                            placeholder={t('search.placeholder')}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             className="pl-10 h-12 text-base"
@@ -107,7 +107,7 @@ const SearchPage = () => {
                     </div>
                     <Button type="submit" className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700">
                         <SearchIcon className="w-5 h-5 mr-2"/>
-                        {t('search.search') || 'Search'}
+                        {t('search.search')}
                     </Button>
                     <Button
                         type="button"
@@ -124,14 +124,14 @@ const SearchPage = () => {
                     <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                {t('search.filterByCategory') || 'Filter by Category'}
+                                {t('search.filterByCategory')}
                             </span>
                             {(selectedCategory || searchQuery) && (
                                 <button
                                     onClick={clearFilters}
                                     className="text-sm text-emerald-600 hover:text-emerald-700"
                                 >
-                                    {t('search.clearFilters') || 'Clear Filters'}
+                                    {t('search.clearFilters')}
                                 </button>
                             )}
                         </div>
@@ -144,7 +144,7 @@ const SearchPage = () => {
                                         : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                                 }`}
                             >
-                                {t('search.allCategories') || 'All Categories'}
+                                {t('search.allCategories')}
                             </button>
                             {categories?.items?.map((category: any) => (
                                 <button
@@ -171,7 +171,7 @@ const SearchPage = () => {
                         {t('search.resultsFor', {query: searchQuery})}
                     </h1>
                     <span className="text-sm text-gray-500">
-                        {totalResults} {t('search.results') || 'results'}
+                        {totalResults} {t('search.results')}
                     </span>
                 </div>
             )}
@@ -186,7 +186,7 @@ const SearchPage = () => {
             {/* Error State */}
             {!isLoading && error && (
                 <div className="py-20 text-center space-y-4">
-                    <div className="text-gray-500 text-lg">{t('common.error') || 'Error loading results'}</div>
+                    <div className="text-gray-500 text-lg">{t('common.error')}</div>
                     <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
                     <Link to="/">
                         <button
@@ -203,7 +203,7 @@ const SearchPage = () => {
                     <div className="text-gray-500 text-lg">
                         {searchQuery
                             ? t('search.noResults', {query: searchQuery})
-                            : t('search.enterQuery') || 'Enter a search term to find videos'}
+                            : t('search.enterQuery')}
                     </div>
                     {searchQuery && (
                         <Link to="/">
@@ -295,7 +295,7 @@ const SearchPage = () => {
                                     disabled={page === 1}
                                     className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {t('common.previous') || 'Previous'}
+                                    {t('common.previous')}
                                 </button>
                                 {Array.from({length: Math.min(5, Math.ceil(totalResults / pageSize))}, (_, i) => {
                                     const pageNum = i + 1;
@@ -318,7 +318,7 @@ const SearchPage = () => {
                                     disabled={page >= Math.ceil(totalResults / pageSize)}
                                     className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {t('common.next') || 'Next'}
+                                    {t('common.next')}
                                 </button>
                             </div>
                         </div>

@@ -28,7 +28,7 @@ const DocSidebar: React.FC = () => {
           </div>
         ) : error ? (
           <div className="px-4 py-4 text-sm text-destructive">
-            Failed to load categories
+            {t('doc.failedToLoadCategories')}
           </div>
         ) : (
           <DocNavTree tree={tree ?? []} />

@@ -304,7 +304,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         if (!reportingCommentId) return;
         try {
             await commentApi.report(reportingCommentId, data);
-            toast.success(t('report.submitted') || 'Report submitted successfully');
+            toast.success(t('report.submitted'));
         } catch (err: any) {
             throw err;
         }
@@ -343,7 +343,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             <div className="py-8 text-center text-destructive">
                 <p>{error}</p>
                 <Button variant="ghost" size="sm" onClick={() => fetchComments()} className="mt-2">
-                    {t('common.retry') || 'Retry'}
+                    {t('common.retry')}
                 </Button>
             </div>
         );
@@ -353,16 +353,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         <div className="mt-8">
             <div className="flex items-center justify-between mb-4 relative">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {comments.length} {t('watch.comments') || 'Comments'}
+                    {comments.length} {t('watch.comments')}
                 </h3>
                 <button
                     className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-colors"
                     onClick={() => setShowSortMenu(!showSortMenu)}
                 >
                     <List className="w-4 h-4"/>
-                    {sortBy === 'newest' ? (t('watch.sortNewest') || 'Newest') :
-                     sortBy === 'oldest' ? (t('watch.sortOldest') || 'Oldest') :
-                     (t('watch.sortPopular') || 'Popular')}
+                    {sortBy === 'newest' ? (t('watch.sortNewest')) :
+                     sortBy === 'oldest' ? (t('watch.sortOldest')) :
+                     (t('watch.sortPopular'))}
                     <ChevronDown className="w-3 h-3"/>
                 </button>
                 {showSortMenu && (
@@ -375,9 +375,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                 }`}
                                 onClick={() => { setSortBy(option); setShowSortMenu(false); }}
                             >
-                                {option === 'newest' ? (t('watch.sortNewest') || 'Newest') :
-                                 option === 'oldest' ? (t('watch.sortOldest') || 'Oldest') :
-                                 (t('watch.sortPopular') || 'Popular')}
+                                {option === 'newest' ? (t('watch.sortNewest')) :
+                                 option === 'oldest' ? (t('watch.sortOldest')) :
+                                 (t('watch.sortPopular'))}
                                 {sortBy === option && <span className="ml-2 text-info">✓</span>}
                             </button>
                         ))}
@@ -398,7 +398,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                             {isFocused ? (
                                 <div className="border border-blue-300 dark:border-blue-700 rounded-xl bg-white dark:bg-gray-900 overflow-hidden">
                                     <textarea
-                                        placeholder={t('watch.addComment') || 'Add a comment...'}
+                                        placeholder={t('watch.addComment')}
                                         value={commentText}
                                         onChange={(e) => setCommentText(e.target.value)}
                                         onBlur={() => { setTimeout(() => { if (!commentText.trim()) setIsFocused(false); }, 150); }}
@@ -438,7 +438,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                 onClick={() => { setCommentText(''); setIsFocused(false); }}
                                                 className="text-gray-500 hover:text-gray-700 font-medium"
                                             >
-                                                {t('common.cancel') || 'Cancel'}
+                                                {t('common.cancel')}
                                             </Button>
                                             <Button
                                                 type="button"
@@ -454,7 +454,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                 {isSubmitting ? (
                                                     <Loader2 className="w-4 h-4 animate-spin"/>
                                                 ) : (
-                                                    t('watch.postComment') || 'Comment'
+                                                    t('watch.postComment')
                                                 )}
                                             </Button>
                                         </div>
@@ -465,7 +465,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                     onClick={() => setIsFocused(true)}
                                     className="w-full px-4 py-2.5 border border-transparent bg-gray-50 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-900 rounded-full cursor-text transition-colors text-sm text-gray-500 dark:text-muted-foreground select-none"
                                 >
-                                    {t('watch.addComment') || 'Add a comment...'}
+                                    {t('watch.addComment')}
                                 </div>
                             )}
                         </div>
@@ -477,7 +477,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                         </Avatar>
                         <div className="flex-1">
                             <p className="text-sm text-gray-500 dark:text-muted-foreground mb-3">
-                                {t('watch.pleaseLoginToComment') || 'Sign in to add a comment...'}
+                                {t('watch.pleaseLoginToComment')}
                             </p>
                             <Button
                                 variant="outline"
@@ -486,7 +486,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                 className="border-blue-600 text-info hover:bg-blue-50"
                             >
                                 <LogIn className="w-4 h-4 mr-2"/>
-                                {t('auth.signin') || 'Sign in'}
+                                {t('auth.signin')}
                             </Button>
                         </div>
                     </div>
@@ -496,7 +496,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             {comments.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-muted-foreground">
                     <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30"/>
-                    <p>{t('watch.noComments') || 'No comments yet. Be the first to comment!'}</p>
+                    <p>{t('watch.noComments')}</p>
                 </div>
             ) : (
                 <div className="space-y-0">
@@ -543,7 +543,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                 {comment.status === 'blocked' ? (
                                     <div className="flex items-center gap-2 text-gray-400 dark:text-muted-foreground italic mt-1.5 py-1">
                                         <ShieldOff className="h-4 w-4 flex-shrink-0"/>
-                                        <span>{t('watch.commentBlocked') || 'This comment has been blocked'}</span>
+                                        <span>{t('watch.commentBlocked')}</span>
                                     </div>
                                 ) : (
                                     <p className="text-[15px] text-gray-800 dark:text-gray-200 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
@@ -595,7 +595,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                         onClick={() => setReplyingTo({id: comment.id, username: comment.username || 'Anonymous'})}
                                     >
                                         <Reply className="w-4 h-4"/>
-                                        {t('common.reply') || 'Reply'}
+                                        {t('common.reply')}
                                     </button>
 
                                     {isAuthenticated && user && (String(comment.user_id) === String(user.id) || user.roles?.includes('admin')) && (
@@ -639,7 +639,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                     </div>
                                                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
                                                         <textarea
-                                                            placeholder={t('watch.addComment') || 'Add a comment...'}
+                                                            placeholder={t('watch.addComment')}
                                                             value={replyText}
                                                             onChange={(e) => setReplyText(e.target.value)}
                                                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && replyText.trim()) { e.preventDefault(); handleSubmitReply(); }}}
@@ -677,7 +677,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                                     onClick={() => {setReplyingTo(null); setReplyText('');}}
                                                                     className="text-gray-500 hover:text-gray-700 font-medium"
                                                                 >
-                                                                    {t('common.cancel') || 'Cancel'}
+                                                                    {t('common.cancel')}
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
@@ -693,7 +693,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                                     {isSubmittingReply ? (
                                                                         <Loader2 className="w-4 h-4 animate-spin"/>
                                                                     ) : (
-                                                                        t('common.reply') || 'Reply'
+                                                                        t('common.reply')
                                                                     )}
                                                                 </Button>
                                                             </div>
@@ -703,7 +703,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                             </div>
                                         ) : (
                                             <div className="py-3">
-                                                <p className="text-sm text-gray-500 mb-2">{t('watch.pleaseLoginToReply') || 'Sign in to reply'}</p>
+                                                <p className="text-sm text-gray-500 mb-2">{t('watch.pleaseLoginToReply')}</p>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -711,7 +711,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                                     className="border-blue-600 text-info hover:bg-blue-50"
                                                 >
                                                     <LogIn className="w-4 h-4 mr-2"/>
-                                                    {t('auth.signin') || 'Sign in'}
+                                                    {t('auth.signin')}
                                                 </Button>
                                             </div>
                                         )}
@@ -733,11 +733,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                         {loadingMore ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin"/>
-                                <span>{t('watch.loading') || 'Loading...'}</span>
+                                <span>{t('watch.loading')}</span>
                             </>
                         ) : (
                             <>
-                                {t('watch.loadMore') || 'Load more comments'}
+                                {t('watch.loadMore')}
                                 <span className="text-xs text-gray-500">({Math.max(0, total - comments.length)} remaining)</span>
                             </>
                         )}

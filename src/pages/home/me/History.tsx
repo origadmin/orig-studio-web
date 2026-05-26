@@ -185,19 +185,19 @@ const HistoryPage = () => {
                                         : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
                                 }`}>
                                     {isDeleted
-                                        ? (t('history.contentUnavailable') || 'Content no longer available')
+                                        ? (t('history.contentUnavailable'))
                                         : (item.title || item.content_id)
                                     }
                                 </h3>
                                 <div className="flex items-center gap-2 mt-1">
                                     {isDeleted && (
                                         <span className="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded">
-                                            {t('history.removed') || 'Removed'}
+                                            {t('history.removed')}
                                         </span>
                                     )}
                                     {item.is_finished && !isDeleted && (
                                         <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded">
-                                            {t('history.watched') || 'Watched'}
+                                            {t('history.watched')}
                                         </span>
                                     )}
                                     {!isDeleted && item.progress_seconds > 0 && item.duration_seconds > 0 && (
@@ -255,11 +255,11 @@ const HistoryPage = () => {
             <DeleteConfirmDialog
                 open={showClearConfirm}
                 onOpenChange={setShowClearConfirm}
-                title={t('history.clearConfirmTitle') || 'Clear Watch History'}
-                description={t('history.clearConfirmDesc') || 'Are you sure you want to clear all watch history? This action cannot be undone.'}
-                confirmLabel={t('history.clearConfirm') || 'Clear All'}
+                title={t('history.clearConfirmTitle')}
+                description={t('history.clearConfirmDesc')}
+                confirmLabel={t('history.clearConfirm')}
                 confirmVariant="destructive"
-                loadingLabel={t('history.clearing') || 'Clearing...'}
+                loadingLabel={t('history.clearing')}
                 isDeleting={clearHistory.isPending}
                 onConfirm={() => clearHistory.mutate()}
             />

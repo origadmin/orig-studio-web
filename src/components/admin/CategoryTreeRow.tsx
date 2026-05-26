@@ -100,8 +100,8 @@ export const CategoryTreeRow: React.FC<CategoryTreeRowProps> = React.memo(
         <TableCell>
           <Badge variant={node.status === 1 ? 'default' : 'secondary'}>
             {node.status === 1
-              ? t('admin.enabled') || 'Enabled'
-              : t('admin.disabled') || 'Disabled'}
+              ? t('admin.enabled')
+              : t('admin.disabled')}
           </Badge>
         </TableCell>
 
@@ -121,29 +121,29 @@ export const CategoryTreeRow: React.FC<CategoryTreeRowProps> = React.memo(
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onView(node)}>
                 <Eye className="mr-2 h-4 w-4" />
-                {t('admin.view') || 'View'}
+                {t('admin.view')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(node)}>
                 <Edit className="mr-2 h-4 w-4" />
-                {t('admin.edit') || 'Edit'}
+                {t('admin.edit')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onAddChild(node)}
                 disabled={node.status !== 1}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {t('admin.addChild') || 'Add Child'}
+                {t('admin.addChild')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onToggleStatus(node)}>
                 {node.status === 1 ? (
                   <>
                     <ToggleRight className="mr-2 h-4 w-4" />
-                    {t('admin.disable') || 'Disable'}
+                    {t('admin.disable')}
                   </>
                 ) : (
                   <>
                     <ToggleLeft className="mr-2 h-4 w-4" />
-                    {t('admin.enable') || 'Enable'}
+                    {t('admin.enable')}
                   </>
                 )}
               </DropdownMenuItem>
@@ -153,7 +153,7 @@ export const CategoryTreeRow: React.FC<CategoryTreeRowProps> = React.memo(
                 onClick={() => onDelete(node)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                {t('admin.delete') || 'Delete'}
+                {t('admin.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

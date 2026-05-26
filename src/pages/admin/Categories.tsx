@@ -143,8 +143,7 @@ const Categories: React.FC = () => {
           count: deleteTarget.children.length,
         }) ||
         `This category has ${deleteTarget.children.length} sub-categories. They will become top-level categories. Are you sure you want to delete this category? This action cannot be undone.`
-      : t('admin.deleteCategoryConfirm') ||
-        'Are you sure you want to delete this category? This action cannot be undone.'
+      : t('admin.deleteCategoryConfirm')
     : '';
 
   return (
@@ -231,19 +230,19 @@ const Categories: React.FC = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('admin.deleteCategory') || 'Delete Category'}
+              {t('admin.deleteCategory')}
             </AlertDialogTitle>
             <AlertDialogDescription>{deleteWarningText}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {t('admin.cancel') || 'Cancel'}
+              {t('admin.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={handleDelete}
             >
-              {t('admin.delete') || 'Delete'}
+              {t('admin.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

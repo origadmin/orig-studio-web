@@ -63,12 +63,12 @@ export const TreeSelect: React.FC<TreeSelectProps> = React.memo(
       >
         <SelectTrigger>
           <SelectValue
-            placeholder={placeholder || t('admin.selectParentCategory') || 'Select parent category'}
+            placeholder={placeholder || t('admin.selectParentCategory')}
           />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value={NONE_VALUE}>
-            {t('admin.noParent') || 'No Parent (Top Level)'}
+            {t('admin.noParent')}
           </SelectItem>
           {options.map(option => (
             <SelectItem
@@ -78,7 +78,7 @@ export const TreeSelect: React.FC<TreeSelectProps> = React.memo(
             >
               <span style={{ paddingLeft: `${option.depth * 16}px` }}>
                 {option.isDisabled
-                  ? `${option.name} (${t('admin.disabled') || 'Disabled'})`
+                  ? `${option.name} (${t('admin.disabled')})`
                   : option.name}
               </span>
             </SelectItem>

@@ -58,16 +58,16 @@ export const CommentTreeTable: React.FC<CommentTreeTableProps> = React.memo(
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t('admin.commentList') || 'Comment List'}</CardTitle>
+              <CardTitle>{t('admin.commentList')}</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="outline" onClick={onExpandAll}>
                 <ChevronsDown className="mr-2 h-4 w-4" />
-                {t('admin.expandAll') || 'Expand All'}
+                {t('admin.expandAll')}
               </Button>
               <Button size="sm" variant="outline" onClick={onCollapseAll}>
                 <ChevronsUp className="mr-2 h-4 w-4" />
-                {t('admin.collapseAll') || 'Collapse All'}
+                {t('admin.collapseAll')}
               </Button>
             </div>
           </div>
@@ -81,14 +81,14 @@ export const CommentTreeTable: React.FC<CommentTreeTableProps> = React.memo(
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[300px]">{t('admin.commentContent') || 'Content'}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t('admin.user') || 'User'}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t('admin.belongVideo') || 'Media'}</TableHead>
-                  <TableHead className="hidden md:table-cell text-center">{t('admin.likes') || 'Likes'}</TableHead>
-                  <TableHead className="hidden md:table-cell text-center">{t('admin.replies') || 'Replies'}</TableHead>
-                  <TableHead>{t('admin.status') || 'Status'}</TableHead>
+                  <TableHead className="min-w-[300px]">{t('admin.commentContent')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('admin.user')}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t('admin.belongVideo')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('admin.likes')}</TableHead>
+                  <TableHead className="hidden md:table-cell text-center">{t('admin.replies')}</TableHead>
+                  <TableHead>{t('admin.status')}</TableHead>
                   <TableHead className="text-center">Reports</TableHead>
-                  <TableHead className="text-right">{t('admin.actions') || 'Actions'}</TableHead>
+                  <TableHead className="text-right">{t('admin.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,7 +111,7 @@ export const CommentTreeTable: React.FC<CommentTreeTableProps> = React.memo(
                 ) : (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
-                      {t('admin.noComments') || 'No comments found'}
+                      {t('admin.noComments')}
                     </TableCell>
                   </TableRow>
                 )}

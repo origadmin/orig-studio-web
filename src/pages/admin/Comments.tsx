@@ -212,7 +212,7 @@ const Comments: React.FC = () => {
                                 <div className="relative w-full">
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        placeholder={t('admin.search') || 'Search comments...'}
+                                        placeholder={t('admin.search')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"

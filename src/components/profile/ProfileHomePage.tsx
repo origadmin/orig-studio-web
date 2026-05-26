@@ -154,7 +154,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             setTimeout(() => setShareCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy share link:', err);
-            setShareError(t('channel.shareCopyFailed') || 'Failed to copy link');
+            setShareError(t('channel.shareCopyFailed'));
         }
     }, [channelShareUrl, t]);
 
@@ -203,9 +203,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     }
 
     const visitorTabs: {id: VisitorTab; label: string; icon: React.ElementType}[] = [
-        {id: 'videos', label: t('profile.tabVideos') || 'Videos', icon: Film},
-        {id: 'playlists', label: t('profile.tabPlaylists') || 'Playlists', icon: ListVideo},
-        {id: 'about', label: t('profile.tabAbout') || 'About', icon: Info},
+        {id: 'videos', label: t('profile.tabVideos'), icon: Film},
+        {id: 'playlists', label: t('profile.tabPlaylists'), icon: ListVideo},
+        {id: 'about', label: t('profile.tabAbout'), icon: Info},
     ];
 
     const renderOwnerTabContent = () => {
@@ -236,7 +236,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="font-medium text-sm line-clamp-2">{ch.name}</p>
-                                    <p className="text-xs text-muted-foreground line-clamp-2">{ch.description || t('profile.noDescription') || 'No description'}</p>
+                                    <p className="text-xs text-muted-foreground line-clamp-2">{ch.description || t('profile.noDescription')}</p>
                                 </div>
                                 <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0"/>
                             </div>
@@ -362,7 +362,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 <DropdownMenuTrigger asChild>
                                     <Button>
                                         <Settings className="w-4 h-4 mr-1"/>
-                                        {t('profile.manage') || 'Manage'}
+                                        {t('profile.manage')}
                                         <ChevronDown className="w-4 h-4 ml-1"/>
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -490,7 +490,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('channel.shareChannel') || 'Share Channel'}</DialogTitle>
+                        <DialogTitle>{t('channel.shareChannel')}</DialogTitle>
                         <DialogDescription>
                             {t('channel.shareDescription', {channel: profile?.nickname || profile?.username || username}) || `Share this channel with your friends`}
                         </DialogDescription>
@@ -511,7 +511,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 onClick={handleCopyShareLink}
                                 className={shareCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'}
                             >
-                                {shareCopied ? <Check className="w-4 h-4"/> : (t('watch.copyLink') || 'Copy')}
+                                {shareCopied ? <Check className="w-4 h-4"/> : (t('watch.copyLink'))}
                             </Button>
                         </div>
 
@@ -618,7 +618,7 @@ const ContentSection: React.FC<{
             {hasManage && (
                 <div className="mt-4 flex justify-end">
                     <Button variant="ghost" size="sm" onClick={onManage} className="text-muted-foreground hover:text-foreground">
-                        {t('profile.viewAll') || 'View All'}
+                        {t('profile.viewAll')}
                         <ArrowRight className="w-4 h-4 ml-1"/>
                     </Button>
                 </div>
@@ -662,7 +662,7 @@ const ProfileAboutTab: React.FC<{profile: any}> = ({profile}) => {
         <div className="space-y-6 max-w-2xl">
             {profile.bio && (
                 <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t('profile.bio') || 'Bio'}</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">{t('profile.bio')}</h3>
                     <p className="text-foreground whitespace-pre-wrap">{profile.bio}</p>
                 </div>
             )}
@@ -683,11 +683,11 @@ const ProfileAboutTab: React.FC<{profile: any}> = ({profile}) => {
             {profile.created_at && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar size={16}/>
-                    <span>{t('profile.joined') || 'Joined'} {new Date(profile.created_at).toLocaleDateString()}</span>
+                    <span>{t('profile.joined')} {new Date(profile.created_at).toLocaleDateString()}</span>
                 </div>
             )}
             {!profile.bio && !profile.location && !profile.website && (
-                <p className="text-muted-foreground/60 italic">{t('profile.noInfo') || 'No additional information'}</p>
+                <p className="text-muted-foreground/60 italic">{t('profile.noInfo')}</p>
             )}
         </div>
     );

@@ -133,12 +133,12 @@ const PlaylistDetailPage: React.FC = () => {
         return (
             <div className="text-center py-20 text-muted-foreground">
                 <ListVideo size={48} className="mx-auto mb-3 opacity-30"/>
-                <p className="text-lg mb-1">{t('playlists.notFound') || 'Playlist not found'}</p>
-                <p className="text-sm mb-4">{t('playlists.notFoundDesc') || 'This playlist may be private or has been deleted.'}</p>
+                <p className="text-lg mb-1">{t('playlists.notFound')}</p>
+                <p className="text-sm mb-4">{t('playlists.notFoundDesc')}</p>
                 <Link to="/me/playlists">
                     <Button variant="outline">
                         <ArrowLeft className="w-4 h-4 mr-2"/>
-                        {t('playlists.backToList') || 'Back to my playlists'}
+                        {t('playlists.backToList')}
                     </Button>
                 </Link>
             </div>
@@ -187,11 +187,11 @@ const PlaylistDetailPage: React.FC = () => {
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={handleEdit}>
                                 <Edit3 className="w-4 h-4 mr-2"/>
-                                {t('common.edit') || 'Edit'}
+                                {t('common.edit')}
                             </DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
                                 <Trash2 className="w-4 h-4 mr-2"/>
-                                {t('common.delete') || 'Delete'}
+                                {t('common.delete')}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -254,7 +254,7 @@ const PlaylistDetailPage: React.FC = () => {
                                     size="icon"
                                     className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
                                     onClick={() => setRemoveMediaId(media.id)}
-                                    title={t('playlists.removeVideo') || 'Remove from playlist'}
+                                    title={t('playlists.removeVideo')}
                                 >
                                     <Trash2 className="w-4 h-4"/>
                                 </Button>
@@ -265,8 +265,8 @@ const PlaylistDetailPage: React.FC = () => {
             ) : (
                 <div className="text-center py-20 text-muted-foreground">
                     <Video size={48} className="mx-auto mb-3 opacity-30"/>
-                    <p className="text-lg mb-1">{t('playlists.emptyPlaylist') || 'This playlist is empty'}</p>
-                    <p className="text-sm">{t('playlists.emptyPlaylistDesc') || 'Add videos to this playlist from the video page.'}</p>
+                    <p className="text-lg mb-1">{t('playlists.emptyPlaylist')}</p>
+                    <p className="text-sm">{t('playlists.emptyPlaylistDesc')}</p>
                 </div>
             )}
 
@@ -274,26 +274,26 @@ const PlaylistDetailPage: React.FC = () => {
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('playlists.editPlaylist') || 'Edit Playlist'}</DialogTitle>
+                        <DialogTitle>{t('playlists.editPlaylist')}</DialogTitle>
                         <DialogDescription>
-                            {t('playlists.editPlaylistDesc') || 'Update your playlist details'}
+                            {t('playlists.editPlaylistDesc')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                         <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.title') || 'Title'}</label>
+                            <label className="text-sm font-medium mb-1 block">{t('playlists.title')}</label>
                             <Input
                                 value={editTitle}
                                 onChange={(e) => setEditTitle(e.target.value)}
-                                placeholder={t('playlists.titlePlaceholder') || 'Enter playlist title'}
+                                placeholder={t('playlists.titlePlaceholder')}
                             />
                         </div>
                         <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.description') || 'Description'}</label>
+                            <label className="text-sm font-medium mb-1 block">{t('playlists.description')}</label>
                             <Input
                                 value={editDescription}
                                 onChange={(e) => setEditDescription(e.target.value)}
-                                placeholder={t('playlists.descriptionPlaceholder') || 'Enter playlist description'}
+                                placeholder={t('playlists.descriptionPlaceholder')}
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -305,7 +305,7 @@ const PlaylistDetailPage: React.FC = () => {
                                 className="rounded border-gray-300"
                             />
                             <label htmlFor="edit-is-public" className="text-sm">
-                                {t('playlists.makePublic') || 'Make playlist public'}
+                                {t('playlists.makePublic')}
                             </label>
                         </div>
                         <div className="flex justify-end gap-2">
@@ -315,7 +315,7 @@ const PlaylistDetailPage: React.FC = () => {
                             <Button onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
                                     className="bg-emerald-600 hover:bg-emerald-700">
                                 {isUpdating ? <Spinner className="w-4 h-4 mr-1"/> : null}
-                                {t('common.save') || 'Save'}
+                                {t('common.save')}
                             </Button>
                         </div>
                     </div>
@@ -326,9 +326,9 @@ const PlaylistDetailPage: React.FC = () => {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('playlists.deletePlaylist') || 'Delete Playlist'}</DialogTitle>
+                        <DialogTitle>{t('playlists.deletePlaylist')}</DialogTitle>
                         <DialogDescription>
-                            {t('playlists.deleteConfirm') || 'Are you sure you want to delete this playlist? This action cannot be undone.'}
+                            {t('playlists.deleteConfirm')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-end gap-2 mt-4">
@@ -337,7 +337,7 @@ const PlaylistDetailPage: React.FC = () => {
                         </Button>
                         <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
                             {isDeleting ? <Spinner className="w-4 h-4 mr-1"/> : null}
-                            {t('common.delete') || 'Delete'}
+                            {t('common.delete')}
                         </Button>
                     </div>
                 </DialogContent>
@@ -347,9 +347,9 @@ const PlaylistDetailPage: React.FC = () => {
             <Dialog open={!!removeMediaId} onOpenChange={() => setRemoveMediaId(null)}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('playlists.removeVideo') || 'Remove Video'}</DialogTitle>
+                        <DialogTitle>{t('playlists.removeVideo')}</DialogTitle>
                         <DialogDescription>
-                            {t('playlists.removeVideoConfirm') || 'Remove this video from the playlist?'}
+                            {t('playlists.removeVideoConfirm')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-end gap-2 mt-4">
@@ -358,7 +358,7 @@ const PlaylistDetailPage: React.FC = () => {
                         </Button>
                         <Button variant="destructive" onClick={handleRemoveMedia} disabled={isRemovingMedia}>
                             {isRemovingMedia ? <Spinner className="w-4 h-4 mr-1"/> : null}
-                            {t('common.remove') || 'Remove'}
+                            {t('common.remove')}
                         </Button>
                     </div>
                 </DialogContent>

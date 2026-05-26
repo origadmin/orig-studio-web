@@ -26,7 +26,7 @@ export const CategoryStatsCards: React.FC<CategoryStatsCardsProps> = React.memo(
               {stats.total}
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('admin.totalCategories') || 'Total Categories'}
+              {t('admin.totalCategories')}
             </p>
           </CardContent>
           <div className="absolute bottom-0 left-0 h-1 bg-info w-full opacity-10" />
@@ -39,7 +39,7 @@ export const CategoryStatsCards: React.FC<CategoryStatsCardsProps> = React.memo(
               {stats.active}
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('admin.activeCategories') || 'Active Categories'}
+              {t('admin.activeCategories')}
             </p>
           </CardContent>
           <div className="absolute bottom-0 left-0 h-1 bg-success w-full opacity-10" />
@@ -52,7 +52,7 @@ export const CategoryStatsCards: React.FC<CategoryStatsCardsProps> = React.memo(
               {stats.topLevel}
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('admin.topLevelCategories') || 'Top-Level Categories'}
+              {t('admin.topLevelCategories')}
             </p>
           </CardContent>
           <div className="absolute bottom-0 left-0 h-1 bg-cyan-500 w-full opacity-10" />
@@ -65,7 +65,7 @@ export const CategoryStatsCards: React.FC<CategoryStatsCardsProps> = React.memo(
               {stats.subCategories}
             </div>
             <p className="text-sm text-muted-foreground">
-              {t('admin.subCategories') || 'Sub-Categories'}
+              {t('admin.subCategories')}
             </p>
           </CardContent>
           <div className="absolute bottom-0 left-0 h-1 bg-amber-500 w-full opacity-10" />

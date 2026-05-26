@@ -22,21 +22,21 @@ export const CommentStatsCards: React.FC<CommentStatsCardsProps> = React.memo(
 
     const cards = [
       {
-        label: t('admin.totalComments') || 'Total',
+        label: t('admin.totalComments'),
         value: stats.total,
         icon: MessageCircle,
         color: 'text-info',
         bgColor: 'bg-info',
       },
       {
-        label: t('admin.approved') || 'Approved',
+        label: t('admin.approved'),
         value: stats.approved,
         icon: CheckCircle,
         color: 'text-success',
         bgColor: 'bg-success',
       },
       {
-        label: t('admin.pending') || 'Pending',
+        label: t('admin.pending'),
         value: stats.pending,
         icon: Clock,
         color: 'text-yellow-600',

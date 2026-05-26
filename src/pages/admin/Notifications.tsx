@@ -327,7 +327,7 @@ const AdminNotifications: React.FC = () => {
                                                     </div>
                                                 )}
                                                 <Button variant="ghost" size="sm" onClick={() => setShowUserPicker(false)} className="w-full">
-                                                    {t('common.cancel') || 'Close'}
+                                                    {t('common.cancel')}
                                                 </Button>
                                             </div>
                                         )}

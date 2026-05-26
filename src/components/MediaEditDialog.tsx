@@ -75,15 +75,15 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{t('admin.edit') || '编辑'}</DialogTitle>
+                    <DialogTitle>{t('admin.edit')}</DialogTitle>
                     <DialogDescription>
-                        {t('media.editDesc') || '修改媒体信息'}
+                        {t('media.editDesc')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="title">{t('upload.titleLabel') || '标题'}</Label>
+                            <Label htmlFor="title">{t('upload.titleLabel')}</Label>
                             <Input
                                 id="title"
                                 value={formData.title}
@@ -92,7 +92,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="description">{t('upload.descLabel') || '描述'}</Label>
+                            <Label htmlFor="description">{t('upload.descLabel')}</Label>
                             <Textarea
                                 id="description"
                                 value={formData.description}
@@ -101,7 +101,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="tags">{t('upload.tagLabel') || '标签'}</Label>
+                            <Label htmlFor="tags">{t('upload.tagLabel')}</Label>
                             <Input
                                 id="tags"
                                 value={formData.tags}
@@ -110,7 +110,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="state">{t('admin.status') || '状态'}</Label>
+                            <Label htmlFor="state">{t('admin.status')}</Label>
                             <Select
                                 value={formData.state}
                                 onValueChange={(value) => setFormData({...formData, state: value})}
@@ -119,19 +119,19 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                                     <SelectValue/>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="active">{t('admin.enabled') || '启用'}</SelectItem>
+                                    <SelectItem value="active">{t('admin.enabled')}</SelectItem>
                                     <SelectItem value="draft">Draft</SelectItem>
-                                    <SelectItem value="deleted">{t('admin.delete') || '删除'}</SelectItem>
+                                    <SelectItem value="deleted">{t('admin.delete')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                            {t('common.cancel') || '取消'}
+                            {t('common.cancel')}
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading ? t('common.loading') : t('common.save') || '保存'}
+                            {loading ? t('common.loading') : t('common.save')}
                         </Button>
                     </DialogFooter>
                 </form>

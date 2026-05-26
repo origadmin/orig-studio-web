@@ -194,13 +194,13 @@ const WatchPage = () => {
                             >
                                 {media.encoding_status === 'processing' ? (
                                     <><Loader2 size={9}
-                                               className="animate-spin"/>{t('watch.transcoding') || 'Transcoding...'}</>
+                                               className="animate-spin"/>{t('watch.transcoding')}</>
                                 ) : media.encoding_status === 'failed' ? (
-                                    <><AlertTriangle size={9}/>{t('watch.failed') || 'Failed'}</>
+                                    <><AlertTriangle size={9}/>{t('watch.failed')}</>
                                 ) : media.encoding_status === 'pending' ? (
-                                    <><Eye size={9}/>{t('watch.optimizing') || 'Queued'}</>
+                                    <><Eye size={9}/>{t('watch.optimizing')}</>
                                 ) : (
-                                    <><Eye size={9}/>{t('watch.partial') || 'Partial'}</>
+                                    <><Eye size={9}/>{t('watch.partial')}</>
                                 )}
                             </Badge>
 
@@ -252,7 +252,7 @@ const WatchPage = () => {
                                 size="sm"
                                 className="gap-1.5"
                                 disabled
-                                onClick={() => toast.info(t('watch.subtitleComingSoon') || '字幕功能即将上线')}
+                                onClick={() => toast.info(t('watch.subtitleComingSoon'))}
                             >
                                 <FileText className="w-4 h-4"/>
                                 {t('common.subtitles')}
@@ -296,7 +296,7 @@ const WatchPage = () => {
                                             <p className="text-xs text-gray-500 dark:text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
                                         </>
                                     ) : (
-                                        <span className="font-bold text-muted-foreground dark:text-gray-500">{t('watch.deletedUser') || 'Deleted User'}</span>
+                                        <span className="font-bold text-muted-foreground dark:text-gray-500">{t('watch.deletedUser')}</span>
                                     )}
                                 </div>
                                 <SubscribeButton

@@ -40,13 +40,13 @@ const AdminLayout = () => {
         {
             id: "transcoding-profiles",
             icon: Cpu,
-            label: t('admin.transcodingProfiles') || "Transcoding Profiles",
+            label: t('admin.transcodingProfiles'),
             path: "/admin/transcoding/profiles"
         },
         {
             id: "transcoding-status",
             icon: Activity,
-            label: t('admin.transcodingStatus') || "Transcoding Status",
+            label: t('admin.transcodingStatus'),
             path: "/admin/transcoding/status"
         },
         {id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"},
@@ -54,11 +54,11 @@ const AdminLayout = () => {
         {id: "channels", icon: Radio, label: t('admin.channels'), path: "/admin/channels"},
         {id: "tags", icon: Tags, label: t('admin.tags'), path: "/admin/tags"},
         {id: "comments", icon: MessageSquare, label: t('admin.comments'), path: "/admin/comments"},
-        {id: "notifications", icon: Bell, label: t('admin.notifications') || "Notifications", path: "/admin/notifications"},
+        {id: "notifications", icon: Bell, label: t('admin.notifications'), path: "/admin/notifications"},
         {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
         {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
         {id: "portal", icon: Layout, label: t('admin.portal'), path: "/admin/portal"},
-        {id: "permissions", icon: Settings, label: t('admin.permissions') || "Permissions", path: "/admin/permissions"},
+        {id: "permissions", icon: Settings, label: t('admin.permissions'), path: "/admin/permissions"},
         {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
     ];
 
@@ -88,7 +88,7 @@ const AdminLayout = () => {
         } else if (path.startsWith("/admin/comments")) {
             breadcrumbs.push({label: t('admin.comments'), path: "/admin/comments"});
         } else if (path.startsWith("/admin/notifications")) {
-            breadcrumbs.push({label: t('admin.notifications') || "Notifications", path: "/admin/notifications"});
+            breadcrumbs.push({label: t('admin.notifications'), path: "/admin/notifications"});
         } else if (path.startsWith("/admin/playlists")) {
             breadcrumbs.push({label: t('admin.playlists'), path: "/admin/playlists"});
         } else if (path.startsWith("/admin/articles")) {
