@@ -102,11 +102,8 @@ export const articleApi = {
         user_id?: string;
     }) => api.get<ArticleListResponse>("/articles", {...params, state: params?.state || "published"}),
 
-    // Get article detail (public)
-    get: (id: string) => api.get<Article>(`/articles/${id}`),
-
-    // Get article by slug
-    getBySlug: (slug: string) => api.get<Article>(`/articles/slug/${slug}`),
+    // Get article detail (public, by slug)
+    get: (slug: string) => api.get<Article>(`/articles/${slug}`),
 
     // Get featured articles
     featured: (limit?: number) => api.get<Article[]>("/articles/featured", {limit}),
@@ -166,24 +163,24 @@ export const userArticleApi = {
 
     /**
      * Update article (user-side, ownership enforced)
-     * PUT /articles/:id
+     * PUT /articles/:slug
      * - featured is preserved (user input ignored)
      * - state restricted to draft/published
      */
-    update: (id: string, data: UserUpdateArticleRequest) =>
-        api.put<Article>(`/articles/${id}`, data),
+    update: (slug: string, data: UserUpdateArticleRequest) =>
+        api.put<Article>(`/articles/${slug}`, data),
 
     /**
      * Delete article (user-side, draft only, ownership enforced)
-     * DELETE /articles/:id
+     * DELETE /articles/:slug
      */
-    delete: (id: string) =>
-        api.del<void>(`/articles/${id}`),
+    delete: (slug: string) =>
+        api.del<void>(`/articles/${slug}`),
 
     /**
      * Update article state (user-side, draft/published only)
-     * PATCH /articles/:id/state
+     * PATCH /articles/:slug/state
      */
-    updateState: (id: string, state: 'draft' | 'published') =>
-        api.patch<void>(`/articles/${id}/state`, {state}),
+    updateState: (slug: string, state: 'draft' | 'published') =>
+        api.patch<void>(`/articles/${slug}/state`, {state}),
 };

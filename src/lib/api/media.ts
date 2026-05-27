@@ -353,10 +353,10 @@ export const mediaApi = {
         descending?: boolean;
     }) => api.get<MediaListResponse>("/medias", params as Record<string, unknown>),
 
-    // 获取媒体详情（公开）
-    get: (id: number | string) => {
-        const cleanId = String(id).replace(/["']/g, '').trim();
-        return api.get<Media>(`/medias/${cleanId}`);
+    // 获取媒体详情（公开，使用 short_token）
+    get: (token: number | string) => {
+        const cleanToken = String(token).replace(/["']/g, '').trim();
+        return api.get<Media>(`/medias/${cleanToken}`);
     },
 
     // 管理端：获取所有媒体（包括未发布的）
@@ -433,31 +433,31 @@ export const mediaApi = {
         });
     },
 
-    // 更新媒体（需要 JWT + owner 权限）
-    update: (id: number | string, data: UpdateMediaRequest) =>
-        api.put<Media>(`/medias/${id}`, data),
+    // 更新媒体（需要 JWT + owner 权限，使用 short_token）
+    update: (token: number | string, data: UpdateMediaRequest) =>
+        api.put<Media>(`/medias/${token}`, data),
 
-    // 删除媒体（需要 JWT + owner 权限）
-    delete: (id: number | string) => api.del<void>(`/medias/${id}`),
+    // 删除媒体（需要 JWT + owner 权限，使用 short_token）
+    delete: (token: number | string) => api.del<void>(`/medias/${token}`),
 
-    // 文件操作
-    download: (id: number | string) => api.get<{ download_url: string }>(`/medias/${id}/download`),
-    stream: (id: number | string) => api.get<{ stream_url: string }>(`/medias/${id}/stream`),
-    getThumbnail: (id: number | string) => api.get<{ thumbnail_url: string }>(`/medias/${id}/thumbnail`),
+    // 文件操作（使用 short_token）
+    download: (token: number | string) => api.get<{ download_url: string }>(`/medias/${token}/download`),
+    stream: (token: number | string) => api.get<{ stream_url: string }>(`/medias/${token}/stream`),
+    getThumbnail: (token: number | string) => api.get<{ thumbnail_url: string }>(`/medias/${token}/thumbnail`),
 
-    // 转码相关（单个媒体）
+    // 转码相关（单个媒体，使用 short_token）
     encoding: {
-        /** @deprecated 使用 adminMediaApi.getTasks(id) 代替。此方法使用不存在的 public 路径 /medias/${mediaId}/tasks，后端仅有 /admin/medias/:id/tasks */
-        getTasks: (mediaId: number | string) =>
-            api.get<{ tasks: EncodingTask[] }>(`/medias/${mediaId}/tasks`),
+        /** @deprecated 使用 adminMediaApi.getTasks(id) 代替。此方法使用不存在的 public 路径 /medias/${token}/tasks，后端仅有 /admin/medias/:id/tasks */
+        getTasks: (token: number | string) =>
+            api.get<{ tasks: EncodingTask[] }>(`/medias/${token}/tasks`),
 
-        /** @deprecated 使用 adminMediaApi.getVariants(id) 代替。此方法使用不存在的 public 路径 /medias/${mediaId}/variants，后端仅有 /admin/medias/:id/variants */
-        getVariants: (mediaId: number | string) =>
-            api.get<MediaVariantSummary>(`/medias/${mediaId}/variants`),
+        /** @deprecated 使用 adminMediaApi.getVariants(id) 代替。此方法使用不存在的 public 路径 /medias/${token}/variants，后端仅有 /admin/medias/:id/variants */
+        getVariants: (token: number | string) =>
+            api.get<MediaVariantSummary>(`/medias/${token}/variants`),
 
-        /** @deprecated 使用 encodingApi.retryAllFailed(mediaId) 或 adminMediaApi.retryTask(id, taskId) 代替。此方法使用不存在的 public 路径，且 :taskId 为字面量未替换 */
-        retry: (mediaId: number | string) =>
-            api.post<{ message: string; media_id: number }>(`/medias/${mediaId}/tasks/:taskId/retry`),
+        /** @deprecated 使用 encodingApi.retryAllFailed(token) 或 adminMediaApi.retryTask(id, taskId) 代替。此方法使用不存在的 public 路径，且 :taskId 为字面量未替换 */
+        retry: (token: number | string) =>
+            api.post<{ message: string; media_id: number }>(`/medias/${token}/tasks/:taskId/retry`),
     },
 
     // 旧版转码状态（兼容）
@@ -479,42 +479,42 @@ export const mediaApi = {
         return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 
-    // ==================== 点赞/点踩 API ====================
+    // ==================== 点赞/点踩 API (使用 short_token) ====================
     likes: {
         // 获取点赞状态
-        getStatus: (mediaId: string | number) =>
-            api.get<LikeResponse>(`/medias/${mediaId}/likes`),
+        getStatus: (token: string | number) =>
+            api.get<LikeResponse>(`/medias/${token}/likes`),
         // 点赞/取消点赞
-        toggle: (mediaId: string | number) =>
-            api.post<LikeResponse>(`/medias/${mediaId}/likes`),
+        toggle: (token: string | number) =>
+            api.post<LikeResponse>(`/medias/${token}/likes`),
         // 点踩/取消点踩
-        toggleDislike: (mediaId: string | number) =>
-            api.del<LikeResponse>(`/medias/${mediaId}/likes`),
+        toggleDislike: (token: string | number) =>
+            api.del<LikeResponse>(`/medias/${token}/likes`),
     },
 
-    // ==================== 收藏 API ====================
+    // ==================== 收藏 API (使用 short_token) ====================
     favorites: {
         // 获取收藏状态
-        getStatus: (mediaId: string | number) =>
-            api.get<FavoriteResponse>(`/medias/${mediaId}/favorites`),
+        getStatus: (token: string | number) =>
+            api.get<FavoriteResponse>(`/medias/${token}/favorites`),
         // 收藏/取消收藏
-        toggle: (mediaId: string | number) =>
-            api.post<FavoriteResponse>(`/medias/${mediaId}/favorites`),
+        toggle: (token: string | number) =>
+            api.post<FavoriteResponse>(`/medias/${token}/favorites`),
     },
 
-    // ==================== 分享 API ====================
+    // ==================== 分享 API (使用 short_token) ====================
     shares: {
         // 获取分享链接
-        getShareUrl: (mediaId: string | number, title?: string) =>
-            api.get<ShareResponse>(`/medias/${mediaId}/shares`, title ? {title} : {}),
+        getShareUrl: (token: string | number, title?: string) =>
+            api.get<ShareResponse>(`/medias/${token}/shares`, title ? {title} : {}),
         // 分享视频（增加分享计数）
-        share: (mediaId: string | number) =>
-            api.post<{ success: boolean }>(`/medias/${mediaId}/shares`),
+        share: (token: string | number) =>
+            api.post<{ success: boolean }>(`/medias/${token}/shares`),
     },
 
-    // ==================== 举报 API ====================
-    report: (mediaId: string | number, data: { reason: string; description?: string }) =>
-        api.post<{ message: string; report_count: number; status: string }>(`/medias/${mediaId}/report`, data),
+    // ==================== 举报 API (使用 short_token) ====================
+    report: (token: string | number, data: { reason: string; description?: string }) =>
+        api.post<{ message: string; report_count: number; status: string }>(`/medias/${token}/report`, data),
 };
 
 // MediaVariantSummary is the aggregated transcoding status for a single media.

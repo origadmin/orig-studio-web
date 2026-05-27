@@ -24,10 +24,10 @@ function formatCount(num: number): string {
 }
 
 interface ProfilePageProps {
-    userId?: string;
+    userSlug?: string;
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
+const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
     const params = useParams({strict: false}) as {id?: string; username?: string; handle?: string};
     const {t} = useTranslation();
     const {user: currentUser, isAuthenticated} = useAuth();
@@ -174,8 +174,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                 const resolvedUsername = params.handle
                     ? params.handle.startsWith('@') ? params.handle.slice(1) : params.handle
                     : params.username;
-                if (propUserId) {
-                    userResponse = await userApi.get(propUserId);
+                if (propUserSlug) {
+                    userResponse = await userApi.get(propUserSlug);
                 } else if (resolvedUsername) {
                     userResponse = await userApi.getByUsername(resolvedUsername);
                 } else if (params.id) {
@@ -198,7 +198,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
             }
         };
         fetchUser();
-    }, [propUserId, params.id, params.username, params.handle]);
+    }, [propUserSlug, params.id, params.username, params.handle]);
 
     const getPrivacyBadgeVariant = (privacy?: string) => {
         switch (privacy?.toUpperCase()) {

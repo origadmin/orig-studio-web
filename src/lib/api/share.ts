@@ -5,13 +5,13 @@ import {mediaApi, ShareResponse} from "./media";
 export type {ShareResponse};
 
 export const shareApi = {
-    // 获取分享链接 - 使用新的 /medias/:id/shares 路径
-    getShareUrl: (mediaId: string) =>
-        mediaApi.shares.getShareUrl(mediaId),
+    // 获取分享链接 - 使用 short_token
+    getShareUrl: (token: string) =>
+        mediaApi.shares.getShareUrl(token),
 
-    // 分享视频（增加分享计数）- 使用新的 /medias/:id/shares 路径
-    share: (mediaId: string) =>
-        mediaApi.shares.share(mediaId),
+    // 分享视频（增加分享计数）- 使用 short_token
+    share: (token: string) =>
+        mediaApi.shares.share(token),
 };
 
 export default shareApi;

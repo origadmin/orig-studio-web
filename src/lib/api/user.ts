@@ -160,27 +160,28 @@ export const userApi = {
     list: (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) =>
         api.get<UserListResponse>("/users", params),
 
-    // 获取用户详情
-    get: (id: string) => api.get<User>(`/users/${id}`),
+    // 获取用户详情（公开，使用 slug）
+    get: (slug: string) => api.get<User>(`/users/${slug}`),
 
-    // 通过 username 获取用户
-    getByUsername: (username: string) => api.get<User>(`/users/username/${username}`),
+    // 通过 username 获取用户（查询参数方式）
+    getByUsername: (username: string) => api.get<User>('/users', {username}),
 
     // 获取公开个人资料 (F016: 含 is_owner/is_subscribed)
-    getPublicProfile: (username: string) => api.get<PublicProfile>(`/users/username/${username}`),
+    // 通过 username 查询参数方式
+    getPublicProfile: (username: string) => api.get<PublicProfile>('/users', {username}),
 
     // 创建用户
     create: (data: CreateUserRequest) => api.post<User>("/users", data),
 
-    // 更新用户
-    update: (id: string, data: UpdateUserRequest) => api.put<User>(`/users/${id}`, data),
+    // 更新用户（使用 slug）
+    update: (slug: string, data: UpdateUserRequest) => api.put<User>(`/users/${slug}`, data),
 
-    // 删除用户
-    delete: (id: string) => api.del<void>(`/users/${id}`),
+    // 删除用户（使用 slug）
+    delete: (slug: string) => api.del<void>(`/users/${slug}`),
 
-    // 更新用户状态
-    updateStatus: (id: string, status: string) =>
-        api.patch<User>(`/users/${id}/status`, {status}),
+    // 更新用户状态（使用 slug）
+    updateStatus: (slug: string, status: string) =>
+        api.patch<User>(`/users/${slug}/status`, {status}),
 
     // ==================== 当前用户 APIs (使用 /me 路径) ====================
 
@@ -196,17 +197,17 @@ export const userApi = {
 
     // ==================== Subscription APIs ====================
 
-    // 获取订阅状态
-    getSubscriptionStatus: (userId: string) =>
-        api.get<SubscriptionStatusResponse>(`/users/${userId}/subscription`),
+    // 获取订阅状态（使用 slug）
+    getSubscriptionStatus: (slug: string) =>
+        api.get<SubscriptionStatusResponse>(`/users/${slug}/subscription`),
 
-    // 订阅用户/频道
-    subscribe: (userId: string) =>
-        api.post<{ success: boolean }>(`/users/${userId}/subscribe`),
+    // 订阅用户/频道（使用 slug）
+    subscribe: (slug: string) =>
+        api.post<{ success: boolean }>(`/users/${slug}/subscribe`),
 
-    // 取消订阅
-    unsubscribe: (userId: string) =>
-        api.del<{ success: boolean }>(`/users/${userId}/subscribe`),
+    // 取消订阅（使用 slug）
+    unsubscribe: (slug: string) =>
+        api.del<{ success: boolean }>(`/users/${slug}/subscribe`),
 
     // 获取我的订阅列表
     getSubscriptions: (params?: { page?: number; page_size?: number }) =>

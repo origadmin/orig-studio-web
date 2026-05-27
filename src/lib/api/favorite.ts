@@ -25,13 +25,13 @@ export interface FavoriteListResponse {
 }
 
 export const favoriteApi = {
-    // Get favorite status for a media item
-    getStatus: (mediaId: string | number) =>
-        mediaApi.favorites.getStatus(mediaId),
+    // Get favorite status for a media item (uses short_token)
+    getStatus: (token: string) =>
+        mediaApi.favorites.getStatus(token),
 
-    // Toggle favorite for a media item
-    toggle: (mediaId: string | number) =>
-        mediaApi.favorites.toggle(mediaId),
+    // Toggle favorite for a media item (uses short_token)
+    toggle: (token: string) =>
+        mediaApi.favorites.toggle(token),
 
     // Get user's favorite list with pagination
     list: (params?: { page?: number; page_size?: number }) =>

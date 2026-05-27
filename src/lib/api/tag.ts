@@ -16,8 +16,11 @@ export interface Tag {
 
 export const tagApi = {
     getAll: () => api.get<PaginatedResponse<Tag>>("/tags"),
-    get: (id: string) => api.get<Tag>(`/tags/${id}`),
+    // Get tag by slug (public portal route)
+    get: (slug: string) => api.get<Tag>(`/tags/${slug}`),
     create: (data: Partial<Tag>) => api.post<Tag>("/tags", data),
-    update: (id: string, data: Partial<Tag>) => api.put<Tag>(`/tags/${id}`, data),
-    delete: (id: string) => api.del<void>(`/tags/${id}`),
+    // Update tag by slug
+    update: (slug: string, data: Partial<Tag>) => api.put<Tag>(`/tags/${slug}`, data),
+    // Delete tag by slug
+    delete: (slug: string) => api.del<void>(`/tags/${slug}`),
 };

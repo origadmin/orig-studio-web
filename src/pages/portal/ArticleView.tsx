@@ -57,7 +57,7 @@ export default function ArticleViewPage() {
         if (!slug) return;
         setLoading(true);
         setError(null);
-        articleApi.getBySlug(slug)
+        articleApi.get(slug)
             .then(data => {
                 const articleData = (data as any)?.article ?? (data as any)?.data?.article ?? (data as any)?.data ?? data;
                 setArticle(articleData);
@@ -72,14 +72,16 @@ export default function ArticleViewPage() {
                         });
                 }
                 if (articleData.user_id) {
-                    userApi.get(String(articleData.user_id))
-                        .then(authorData => {
-                            const authorRes = (authorData as any)?.user ?? (authorData as any)?.data?.user ?? (authorData as any)?.data ?? authorData;
-                            setAuthor(authorRes);
-                        })
-                        .catch(err => {
-                            console.error('Error loading author:', err);
-                        });
+                    // Try to use embedded user data from article response first,
+                    // then fall back to fetching by username if available.
+                    // Note: userApi.get() now expects a slug, not an ID.
+                    const embeddedUser = articleData.user;
+                    if (embeddedUser && (embeddedUser.slug || embeddedUser.username)) {
+                        setAuthor(embeddedUser);
+                    } else if (embeddedUser) {
+                        setAuthor(embeddedUser);
+                    }
+                    // If no embedded user data, author will show as "User {id}"
                 }
             })
             .catch(err => {

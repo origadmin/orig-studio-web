@@ -6,17 +6,17 @@ import {mediaApi, LikeResponse} from "./media";
 export type {LikeResponse};
 
 export const likeApi = {
-    // 获取点赞状态 - 使用新的 /medias/:id/likes 路径
-    getStatus: (mediaId: string) =>
-        mediaApi.likes.getStatus(mediaId),
+    // 获取点赞状态 - 使用 short_token
+    getStatus: (token: string) =>
+        mediaApi.likes.getStatus(token),
 
-    // 点赞/取消点赞 - 使用新的 /medias/:id/likes 路径
-    toggle: (mediaId: string) =>
-        mediaApi.likes.toggle(mediaId),
+    // 点赞/取消点赞 - 使用 short_token
+    toggle: (token: string) =>
+        mediaApi.likes.toggle(token),
 
-    // 点踩/取消点踩 - 使用新的 /medias/:id/dislikes 路径
-    toggleDislike: (mediaId: string) =>
-        mediaApi.likes.toggleDislike(mediaId),
+    // 点踩/取消点踩 - 使用 short_token
+    toggleDislike: (token: string) =>
+        mediaApi.likes.toggleDislike(token),
 };
 
 export default likeApi;

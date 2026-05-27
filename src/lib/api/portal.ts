@@ -293,6 +293,10 @@ export const portalApi = {
 
     getModuleConfig: () =>
         api.get<ModulePortalConfig>('/portal/config'),
+
+    // Get ads by placement slug (public, query parameter)
+    getAdsByPlacement: (slug: string) =>
+        api.get<{items: Ad[]; total: number}>(`/ads`, {placement: slug}),
 };
 
 export const adminPortalApi = {

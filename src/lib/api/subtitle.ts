@@ -13,16 +13,16 @@ export interface Subtitle {
 }
 
 export const subtitleApi = {
-    // 获取媒体的字幕列表
-    getByMediaId: (mediaId: string) =>
-        api.get<Subtitle[]>(`/medias/${mediaId}/subtitles`),
+    // 获取媒体的字幕列表（使用 short_token）
+    getByMediaId: (token: string) =>
+        api.get<Subtitle[]>(`/medias/${token}/subtitles`),
 
-    // 上传字幕
-    upload: (mediaId: string, file: File, language: string) => {
+    // 上传字幕（使用 short_token）
+    upload: (token: string, file: File, language: string) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('language', language);
-        return api.post<Subtitle>(`/medias/${mediaId}/subtitles`, formData);
+        return api.post<Subtitle>(`/medias/${token}/subtitles`, formData);
     },
 
     // 删除字幕

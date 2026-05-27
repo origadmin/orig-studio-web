@@ -19,18 +19,18 @@ export interface RegenerateThumbnailResponse {
 
 export const spriteApi = {
     /** Get the WebVTT sprite sheet URL for a media item (by short_token) */
-    getVttUrl: (mediaId: string) =>
-        `${API_BASE_URL}${API_PREFIX}/medias/${mediaId}/sprite.vtt`,
+    getVttUrl: (token: string) =>
+        `${API_BASE_URL}${API_PREFIX}/medias/${token}/sprite.vtt`,
 
     /** Get the sprite sheet JPEG URL for a media item (by short_token) */
-    getSpriteUrl: (mediaId: string) =>
-        `${API_BASE_URL}${API_PREFIX}/medias/${mediaId}/sprite.jpg`,
+    getSpriteUrl: (token: string) =>
+        `${API_BASE_URL}${API_PREFIX}/medias/${token}/sprite.jpg`,
 
-    /** Trigger asynchronous sprite sheet regeneration (admin only) */
-    regenerateSprite: (mediaId: string) =>
-        api.post<RegenerateSpriteResponse>(`/admin/medias/${mediaId}/regenerate-sprite`),
+    /** Trigger asynchronous sprite sheet regeneration (admin only, uses ID) */
+    regenerateSprite: (id: string) =>
+        api.post<RegenerateSpriteResponse>(`/admin/medias/${id}/regenerate-sprite`),
 
-    /** Trigger thumbnail regeneration at an optional timestamp (admin only) */
-    regenerateThumbnail: (mediaId: string, data?: RegenerateThumbnailRequest) =>
-        api.post<RegenerateThumbnailResponse>(`/admin/medias/${mediaId}/regenerate-thumbnail`, data),
+    /** Trigger thumbnail regeneration at an optional timestamp (admin only, uses ID) */
+    regenerateThumbnail: (id: string, data?: RegenerateThumbnailRequest) =>
+        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regenerate-thumbnail`, data),
 };

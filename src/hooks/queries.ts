@@ -166,18 +166,18 @@ export function useAdminMediaList(params: {
 }
 
 /**
- * useMediaDetail: Fetch single media details (Legacy - uses ID or short_token)
+ * useMediaDetail: Fetch single media details (Legacy - uses short_token)
  */
-export function useMediaDetail(id: string | null) {
-    // 彻底清理 id：移除任何引号、空格，并确保是纯数字字符串
-    const cleanId = id ? String(id).replace(/["']/g, '').trim() : null;
+export function useMediaDetail(token: string | null) {
+    // 清理 token：移除任何引号、空格
+    const cleanToken = token ? String(token).replace(/["']/g, '').trim() : null;
     return useQuery({
-        queryKey: mediaKeys.detail(cleanId!),
+        queryKey: mediaKeys.detail(cleanToken!),
         queryFn: async () => {
-            const res = await mediaApi.get(cleanId!);
+            const res = await mediaApi.get(cleanToken!);
             return normalizeMedia(res);
         },
-        enabled: !!cleanId,
+        enabled: !!cleanToken,
     });
 }
 
@@ -851,17 +851,17 @@ export function useUpdatePermission() {
 // ==================== Sprite Hooks ====================
 
 /**
- * useSpriteList: Get sprite URLs for a media item
+ * useSpriteList: Get sprite URLs for a media item (by short_token)
  */
-export function useSpriteList(mediaId: string | null) {
+export function useSpriteList(shortToken: string | null) {
     return useQuery({
-        queryKey: ['sprite', mediaId],
+        queryKey: ['sprite', shortToken],
         queryFn: async () => {
-            const vttUrl = spriteApi.getVttUrl(mediaId!);
-            const spriteUrl = spriteApi.getSpriteUrl(mediaId!);
+            const vttUrl = spriteApi.getVttUrl(shortToken!);
+            const spriteUrl = spriteApi.getSpriteUrl(shortToken!);
             return {vttUrl, spriteUrl};
         },
-        enabled: !!mediaId,
+        enabled: !!shortToken,
     });
 }
 

@@ -167,10 +167,10 @@ export const channelApi = {
 
     /**
      * Resolve a @handle to a channel or user (F019)
-     * GET /api/v1/resolve/@{handle}
+     * GET /api/v1/resolve?handle={handle}
      */
     resolveHandle: (handle: string) =>
-        api.get<HandleResolution>(`/resolve/@${handle}`),
+        api.get<HandleResolution>('/resolve', {handle}),
 
     /**
      * Validate if a handle is available (F019)
