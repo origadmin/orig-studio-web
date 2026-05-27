@@ -1,7 +1,6 @@
 import { Spinner } from '@/components/ui/spinner';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +14,7 @@ import { ReportDialog } from '@/components/admin/ReportDialog';
 import { useCommentTree } from '@/hooks/useCommentTree';
 import { usePagination } from '@/hooks/usePagination';
 import { TablePagination } from '@/components/common/TablePagination';
+import { AdminPageTemplate } from '@/components/admin/AdminPageTemplate';
 
 const Comments: React.FC = () => {
     const { t } = useTranslation();
@@ -186,81 +186,42 @@ const Comments: React.FC = () => {
     }
 
     return (
-        <div className="space-y-4 p-4 md:p-6">
-            {/* Toolbar */}
-            <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                    <div className="flex flex-col gap-4">
-                        {/* Page title */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-                                    {t('admin.comments')}
-                                </h2>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    {t('admin.manageComments')}
-                                </p>
+        <AdminPageTemplate
+            title={t('admin.comments')}
+            description={t('admin.manageComments')}
+            searchPlaceholder={t('admin.search') || 'Search comments...'}
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            filters={
+                <>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-[140px] h-8 rounded-btn-sm">
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4" />
+                                {statusFilter === 'all' ? (
+                                    <span className="text-muted-foreground">{t('admin.status')}</span>
+                                ) : (
+                                    <SelectValue placeholder={t('admin.status')} />
+                                )}
                             </div>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="border-t border-border my-2" />
-
-                        {/* Search and filters */}
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 min-w-[120px] max-w-[400px]">
-                                <div className="relative w-full">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder={t('admin.search')}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                    <SelectTrigger className="w-[140px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4" />
-                                            {statusFilter === 'all' ? (
-                                                <span className="text-muted-foreground">{t('admin.status')}</span>
-                                            ) : (
-                                                <SelectValue placeholder={t('admin.status')} />
-                                            )}
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">--- {t('admin.allStatus')} ---</SelectItem>
-                                        <SelectItem value="approved">{t('admin.approved')}</SelectItem>
-                                        <SelectItem value="pending">{t('admin.pending')}</SelectItem>
-                                        <SelectItem value="rejected">{t('admin.rejected')}</SelectItem>
-                                        <SelectItem value="blocked">{t('admin.blocked')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                                <ReportStatusFilter value={reportStatusFilter} onChange={setReportStatusFilter} />
-
-                                <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={handleReset}
-                                    >
-                                        <RotateCcw className="h-4 w-4 mr-2" />
-                                        {t('admin.reset')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Stats cards */}
-            <CommentStatsCards stats={stats} loading={loading} />
-
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">--- {t('admin.allStatus')} ---</SelectItem>
+                            <SelectItem value="approved">{t('admin.approved')}</SelectItem>
+                            <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                            <SelectItem value="rejected">{t('admin.rejected')}</SelectItem>
+                            <SelectItem value="blocked">{t('admin.blocked')}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <ReportStatusFilter value={reportStatusFilter} onChange={setReportStatusFilter} />
+                    <Button variant="outline" size="sm" onClick={handleReset}>
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        {t('admin.reset')}
+                    </Button>
+                </>
+            }
+            stats={<CommentStatsCards stats={stats} loading={loading} />}
+        >
             {/* Tree table */}
             <CommentTreeTable
                 nodes={visibleNodes}
@@ -292,7 +253,7 @@ const Comments: React.FC = () => {
                 commentId={reportCommentId || ''}
                 onSubmit={handleReportSubmit}
             />
-        </div>
+        </AdminPageTemplate>
     );
 };
 

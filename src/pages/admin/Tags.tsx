@@ -49,6 +49,7 @@ import {getTagColor} from '@/lib/utils/tag-color';
 import {TablePagination} from '@/components/common/TablePagination';
 import TagColorPicker from '@/components/common/TagColorPicker';
 import {PAGINATION_CONFIG} from '@/config/pagination';
+import {AdminPageTemplate} from '@/components/admin/AdminPageTemplate';
 
 const Tags: React.FC = () => {
     const {t} = useTranslation();
@@ -179,101 +180,73 @@ const Tags: React.FC = () => {
     const totalMedia = tags.reduce((sum, t) => sum + (t.count || 0), 0);
 
     return (
-        <div className="space-y-4 p-4 md:p-6">
-            {/* 操作栏 */}
-            <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                    <div className="flex flex-col gap-4">
-                        {/* 页面标题 */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.tags')}</h2>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    {t('admin.manageTags')}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* 分隔线 */}
-                        <div className="border-t border-border my-2"/>
-
-                        {/* 搜索和筛选 */}
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 min-w-[120px] max-w-[400px]">
-                                <div className="relative w-full">
-                                    <Search
-                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                    <Input
-                                        placeholder={t('admin.search') || t('admin.tags') + '...'}
-                                        value={searchParams.search}
-                                        onChange={(e) => setSearchParams({...searchParams, search: e.target.value})}
-                                        className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
-                                    />
+        <AdminPageTemplate
+            title={t('admin.tags')}
+            description={t('admin.manageTags')}
+            searchPlaceholder={t('admin.search') || t('admin.tags') + '...'}
+            searchValue={searchParams.search}
+            onSearchChange={(v) => setSearchParams({...searchParams, search: v})}
+            onSearchSubmit={() => loadTags()}
+            filters={
+                <>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            const newParams = {search: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE};
+                            setSearchParams(newParams);
+                            loadTags(newParams);
+                        }}
+                    >
+                        <RotateCcw className="h-4 w-4 mr-2"/>
+                        {t('admin.reset')}
+                    </Button>
+                    <Button variant="default" size="sm" onClick={() => loadTags()}>
+                        <Search className="h-4 w-4 mr-2"/>
+                        {t('common.search')}
+                    </Button>
+                </>
+            }
+            stats={
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                        <CardContent className="p-3">
+                            <div className="flex items-center gap-2">
+                                <Hash className="h-4 w-4 text-purple-600"/>
+                                <div className="min-w-0">
+                                    <div className="text-xl font-bold tabular-nums text-purple-600 dark:text-purple-400 truncate">{totalTags}</div>
+                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('admin.tagTotal')}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        const newParams = {search: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE};
-                                        setSearchParams(newParams);
-                                        loadTags(newParams);
-                                    }}
-                                >
-                                    <RotateCcw className="h-4 w-4 mr-2"/>
-                                    {t('admin.reset')}
-                                </Button>
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => loadTags()}
-                                >
-                                    <Search className="h-4 w-4 mr-2"/>
-                                    {t('common.search')}
-                                </Button>
+                        </CardContent>
+                    </Card>
+                    <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                        <CardContent className="p-3">
+                            <div className="min-w-0">
+                                <div className="text-xl font-bold tabular-nums text-success dark:text-green-400 truncate">{activeTags}</div>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('admin.activeTags')}</p>
                             </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center gap-2">
-                            <Hash className="h-5 w-5 text-purple-600"/>
-                            <div>
-                                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totalTags}</div>
-                                <p className="text-sm text-muted-foreground">{t('admin.tagTotal')}</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                        <CardContent className="p-3">
+                            <div className="min-w-0">
+                                <div className="text-xl font-bold tabular-nums text-orange-500 dark:text-orange-400 truncate">{trendingTags}</div>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('admin.trendingTags')}</p>
                             </div>
-                        </div>
-                    </CardContent>
-                    <div className="absolute bottom-0 left-0 h-1 bg-purple-500 w-full opacity-10"/>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-slate-200 dark:ring-slate-800">
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-bold text-success dark:text-green-400">{activeTags}</div>
-                        <p className="text-sm text-muted-foreground">{t('admin.activeTags')}</p>
-                    </CardContent>
-                    <div className="absolute bottom-0 left-0 h-1 bg-success w-full opacity-10"/>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-slate-200 dark:ring-slate-800">
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-bold text-orange-500 dark:text-orange-400">{trendingTags}</div>
-                        <p className="text-sm text-muted-foreground">{t('admin.trendingTags')}</p>
-                    </CardContent>
-                    <div className="absolute bottom-0 left-0 h-1 bg-orange-500 w-full opacity-10"/>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-slate-200 dark:ring-slate-800">
-                    <CardContent className="pt-6">
-                        <div className="text-2xl font-bold text-info dark:text-blue-400">{totalMedia}</div>
-                        <p className="text-sm text-muted-foreground">{t('admin.relatedMedia')}</p>
-                    </CardContent>
-                    <div className="absolute bottom-0 left-0 h-1 bg-info w-full opacity-10"/>
-                </Card>
-            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                        <CardContent className="p-3">
+                            <div className="min-w-0">
+                                <div className="text-xl font-bold tabular-nums text-info dark:text-blue-400 truncate">{totalMedia}</div>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('admin.relatedMedia')}</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            }
+        >
 
             {/* 标签表格 */}
             <Card>
@@ -588,7 +561,7 @@ const Tags: React.FC = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </AdminPageTemplate>
     );
 };
 

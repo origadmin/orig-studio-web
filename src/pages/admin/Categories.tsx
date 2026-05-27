@@ -1,7 +1,6 @@
 import { Spinner } from '@/components/ui/spinner';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +20,7 @@ import { useCategoryTree } from '@/hooks/useCategoryTree';
 import { CategoryTreeTable } from '@/components/admin/CategoryTreeTable';
 import { CategoryDialog, type CategoryDialogMode } from '@/components/admin/CategoryDialog';
 import { CategoryStatsCards } from '@/components/admin/CategoryStatsCards';
+import { AdminPageTemplate } from '@/components/admin/AdminPageTemplate';
 
 const Categories: React.FC = () => {
   const { t } = useTranslation();
@@ -147,58 +147,27 @@ const Categories: React.FC = () => {
     : '';
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      {/* Toolbar */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-6">
-          <div className="flex flex-col gap-4">
-            {/* Page title */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-                  {t('admin.categories')}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1.5">
-                  Manage your content categories
-                </p>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-border my-2" />
-
-            {/* Search and filters */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 min-w-[120px] max-w-[400px]">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder={t('admin.search') || t('admin.categories') + '...'}
-                    value={searchKeyword}
-                    onChange={e => setSearchKeyword(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                    className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                <Button variant="outline" size="sm" onClick={handleReset}>
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Reset
-                </Button>
-                <Button variant="default" size="sm" onClick={handleSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  Search
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats cards */}
-      <CategoryStatsCards stats={stats} />
-
+    <AdminPageTemplate
+      title={t('admin.categories')}
+      description="Manage your content categories"
+      searchPlaceholder={t('admin.search') || t('admin.categories') + '...'}
+      searchValue={searchKeyword}
+      onSearchChange={setSearchKeyword}
+      onSearchSubmit={handleSearch}
+      filters={
+        <>
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
+          <Button variant="default" size="sm" onClick={handleSearch}>
+            <Search className="h-4 w-4 mr-2" />
+            Search
+          </Button>
+        </>
+      }
+      stats={<CategoryStatsCards stats={stats} />}
+    >
       {/* Tree table */}
       <CategoryTreeTable
         nodes={visibleNodes}
@@ -247,7 +216,7 @@ const Categories: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AdminPageTemplate>
   );
 };
 
