@@ -4,6 +4,7 @@ import {useNavigate, Link} from "@tanstack/react-router";
 import {useTranslation} from 'react-i18next';
 import {api, setAuth} from "@/lib/request";
 import {useAuth} from "@/hooks/useAuth";
+import {resolveUserRoles} from "@/lib/role-utils";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
@@ -11,13 +12,16 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 interface AuthResponse {
     access_token: string;
     refresh_token?: string;
-    token_type: string;
-    expires_in: number;
+    token_type?: string;
+    expires_in?: number;
+    expires_at?: string;
     user: {
         id: string;
         username: string;
         nickname?: string;
         role?: string;
+        is_superuser?: boolean;
+        is_staff?: boolean;
     };
 }
 
@@ -48,17 +52,14 @@ export default function SignUpPage() {
         setLoading(true);
         try {
             const res = await api.post<AuthResponse>("/auth/signup", {username, email, password});
-            setAuth({
-                access_token: res.access_token,
-                refresh_token: res.refresh_token,
-                expires_in: res.expires_in,
-                token_type: res.token_type,
-            });
+            setAuth(res);
+            const {roles, isSuperuser} = resolveUserRoles(res.user || {});
             login(res.access_token, res.refresh_token || '', {
                 id: res.user.id,
                 username: res.user.username,
                 displayName: res.user.nickname || res.user.username,
-                roles: res.user.role === "admin" ? ["admin"] : ["user"],
+                roles,
+                isSuperuser,
             });
             navigate({to: "/"});
         } catch (err) {

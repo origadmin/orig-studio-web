@@ -12,6 +12,7 @@ export interface User {
   displayName: string;
   avatarUrl?: string;
   roles: string[];
+  isSuperuser?: boolean;
 }
 
 /** Read-only portion of the authentication state */
@@ -24,6 +25,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   /** Whether the user has the admin role */
   isAdmin: boolean;
+  /** Whether the user is a superuser (higher than admin) */
+  isSuperuser: boolean;
   /** Whether a token refresh is currently in progress */
   isRefreshing: boolean;
   /** Whether the initial load from localStorage has completed */

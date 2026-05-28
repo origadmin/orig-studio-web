@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import type {User} from '@/contexts/auth/types';
+import {resolveUserRoles} from '@/lib/role-utils';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 
 // Use relative path by default, let rsbuild proxy handle the actual URL
@@ -22,8 +23,9 @@ export interface ApiResponse<T> {
 
 interface Token {
     access_token: string;
-    expires_in: number;
-    token_type: string;
+    expires_in?: number;
+    expires_at?: string;
+    token_type?: string;
     refresh_token?: string;
     user?: {
         id: string;
@@ -31,6 +33,7 @@ interface Token {
         nickname?: string;
         email?: string;
         role?: string;
+        is_superuser?: boolean;
     };
 }
 
@@ -104,26 +107,29 @@ export const setAuth = (token: Token) => {
     if (token.refresh_token) {
         localStorage.setItem(REFRESH_TOKEN_KEY, token.refresh_token);
     }
-    // Ensure expires_in is a number
     const expiresIn = typeof token.expires_in === 'string'
         ? parseInt(token.expires_in, 10)
         : token.expires_in;
-    localStorage.setItem(EXPIRES_KEY, String(Date.now() + expiresIn * 1000));
+    if (expiresIn && !isNaN(expiresIn)) {
+        localStorage.setItem(EXPIRES_KEY, String(Date.now() + expiresIn * 1000));
+    } else if (token.expires_at) {
+        localStorage.setItem(EXPIRES_KEY, String(Number(token.expires_at) * 1000));
+    }
 
-    // Save user info if present in the token response
     let user: User | null = null;
     if (token.user) {
+        const {roles, isSuperuser} = resolveUserRoles(token.user);
         user = {
             id: String(token.user.id),
             username: token.user.username,
             displayName: token.user.nickname || token.user.username,
             avatarUrl: undefined,
-            roles: (token.user.role === 'admin') ? ['admin', 'user'] : ['user']
+            roles,
+            isSuperuser,
         };
         localStorage.setItem(USER_KEY, JSON.stringify(user));
     }
 
-    // Notify AuthProvider via callback (replaces StorageEvent hack)
     if (authCallback) {
         authCallback(token.access_token, user);
     }

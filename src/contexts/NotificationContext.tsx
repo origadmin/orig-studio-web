@@ -34,7 +34,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
                 notificationApi.getUnreadCount(),
                 notificationApi.getAll({page_size: 5}),
             ]);
-            setUnreadCount((countRes as any)?.unread_count || (countRes as any)?.count || 0);
+            setUnreadCount((countRes as any)?.count || (countRes as any)?.unread_count || 0);
             const notifList = (notifsRes as any)?.notifications || (notifsRes as any)?.items;
             setRecentNotifications(Array.isArray(notifList) ? notifList : Array.isArray(notifsRes) ? notifsRes : []);
         } catch (err) {

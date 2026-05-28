@@ -6,7 +6,9 @@ import {
     registerAuthCallback,
     attemptRefresh,
     hasRefreshToken,
+    api,
 } from '@/lib/request';
+import {resolveUserRoles, isUserAdmin, isUserSuperuser} from '@/lib/role-utils';
 import {Spinner} from '@/components/ui/spinner';
 import type {User, AuthContextValue, AuthProviderProps} from './types';
 
@@ -31,6 +33,45 @@ function getStoredUser(): User | null {
     }
 }
 
+/** Save user to localStorage */
+function saveStoredUser(user: User): void {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+/** Fetch current user from /me endpoint and merge role info into stored user */
+async function refreshUserFromMe(storedUser: User): Promise<User> {
+    try {
+        const meData = await api.get<{
+            id: string;
+            username: string;
+            nickname?: string;
+            email?: string;
+            avatar?: string;
+            role?: string;
+            is_superuser?: boolean;
+            status?: string;
+        }>('/me');
+
+        const userData = (meData as any)?.user || meData;
+        const {roles, isSuperuser} = resolveUserRoles(userData);
+
+        const updatedUser: User = {
+            ...storedUser,
+            id: String(userData.id || storedUser.id),
+            username: userData.username || storedUser.username,
+            displayName: userData.nickname || userData.username || storedUser.displayName,
+            avatarUrl: userData.avatar || storedUser.avatarUrl,
+            roles,
+            isSuperuser,
+        };
+
+        saveStoredUser(updatedUser);
+        return updatedUser;
+    } catch {
+        return storedUser;
+    }
+}
+
 /**
  * AuthProvider - single source of truth for authentication state.
  *
@@ -46,7 +87,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     const [isInitialized, setIsInitialized] = useState(false);
     const refreshingRef = useRef(false);
 
-    // Initialize: restore state from localStorage
+    // Initialize: restore state from localStorage, then refresh from /me
     useEffect(() => {
         const storedToken = getStoredToken();
         if (!storedToken) {
@@ -55,15 +96,27 @@ export function AuthProvider({children}: AuthProviderProps) {
         }
         if (!isTokenExpired()) {
             setToken(storedToken);
-            setUser(getStoredUser());
+            const storedUser = getStoredUser();
+            setUser(storedUser);
             setIsInitialized(true);
+            if (storedUser) {
+                refreshUserFromMe(storedUser).then(updatedUser => {
+                    setUser(updatedUser);
+                });
+            }
             return;
         }
         if (hasRefreshToken()) {
             attemptRefresh().then(success => {
                 if (success) {
                     setToken(getStoredToken());
-                    setUser(getStoredUser());
+                    const storedUser = getStoredUser();
+                    setUser(storedUser);
+                    if (storedUser) {
+                        refreshUserFromMe(storedUser).then(updatedUser => {
+                            setUser(updatedUser);
+                        });
+                    }
                 }
                 setIsInitialized(true);
             });
@@ -150,7 +203,11 @@ export function AuthProvider({children}: AuthProviderProps) {
         registerAuthCallback((newToken, newUser) => {
             if (newToken) {
                 setToken(newToken);
-                setUser(newUser);
+                if (newUser) {
+                    setUser(newUser);
+                } else {
+                    setUser(getStoredUser());
+                }
             } else {
                 setToken(null);
                 setUser(null);
@@ -202,10 +259,11 @@ export function AuthProvider({children}: AuthProviderProps) {
     }, []);
 
     const isAuthenticated = !!token && !!user && !isTokenExpired();
-    const isAdmin = user?.roles?.includes('admin') ?? false;
+    const isAdmin = isUserAdmin(user);
+    const isSuperuser = isUserSuperuser(user);
 
     const value: AuthContextValue = {
-        token, user, isAuthenticated, isAdmin,
+        token, user, isAuthenticated, isAdmin, isSuperuser,
         isRefreshing, isInitialized,
         login, logout, refreshAuth: refreshAuthFn,
     };
