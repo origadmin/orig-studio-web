@@ -62,12 +62,11 @@ const MyChannels = () => {
         return translated === key ? status : translated;
     };
 
-    const handleCreateSuccess = ({handle, short_token}: {id: string; handle: string; short_token?: string}) => {
+    const handleCreateSuccess = ({short_token}: {id: string; short_token: string}) => {
         setCreateDialogOpen(false);
         if (short_token) {
             navigate({to: '/c/$id', params: {id: short_token}});
         } else {
-            // short_token should always be returned from backend; reload as last resort
             window.location.reload();
         }
     };

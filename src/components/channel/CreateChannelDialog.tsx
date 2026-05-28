@@ -28,10 +28,10 @@ import {useChannelLimits} from '@/hooks/queries';
 interface CreateChannelDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSuccess?: (channel: {id: string; handle: string; short_token?: string}) => void;
+    onSuccess?: (channel: {id: string; short_token: string}) => void;
 }
 
-const HANDLE_REGEX = /^[a-zA-Z][a-zA-Z0-9-]{2,38}$/;
+const SHORT_TOKEN_REGEX = /^[a-zA-Z0-9_-]{6,12}$/;
 const MAX_TAGS = 10;
 
 export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChannelDialogProps) {
@@ -44,79 +44,52 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<CreateChannelInput>({
         name: '',
-        handle: '',
+        short_token: '',
         description: '',
         privacy: 'PUBLIC',
         tags: [],
     });
     const [tagInput, setTagInput] = useState('');
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [handleStatus, setHandleStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+    const [tokenStatus, setTokenStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
 
-    // Reset form when dialog opens
     useEffect(() => {
         if (open) {
             setFormData({
                 name: '',
-                handle: '',
+                short_token: '',
                 description: '',
                 privacy: 'PUBLIC',
                 tags: [],
             });
             setTagInput('');
             setErrors({});
-            setHandleStatus('idle');
+            setTokenStatus('idle');
         }
     }, [open]);
 
-    // Handle uniqueness check with debounce
     useEffect(() => {
-        if (!formData.handle || !HANDLE_REGEX.test(formData.handle)) {
-            setHandleStatus(formData.handle ? 'invalid' : 'idle');
+        if (!formData.short_token) {
+            setTokenStatus('idle');
+            return;
+        }
+        if (!SHORT_TOKEN_REGEX.test(formData.short_token)) {
+            setTokenStatus('invalid');
             return;
         }
 
-        setHandleStatus('checking');
+        setTokenStatus('checking');
         const timer = setTimeout(async () => {
             try {
-                const res = await channelApi.validateHandle(formData.handle);
-                const data = (res as any)?.data ?? res;
-                setHandleStatus(data?.available ? 'available' : 'taken');
+                const res = await channelApi.getByToken(formData.short_token!);
+                setTokenStatus(res ? 'taken' : 'available');
             } catch {
-                setHandleStatus('idle');
+                setTokenStatus('available');
             }
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [formData.handle]);
-
-    // Auto-generate handle from name
-    const handleNameChange = useCallback((name: string) => {
-        setFormData(prev => {
-            const autoHandle = name
-                .toLowerCase()
-                .replace(/[^a-z0-9-]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '')
-                .slice(0, 39);
-
-            return {
-                ...prev,
-                name,
-                handle: prev.handle === autoGenerateHandle(prev.name) ? autoHandle : prev.handle,
-            };
-        });
-    }, []);
-
-    // Helper to generate handle from name (for comparison)
-    function autoGenerateHandle(name: string): string {
-        return name
-            .toLowerCase()
-            .replace(/[^a-z0-9-]/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '')
-            .slice(0, 39);
-    }
+    }, [formData.short_token]);
 
     const addTag = useCallback(() => {
         const tag = tagInput.trim().toLowerCase();
@@ -139,40 +112,49 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
         if (formData.name.length > 150) {
             newErrors.name = t('channel.create.errors.name_max_length', {max: 150});
         }
-        if (!formData.handle || !HANDLE_REGEX.test(formData.handle)) {
-            newErrors.handle = t('channel.create.errors.handle_format');
+        if (formData.short_token && !SHORT_TOKEN_REGEX.test(formData.short_token)) {
+            newErrors.short_token = t('channel.create.errors.short_token_format');
         }
-        if (handleStatus === 'taken') {
-            newErrors.handle = t('channel.create.errors.handle_taken');
+        if (tokenStatus === 'taken') {
+            newErrors.short_token = t('channel.create.errors.short_token_taken');
         }
-        if (handleStatus === 'checking') {
-            newErrors.handle = t('channel.create.errors.handle_checking');
+        if (tokenStatus === 'checking') {
+            newErrors.short_token = t('channel.create.errors.short_token_checking');
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [formData, handleStatus, t]);
+    }, [formData, tokenStatus, t]);
 
     const handleSubmit = useCallback(async () => {
         if (!validate()) return;
 
         setLoading(true);
         try {
-            const res = await channelApi.create(formData);
+            const submitData: CreateChannelInput = {
+                name: formData.name,
+                description: formData.description,
+                privacy: formData.privacy,
+                tags: formData.tags,
+            };
+            if (formData.short_token) {
+                submitData.short_token = formData.short_token;
+            }
+
+            const res = await channelApi.create(submitData);
             const channel = (res as any)?.data ?? res;
 
-            // Invalidate channel queries
             queryClient.invalidateQueries({queryKey: ['channels', 'me']});
             queryClient.invalidateQueries({queryKey: ['channel', 'limits']});
 
             onOpenChange(false);
-            onSuccess?.({id: channel?.id, handle: channel?.handle || formData.handle, short_token: channel?.short_token});
+            onSuccess?.({id: channel?.id, short_token: channel?.short_token});
         } catch (err: any) {
             const msg = err?.response?.data?.message || err?.message || t('channel.create.errors.generic');
             if (msg.includes('channel_limit_reached')) {
                 setErrors(prev => ({...prev, _form: t('channel.create.errors.limit_reached')}));
-            } else if (msg.includes('handle_already_taken')) {
-                setErrors(prev => ({...prev, handle: t('channel.create.errors.handle_taken')}));
+            } else if (msg.includes('short_token_already_taken') || msg.includes('already_exists')) {
+                setErrors(prev => ({...prev, short_token: t('channel.create.errors.short_token_taken')}));
             } else {
                 setErrors(prev => ({...prev, _form: msg}));
             }
@@ -181,7 +163,6 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
         }
     }, [formData, validate, queryClient, onOpenChange, onSuccess, t]);
 
-    // Check if creation is allowed
     const canCreate = limits ? (limits as ChannelLimits).can_create : true;
     const currentCount = limits ? (limits as ChannelLimits).current_count : 0;
     const maxChannels = limits ? (limits as ChannelLimits).max_channels : -1;
@@ -219,7 +200,7 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
                             <Input
                                 id="channel-name"
                                 value={formData.name}
-                                onChange={e => handleNameChange(e.target.value)}
+                                onChange={e => setFormData(prev => ({...prev, name: e.target.value}))}
                                 placeholder={t('channel.create.name_placeholder')}
                                 maxLength={150}
                             />
@@ -227,32 +208,31 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="channel-handle">{t('channel.create.handle_label')}</Label>
+                            <Label htmlFor="channel-short-token">{t('channel.create.short_token_label')}</Label>
                             <div className="flex items-center gap-2">
-                                <span className="text-muted-foreground">@</span>
                                 <Input
-                                    id="channel-handle"
-                                    value={formData.handle}
-                                    onChange={e => setFormData(prev => ({...prev, handle: e.target.value}))}
-                                    placeholder={t('channel.create.handle_placeholder')}
-                                    maxLength={39}
-                                    className={handleStatus === 'available' ? 'border-green-500' : handleStatus === 'taken' ? 'border-red-500' : ''}
+                                    id="channel-short-token"
+                                    value={formData.short_token || ''}
+                                    onChange={e => setFormData(prev => ({...prev, short_token: e.target.value || undefined}))}
+                                    placeholder={t('channel.create.short_token_placeholder')}
+                                    maxLength={12}
+                                    className={tokenStatus === 'available' ? 'border-green-500' : tokenStatus === 'taken' ? 'border-red-500' : ''}
                                 />
-                                {handleStatus === 'checking' && (
+                                {tokenStatus === 'checking' && (
                                     <span className="text-xs text-muted-foreground">{t('channel.create.checking')}</span>
                                 )}
-                                {handleStatus === 'available' && (
+                                {tokenStatus === 'available' && (
                                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                        {t('channel.create.handle_available')}
+                                        {t('channel.create.short_token_available')}
                                     </Badge>
                                 )}
-                                {handleStatus === 'taken' && (
-                                    <Badge variant="destructive">{t('channel.create.handle_taken')}</Badge>
+                                {tokenStatus === 'taken' && (
+                                    <Badge variant="destructive">{t('channel.create.short_token_taken')}</Badge>
                                 )}
                             </div>
-                            {errors.handle && <p className="text-sm text-destructive">{errors.handle}</p>}
+                            {errors.short_token && <p className="text-sm text-destructive">{errors.short_token}</p>}
                             <p className="text-xs text-muted-foreground">
-                                {t('channel.create.handle_hint')}
+                                {t('channel.create.short_token_hint')}
                             </p>
                         </div>
 
@@ -326,7 +306,7 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
                     {canCreate && (
                         <Button
                             onClick={handleSubmit}
-                            disabled={loading || handleStatus === 'taken' || handleStatus === 'checking'}
+                            disabled={loading || tokenStatus === 'taken' || tokenStatus === 'checking'}
                         >
                             {loading ? t('common.creating') : t('channel.create.submit')}
                         </Button>

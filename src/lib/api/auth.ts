@@ -8,6 +8,7 @@ export interface CurrentUser {
     nickname?: string;
     avatar?: string;
     role: string;
+    roles: string[];
     status: string;
     create_time: string;
 }

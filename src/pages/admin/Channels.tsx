@@ -61,7 +61,7 @@ const Channels: React.FC = () => {
     const [currentChannel, setCurrentChannel] = useState<Channel | null>(null);
     const [formData, setFormData] = useState<Partial<Channel>>({
         name: '',
-        handle: '',
+        short_token: '',
         description: '',
         status: 'active',
     });
@@ -92,7 +92,7 @@ const Channels: React.FC = () => {
     const resetForm = () => {
         setFormData({
             name: '',
-            handle: '',
+            short_token: '',
             description: '',
             status: 'active',
         });
@@ -145,7 +145,7 @@ const Channels: React.FC = () => {
         setCurrentChannel(channel);
         setFormData({
             name: channel.name,
-            handle: channel.handle,
+            short_token: channel.short_token,
             description: channel.description,
             status: channel.status,
         });
@@ -396,7 +396,7 @@ const Channels: React.FC = () => {
                                                 </Avatar>
                                                 <div>
                                                     <div className="font-medium">{channel.name}</div>
-                                                    <div className="text-xs text-muted-foreground">@{channel.handle}</div>
+                                                    <div className="text-xs text-muted-foreground">{channel.short_token}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
@@ -416,7 +416,7 @@ const Channels: React.FC = () => {
                                         <TableCell>
                                             <Badge variant="outline">-</Badge>
                                         </TableCell>
-                                        <TableCell>{getStatusBadge(channel.status ?? 'unknown')}</TableCell>
+                                        <TableCell>{getStatusBadge(channel.status ?? 'active')}</TableCell>
                                         <TableCell className="text-muted-foreground">
                                             {formatDateTime(channel.create_time)}
                                         </TableCell>
@@ -496,12 +496,13 @@ const Channels: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.handle')} *
+                                {t('admin.shortToken')} *
                             </h4>
                             <Input
-                                placeholder={t('admin.enterChannelHandle')}
-                                value={formData.handle || ''}
-                                onChange={(e) => setFormData({...formData, handle: e.target.value})}
+                                placeholder={t('admin.enterChannelShortToken')}
+                                value={formData.short_token || ''}
+                                onChange={(e) => setFormData({...formData, short_token: e.target.value})}
+                                maxLength={12}
                             />
                         </div>
                         <div>
@@ -567,12 +568,13 @@ const Channels: React.FC = () => {
                         </div>
                         <div>
                             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.handle')} *
+                                {t('admin.shortToken')}
                             </h4>
                             <Input
-                                placeholder={t('admin.enterChannelHandle')}
-                                value={formData.handle || ''}
-                                onChange={(e) => setFormData({...formData, handle: e.target.value})}
+                                placeholder={t('admin.enterChannelShortToken')}
+                                value={formData.short_token || ''}
+                                onChange={(e) => setFormData({...formData, short_token: e.target.value})}
+                                maxLength={12}
                             />
                         </div>
                         <div>
