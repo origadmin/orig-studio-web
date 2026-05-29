@@ -41,7 +41,10 @@ import { Route as AuthenticatedAdminSettingsRouteImport } from "./routes/_authen
 import { Route as AuthenticatedAdminPortalRouteImport } from "./routes/_authenticated/admin/portal";
 import { Route as AuthenticatedAdminPlaylistsRouteImport } from "./routes/_authenticated/admin/playlists";
 import { Route as AuthenticatedAdminPermissionsRouteImport } from "./routes/_authenticated/admin/permissions";
+import { Route as AuthenticatedAdminPaymentRouteImport } from "./routes/_authenticated/admin/payment";
 import { Route as AuthenticatedAdminNotificationsRouteImport } from "./routes/_authenticated/admin/notifications";
+import { Route as AuthenticatedAdminDrmRouteImport } from "./routes/_authenticated/admin/drm";
+import { Route as AuthenticatedAdminLiveRoomsRouteImport } from "./routes/_authenticated/admin/live-rooms";
 import { Route as AuthenticatedAdminCommentsRouteImport } from "./routes/_authenticated/admin/comments";
 import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authenticated/admin/channels";
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
@@ -234,12 +237,28 @@ const AuthenticatedAdminPermissionsRoute =
     path: "/permissions",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
+const AuthenticatedAdminPaymentRoute =
+  AuthenticatedAdminPaymentRouteImport.update({
+    id: "/payment",
+    path: "/payment",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminNotificationsRoute =
   AuthenticatedAdminNotificationsRouteImport.update({
     id: "/notifications",
     path: "/notifications",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
+const AuthenticatedAdminDrmRoute = AuthenticatedAdminDrmRouteImport.update({
+  id: "/drm",
+  path: "/drm",
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any);
+const AuthenticatedAdminLiveRoomsRoute = AuthenticatedAdminLiveRoomsRouteImport.update({
+  id: "/live-rooms",
+  path: "/live-rooms",
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any);
 const AuthenticatedAdminCommentsRoute =
   AuthenticatedAdminCommentsRouteImport.update({
     id: "/comments",
@@ -446,7 +465,10 @@ export interface FileRoutesByFullPath {
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/admin/drm": typeof AuthenticatedAdminDrmRoute;
+  "/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
+  "/admin/payment": typeof AuthenticatedAdminPaymentRoute;
   "/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
@@ -504,7 +526,10 @@ export interface FileRoutesByTo {
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/admin/drm": typeof AuthenticatedAdminDrmRoute;
+  "/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
+  "/admin/payment": typeof AuthenticatedAdminPaymentRoute;
   "/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
@@ -569,7 +594,10 @@ export interface FileRoutesById {
   "/_authenticated/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/_authenticated/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/_authenticated/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/_authenticated/admin/drm": typeof AuthenticatedAdminDrmRoute;
+  "/_authenticated/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/_authenticated/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
+  "/_authenticated/admin/payment": typeof AuthenticatedAdminPaymentRoute;
   "/_authenticated/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/_authenticated/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/_authenticated/admin/portal": typeof AuthenticatedAdminPortalRoute;
@@ -633,7 +661,10 @@ export interface FileRouteTypes {
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
+    | "/admin/drm"
+    | "/admin/live-rooms"
     | "/admin/notifications"
+    | "/admin/payment"
     | "/admin/permissions"
     | "/admin/playlists"
     | "/admin/portal"
@@ -691,7 +722,10 @@ export interface FileRouteTypes {
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
+    | "/admin/drm"
+    | "/admin/live-rooms"
     | "/admin/notifications"
+    | "/admin/payment"
     | "/admin/permissions"
     | "/admin/playlists"
     | "/admin/portal"
@@ -755,7 +789,10 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/categories"
     | "/_authenticated/admin/channels"
     | "/_authenticated/admin/comments"
+    | "/_authenticated/admin/drm"
+    | "/_authenticated/admin/live-rooms"
     | "/_authenticated/admin/notifications"
+    | "/_authenticated/admin/payment"
     | "/_authenticated/admin/permissions"
     | "/_authenticated/admin/playlists"
     | "/_authenticated/admin/portal"
@@ -1025,11 +1062,32 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedAdminPermissionsRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
+    "/_authenticated/admin/payment": {
+      id: "/_authenticated/admin/payment";
+      path: "/payment";
+      fullPath: "/admin/payment";
+      preLoaderRoute: typeof AuthenticatedAdminPaymentRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
     "/_authenticated/admin/notifications": {
       id: "/_authenticated/admin/notifications";
       path: "/notifications";
       fullPath: "/admin/notifications";
       preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/drm": {
+      id: "/_authenticated/admin/drm";
+      path: "/drm";
+      fullPath: "/admin/drm";
+      preLoaderRoute: typeof AuthenticatedAdminDrmRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/live-rooms": {
+      id: "/_authenticated/admin/live-rooms";
+      path: "/live-rooms";
+      fullPath: "/admin/live-rooms";
+      preLoaderRoute: typeof AuthenticatedAdminLiveRoomsRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/admin/comments": {
@@ -1422,7 +1480,10 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute;
   AuthenticatedAdminChannelsRoute: typeof AuthenticatedAdminChannelsRoute;
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute;
+  AuthenticatedAdminDrmRoute: typeof AuthenticatedAdminDrmRoute;
+  AuthenticatedAdminLiveRoomsRoute: typeof AuthenticatedAdminLiveRoomsRoute;
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute;
+  AuthenticatedAdminPaymentRoute: typeof AuthenticatedAdminPaymentRoute;
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute;
   AuthenticatedAdminPlaylistsRoute: typeof AuthenticatedAdminPlaylistsRoute;
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute;
@@ -1442,7 +1503,10 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminChannelsRoute: AuthenticatedAdminChannelsRoute,
   AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
+  AuthenticatedAdminDrmRoute: AuthenticatedAdminDrmRoute,
+  AuthenticatedAdminLiveRoomsRoute: AuthenticatedAdminLiveRoomsRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+  AuthenticatedAdminPaymentRoute: AuthenticatedAdminPaymentRoute,
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
   AuthenticatedAdminPlaylistsRoute: AuthenticatedAdminPlaylistsRoute,
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,

@@ -6,10 +6,13 @@ import {channelApi, type Channel, type ChannelDetail, type ChannelLimits} from '
 import {userApi, type PublicProfile} from '@/lib/api/user';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
+import {adminDrmApi} from '@/lib/api/drm';
 import {reviewApi} from '@/lib/api/review';
 import {adminCommentApi} from '@/lib/api/comment';
 import {configApi, type SettingCategory} from '@/lib/api/config';
 import {adminPermissionApi} from '@/lib/api/permission';
+import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
+import {adminLiveApi, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
 import {spriteApi} from '@/lib/api/sprite';
 import {favoriteApi} from '@/lib/api/favorite';
 import {PAGINATION_CONFIG} from '@/config/pagination';
@@ -1049,6 +1052,241 @@ export function useRemoveHistoryItem(isAuthenticated?: boolean) {
         mutationFn: (id: string) => service.remove(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['history']});
+        },
+    });
+}
+
+// ==================== DRM Hooks ====================
+
+export function useAdminDrmPolicies() {
+    return useQuery({
+        queryKey: ['admin', 'drmPolicies'],
+        queryFn: async () => {
+            const res = await adminDrmApi.listPolicies();
+            return res;
+        },
+    });
+}
+
+export function useCreateDrmPolicy() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Parameters<typeof adminDrmApi.createPolicy>[0]) =>
+            adminDrmApi.createPolicy(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'drmPolicies']});
+        },
+    });
+}
+
+export function useUpdateDrmPolicy() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: Parameters<typeof adminDrmApi.updatePolicy>[1]}) =>
+            adminDrmApi.updatePolicy(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'drmPolicies']});
+        },
+    });
+}
+
+export function useDeleteDrmPolicy() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminDrmApi.deletePolicy(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'drmPolicies']});
+        },
+    });
+}
+
+export function useAdminDrmKeys(policyId: string) {
+    return useQuery({
+        queryKey: ['admin', 'drmKeys', policyId],
+        queryFn: async () => {
+            const res = await adminDrmApi.listKeys(policyId);
+            return res;
+        },
+        enabled: !!policyId,
+    });
+}
+
+export function useGenerateDrmKey() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({policyId, data}: {policyId: string; data: Parameters<typeof adminDrmApi.generateKey>[1]}) =>
+            adminDrmApi.generateKey(policyId, data),
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'drmKeys', variables.policyId]});
+        },
+    });
+}
+
+export function useDeleteDrmKey() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminDrmApi.deleteKey(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'drmKeys']});
+        },
+    });
+}
+
+export function useAdminDrmLicenses(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'drmLicenses', params],
+        queryFn: async () => {
+            const res = await adminDrmApi.listLicenses(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+// ==================== Payment Hooks ====================
+
+export function useAdminSubscriptionPlans() {
+    return useQuery({
+        queryKey: ['admin', 'subscriptionPlans'],
+        queryFn: async () => {
+            const res = await adminPaymentApi.listSubscriptionPlans();
+            return res;
+        },
+    });
+}
+
+export function useCreateSubscriptionPlan() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: Parameters<typeof adminPaymentApi.createSubscriptionPlan>[0]) =>
+            adminPaymentApi.createSubscriptionPlan(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'subscriptionPlans']});
+        },
+    });
+}
+
+export function useUpdateSubscriptionPlan() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: Parameters<typeof adminPaymentApi.updateSubscriptionPlan>[1]}) =>
+            adminPaymentApi.updateSubscriptionPlan(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'subscriptionPlans']});
+        },
+    });
+}
+
+export function useDeleteSubscriptionPlan() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPaymentApi.deleteSubscriptionPlan(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'subscriptionPlans']});
+        },
+    });
+}
+
+export function useAdminOrders(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'orders', params],
+        queryFn: async () => {
+            const res = await adminPaymentApi.listOrders(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useAdminWallets(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'wallets', params],
+        queryFn: async () => {
+            const res = await adminPaymentApi.listWallets(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useSubscriptionPlans() {
+    return useQuery({
+        queryKey: ['subscriptionPlans'],
+        queryFn: async () => {
+            const res = await paymentApi.listSubscriptionPlans();
+            return res;
+        },
+    });
+}
+
+// ==================== Live Room Hooks ====================
+
+export function useAdminLiveRooms(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'liveRooms', params],
+        queryFn: async () => {
+            const res = await adminLiveApi.list(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useAdminLiveRoom(id: string | null) {
+    return useQuery({
+        queryKey: ['admin', 'liveRoom', id],
+        queryFn: async () => {
+            const res = await adminLiveApi.get(id!);
+            return res;
+        },
+        enabled: !!id,
+    });
+}
+
+export function useCreateLiveRoom() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreateLiveRoomRequest) =>
+            adminLiveApi.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
+        },
+    });
+}
+
+export function useUpdateLiveRoom() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdateLiveRoomRequest}) =>
+            adminLiveApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
+        },
+    });
+}
+
+export function useDeleteLiveRoom() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminLiveApi.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
+        },
+    });
+}
+
+export function useStartLiveRoom() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminLiveApi.start(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
+        },
+    });
+}
+
+export function useEndLiveRoom() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminLiveApi.end(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
         },
     });
 }
