@@ -27,10 +27,10 @@ import {
     useAdminNavItems, useAdminBanners,
     useCreateNavItem, useUpdateNavItem, useDeleteNavItem,
     useCreateBanner, useUpdateBanner, useToggleBanner, useDeleteBanner,
-    useAdminAdPlacements, useCreateAdPlacement, useToggleAdPlacement, useDeleteAdPlacement,
-    useAdminAds, useCreateAd, useToggleAd, useDeleteAd,
+    useAdminAdPlacements, useCreateAdPlacement, useUpdateAdPlacement, useToggleAdPlacement, useDeleteAdPlacement,
+    useAdminAds, useCreateAd, useUpdateAd, useToggleAd, useDeleteAd,
 } from '@/hooks/queries';
-import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type CreateAdRequest, adminPortalApi} from '@/lib/api/portal';
+import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
@@ -475,14 +475,20 @@ const AdPlacementsTab: React.FC = () => {
     const {t} = useTranslation();
     const {data: placementsData, isLoading} = useAdminAdPlacements();
     const createMutation = useCreateAdPlacement();
+    const updateMutation = useUpdateAdPlacement();
     const toggleMutation = useToggleAdPlacement();
     const deleteMutation = useDeleteAdPlacement();
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingPlacement, setEditingPlacement] = useState<AdPlacement | null>(null);
     const [deletingItem, setDeletingItem] = useState<AdPlacement | null>(null);
     const [createForm, setCreateForm] = useState<CreateAdPlacementRequest>({
         name: '', slug: '', type: 'banner',
+    });
+    const [editForm, setEditForm] = useState<UpdateAdPlacementRequest>({
+        name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0,
     });
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
@@ -494,6 +500,31 @@ const AdPlacementsTab: React.FC = () => {
             setCreateForm({name: '', slug: '', type: 'banner'});
         } catch (err) {
             console.error('Failed to create ad placement:', err);
+        }
+    };
+
+    const openEditDialog = (p: AdPlacement) => {
+        setEditingPlacement(p);
+        setEditForm({
+            name: p.name,
+            slug: p.slug,
+            type: p.type,
+            width: p.width,
+            height: p.height,
+            max_ads: p.max_ads,
+            is_active: p.is_active,
+            sequence: p.sequence,
+        });
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingPlacement) return;
+        try {
+            await updateMutation.mutateAsync({id: editingPlacement.id, data: editForm});
+            setEditDialogOpen(false);
+        } catch (err) {
+            console.error('Failed to update ad placement:', err);
         }
     };
 
@@ -562,6 +593,9 @@ const AdPlacementsTab: React.FC = () => {
                                                 <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(p.id)}>
                                                     {p.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
                                                 </Button>
+                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(p)}>
+                                                    <Edit className="w-4 h-4"/>
+                                                </Button>
                                                 <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingItem(p); setDeleteDialogOpen(true); }}>
                                                     <Trash2 className="w-4 h-4"/>
                                                 </Button>
@@ -607,6 +641,43 @@ const AdPlacementsTab: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader><DialogTitle>{t('admin.editAdPlacement')}</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
+                            <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="banner">{t('admin.placementTypeBanner')}</SelectItem>
+                                    <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
+                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
+                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.placementWidth')}</Label><Input type="number" value={editForm.width || 0} onChange={e => setEditForm({...editForm, width: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.placementHeight')}</Label><Input type="number" value={editForm.height || 0} onChange={e => setEditForm({...editForm, height: Number(e.target.value)})}/></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={editForm.max_ads || 1} onChange={e => setEditForm({...editForm, max_ads: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.placementSequence')}</Label><Input type="number" value={editForm.sequence || 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" id="edit-placement-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
+                            <Label htmlFor="edit-placement-active">{t('admin.enabled')}</Label>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button onClick={handleUpdate} disabled={!editForm.name || !editForm.slug}>{t('common.save')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteAdPlacementConfirm', {name: deletingItem?.name})}</AlertDialogDescription></AlertDialogHeader>
@@ -626,13 +697,19 @@ const AdsTab: React.FC = () => {
     const [selectedPlacement, setSelectedPlacement] = useState<string>('');
     const {data: adsData, isLoading} = useAdminAds(selectedPlacement);
     const createMutation = useCreateAd();
+    const updateMutation = useUpdateAd();
     const toggleMutation = useToggleAd();
     const deleteMutation = useDeleteAd();
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editingAd, setEditingAd] = useState<Ad | null>(null);
     const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
     const [createForm, setCreateForm] = useState<CreateAdRequest>({placement_id: '', title: ''});
+    const [editForm, setEditForm] = useState<UpdateAdRequest>({
+        title: '', image_url: '', link_url: '', priority: 0, is_active: true, start_at: '', end_at: '',
+    });
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
     const ads = adsData?.items || [];
@@ -644,6 +721,30 @@ const AdsTab: React.FC = () => {
             setCreateForm({placement_id: '', title: ''});
         } catch (err) {
             console.error('Failed to create ad:', err);
+        }
+    };
+
+    const openEditDialog = (ad: Ad) => {
+        setEditingAd(ad);
+        setEditForm({
+            title: ad.title,
+            image_url: ad.image_url || '',
+            link_url: ad.link_url || '',
+            priority: ad.priority,
+            is_active: ad.is_active,
+            start_at: ad.start_at || '',
+            end_at: ad.end_at || '',
+        });
+        setEditDialogOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        if (!editingAd) return;
+        try {
+            await updateMutation.mutateAsync({id: editingAd.id, data: editForm});
+            setEditDialogOpen(false);
+        } catch (err) {
+            console.error('Failed to update ad:', err);
         }
     };
 
@@ -718,6 +819,9 @@ const AdsTab: React.FC = () => {
                                                 <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(ad.id)}>
                                                     {ad.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
                                                 </Button>
+                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(ad)}>
+                                                    <Edit className="w-4 h-4"/>
+                                                </Button>
                                                 <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingAd(ad); setDeleteDialogOpen(true); }}>
                                                     <Trash2 className="w-4 h-4"/>
                                                 </Button>
@@ -757,6 +861,36 @@ const AdsTab: React.FC = () => {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
                         <Button onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle>{t('admin.editAd')}</DialogTitle></DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
+                        <ImageUploadField
+                            value={editForm.image_url || ''}
+                            onChange={url => setEditForm({...editForm, image_url: url})}
+                            label={t('admin.adImageUrl')}
+                        />
+                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adPriority')}</Label><Input type="number" value={editForm.priority || 0} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
+                            <div className="flex items-end gap-2 pb-1">
+                                <input type="checkbox" id="edit-ad-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
+                                <Label htmlFor="edit-ad-active">{t('admin.enabled')}</Label>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adStartAt')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adEndAt')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button onClick={handleUpdate} disabled={!editForm.title}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

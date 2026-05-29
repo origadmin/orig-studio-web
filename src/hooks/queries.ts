@@ -619,6 +619,17 @@ export function useToggleAdPlacement() {
     });
 }
 
+export function useUpdateAdPlacement() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: Parameters<typeof adminPortalApi.updateAdPlacement>[1]}) =>
+            adminPortalApi.updateAdPlacement(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
+        },
+    });
+}
+
 export function useDeleteAdPlacement() {
     const queryClient = useQueryClient();
     return useMutation({
@@ -655,6 +666,17 @@ export function useToggleAd() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => adminPortalApi.toggleAd(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
+        },
+    });
+}
+
+export function useUpdateAd() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: Parameters<typeof adminPortalApi.updateAd>[1]}) =>
+            adminPortalApi.updateAd(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
         },
