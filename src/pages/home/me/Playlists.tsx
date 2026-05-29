@@ -113,13 +113,13 @@ const PlaylistsPage = () => {
             {/* Title + Create button */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <ListVideo size={24} className="text-emerald-600"/>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('playlists.title')}</h1>
+                    <ListVideo size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('playlists.title')}</h1>
                     <span className="text-sm text-gray-500">{t('playlists.listCount', {count: playlists.length})}</span>
                 </div>
                 <Button
                     onClick={() => setShowCreateDialog(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors">
                     <Plus size={16}/> {t('playlists.newList')}
                 </Button>
             </div>
@@ -130,7 +130,7 @@ const PlaylistsPage = () => {
                     {playlists.map((pl) => (
                         <div
                             key={pl.id}
-                            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-all group relative"
+                            className="bg-card rounded-card overflow-hidden border border-border hover:shadow-lg transition-all group relative"
                         >
                             {/* Cover - clickable to detail */}
                             <Link to="/playlist/$token" params={{token: pl.short_token || pl.id}}>
@@ -147,7 +147,7 @@ const PlaylistsPage = () => {
                                     <div className="absolute top-3 right-3">
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                                             pl.is_public
-                                                ? 'bg-emerald-500/80 text-white'
+                                                ? 'bg-primary/80 text-white'
                                                 : 'bg-gray-600/80 text-white'
                                         }`}>
                                             {visibilityLabel(pl.is_public ? 'public' : 'private')}
@@ -167,11 +167,11 @@ const PlaylistsPage = () => {
                             {/* Info */}
                             <div className="p-4">
                                 <Link to="/playlist/$token" params={{token: pl.short_token || pl.id}}>
-                                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors cursor-pointer">
+                                    <h3 className="font-semibold text-foreground mb-1 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors cursor-pointer">
                                         {pl.title}
                                     </h3>
                                 </Link>
-                                <p className="text-sm text-gray-500 dark:text-muted-foreground line-clamp-2">{pl.description}</p>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{pl.description}</p>
                                 <div className="flex items-center justify-between mt-2">
                                     <p className="text-xs text-muted-foreground">{t('playlists.updated', {date: formatDate(pl.update_time)})}</p>
                                     <Button
@@ -195,7 +195,7 @@ const PlaylistsPage = () => {
                     <p className="text-sm mb-4">{t('playlists.emptyDesc')}</p>
                     <Button
                         onClick={() => setShowCreateDialog(true)}
-                        className="bg-emerald-600 hover:bg-emerald-700"
+                        className="bg-primary hover:bg-primary/90"
                     >
                         <Plus className="w-4 h-4 mr-2"/>
                         {t('playlists.newList')}
@@ -208,7 +208,7 @@ const PlaylistsPage = () => {
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            <ListVideo className="w-5 h-5 text-emerald-600"/>
+                            <ListVideo className="w-5 h-5 text-primary"/>
                             {t('playlists.createPlaylist')}
                         </DialogTitle>
                         <DialogDescription>
@@ -262,7 +262,7 @@ const PlaylistsPage = () => {
                             <Button
                                 onClick={handleCreate}
                                 disabled={!newTitle.trim() || isCreating}
-                                className="bg-emerald-600 hover:bg-emerald-700"
+                                className="bg-primary hover:bg-primary/90"
                             >
                                 {isCreating ? <Spinner className="w-4 h-4 mr-1"/> : <Plus className="w-4 h-4 mr-1"/>}
                                 {t('watch.create')}

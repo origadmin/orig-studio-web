@@ -297,8 +297,14 @@ const Settings: React.FC = () => {
         try {
             const caps = await api.get<StorageCapabilities>('/admin/settings/storage/capabilities');
             setStorageCaps(caps);
-        } catch (error) {
-            console.error('Failed to fetch storage capabilities:', error);
+        } catch {
+            setStorageCaps({
+                current_type: 'local',
+                available_types: ['local'],
+                s3_configured: false,
+                s3_available: false,
+                hybrid_available: false,
+            });
         }
     };
 

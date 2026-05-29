@@ -457,9 +457,9 @@ export default function TranscodingStatus() {
     const fetchEncodeProfiles = useCallback(async () => {
         try {
             const response = await encodingApi.profiles.list();
-            setEncodeProfiles(response.profiles || []);
-        } catch (error) {
-            console.error("Failed to fetch encode profiles:", error);
+            const profiles = response?.profiles;
+            setEncodeProfiles(Array.isArray(profiles) ? profiles : []);
+        } catch {
         }
     }, []);
 
@@ -685,7 +685,7 @@ const filteredTasks = useMemo(() => {
 
     // 获取所有可用的配置
     const availableProfiles = useMemo(() => {
-        return encodeProfiles.map(profile => profile.name).sort();
+        return (Array.isArray(encodeProfiles) ? encodeProfiles : []).map(profile => profile.name).sort();
     }, [encodeProfiles]);
 
     const handleSort = (key: keyof EncodingTask) => {
@@ -910,10 +910,10 @@ const filteredTasks = useMemo(() => {
                             </div>
                             <div className="flex items-center gap-3">
                                 <Badge variant="outline"
-                                       className={`gap-2 text-[11px] font-bold px-3 py-1 border-2 ${sseStatus.connected ? "text-emerald-500 border-emerald-100 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-900" : "text-muted-foreground border-slate-100 bg-slate-50/50 dark:bg-slate-900/20 dark:border-slate-800"}`}>
+                                       className={`gap-2 text-[11px] font-bold px-3 py-1 border-2 ${sseStatus.connected ? "text-primary border-primary/20 bg-primary/5" : sseStatus.disabled ? "text-muted-foreground border-border bg-muted/50" : "text-muted-foreground border-border bg-muted/50"}`}>
                                     <div
-                                        className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-300"}`}/>
-                                    {sseStatus.connected ? "CONNECTED" : "DISCONNECTED"}
+                                        className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" : "bg-muted-foreground/50"}`}/>
+                                    {sseStatus.connected ? "CONNECTED" : sseStatus.disabled ? "UNAVAILABLE" : "DISCONNECTED"}
                                 </Badge>
                                 {urlMediaId && (
                                     <Badge variant="secondary"

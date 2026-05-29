@@ -18,7 +18,10 @@ interface TranscodingEvent {
 interface TranscodingSSEStatus {
     connected: boolean;
     reconnecting: boolean;
+    disabled: boolean;
 }
+
+const MAX_RECONNECT_ATTEMPTS = 3;
 
 export function useTranscoding(mediaId?: string): {
     lastEvent: TranscodingEvent | null;
@@ -30,9 +33,11 @@ export function useTranscoding(mediaId?: string): {
     const [sseStatus, setSseStatus] = useState<TranscodingSSEStatus>({
         connected: false,
         reconnecting: false,
+        disabled: false,
     });
     const eventSourceRef = useRef<EventSource | null>(null);
     const mountedRef = useRef(true);
+    const reconnectAttemptsRef = useRef(0);
 
     const disconnect = useCallback(() => {
         if (eventSourceRef.current) {
@@ -40,14 +45,14 @@ export function useTranscoding(mediaId?: string): {
             eventSourceRef.current = null;
         }
         if (mountedRef.current) {
-            setSseStatus({connected: false, reconnecting: false});
+            setSseStatus({connected: false, reconnecting: false, disabled: false});
         }
+        reconnectAttemptsRef.current = 0;
     }, []);
 
     const connect = useCallback(() => {
         if (!mountedRef.current) return;
 
-        // Close any existing connection first.
         disconnect();
 
         const sseUrl = mediaApi.getSSEUrl(mediaId);
@@ -56,18 +61,25 @@ export function useTranscoding(mediaId?: string): {
 
         eventSource.onopen = () => {
             if (mountedRef.current) {
-                setSseStatus({connected: true, reconnecting: false});
+                reconnectAttemptsRef.current = 0;
+                setSseStatus({connected: true, reconnecting: false, disabled: false});
             }
         };
 
         eventSource.onerror = () => {
-            if (mountedRef.current) {
-                setSseStatus({connected: false, reconnecting: true});
-            }
-            // EventSource will auto-reconnect, but we close and retry
-            // to get a clean state.
+            if (!mountedRef.current) return;
+
+            reconnectAttemptsRef.current += 1;
+
             eventSource.close();
             eventSourceRef.current = null;
+
+            if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+                setSseStatus({connected: false, reconnecting: false, disabled: true});
+                return;
+            }
+
+            setSseStatus({connected: false, reconnecting: true, disabled: false});
         };
 
         eventSource.addEventListener("transcoding_progress", (event) => {
@@ -82,7 +94,6 @@ export function useTranscoding(mediaId?: string): {
         });
     }, [mediaId, disconnect]);
 
-    // Auto-reconnect with backoff when disconnected.
     useEffect(() => {
         if (!sseStatus.reconnecting) return;
 
@@ -101,7 +112,6 @@ export function useTranscoding(mediaId?: string): {
         return () => clearTimeout(timerId);
     }, [sseStatus.reconnecting, connect]);
 
-    // Connect on mount, disconnect on unmount.
     useEffect(() => {
         mountedRef.current = true;
         connect();

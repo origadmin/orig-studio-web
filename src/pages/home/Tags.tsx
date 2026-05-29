@@ -48,8 +48,8 @@ const TagsPage = () => {
             {/* Title */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Tag size={24} className="text-gray-700 dark:text-gray-300"/>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tags.title')}</h1>
+                    <Tag size={24} className="text-muted-foreground"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('tags.title')}</h1>
                 </div>
                 <span className="text-sm text-gray-500">{t('tags.tagCount', {count: mockTags.length})}</span>
             </div>
@@ -62,7 +62,7 @@ const TagsPage = () => {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder={t('tags.searchPlaceholder')}
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full bg-card border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                 />
             </div>
 
@@ -75,7 +75,7 @@ const TagsPage = () => {
                             key={tag.title}
                             to="/search"
                             search={{q: tag.title}}
-                            className="group flex items-center gap-2 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:shadow-md transition-all"
+                            className="group flex items-center gap-2 p-3 bg-card border border-border rounded-card hover:shadow-md transition-all"
                             style={{'--tag-color': tagColor} as React.CSSProperties}
                         >
                             <Hash size={16} className="shrink-0" style={{color: tagColor}}/>

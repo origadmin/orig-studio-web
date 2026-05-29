@@ -100,7 +100,7 @@ export default function Trending() {
                                 ) : null}
                                 <Play className="absolute inset-0 m-auto w-12 h-12 text-white opacity-0 group-hover:opacity-80 transition-opacity pointer-events-none"/>
                             </div>
-                            <h3 className="font-medium text-sm line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                            <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
                                 {item.title}
                             </h3>
                             <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">

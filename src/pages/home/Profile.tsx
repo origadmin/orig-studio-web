@@ -103,7 +103,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
         try {
             setVideosLoading(true);
             const res = await mediaApi.list({user_id: user.id || undefined, page_size: 20});
-            const items = (res as any)?.data?.items || (res as any)?.items || [];
+            const items = (Array.isArray((res as any)?.data?.items) ? (res as any).data.items : Array.isArray((res as any)?.items) ? (res as any).items : []);
             setVideos(normalizeMediaList(items));
         } catch (err) {
             console.error('Failed to fetch videos:', err);
@@ -132,7 +132,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
             setArticlesLoading(true);
             const res = await articleApi.list({user_id: String(user.id), page_size: 20});
             const data = res as any;
-            setArticles(data?.data?.items || data?.items || []);
+            setArticles((Array.isArray(data?.data?.items) ? data.data.items : Array.isArray(data?.items) ? data.items : []));
         } catch (err) {
             console.error('Failed to fetch articles:', err);
         } finally {
@@ -286,7 +286,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                         {isMe && (
                             <Link
                                 to="/me/channels"
-                                className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-sm rounded-lg backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1.5"
+                                className="absolute top-4 right-4 z-20 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-sm rounded-btn backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1.5"
                             >
                                 <Edit3 className="w-4 h-4"/>
                                 {t('profile.customizeProfile')}
@@ -467,7 +467,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {channels.slice(0, 3).map(ch => (
                                                 <Link key={ch.id} to="/c/$id" params={{id: ch.short_token || ch.id}} className="group">
-                                                    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
+                                                    <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
                                                         {ch.banner && (
                                                             <div className="h-20 bg-cover bg-center relative"
                                                                  style={{backgroundImage: `url(${getImageUrl(ch.banner, 'cover')})`}}>
@@ -476,14 +476,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                                         )}
                                                         <div className="p-3">
                                                             <div className="flex items-center gap-3">
-                                                                <Avatar className="w-10 h-10 border-2 border-white dark:border-gray-700 shadow-sm flex-shrink-0">
+                                                                <Avatar className="w-10 h-10 border-2 border-card shadow-sm flex-shrink-0">
                                                                     <AvatarImage src={getImageUrl(ch.avatar, 'avatar')} loading="lazy"
                                                                                  onError={(e) => handleImageError(e, 'avatar')}/>
                                                                     <AvatarFallback className="text-sm">{ch.name ? ch.name.charAt(0).toUpperCase() : 'C'}</AvatarFallback>
                                                                 </Avatar>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors truncate">{ch.name}</h3>
-                                                                    <p className="text-xs text-slate-500 dark:text-muted-foreground">{ch.media_count || 0} {t('profile.videosCount')}</p>
+                                                                    <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{ch.name}</h3>
+                                                                    <p className="text-xs text-muted-foreground">{ch.media_count || 0} {t('profile.videosCount')}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -507,13 +507,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                             {videos.slice(0, 8).map(video => (
                                                 <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
-                                                    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                                    <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                                                         <div className="relative aspect-video">
                                                             {video.thumbnail ? (
                                                                 <img src={video.thumbnail} alt={video.title}
                                                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                                                             ) : (
-                                                                <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
+                                                                <div className="w-full h-full bg-muted flex items-center justify-center">
                                                                     <Play className="w-10 h-10 text-muted-foreground"/>
                                                                 </div>
                                                             )}
@@ -522,8 +522,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                                             ) : null}
                                                         </div>
                                                         <div className="p-3">
-                                                            <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
-                                                            <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
+                                                            <h3 className="font-semibold text-foreground line-clamp-2 text-sm group-hover:text-primary transition-colors">{video.title}</h3>
+                                                            <p className="text-xs text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
                                                         </div>
                                                     </div>
                                                 </Link>
@@ -553,7 +553,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {channels.map(ch => (
                                     <Link key={ch.id} to="/c/$id" params={{id: ch.short_token || ch.id}} className="group">
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
+                                        <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
                                             {ch.banner && (
                                                 <div className="h-24 bg-cover bg-center relative"
                                                      style={{backgroundImage: `url(${getImageUrl(ch.banner, 'cover')})`}}>
@@ -562,24 +562,24 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                             )}
                                             <div className="p-4">
                                                 <div className="flex items-start gap-4">
-                                                    <Avatar className="w-16 h-16 border-2 border-white dark:border-gray-700 shadow-sm -mt-8 relative z-10">
+                                                    <Avatar className="w-16 h-16 border-2 border-card shadow-sm -mt-8 relative z-10">
                                                         <AvatarImage src={getImageUrl(ch.avatar, 'avatar')} loading="lazy"
                                                                      onError={(e) => handleImageError(e, 'avatar')}/>
                                                         <AvatarFallback className="text-lg">{ch.name ? ch.name.charAt(0).toUpperCase() : 'C'}</AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors truncate">{ch.name}</h3>
+                                                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">{ch.name}</h3>
                                                             {ch.is_verified && (
-                                                                <Badge variant="default" className="bg-emerald-500 text-xs px-1.5 py-0">{t('common.verified')}</Badge>
+                                                                <Badge variant="default" className="bg-primary text-xs px-1.5 py-0">{t('common.verified')}</Badge>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 {ch.description && (
-                                                    <p className="text-sm text-slate-500 dark:text-muted-foreground mt-3 line-clamp-2">{ch.description}</p>
+                                                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">{ch.description}</p>
                                                 )}
-                                                <div className="flex items-center gap-3 mt-3 text-xs text-slate-500 dark:text-muted-foreground flex-nowrap">
+                                                <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground flex-nowrap">
                                                     <span className="whitespace-nowrap">{ch.media_count || 0} {t('profile.videosCount')}</span>
                                                     {ch.article_count !== undefined && (
                                                         <span className="whitespace-nowrap">{ch.article_count} {t('profile.articlesCount')}</span>
@@ -594,7 +594,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                                     {isMe && ch.short_token && (
                                                         <Link to="/c/$id" params={{id: ch.short_token}}
                                                               onClick={(e) => e.stopPropagation()}
-                                                              className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium flex items-center gap-1">
+                                                              className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1">
                                                             {t('profile.manageChannel')}
                                                         </Link>
                                                     )}
@@ -630,13 +630,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                     {videos.map(video => (
                                         <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
-                                            <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                            <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                                                 <div className="relative aspect-video">
                                                     {video.thumbnail ? (
                                                         <img src={video.thumbnail} alt={video.title}
                                                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                                                     ) : (
-                                                        <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
+                                                        <div className="w-full h-full bg-muted flex items-center justify-center">
                                                             <Play className="w-10 h-10 text-muted-foreground"/>
                                                         </div>
                                                     )}
@@ -645,8 +645,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                                     ) : null}
                                                 </div>
                                                 <div className="p-3">
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
-                                                    <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
+                                                    <h3 className="font-semibold text-foreground line-clamp-2 text-sm group-hover:text-primary transition-colors">{video.title}</h3>
+                                                    <p className="text-xs text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
                                                 </div>
                                             </div>
                                         </Link>
@@ -676,13 +676,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {articles.map(article => (
                                         <Link key={article.id} to="/articles/$slug" params={{slug: article.slug || article.id}} className="group">
-                                            <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
+                                            <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
                                                 {article.thumbnail ? (
                                                     <div className="relative aspect-video">
                                                         <img src={article.thumbnail} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
                                                     </div>
                                                 ) : (
-                                                    <div className="relative aspect-video bg-muted dark:bg-gray-700 flex items-center justify-center">
+                                                    <div className="relative aspect-video bg-muted flex items-center justify-center">
                                                         <FileText className="w-10 h-10 text-muted-foreground"/>
                                                     </div>
                                                 )}
@@ -732,8 +732,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {playlists.map(pl => (
                                     <Link key={pl.id} to="/playlist/$token" params={{token: pl.short_token || pl.id}} className="group">
-                                        <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-                                            <div className="relative aspect-video bg-muted dark:bg-gray-700">
+                                        <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
+                                            <div className="relative aspect-video bg-muted">
                                                 <div className="w-full h-full flex items-center justify-center">
                                                     <ListVideo className="w-10 h-10 text-muted-foreground"/>
                                                 </div>
@@ -742,8 +742,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                                 </div>
                                             </div>
                                             <div className="p-4">
-                                                <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 group-hover:text-emerald-600 transition-colors">{pl.title}</h3>
-                                                <p className="text-xs text-slate-500 dark:text-muted-foreground mt-1">
+                                                <h3 className="font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{pl.title}</h3>
+                                                <p className="text-xs text-muted-foreground mt-1">
                                                     {t('playlists.updated', {date: formatDate(pl.update_time || pl.create_time)})}
                                                 </p>
                                             </div>
@@ -767,7 +767,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userSlug: propUserSlug}) => {
                                 </p>
                                 {followers.map(follower => (
                                     <Link key={follower.id} to="/u/$id" params={{id: follower.id}}
-                                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                          className="flex items-center gap-3 p-3 rounded-btn hover:bg-muted/50 transition-colors">
                                         <Avatar className="w-10 h-10">
                                             <AvatarImage src={getImageUrl(follower.avatar, 'avatar')} loading="lazy"
                                                          onError={(e) => handleImageError(e, 'avatar')}/>

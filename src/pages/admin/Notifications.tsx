@@ -37,7 +37,8 @@ const AdminNotifications: React.FC = () => {
         try {
             setLoading(true);
             const response = await notificationApi.getAll({page_size: 50});
-            const items = (response as any)?.items || response || [];
+            const rawItems = (response as any)?.items ?? response;
+            const items = Array.isArray(rawItems) ? rawItems : [];
             setNotifications(items);
             const readCount = items.filter((n: Notification) => n.read).length;
             setStats({total: items.length, read: readCount, unread: items.length - readCount});
@@ -52,7 +53,8 @@ const AdminNotifications: React.FC = () => {
         try {
             setLoadingUsers(true);
             const response = await adminUserApi.list({page_size: 50, keyword});
-            const items = (response as any)?.items || response || [];
+            const rawUsers = (response as any)?.items ?? response;
+            const items = Array.isArray(rawUsers) ? rawUsers : [];
             setUsers(items);
         } catch (err) {
             console.error('Failed to fetch users:', err);

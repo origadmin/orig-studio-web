@@ -84,8 +84,8 @@ const LatestPage = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <Clock size={24} className="text-emerald-600"/>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('latest.title')}</h1>
+                <Clock size={24} className="text-primary"/>
+                <h1 className="text-2xl font-bold text-foreground">{t('latest.title')}</h1>
             </div>
 
             {/* 分类标签 */}
@@ -94,7 +94,7 @@ const LatestPage = () => {
                     variant={activeCategoryId === null ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setActiveCategoryId(null)}
-                    className={activeCategoryId === null ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                    className={activeCategoryId === null ? 'bg-primary hover:bg-primary/90' : ''}
                 >{t('home.all')}</Button>
                 {categories?.items?.map((cat) => (
                     <Button
@@ -102,7 +102,7 @@ const LatestPage = () => {
                         variant={activeCategoryId === cat.id ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setActiveCategoryId(cat.id)}
-                        className={activeCategoryId === cat.id ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                        className={activeCategoryId === cat.id ? 'bg-primary hover:bg-primary/90' : ''}
                     >{cat.name}</Button>
                 ))}
             </section>
@@ -111,7 +111,7 @@ const LatestPage = () => {
                 {items.map((media) => (
                     <Link key={media.id} to="/watch" search={{v: media.short_token}} className="group">
                         <div
-                            className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                            className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                             <div className="relative aspect-video overflow-hidden">
                                 <img src={media.thumbnail ? getFullUrl(media.thumbnail) : undefined} alt={media.title}
                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
@@ -128,7 +128,7 @@ const LatestPage = () => {
                                 </div>
                             </div>
                             <div className="p-3">
-                                <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-1.5 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
                                     {media.title}
                                 </h3>
                                 <div className="flex items-center gap-2 mb-1">
@@ -137,7 +137,7 @@ const LatestPage = () => {
                                          alt={media.edges?.user?.[0]?.username}
                                          className="w-5 h-5 rounded-full object-cover"/>
                                     <span
-                                        className="text-xs text-gray-500 dark:text-muted-foreground">{media.edges?.user?.[0]?.username || 'Unknown'}</span>
+                                        className="text-xs text-muted-foreground">{media.edges?.user?.[0]?.username || 'Unknown'}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-xs text-muted-foreground dark:text-gray-500">
                                     <span className="flex items-center gap-1"><Eye

@@ -198,14 +198,14 @@ export default function MediaEditPage() {
     useEffect(() => {
         if (id) {
             adminMediaApi.getStats(id).then(setStats).catch(() => {});
-            adminMediaApi.getTasks(id).then((res: any) => setTasks(res?.tasks || res?.items || [])).catch(() => {});
+            adminMediaApi.getTasks(id).then((res: any) => setTasks((Array.isArray(res?.tasks) ? res.tasks : Array.isArray(res?.items) ? res.items : []))).catch(() => {});
         }
     }, [id]);
 
     // Fetch encode profiles for profile name resolution
     useEffect(() => {
         encodingApi.profiles.list().then((res: any) => {
-            const profileList: EncodeProfile[] = res?.profiles || res || [];
+            const profileList: EncodeProfile[] = (Array.isArray(res?.profiles) ? res.profiles : Array.isArray(res) ? res : []);
             const map = new Map<number, EncodeProfile>();
             profileList.forEach(p => map.set(p.id, p));
             setProfiles(map);
@@ -279,7 +279,7 @@ export default function MediaEditPage() {
         try {
             await adminMediaApi.retryTask(id, taskId);
             const res = await adminMediaApi.getTasks(id);
-            setTasks((res as any)?.tasks || (res as any)?.items || []);
+            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
         } catch (err) {
             console.error('Failed to retry task', err);
         }
@@ -292,7 +292,7 @@ export default function MediaEditPage() {
             await api.post(`/admin/medias/${id}/regenerate-thumbnail`, {});
             toast.success(t('mediaEdit.thumbnailRegenerateScheduled'));
             const res = await adminMediaApi.getTasks(id);
-            setTasks((res as any)?.tasks || (res as any)?.items || []);
+            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
         } catch (err: any) {
             const errMsg = err?.message || '未知错误';
             toast.error(`${t('mediaEdit.thumbnailRegenerateFailed')}: ${errMsg}`);
@@ -310,7 +310,7 @@ export default function MediaEditPage() {
             await api.post(`/admin/medias/${id}/regenerate-sprite`, {});
             toast.success(t('mediaEdit.spriteRegenerateScheduled'));
             const res = await adminMediaApi.getTasks(id);
-            setTasks((res as any)?.tasks || (res as any)?.items || []);
+            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
         } catch (err: any) {
             const errMsg = err?.message || '未知错误';
             if (errMsg.includes('already processing') || errMsg.includes('already in progress')) {

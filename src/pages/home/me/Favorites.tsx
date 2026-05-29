@@ -39,7 +39,7 @@ const FavoritesPage = () => {
         return (
             <div className="text-center py-20">
                 <Heart className="w-16 h-16 text-slate-200 dark:text-gray-700 mx-auto mb-4"/>
-                <p className="text-slate-500 dark:text-muted-foreground">{t('favorites.empty')}</p>
+                <p className="text-muted-foreground">{t('favorites.empty')}</p>
                 <p className="text-sm text-muted-foreground dark:text-gray-500 mt-1">{t('favorites.emptyDesc')}</p>
             </div>
         );
@@ -48,10 +48,10 @@ const FavoritesPage = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
                     <Heart className="w-6 h-6 text-rose-500 fill-current"/>{t('favorites.title')}
                 </h1>
-                <p className="text-slate-500 dark:text-muted-foreground text-sm mt-1">{t('favorites.savedCount', {count: total})}</p>
+                <p className="text-muted-foreground text-sm mt-1">{t('favorites.savedCount', {count: total})}</p>
             </div>
 
             {favorites.length > 0 ? (
@@ -62,7 +62,7 @@ const FavoritesPage = () => {
                             return (
                                 <Link key={video.id} to="/watch" search={{v: video.short_token || String(video.id)}} className="group">
                                     <div
-                                        className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                        className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                                         <div className="relative aspect-video">
                                             <img src={video.thumbnail ? getFullUrl(video.thumbnail) : undefined}
                                                  alt={video.title}
@@ -84,9 +84,9 @@ const FavoritesPage = () => {
                                             </div>
                                         </div>
                                         <div className="p-3">
-                                            <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
+                                            <h3 className="font-semibold text-foreground line-clamp-2 text-sm group-hover:text-primary transition-colors">{video.title}</h3>
                                             <div className="flex items-center gap-2 mt-2">
-                                                <span className="text-xs text-slate-500 dark:text-muted-foreground">
+                                                <span className="text-xs text-muted-foreground">
                                                     {video.edges?.user?.[0]?.username || 'Unknown'}
                                                 </span>
                                             </div>
@@ -128,7 +128,7 @@ const FavoritesPage = () => {
             ) : (
                 <div className="text-center py-20">
                     <Heart className="w-16 h-16 text-slate-200 dark:text-gray-700 mx-auto mb-4"/>
-                    <p className="text-slate-500 dark:text-muted-foreground">{t('favorites.empty')}</p>
+                    <p className="text-muted-foreground">{t('favorites.empty')}</p>
                     <p className="text-sm text-muted-foreground dark:text-gray-500 mt-1">{t('favorites.emptyDesc')}</p>
                 </div>
             )}

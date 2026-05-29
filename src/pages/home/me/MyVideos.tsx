@@ -66,10 +66,10 @@ const MyVideos = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">我的上传</h1>
-                    <p className="text-sm text-gray-500 dark:text-muted-foreground">管理你上传的所有媒体内容</p>
+                    <h1 className="text-2xl font-bold text-foreground">我的上传</h1>
+                    <p className="text-sm text-muted-foreground">管理你上传的所有媒体内容</p>
                 </div>
-                <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button asChild className="bg-primary hover:bg-primary/90 text-white">
                     <Link to="/me/upload">
                         <Plus className="w-4 h-4 mr-2"/>
                         上传新内容
@@ -81,11 +81,11 @@ const MyVideos = () => {
                 <Card className="border-dashed border-2">
                     <CardContent className="flex flex-col items-center justify-center py-20 space-y-4">
                         <div
-                            className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                            className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
                             <Video className="w-8 h-8 text-muted-foreground"/>
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">暂无上传内容</h3>
+                            <h3 className="text-lg font-medium text-foreground">暂无上传内容</h3>
                             <p className="text-sm text-gray-500">你还没有上传过任何视频或图片</p>
                         </div>
                         <Button asChild variant="outline">
@@ -97,7 +97,7 @@ const MyVideos = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {mediaList.map((item) => (
                         <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                            <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
+                            <div className="relative aspect-video bg-muted">
                                 {item.thumbnail ? (
                                     <img
                                         src={getFullUrl(item.thumbnail)}
@@ -124,7 +124,7 @@ const MyVideos = () => {
                             </div>
                             <CardContent className="p-4">
                                 <div className="flex justify-between items-start gap-2">
-                                    <h3 className="font-semibold text-gray-900 dark:text-white line-clamp-2 flex-1">
+                                    <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
                                         {item.title}
                                     </h3>
                                     <Badge variant={item.state === 'active' ? 'default' : 'secondary'}
@@ -146,7 +146,7 @@ const MyVideos = () => {
 
                                 <div className="mt-4 pt-4 border-t flex justify-end gap-2">
                                     <Button variant="ghost" size="sm"
-                                            className="h-8 text-gray-500 hover:text-emerald-600" asChild>
+                                            className="h-8 text-gray-500 hover:text-primary" asChild>
                                         <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
                                             <Edit className="w-3.5 h-3.5 mr-1"/>
                                             编辑

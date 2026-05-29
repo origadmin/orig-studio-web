@@ -87,7 +87,7 @@ const HomePage = () => {
         <div className="space-y-8">
             {/* Hero Banner */}
             <section
-                className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 text-foreground dark:text-white">
+                className="relative rounded-card overflow-hidden bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 dark:from-background dark:via-muted dark:to-background text-foreground dark:text-white">
                 <div
                     className="absolute inset-0 bg-cover bg-center opacity-20"
                     style={{backgroundImage: 'url(/assets/images/cover.svg)'}}/>
@@ -97,7 +97,7 @@ const HomePage = () => {
                             <TrendingUp className="w-3 h-3 mr-1"/> {t('home.heroBadge')}
                         </Badge>
                         <h1 className="text-4xl font-black mb-4 leading-tight">{t('home.heroTitle')}</h1>
-                        <p className="text-lg text-muted-foreground dark:text-slate-300 mb-6">{t('home.heroDesc')}</p>
+                        <p className="text-lg text-muted-foreground mb-6">{t('home.heroDesc')}</p>
                         <div className="flex gap-4">
                             <Link to="/featured">
                                 <Button size="lg">{t('home.exploreContent')}</Button>
@@ -132,7 +132,7 @@ const HomePage = () => {
                             <Link key={media?.id} to="/watch" search={{v: media?.short_token}}
                                   className="group w-64 flex-shrink-0">
                                 <div
-                                    className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                    className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                                     <div className="relative aspect-video overflow-hidden">
                                         <img src={thumbUrl} alt={media?.title}
                                              onError={(e) => handleImageError(e, 'thumbnail')}
@@ -196,7 +196,7 @@ const HomePage = () => {
                             <Link key={media?.id} to="/watch" search={{v: media?.short_token}}
                                   className="group w-64 flex-shrink-0">
                                 <div
-                                    className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                    className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                                     <div className="relative aspect-video overflow-hidden">
                                         <img src={thumbUrl} alt={media?.title}
                                              onError={(e) => handleImageError(e, 'thumbnail')}
@@ -268,7 +268,7 @@ const HomePage = () => {
                             return (
                                 <Link key={media?.id} to="/watch" search={{v: media?.short_token}} className="group">
                                     <div
-                                        className="bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                        className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                                         <div className="relative aspect-video overflow-hidden">
                                             <img src={thumbUrl} alt={media?.title}
                                                  onError={(e) => handleImageError(e, 'thumbnail')}

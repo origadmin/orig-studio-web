@@ -154,8 +154,8 @@ const PlaylistDetailPage: React.FC = () => {
                         <Link to="/me/playlists" className="text-muted-foreground hover:text-foreground transition-colors">
                             <ArrowLeft className="w-5 h-5"/>
                         </Link>
-                        <ListVideo size={24} className="text-emerald-600 flex-shrink-0"/>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2">{playlist.title}</h1>
+                        <ListVideo size={24} className="text-primary flex-shrink-0"/>
+                        <h1 className="text-2xl font-bold text-foreground line-clamp-2">{playlist.title}</h1>
                         <Badge variant={playlist.is_public ? 'default' : 'secondary'} className="flex-shrink-0">
                             {playlist.is_public ? (
                                 <><Globe className="w-3 h-3 mr-1"/>{t('common.public')}</>
@@ -165,7 +165,7 @@ const PlaylistDetailPage: React.FC = () => {
                         </Badge>
                     </div>
                     {playlist.description && (
-                        <p className="text-sm text-gray-500 dark:text-muted-foreground ml-8">{playlist.description}</p>
+                        <p className="text-sm text-muted-foreground ml-8">{playlist.description}</p>
                     )}
                     <div className="flex items-center gap-3 ml-8 mt-2 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -204,7 +204,7 @@ const PlaylistDetailPage: React.FC = () => {
                     {mediaItems.map((media, index) => (
                         <div
                             key={media.id}
-                            className="flex items-center gap-4 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all group"
+                            className="flex items-center gap-4 p-3 rounded-lg bg-card border border-border hover:shadow-md transition-all group"
                         >
                             {/* Index */}
                             <span className="text-sm text-muted-foreground w-6 text-center flex-shrink-0">{index + 1}</span>
@@ -238,7 +238,7 @@ const PlaylistDetailPage: React.FC = () => {
 
                             {/* Info */}
                             <Link to="/watch" search={{v: media.short_token}} className="flex-1 min-w-0">
-                                <h3 className="font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                <h3 className="font-medium text-foreground line-clamp-2 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
                                     {media.title}
                                 </h3>
                                 <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
@@ -313,7 +313,7 @@ const PlaylistDetailPage: React.FC = () => {
                                 {t('common.cancel')}
                             </Button>
                             <Button onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
-                                    className="bg-emerald-600 hover:bg-emerald-700">
+                                    className="bg-primary hover:bg-primary/90">
                                 {isUpdating ? <Spinner className="w-4 h-4 mr-1"/> : null}
                                 {t('common.save')}
                             </Button>

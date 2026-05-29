@@ -55,7 +55,7 @@ const CategoryManager: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await categoryApi.getAll();
-            setCategories((response as any)?.items || response || []);
+            setCategories((Array.isArray((response as any)?.items) ? (response as any).items : Array.isArray(response) ? response : []));
         } catch (err) {
             setError('Failed to fetch categories');
             console.error('Failed to fetch categories:', err);

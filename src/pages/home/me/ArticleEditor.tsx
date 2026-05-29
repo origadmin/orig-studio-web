@@ -337,7 +337,7 @@ export default function UserArticleEditor({mode}: { mode: 'create' | 'edit' }) {
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
     // Categories for select
-    const categories = categoriesData?.items || categoriesData || [];
+    const categories = (Array.isArray(categoriesData?.items) ? categoriesData.items : Array.isArray(categoriesData) ? categoriesData : []);
 
     if (loading) {
         return (

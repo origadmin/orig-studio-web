@@ -299,7 +299,7 @@ const FeaturedHorizontalCard: React.FC<FeaturedCardProps> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block w-56 sm:w-60 md:w-64 lg:w-72 shrink-0"
         >
-            <div className="rounded-xl overflow-hidden bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div className="rounded-card overflow-hidden bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div className="relative aspect-video overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}
@@ -356,7 +356,7 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
     return (
         <Link to="/watch" search={{v: item.short_token || item.id}} className="group block">
             <div
-                className="rounded-xl bg-card overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                className="rounded-card bg-card overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                 <div className="relative aspect-video overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}
@@ -421,7 +421,7 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 
     return (
         <Link to="/watch" search={{v: item.short_token || item.id}} className="group block">
-            <div className="flex gap-3 rounded-xl bg-card overflow-hidden border border-border p-2 hover:shadow-md transition-all duration-200">
+            <div className="flex gap-3 rounded-card bg-card overflow-hidden border border-border p-2 hover:shadow-md transition-all duration-200">
                 <div className="w-40 shrink-0 aspect-video rounded-lg overflow-hidden relative">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}

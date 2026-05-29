@@ -98,8 +98,8 @@ const HistoryPage = () => {
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <History size={24} className="text-emerald-600"/>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('history.title')}</h1>
+                        <History size={24} className="text-primary"/>
+                        <h1 className="text-2xl font-bold text-foreground">{t('history.title')}</h1>
                     </div>
                 </div>
                 <div className="text-center py-20 text-muted-foreground">
@@ -116,8 +116,8 @@ const HistoryPage = () => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <History size={24} className="text-emerald-600"/>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('history.title')}</h1>
+                    <History size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('history.title')}</h1>
                     <span className="text-sm text-gray-500">{t('history.recordCount', {count: data?.total || items.length})}</span>
                 </div>
                 <Button
@@ -170,7 +170,7 @@ const HistoryPage = () => {
                                 {!isDeleted && (
                                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-600/30">
                                         <div
-                                            className="h-full bg-emerald-500"
+                                            className="h-full bg-primary"
                                             style={{width: `${progressPercent}%`}}
                                         />
                                     </div>
@@ -182,7 +182,7 @@ const HistoryPage = () => {
                                 <h3 className={`text-sm font-medium line-clamp-2 transition-colors ${
                                     isDeleted
                                         ? 'text-gray-400 dark:text-gray-500 line-through'
-                                        : 'text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400'
+                                        : 'text-foreground group-hover:text-primary dark:group-hover:text-emerald-400'
                                 }`}>
                                     {isDeleted
                                         ? (t('history.contentUnavailable'))
@@ -228,7 +228,7 @@ const HistoryPage = () => {
                     return isDeleted ? (
                         <div
                             key={item.id}
-                            className="group flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl opacity-60"
+                            className="group flex items-center gap-4 p-3 bg-card rounded-card opacity-60"
                         >
                             {content}
                         </div>
@@ -236,7 +236,7 @@ const HistoryPage = () => {
                         <Link
                             key={item.id}
                             to={contentLink}
-                            className="group flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            className="group flex items-center gap-4 p-3 bg-card rounded-card hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                         >
                             {content}
                         </Link>

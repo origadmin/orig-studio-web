@@ -96,8 +96,8 @@ const MembersPage = () => {
             {/* 标题 */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Users size={24} className="text-emerald-600"/>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('members.title')}</h1>
+                    <Users size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('members.title')}</h1>
                 </div>
                 <span className="text-sm text-gray-500">{t('members.creatorCount', {count: members.length})}</span>
             </div>
@@ -110,7 +110,7 @@ const MembersPage = () => {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                     placeholder={t('members.searchPlaceholder')}
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
+                    className="w-full bg-card border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
                 />
             </div>
 
@@ -121,7 +121,7 @@ const MembersPage = () => {
                         key={member.id}
                         to="/u/$id"
                         params={{id: String(member.id)}}
-                        className="group p-4 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all"
+                        className="group p-4 bg-card border border-border rounded-card hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all"
                     >
                         <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12 ring-2 ring-gray-100 dark:ring-gray-700 group-hover:ring-emerald-200 dark:group-hover:ring-emerald-800 transition-all">
@@ -135,13 +135,13 @@ const MembersPage = () => {
                                 </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                <h3 className="text-sm font-semibold text-foreground truncate group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
                                     {member.username}
                                 </h3>
                                 <p className="text-xs text-muted-foreground">@{member.username}</p>
                             </div>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground mt-3 line-clamp-2">{member.email}</p>
+                        <p className="text-xs text-muted-foreground mt-3 line-clamp-2">{member.email}</p>
                         <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                             <span className="flex items-center gap-1">{getRoleLabel(member.role, t).icon} {getRoleLabel(member.role, t).label}</span>
                             <span>{getStatusLabel(member.status, t)}</span>

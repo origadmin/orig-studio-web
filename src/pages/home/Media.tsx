@@ -26,7 +26,7 @@ export default function MediaPage() {
             ]);
             const mediaRes = await mediaApi.list(params);
             setMediaList(mediaRes.items || []);
-            setCategories((catRes as any)?.items || catRes || []);
+            setCategories((Array.isArray((catRes as any)?.items) ? (catRes as any).items : Array.isArray(catRes) ? catRes : []));
         } catch (err: any) {
             setError(err.message);
         } finally {

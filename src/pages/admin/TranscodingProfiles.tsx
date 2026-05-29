@@ -68,9 +68,8 @@ export default function TranscodingProfiles() {
         try {
             setLoading(true);
             const response = await encodingApi.profiles.list();
-            setProfiles(response.profiles || []);
-        } catch (error) {
-            console.error("Failed to fetch profiles:", error);
+            setProfiles((Array.isArray(response?.profiles) ? response.profiles : []));
+        } catch {
         } finally {
             setLoading(false);
         }

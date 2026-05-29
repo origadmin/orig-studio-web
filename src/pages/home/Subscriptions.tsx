@@ -60,8 +60,8 @@ const SubscriptionsPage = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <Users size={24} className="text-emerald-600"/>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('subscriptions.title')}</h1>
+                <Users size={24} className="text-primary"/>
+                <h1 className="text-2xl font-bold text-foreground">{t('subscriptions.title')}</h1>
             </div>
 
             {subscriptions.length === 0 ? (
@@ -73,15 +73,15 @@ const SubscriptionsPage = () => {
                 <div className="space-y-4">
                     {subscriptions.map((user) => (
                         <div key={user.id}
-                             className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                             className="flex items-center justify-between p-4 bg-card rounded-lg shadow-sm">
                             <Link to={(user.username ? `/@${user.username}` : `/u/${user.user_id}`) as any} className="flex items-center gap-3">
                                 <Avatar className="h-12 w-12">
                                     <AvatarImage src={user.avatar}/>
                                     <AvatarFallback>{user.username?.[0] || 'U'}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <p className="font-medium text-gray-900 dark:text-white">{user.username}</p>
-                                    <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                                    <p className="font-medium text-foreground">{user.username}</p>
+                                    <p className="text-xs text-muted-foreground">
                                         {t('subscriptions.subscribedAt', {date: formatDate(user.subscribed_at)})}
                                     </p>
                                 </div>

@@ -12,39 +12,39 @@ const AboutPage = () => {
     return (
         <div className="space-y-8">
             <div className="flex items-center gap-3">
-                <Info size={24} className="text-emerald-600"/>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('about.title')}</h1>
+                <Info size={24} className="text-primary"/>
+                <h1 className="text-2xl font-bold text-foreground">{t('about.title')}</h1>
             </div>
 
             <div
-                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-8 space-y-6">
+                className="bg-card rounded-card border border-border p-8 space-y-6">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{t('about.whatIs')}</h2>
+                    <h2 className="text-xl font-bold text-foreground mb-3">{t('about.whatIs')}</h2>
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                         {t('about.description')}
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
                         <Code size={28} className="mx-auto text-emerald-500 mb-2"/>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{t('about.goReact')}</p>
+                        <p className="text-sm font-medium text-foreground">{t('about.goReact')}</p>
                         <p className="text-xs text-gray-500 mt-1">{t('about.modernStack')}</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
                         <Heart size={28} className="mx-auto text-destructive mb-2"/>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{t('about.openSource')}</p>
+                        <p className="text-sm font-medium text-foreground">{t('about.openSource')}</p>
                         <p className="text-xs text-gray-500 mt-1">AGPLv3 License</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
                         <Users size={28} className="mx-auto text-info mb-2"/>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{t('about.communityDriven')}</p>
+                        <p className="text-sm font-medium text-foreground">{t('about.communityDriven')}</p>
                         <p className="text-xs text-gray-500 mt-1">{t('about.welcomeContrib')}</p>
                     </div>
                 </div>
 
                 <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{t('about.features')}</h2>
+                    <h2 className="text-lg font-semibold text-foreground mb-3">{t('about.features')}</h2>
                     <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                         <li className="flex items-start gap-2">
                             <span className="text-emerald-500 mt-1">✓</span>
@@ -73,12 +73,12 @@ const AboutPage = () => {
                     </ul>
                 </div>
 
-                <div className="text-center pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div className="text-center pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
                         Powered by <span
                         className="font-medium text-gray-600 dark:text-gray-300">OrigAdmin</span> &middot;
                         <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener noreferrer"
-                           className="text-emerald-600 dark:text-emerald-400 hover:underline ml-1">
+                           className="text-primary dark:text-emerald-400 hover:underline ml-1">
                             AGPLv3 License
                         </a> &middot; {new Date().getFullYear()}
                     </p>

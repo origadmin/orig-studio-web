@@ -108,7 +108,7 @@ const WatchPage = () => {
         return (
             <div className="flex flex-col lg:flex-row gap-6 animate-pulse">
                 <div className="flex-1 space-y-4">
-                    <Skeleton className="aspect-video w-full rounded-2xl"/>
+                    <Skeleton className="aspect-video w-full rounded-card"/>
                     <Skeleton className="h-8 w-3/4"/>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ const WatchPage = () => {
 
                 {/* Video Info */}
                 <div className="mt-6 space-y-4">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-2">
+                    <h1 className="text-2xl font-bold text-foreground line-clamp-2">
                         <HashtagText text={media.title} />
                     </h1>
 
@@ -270,19 +270,19 @@ const WatchPage = () => {
                     )}
 
                     <div
-                        className="flex flex-wrap items-center justify-between gap-4 py-2 border-b dark:border-gray-800">
+                        className="flex flex-wrap items-center justify-between gap-4 py-2 border-b border-border">
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-4">
                                 {mediaUser ? (
                                     <Link to={`/@${mediaUser.username}` as any}>
-                                        <Avatar className="h-12 w-12 ring-2 ring-gray-100 dark:ring-gray-800">
+                                        <Avatar className="h-12 w-12 ring-2 ring-border">
                                             <AvatarImage src={getImageUrl(mediaUser.avatar, 'avatar')} loading="lazy"
                                                          onError={(e) => handleImageError(e, 'avatar')}/>
                                             <AvatarFallback>{mediaUser.username?.[0] || 'U'}</AvatarFallback>
                                         </Avatar>
                                     </Link>
                                 ) : (
-                                    <Avatar className="h-12 w-12 ring-2 ring-gray-100 dark:ring-gray-800">
+                                    <Avatar className="h-12 w-12 ring-2 ring-border">
                                         <AvatarFallback>?</AvatarFallback>
                                     </Avatar>
                                 )}
@@ -290,13 +290,13 @@ const WatchPage = () => {
                                     {mediaUser ? (
                                         <>
                                             <Link to={`/@${mediaUser.username}` as any}
-                                                  className="font-bold text-gray-900 dark:text-white hover:text-info transition-colors">
+                                                  className="font-bold text-foreground hover:text-info transition-colors">
                                                 {mediaUser.nickname || mediaUser.username}
                                             </Link>
-                                            <p className="text-xs text-gray-500 dark:text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
+                                            <p className="text-xs text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
                                         </>
                                     ) : (
-                                        <span className="font-bold text-muted-foreground dark:text-gray-500">{t('watch.deletedUser')}</span>
+                                        <span className="font-bold text-muted-foreground">{t('watch.deletedUser')}</span>
                                     )}
                                 </div>
                                 <SubscribeButton
@@ -320,9 +320,9 @@ const WatchPage = () => {
 
                     {/* Meta & Description */}
                     <Card
-                        className="bg-gray-100 dark:bg-gray-800 border-none shadow-none rounded-xl overflow-hidden mt-4">
+                        className="bg-muted border-none shadow-none rounded-card overflow-hidden mt-4">
                         <CardContent className="p-4 space-y-2">
-                            <div className="flex gap-3 text-sm font-bold text-gray-900 dark:text-white">
+                            <div className="flex gap-3 text-sm font-bold text-foreground">
                                 <span>{formatViews(media.view_count)} {t('watch.views')}</span>
                                 <span>{formatDate(media.create_time)}</span>
                                 {media.tags?.map(tag => (
@@ -335,7 +335,7 @@ const WatchPage = () => {
                                     >#{tag}</Link>
                                 ))}
                             </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                                 <HashtagText text={media.description || t('watch.noDescription')} />
                             </p>
                         </CardContent>
@@ -350,13 +350,13 @@ const WatchPage = () => {
 
             {/* Sidebar: Recommendations */}
             <div className="lg:w-80 xl:w-96 shrink-0 space-y-4">
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+                <h3 className="font-bold text-lg text-foreground flex items-center gap-2 mb-4">
                     {t('watch.nextVideos')}
                 </h3>
 
                 <div className="space-y-4">
                     {recommendations.length === 0 ? (
-                        <p className="text-sm text-gray-500 py-4 italic">{t('watch.noRecommendations')}</p>
+                        <p className="text-sm text-muted-foreground py-4 italic">{t('watch.noRecommendations')}</p>
                     ) : (
                         recommendations.map((item) => {
                             const recUser = item.edges?.user?.[0];
@@ -383,10 +383,10 @@ const WatchPage = () => {
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 leading-snug group-hover:text-info transition-colors">
+                                        <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-info transition-colors">
                                             {item.title}
                                         </h4>
-                                        <p className="text-xs text-gray-500 mt-1">{recUser?.nickname || recUser?.username || 'Unknown'}</p>
+                                        <p className="text-xs text-muted-foreground mt-1">{recUser?.nickname || recUser?.username || 'Unknown'}</p>
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                             <span>{formatViews(item.view_count)} views</span>
                                             <span>·</span>

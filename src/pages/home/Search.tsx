@@ -93,7 +93,7 @@ const SearchPage = () => {
     return (
         <div className="space-y-8">
             {/* Search Header */}
-            <div className="pb-6 border-b border-slate-100 dark:border-gray-700">
+            <div className="pb-6 border-b border-border">
                 <form onSubmit={handleSearch} className="flex gap-3">
                     <div className="relative flex-1">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground"/>
@@ -105,7 +105,7 @@ const SearchPage = () => {
                             className="pl-10 h-12 text-base"
                         />
                     </div>
-                    <Button type="submit" className="h-12 px-6 bg-emerald-600 hover:bg-emerald-700">
+                    <Button type="submit" className="h-12 px-6 bg-primary hover:bg-primary/90">
                         <SearchIcon className="w-5 h-5 mr-2"/>
                         {t('search.search')}
                     </Button>
@@ -115,21 +115,21 @@ const SearchPage = () => {
                         className="h-12 px-4"
                         onClick={() => setShowFilters(!showFilters)}
                     >
-                        <Filter size={18} className={showFilters ? 'text-emerald-600' : ''}/>
+                        <Filter size={18} className={showFilters ? 'text-primary' : ''}/>
                     </Button>
                 </form>
 
                 {/* Filters */}
                 {showFilters && (
-                    <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                    <div className="mt-4 p-4 bg-muted rounded-card">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <span className="text-sm font-medium text-foreground">
                                 {t('search.filterByCategory')}
                             </span>
                             {(selectedCategory || searchQuery) && (
                                 <button
                                     onClick={clearFilters}
-                                    className="text-sm text-emerald-600 hover:text-emerald-700"
+                                    className="text-sm text-primary hover:text-primary/80"
                                 >
                                     {t('search.clearFilters')}
                                 </button>
@@ -138,10 +138,10 @@ const SearchPage = () => {
                         <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => handleCategoryChange('')}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                className={`px-4 py-2 rounded-badge text-sm font-medium transition-colors ${
                                     !selectedCategory
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-card text-foreground hover:bg-muted'
                                 }`}
                             >
                                 {t('search.allCategories')}
@@ -150,10 +150,10 @@ const SearchPage = () => {
                                 <button
                                     key={category.id}
                                     onClick={() => handleCategoryChange(String(category.id))}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                    className={`px-4 py-2 rounded-badge text-sm font-medium transition-colors ${
                                         selectedCategory === String(category.id)
-                                            ? 'bg-emerald-600 text-white'
-                                            : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'bg-card text-foreground hover:bg-muted'
                                     }`}
                                 >
                                     {category.name}
@@ -167,10 +167,10 @@ const SearchPage = () => {
             {/* Results Header */}
             {searchQuery && (
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                    <h1 className="text-2xl font-bold text-foreground">
                         {t('search.resultsFor', {query: searchQuery})}
                     </h1>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                         {totalResults} {t('search.results')}
                     </span>
                 </div>
@@ -186,11 +186,11 @@ const SearchPage = () => {
             {/* Error State */}
             {!isLoading && error && (
                 <div className="py-20 text-center space-y-4">
-                    <div className="text-gray-500 text-lg">{t('common.error')}</div>
+                    <div className="text-muted-foreground text-lg">{t('common.error')}</div>
                     <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
                     <Link to="/">
                         <button
-                            className="flex items-center space-x-2 px-6 py-2.5 bg-slate-900 dark:bg-gray-800 text-white rounded-2xl text-xs font-black hover:bg-emerald-600 transition-all mx-auto">
+                            className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-btn text-xs font-black hover:bg-primary/90 transition-all mx-auto">
                             <span>{t('common.backToHome')}</span>
                         </button>
                     </Link>
@@ -200,7 +200,7 @@ const SearchPage = () => {
             {/* Empty State */}
             {!isLoading && !error && searchResults.length === 0 && (
                 <div className="py-20 text-center space-y-4">
-                    <div className="text-gray-500 text-lg">
+                    <div className="text-muted-foreground text-lg">
                         {searchQuery
                             ? t('search.noResults', {query: searchQuery})
                             : t('search.enterQuery')}
@@ -208,7 +208,7 @@ const SearchPage = () => {
                     {searchQuery && (
                         <Link to="/">
                             <button
-                                className="flex items-center space-x-2 px-6 py-2.5 bg-slate-900 dark:bg-gray-800 text-white rounded-2xl text-xs font-black hover:bg-emerald-600 transition-all mx-auto">
+                                className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-btn text-xs font-black hover:bg-primary/90 transition-all mx-auto">
                                 <span>{t('common.backToHome')}</span>
                             </button>
                         </Link>
@@ -222,9 +222,9 @@ const SearchPage = () => {
                     <div className="space-y-6">
                         {searchResults.map(item => (
                             <Link key={item.id} to="/watch" search={{v: item.short_token}}
-                                  className="flex flex-col md:flex-row gap-6 group p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-gray-800 transition-all">
+                                  className="flex flex-col md:flex-row gap-6 group p-4 rounded-card hover:bg-muted/50 transition-all">
                                 <div
-                                    className="relative w-full md:w-72 aspect-video bg-slate-200 rounded-xl overflow-hidden shrink-0 border border-slate-100 dark:border-gray-700 shadow-sm">
+                                    className="relative w-full md:w-72 aspect-video bg-muted rounded-card overflow-hidden shrink-0 border border-border shadow-sm">
                                     <img src={item.thumbnail ? getFullUrl(item.thumbnail) : undefined}
                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                          alt={item.title}/>
@@ -241,11 +241,11 @@ const SearchPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-2 min-w-0">
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-2 leading-tight">
+                                    <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                                         <HashtagText text={item.title} />
                                     </h3>
                                     <div
-                                        className="flex items-center space-x-3 text-xs font-medium text-slate-500 dark:text-muted-foreground">
+                                        className="flex items-center space-x-3 text-xs font-medium text-muted-foreground">
                                         <span>{item.edges?.user?.[0]?.username || 'Unknown'}</span>
                                         <span>·</span>
                                         <span className="flex items-center gap-1">
@@ -255,7 +255,7 @@ const SearchPage = () => {
                                         <span>·</span>
                                         <span>{formatDate(item.create_time)}</span>
                                     </div>
-                                    <p className="text-sm text-slate-500 dark:text-muted-foreground line-clamp-2 leading-relaxed">
+                                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
                                         {item.description || t('watch.noDescription')}
                                     </p>
                                     {(() => {
@@ -293,7 +293,7 @@ const SearchPage = () => {
                                 <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
-                                    className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-btn bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {t('common.previous')}
                                 </button>
@@ -303,10 +303,10 @@ const SearchPage = () => {
                                         <button
                                             key={pageNum}
                                             onClick={() => setPage(pageNum)}
-                                            className={`px-4 py-2 rounded-lg ${
+                                            className={`px-4 py-2 rounded-btn ${
                                                 page === pageNum
-                                                    ? 'bg-emerald-600 text-white'
-                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700'
+                                                    ? 'bg-primary text-primary-foreground'
+                                                    : 'bg-muted text-foreground hover:bg-muted/80'
                                             }`}
                                         >
                                             {pageNum}
@@ -316,7 +316,7 @@ const SearchPage = () => {
                                 <button
                                     onClick={() => setPage(p => p + 1)}
                                     disabled={page >= Math.ceil(totalResults / pageSize)}
-                                    className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-muted dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-btn bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {t('common.next')}
                                 </button>

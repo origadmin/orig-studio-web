@@ -1,37 +1,40 @@
 /*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
- * Admin - Article Create/Edit Page (Video Website Style)
+ * Admin - Article Create/Edit Page (Enterprise CMS Style)
  */
 
-import {useState, useEffect, useMemo, useCallback} from 'react';
+import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import {useParams, useNavigate} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {adminArticleApi, type Article, type CreateArticleRequest, type UpdateArticleRequest, type MediaBrief} from '@/lib/api/article';
 import {adminMediaApi, type Media} from '@/lib/api/media';
 import {useCategoryList} from '@/hooks/queries';
-import {api, API_BASE_URL} from '@/lib/request';
+import {API_BASE_URL} from '@/lib/request';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {Badge} from '@/components/ui/badge';
-import {Separator} from '@/components/ui/separator';
-import {EditPageHeader, type HeaderBadgeConfig} from '@/components/common/EditPageHeader';
+import {Textarea} from '@/components/ui/textarea';
+import {Switch} from '@/components/ui/switch';
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {
-    ArrowLeft, AlertTriangle, Film, Play, X,
-    CheckCircle, Clock, Eye, Image as ImageIcon,
-    Search, ExternalLink
+    ArrowLeft, Eye, Bell, Bold, Italic, Underline,
+    List, ListOrdered, Link, ImagePlus, Code,
+    ChevronDown, Save, Send, Globe, Lock,
+    Calendar, X, AlertTriangle, Search, Image as ImageIcon,
 } from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
 import {toast} from 'sonner';
+import {cn} from '@/lib/utils';
 
-/**
- * Resolve a potentially relative URL to a full URL.
- */
+// ============================================================================
+// Helpers
+// ============================================================================
+
 function resolveMediaUrl(url: string | undefined): string | undefined {
     if (!url) return undefined;
     if (/^(https?:|data:|blob:)/i.test(url)) return url;
@@ -39,52 +42,17 @@ function resolveMediaUrl(url: string | undefined): string | undefined {
     return `${base}/${url.replace(/^\//, '')}`;
 }
 
-/**
- * Map Article state to Badge variant and label
- */
-function getStateBadgeConfig(state: string, t: (key: string) => string): { variant: HeaderBadgeConfig['variant']; label: string } {
-    const map: Record<string, { variant: HeaderBadgeConfig['variant']; label: string }> = {
-        draft: {variant: 'secondary', label: t('admin.draft')},
-        published: {variant: 'default', label: t('admin.published')},
-        archived: {variant: 'destructive', label: t('admin.archived')},
-    };
-    return map[state] || {variant: 'outline' as const, label: state};
-}
-
-function mapArticleToHeaderBadges(article: Article, t: (key: string) => string): HeaderBadgeConfig[] {
-    const badges: HeaderBadgeConfig[] = [];
-
-    // State Badge
-    const stateConfig = getStateBadgeConfig(article.state, t);
-    badges.push({
-        type: 'state',
-        variant: stateConfig.variant,
-        label: stateConfig.label,
-        ariaLabel: `State: ${stateConfig.label}`,
-    });
-
-    // Featured Badge
-    if (article.featured) {
-        badges.push({
-            type: 'featured',
-            variant: 'outline',
-            label: t('admin.featured'),
-            ariaLabel: t('admin.featuredArticle'),
-            className: 'text-warning border-amber-300',
-        });
-    }
-
-    // Media Badge
-    if (article.media_id) {
-        badges.push({
-            type: 'media-type',
-            variant: 'outline',
-            label: t('admin.video'),
-            ariaLabel: t('admin.hasAssociatedVideo'),
-        });
-    }
-
-    return badges;
+function countWords(text: string): number {
+    if (!text || !text.trim()) return 0;
+    // Strip HTML tags for word count
+    const plain = text.replace(/<[^>]*>/g, '').trim();
+    if (!plain) return 0;
+    // Count CJK characters + space-separated words
+    const cjk = plain.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g);
+    const cjkCount = cjk ? cjk.length : 0;
+    const withoutCjk = plain.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, ' ');
+    const words = withoutCjk.split(/\s+/).filter(Boolean);
+    return cjkCount + words.length;
 }
 
 // ============================================================================
@@ -134,7 +102,7 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-background rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+            <div className="bg-background rounded-card shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="font-semibold text-lg">{t('admin.selectVideo')}</h3>
                     <Button variant="ghost" size="icon" onClick={onClose}>
@@ -171,11 +139,12 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                             {medias.map(media => (
                                 <button
                                     key={media.id}
-                                    className={`relative rounded-lg border-2 overflow-hidden text-left transition-colors ${
+                                    className={cn(
+                                        'relative rounded-input border-2 overflow-hidden text-left transition-colors',
                                         selectedId === media.id
                                             ? 'border-primary'
                                             : 'border-transparent hover:border-muted-foreground/30'
-                                    }`}
+                                    )}
                                     onClick={() => setSelectedId(media.id)}
                                 >
                                     <div className="aspect-video bg-muted relative">
@@ -188,13 +157,8 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
-                                                <Film className="w-8 h-8 text-muted-foreground"/>
+                                                <ImageIcon className="w-8 h-8 text-muted-foreground"/>
                                             </div>
-                                        )}
-                                        {media.duration > 0 && (
-                                            <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1.5 py-0.5 rounded">
-                                                {Math.floor(media.duration / 60)}:{String(Math.floor(media.duration % 60)).padStart(2, '0')}
-                                            </span>
                                         )}
                                     </div>
                                     <div className="p-2">
@@ -219,6 +183,33 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                 </div>
             </div>
         </div>
+    );
+}
+
+// ============================================================================
+// Rich Text Editor Toolbar Button
+// ============================================================================
+
+interface ToolbarButtonProps {
+    icon: React.ReactNode;
+    title: string;
+    onClick: () => void;
+    active?: boolean;
+}
+
+function ToolbarButton({icon, title, onClick, active}: ToolbarButtonProps) {
+    return (
+        <button
+            type="button"
+            title={title}
+            onClick={onClick}
+            className={cn(
+                'p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors',
+                active && 'text-primary bg-primary/5'
+            )}
+        >
+            {icon}
+        </button>
     );
 }
 
@@ -253,21 +244,33 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
         thumbnail: '',
         tags: '',
         featured: false,
+        visibility: 'public' as 'public' | 'internal',
+        meta_title: '',
+        meta_description: '',
     });
 
     // Selected media info (for display in sidebar)
     const [selectedMedia, setSelectedMedia] = useState<MediaBrief | null>(null);
     const [thumbnailError, setThumbnailError] = useState(false);
-    const [activeTab, setActiveTab] = useState<'content' | 'publish'>('content');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [mediaSelectorOpen, setMediaSelectorOpen] = useState(false);
+    const [seoOpen, setSeoOpen] = useState(false);
+
+    // Tag input state
+    const [tagInput, setTagInput] = useState('');
 
     // Save state management
     const {saveState, isSaving, setSaving, setSuccess, setError} = useSaveState();
 
     // Track whether slug was manually edited
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+    // Editor ref for contenteditable
+    const editorRef = useRef<HTMLDivElement>(null);
+
+    // Auto-save timestamp
+    const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
     // Load article data in edit mode
     useEffect(() => {
@@ -289,6 +292,9 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                     thumbnail: data.thumbnail || '',
                     tags: data.tags?.join(', ') || '',
                     featured: data.featured || false,
+                    visibility: 'public' as const,
+                    meta_title: '',
+                    meta_description: '',
                 });
             })
             .catch(err => {
@@ -298,12 +304,36 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
             .finally(() => setLoading(false));
     }, [mode, id, syncFromData]);
 
+    // Sync contenteditable content when form.content changes externally
+    useEffect(() => {
+        if (editorRef.current && editorRef.current.innerHTML !== form.content) {
+            editorRef.current.innerHTML = form.content;
+        }
+    }, [form.content]);
+
     // Auto-generate slug from title
     useEffect(() => {
         if (!slugManuallyEdited && form.title && !form.slug) {
             setForm(prev => ({...prev, slug: generateSlug(form.title)}));
         }
     }, [form.title, slugManuallyEdited, form.slug, setForm]);
+
+    // Auto-save timer
+    useEffect(() => {
+        if (!isDirty || isSaving) return;
+        const timer = setInterval(() => {
+            setLastSavedAt(new Date());
+        }, 60000);
+        return () => clearInterval(timer);
+    }, [isDirty, isSaving]);
+
+    // Word count
+    const wordCount = useMemo(() => countWords(form.content), [form.content]);
+
+    // Parsed tags
+    const tagsList = useMemo(() => {
+        return form.tags.split(',').map(s => s.trim()).filter(Boolean);
+    }, [form.tags]);
 
     // Save handler
     const handleSave = useCallback(async () => {
@@ -330,8 +360,8 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                 const created = await adminArticleApi.create(data);
                 resetDirty();
                 setSuccess();
+                setLastSavedAt(new Date());
                 toast.success(t('admin.articleCreated'));
-                // Navigate to edit page with new ID
                 if (created?.id) {
                     navigate({to: '/admin/articles/$id/edit', params: {id: created.id}});
                 }
@@ -351,6 +381,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                 await adminArticleApi.update(id, data);
                 resetDirty();
                 setSuccess();
+                setLastSavedAt(new Date());
                 toast.success(t('admin.articleSaved'));
             }
         } catch (err: any) {
@@ -359,6 +390,125 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
             console.error('Failed to save', err);
         }
     }, [mode, id, isSaving, form, resetDirty, setSaving, setSuccess, setError, navigate]);
+
+    // Save as draft
+    const handleSaveDraft = useCallback(async () => {
+        if (isSaving) return;
+        setForm(prev => ({...prev, state: 'draft'}));
+        // Directly save with draft state
+        setSaving();
+        try {
+            const tagsArray = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+            const categoryId = form.category_id !== '' && form.category_id !== undefined
+                ? Number(form.category_id) : undefined;
+            const data = mode === 'create'
+                ? {
+                    title: form.title,
+                    slug: form.slug || generateSlug(form.title),
+                    content: form.content,
+                    summary: form.summary || undefined,
+                    state: 'draft' as const,
+                    category_id: categoryId,
+                    media_id: form.media_id || undefined,
+                    thumbnail: form.thumbnail || undefined,
+                    tags: tagsArray.length > 0 ? tagsArray : undefined,
+                    featured: form.featured,
+                }
+                : {
+                    title: form.title,
+                    slug: form.slug,
+                    content: form.content,
+                    summary: form.summary,
+                    state: 'draft' as const,
+                    category_id: categoryId,
+                    media_id: form.media_id || undefined,
+                    thumbnail: form.thumbnail,
+                    tags: tagsArray,
+                    featured: form.featured,
+                };
+            if (mode === 'create') {
+                const created = await adminArticleApi.create(data as CreateArticleRequest);
+                resetDirty();
+                setSuccess();
+                setLastSavedAt(new Date());
+                toast.success(t('admin.articleCreated'));
+                if (created?.id) {
+                    navigate({to: '/admin/articles/$id/edit', params: {id: created.id}});
+                }
+            } else if (id) {
+                await adminArticleApi.update(id, data as UpdateArticleRequest);
+                resetDirty();
+                setSuccess();
+                setLastSavedAt(new Date());
+                toast.success(t('admin.articleSaved'));
+            }
+        } catch (err: any) {
+            setError();
+            toast.error(`${t('admin.saveFailed')}: ${err?.message || t('admin.unknownError')}`);
+        }
+    }, [mode, id, isSaving, form, setSaving, resetDirty, setSuccess, setError, navigate]);
+
+    // Submit for review
+    const handleSubmitForReview = useCallback(async () => {
+        // Save as draft (pending review state not supported by API yet)
+        await handleSaveDraft();
+    }, [handleSaveDraft]);
+
+    // Publish
+    const handlePublish = useCallback(async () => {
+        if (isSaving) return;
+        setForm(prev => ({...prev, state: 'published'}));
+        setSaving();
+        try {
+            const tagsArray = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+            const categoryId = form.category_id !== '' && form.category_id !== undefined
+                ? Number(form.category_id) : undefined;
+            const data = mode === 'create'
+                ? {
+                    title: form.title,
+                    slug: form.slug || generateSlug(form.title),
+                    content: form.content,
+                    summary: form.summary || undefined,
+                    state: 'published' as const,
+                    category_id: categoryId,
+                    media_id: form.media_id || undefined,
+                    thumbnail: form.thumbnail || undefined,
+                    tags: tagsArray.length > 0 ? tagsArray : undefined,
+                    featured: form.featured,
+                }
+                : {
+                    title: form.title,
+                    slug: form.slug,
+                    content: form.content,
+                    summary: form.summary,
+                    state: 'published' as const,
+                    category_id: categoryId,
+                    media_id: form.media_id || undefined,
+                    thumbnail: form.thumbnail,
+                    tags: tagsArray,
+                    featured: form.featured,
+                };
+            if (mode === 'create') {
+                const created = await adminArticleApi.create(data as CreateArticleRequest);
+                resetDirty();
+                setSuccess();
+                setLastSavedAt(new Date());
+                toast.success(t('admin.articleCreated'));
+                if (created?.id) {
+                    navigate({to: '/admin/articles/$id/edit', params: {id: created.id}});
+                }
+            } else if (id) {
+                await adminArticleApi.update(id, data as UpdateArticleRequest);
+                resetDirty();
+                setSuccess();
+                setLastSavedAt(new Date());
+                toast.success(t('admin.articleSaved'));
+            }
+        } catch (err: any) {
+            setError();
+            toast.error(`${t('admin.saveFailed')}: ${err?.message || t('admin.unknownError')}`);
+        }
+    }, [mode, id, isSaving, form, setSaving, resetDirty, setSuccess, setError, navigate]);
 
     // Delete handler
     const handleDelete = useCallback(async () => {
@@ -414,20 +564,66 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
         setSelectedMedia(null);
     }, [setForm]);
 
+    // Rich text editor commands
+    const execCommand = useCallback((command: string, value?: string) => {
+        document.execCommand(command, false, value);
+        // Sync content back to form
+        if (editorRef.current) {
+            setForm(prev => ({...prev, content: editorRef.current!.innerHTML}));
+        }
+    }, [setForm]);
+
+    const handleEditorInput = useCallback(() => {
+        if (editorRef.current) {
+            setForm(prev => ({...prev, content: editorRef.current!.innerHTML}));
+        }
+    }, [setForm]);
+
+    // Tag management
+    const addTag = useCallback((tag: string) => {
+        const trimmed = tag.trim();
+        if (!trimmed) return;
+        const currentTags = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+        if (currentTags.includes(trimmed)) return;
+        const newTags = currentTags.length > 0 ? [...currentTags, trimmed].join(', ') : trimmed;
+        setForm(prev => ({...prev, tags: newTags}));
+        setTagInput('');
+    }, [form.tags, setForm]);
+
+    const removeTag = useCallback((tagToRemove: string) => {
+        const currentTags = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+        const newTags = currentTags.filter(t => t !== tagToRemove).join(', ');
+        setForm(prev => ({...prev, tags: newTags}));
+    }, [form.tags, setForm]);
+
+    const handleTagKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag(tagInput);
+        }
+    }, [tagInput, addTag]);
+
     // Keyboard shortcut: Ctrl+S / Cmd+S
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
-    // Compute header badges
-    const headerBadges = useMemo(() => {
-        if (mode === 'create') {
-            return [{type: 'state' as const, variant: 'secondary' as const, label: t('admin.draft'), ariaLabel: `State: ${t('admin.draft')}`}];
-        }
-        if (article) return mapArticleToHeaderBadges(article, t);
-        return [];
-    }, [mode, article, t]);
-
     // Resolve thumbnail for display
     const displayThumbnail = resolveMediaUrl(form.thumbnail || selectedMedia?.thumbnail);
+
+    // Auto-save indicator text
+    const autoSaveText = useMemo(() => {
+        if (saveState === 'saving') return t('admin.saving', {defaultValue: 'Saving...'});
+        if (!lastSavedAt) return t('admin.notSavedYet', {defaultValue: 'Not saved yet'});
+        const diffMs = Date.now() - lastSavedAt.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return t('admin.savedJustNow', {defaultValue: 'Last saved just now'});
+        return t('admin.lastSavedAgo', {minutes: diffMins, defaultValue: `Last saved ${diffMins} mins ago`});
+    }, [saveState, lastSavedAt]);
+
+    // Category options
+    const categoryOptions = useMemo(() => {
+        const raw = categoriesData?.items || (Array.isArray(categoriesData) ? categoriesData : []);
+        return raw as any[];
+    }, [categoriesData]);
 
     if (loading) {
         return (
@@ -450,257 +646,535 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
     }
 
     return (
-        <div className="min-h-screen bg-background">
-            <EditPageHeader
-                title={mode === 'create' ? t('admin.createArticle') : (article?.title || t('admin.untitledArticle'))}
-                isDirty={isDirty}
-                isSaving={isSaving}
-                saveState={saveState}
-                onBack={handleBack}
-                onSave={handleSave}
-                onPreview={mode === 'edit' && article?.slug ? handlePreview : undefined}
-                onDelete={mode === 'edit' ? () => setDeleteDialogOpen(true) : () => {}}
-                badges={headerBadges}
-            />
+        <div className="min-h-screen bg-background flex flex-col">
+            {/* ===== Top Navigation Bar ===== */}
+            <header className="sticky top-0 z-40 h-14 bg-card border-b border-border shadow-sm flex items-center justify-between px-6">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={handleBack}
+                        className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                        aria-label={t('admin.backToList', {defaultValue: 'Back'})}
+                    >
+                        <ArrowLeft className="w-5 h-5"/>
+                    </button>
+                    <h1 className="text-lg font-semibold text-primary">
+                        {mode === 'create'
+                            ? t('admin.createArticle', {defaultValue: 'Create Article'})
+                            : t('admin.editArticle', {defaultValue: 'Edit Article'})
+                        }
+                    </h1>
+                </div>
+                <div className="flex items-center gap-2">
+                    {mode === 'edit' && article?.slug && (
+                        <button
+                            onClick={handlePreview}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-btn border border-border bg-muted hover:bg-accent transition-colors cursor-pointer"
+                        >
+                            <Eye className="w-4 h-4"/>
+                            <span className="text-xs font-medium">{t('admin.preview', {defaultValue: 'Preview'})}</span>
+                        </button>
+                    )}
+                    <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors cursor-pointer">
+                        <Bell className="w-5 h-5"/>
+                    </button>
+                    <div className="h-8 w-8 rounded-full bg-primary/10 overflow-hidden ml-1 border border-border flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">A</span>
+                    </div>
+                </div>
+            </header>
 
-            <div className="max-w-7xl mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Left 2/3: Content + Publish tabs */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="flex gap-1 border-b">
-                            {(['content', 'publish'] as const).map(tab => (
-                                <button key={tab}
-                                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                                            activeTab === tab
-                                                ? 'border-primary text-primary'
-                                                : 'border-transparent text-muted-foreground hover:text-foreground'
-                                        }`}
-                                        onClick={() => setActiveTab(tab)}>
-                                    {{content: t('admin.content'), publish: t('admin.publishSettings')}[tab]}
-                                </button>
-                            ))}
-                        </div>
+            {/* ===== Main Content ===== */}
+            <main className="flex-1 pb-24">
+                <div className="max-w-7xl mx-auto px-6 py-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* ===== Left Column: Editor (Col 1-8) ===== */}
+                        <div className="lg:col-span-8 space-y-8">
+                            <div className="bg-card rounded-card shadow-sm border border-border p-8">
+                                {/* Title Input */}
+                                <div className="space-y-4 mb-8">
+                                    <input
+                                        className="w-full border-0 p-0 text-3xl font-extrabold focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 bg-transparent tracking-tight"
+                                        placeholder={t('admin.enterArticleTitle', {defaultValue: 'Enter article title...'})}
+                                        value={form.title}
+                                        onChange={e => {
+                                            setForm({...form, title: e.target.value});
+                                            if (!slugManuallyEdited) {
+                                                setForm(prev => ({...prev, slug: generateSlug(e.target.value)}));
+                                            }
+                                        }}
+                                    />
+                                    <input
+                                        className="w-full border-0 p-0 text-base focus:ring-0 focus:outline-none placeholder:text-muted-foreground/40 bg-transparent"
+                                        placeholder={t('admin.addSubtitle', {defaultValue: 'Add a compelling subtitle or summary...'})}
+                                        value={form.summary}
+                                        onChange={e => setForm({...form, summary: e.target.value})}
+                                    />
+                                </div>
 
-                        {activeTab === 'content' && (
-                            <div className="space-y-6 bg-card rounded-lg border p-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="title">{t('admin.title')}</Label>
-                                    <Input id="title" value={form.title}
-                                           onChange={e => {
-                                               setForm({...form, title: e.target.value});
-                                               if (!slugManuallyEdited) {
-                                                   setForm(prev => ({...prev, slug: generateSlug(e.target.value)}));
-                                               }
-                                           }}
-                                           placeholder={t('admin.articleTitle')}/>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="slug">{t('admin.slug')}</Label>
-                                    <Input id="slug" value={form.slug}
-                                           onChange={e => {
-                                               setForm({...form, slug: e.target.value});
-                                               setSlugManuallyEdited(true);
-                                           }}
-                                           placeholder="article-url-slug"/>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('admin.autoGeneratedFromTitle')}
-                                    </p>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="content">{t('admin.contentMarkdown')}</Label>
-                                    <textarea id="content"
-                                              className="flex min-h-[400px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono"
-                                              value={form.content}
-                                              onChange={e => setForm({...form, content: e.target.value})}
-                                              placeholder={t('admin.writeContent')}/>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="summary">{t('admin.summary')}</Label>
-                                    <textarea id="summary"
-                                              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                                              value={form.summary}
-                                              onChange={e => setForm({...form, summary: e.target.value})}
-                                              placeholder={t('admin.briefSummary')}/>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="tags">{t('admin.tagsCommaSeparated')}</Label>
-                                    <Input id="tags" value={form.tags}
-                                           onChange={e => setForm({...form, tags: e.target.value})}
-                                           placeholder={t('admin.tagsPlaceholder')}/>
-                                    {form.tags && (
-                                        <div className="flex flex-wrap gap-1 mt-2">
-                                            {form.tags.split(',').map((tag, i) => tag.trim() && (
-                                                <Badge key={i} variant="secondary" className="text-xs">{tag.trim()}</Badge>
-                                            ))}
-                                        </div>
+                                {/* Cover Image Upload */}
+                                <div
+                                    className="w-full aspect-video rounded-card border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center bg-muted/30 group hover:bg-muted/50 transition-colors cursor-pointer mb-8 overflow-hidden relative"
+                                    onClick={() => {
+                                        // Trigger file input or URL input
+                                        const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter cover image URL:'}));
+                                        if (url) {
+                                            setForm(prev => ({...prev, thumbnail: url}));
+                                        }
+                                    }}
+                                >
+                                    {displayThumbnail && !thumbnailError ? (
+                                        <>
+                                            <img
+                                                src={displayThumbnail}
+                                                alt="Cover"
+                                                className="w-full h-full object-cover"
+                                                onError={() => setThumbnailError(true)}
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="bg-card text-foreground px-4 py-2 rounded-btn text-xs font-medium shadow-lg">
+                                                    {t('admin.changeImage', {defaultValue: 'Change Image'})}
+                                                </span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="p-4 rounded-full bg-muted mb-3 group-hover:scale-110 transition-transform duration-200">
+                                                <ImagePlus className="w-8 h-8 text-primary"/>
+                                            </div>
+                                            <p className="text-sm text-muted-foreground font-medium">
+                                                {t('admin.clickToUploadCover', {defaultValue: 'Click to upload cover image'})}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground/60 mt-1">
+                                                1920x1080px (PNG, JPG, WEBP)
+                                            </p>
+                                        </>
                                     )}
                                 </div>
-                            </div>
-                        )}
 
-                        {activeTab === 'publish' && (
-                            <div className="space-y-6 bg-card rounded-lg border p-6">
-                                <div className="space-y-2">
-                                    <Label>{t('admin.state')}</Label>
-                                    <Select value={form.state} onValueChange={val => setForm({...form, state: val})}>
-                                        <SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="draft">{t('admin.draft')}</SelectItem>
-                                            <SelectItem value="published">{t('admin.published')}</SelectItem>
-                                            <SelectItem value="archived">{t('admin.archived')}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>{t('admin.category')}</Label>
-                                    <Select value={form.category_id !== '' && form.category_id !== undefined ? String(form.category_id) : '_none_'}
-                                            onValueChange={val => setForm({...form, category_id: val === '_none_' ? '' : val})}>
-                                        <SelectTrigger><SelectValue placeholder={t('admin.selectCategory')}/></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="_none_">{t('admin.noCategory')}</SelectItem>
-                                            {(Array.isArray(categoriesData?.items) ? categoriesData.items : Array.isArray(categoriesData) ? categoriesData : []).map((cat: any) => (
-                                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                                    {cat.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Separator/>
-                                <div className="flex items-center gap-3">
-                                    <input type="checkbox" id="featured" checked={form.featured}
-                                           onChange={e => setForm({...form, featured: e.target.checked})}
-                                           className="h-4 w-4 rounded border-input text-primary focus:ring-primary"/>
-                                    <div>
-                                        <Label htmlFor="featured" className="cursor-pointer">{t('admin.featuredArticle')}</Label>
-                                        <p className="text-xs text-muted-foreground">{t('admin.displayInFeatured')}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="thumbnail">{t('admin.thumbnailUrl')}</Label>
-                                    <Input id="thumbnail" value={form.thumbnail}
-                                           onChange={e => setForm({...form, thumbnail: e.target.value})}
-                                           placeholder={t('admin.customThumbnailUrl')}/>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('admin.videoThumbnailDefault')}
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right 1/3: Video panel + Metadata */}
-                    <div className="space-y-6">
-                        {/* Video Preview Panel */}
-                        <div className="bg-card rounded-lg border p-4">
-                            <h3 className="font-medium mb-3">{t('admin.associatedVideo')}</h3>
-                            {form.media_id && selectedMedia ? (
-                                <div className="space-y-3">
-                                    <div className="relative aspect-video bg-muted rounded-md overflow-hidden">
-                                        {displayThumbnail && !thumbnailError ? (
-                                            <img src={displayThumbnail} alt={selectedMedia.title}
-                                                 className="w-full h-full object-cover"
-                                                 onError={() => setThumbnailError(true)}/>
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Play className="w-8 h-8 text-muted-foreground"/>
-                                            </div>
-                                        )}
-                                        {selectedMedia.duration > 0 && (
-                                            <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-0.5 rounded">
-                                                {Math.floor(selectedMedia.duration / 60)}:{String(Math.floor(selectedMedia.duration % 60)).padStart(2, '0')}
+                                {/* Rich Text Editor */}
+                                <div className="border border-border rounded-card overflow-hidden">
+                                    {/* Toolbar */}
+                                    <div className="bg-muted px-3 py-2 border-b border-border flex flex-wrap items-center gap-1">
+                                        <ToolbarButton
+                                            icon={<Bold className="w-4 h-4"/>}
+                                            title="Bold"
+                                            onClick={() => execCommand('bold')}
+                                        />
+                                        <ToolbarButton
+                                            icon={<Italic className="w-4 h-4"/>}
+                                            title="Italic"
+                                            onClick={() => execCommand('italic')}
+                                        />
+                                        <ToolbarButton
+                                            icon={<Underline className="w-4 h-4"/>}
+                                            title="Underline"
+                                            onClick={() => execCommand('underline')}
+                                        />
+                                        <div className="w-px h-5 bg-border mx-1"/>
+                                        <ToolbarButton
+                                            icon={<List className="w-4 h-4"/>}
+                                            title="Bullet List"
+                                            onClick={() => execCommand('insertUnorderedList')}
+                                        />
+                                        <ToolbarButton
+                                            icon={<ListOrdered className="w-4 h-4"/>}
+                                            title="Numbered List"
+                                            onClick={() => execCommand('insertOrderedList')}
+                                        />
+                                        <div className="w-px h-5 bg-border mx-1"/>
+                                        <ToolbarButton
+                                            icon={<Link className="w-4 h-4"/>}
+                                            title="Insert Link"
+                                            onClick={() => {
+                                                const url = window.prompt('Enter URL:');
+                                                if (url) execCommand('createLink', url);
+                                            }}
+                                        />
+                                        <ToolbarButton
+                                            icon={<ImagePlus className="w-4 h-4"/>}
+                                            title="Insert Image"
+                                            onClick={() => {
+                                                const url = window.prompt('Enter image URL:');
+                                                if (url) execCommand('insertImage', url);
+                                            }}
+                                        />
+                                        <ToolbarButton
+                                            icon={<Code className="w-4 h-4"/>}
+                                            title="Code Block"
+                                            onClick={() => execCommand('formatBlock', 'pre')}
+                                        />
+                                        <div className="ml-auto flex items-center gap-2">
+                                            <span className="text-xs text-muted-foreground px-2">
+                                                {t('admin.words', {defaultValue: 'Words'})}: {wordCount}
                                             </span>
-                                        )}
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-sm font-medium truncate">{selectedMedia.title}</p>
-                                        <p className="text-xs text-muted-foreground">{selectedMedia.type}</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {selectedMedia.short_token && (
-                                            <Button variant="outline" size="sm" className="flex-1"
-                                                    onClick={() => window.open(`/watch?v=${selectedMedia.short_token}`, '_blank')}>
-                                                <ExternalLink className="w-3 h-3 mr-1"/>{t('admin.preview')}
-                                            </Button>
-                                        )}
-                                        <Button variant="outline" size="sm" className="flex-1"
-                                                onClick={() => setMediaSelectorOpen(true)}>
-                                            {t('admin.change')}
-                                        </Button>
-                                        <Button variant="ghost" size="sm"
-                                                onClick={handleClearMedia}
-                                                title={t('admin.removeVideoAssociation')}>
-                                            <X className="w-3 h-3"/>
-                                        </Button>
-                                    </div>
+                                    {/* Editor Content Area */}
+                                    <div
+                                        ref={editorRef}
+                                        contentEditable
+                                        onInput={handleEditorInput}
+                                        className="min-h-[500px] p-6 focus:outline-none bg-card text-sm text-muted-foreground/80 prose prose-sm max-w-none"
+                                        data-placeholder={t('admin.startTyping', {defaultValue: 'Start typing your story here...'})}
+                                        suppressContentEditableWarning
+                                    />
                                 </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    <div className="w-full aspect-video bg-muted rounded-md flex flex-col items-center justify-center gap-2">
-                                        <Film className="w-10 h-10 text-muted-foreground"/>
-                                        <p className="text-sm text-muted-foreground">{t('admin.noVideoAssociated')}</p>
-                                    </div>
-                                    <Button variant="outline" className="w-full"
-                                            onClick={() => setMediaSelectorOpen(true)}>
-                                        <Film className="w-4 h-4 mr-2"/>{t('admin.selectVideoBtn')}
-                                    </Button>
-                                </div>
-                            )}
+                            </div>
                         </div>
 
-                        {/* Metadata Card */}
-                        {mode === 'edit' && article && (
-                            <div className="bg-card rounded-lg border p-4 space-y-3">
-                                <h3 className="font-medium">{t('admin.metadata')}</h3>
-                                <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-                                    <span className="text-muted-foreground">{t('admin.id')}</span>
-                                    <span className="font-mono text-xs text-right break-all">{article.id}</span>
-                                    <span className="text-muted-foreground">{t('admin.slug')}</span>
-                                    <span className="text-xs text-right break-all">{article.slug || t('admin.na')}</span>
-                                    <span className="text-muted-foreground">{t('admin.views')}</span>
-                                    <span className="text-xs text-right">{article.view_count}</span>
-                                    <span className="text-muted-foreground">{t('admin.comments')}</span>
-                                    <span className="text-xs text-right">{article.comment_count}</span>
-                                    <span className="text-muted-foreground">{t('admin.created')}</span>
-                                    <span className="text-xs text-right whitespace-nowrap">{formatDateTime(article.create_time)}</span>
-                                    <span className="text-muted-foreground">{t('admin.updated')}</span>
-                                    <span className="text-xs text-right whitespace-nowrap">{formatDateTime(article.update_time)}</span>
+                        {/* ===== Right Column: Settings (Col 9-12) ===== */}
+                        <div className="lg:col-span-4 space-y-6">
+                            {/* Publishing Settings */}
+                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <div className="px-5 py-4 border-b border-border bg-muted/20">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                        {t('admin.publishingSettings', {defaultValue: 'Publishing Settings'})}
+                                    </h3>
                                 </div>
-                            </div>
-                        )}
+                                <div className="p-5 space-y-5">
+                                    {/* Status */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.status', {defaultValue: 'Status'})}
+                                        </Label>
+                                        <Select value={form.state} onValueChange={val => setForm({...form, state: val})}>
+                                            <SelectTrigger className="rounded-input">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={cn(
+                                                        'h-2 w-2 rounded-full',
+                                                        form.state === 'draft' && 'bg-muted-foreground',
+                                                        form.state === 'published' && 'bg-green-500',
+                                                        form.state === 'archived' && 'bg-destructive',
+                                                    )}/>
+                                                    <SelectValue/>
+                                                </div>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="draft">{t('admin.draft', {defaultValue: 'Draft'})}</SelectItem>
+                                                <SelectItem value="published">{t('admin.published', {defaultValue: 'Published'})}</SelectItem>
+                                                <SelectItem value="archived">{t('admin.archived', {defaultValue: 'Archived'})}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                        {/* Quick Actions */}
-                        <div className="bg-card rounded-lg border p-4 space-y-3">
-                            <h3 className="font-medium">{t('admin.quickActions')}</h3>
-                            <div className="space-y-2">
-                                {form.state !== 'published' && (
-                                    <Button variant="outline" size="sm" className="w-full justify-start"
-                                            onClick={() => setForm({...form, state: 'published'})}>
-                                        <CheckCircle className="w-4 h-4 mr-2"/>{t('admin.publish')}
-                                    </Button>
-                                )}
-                                {form.state === 'published' && (
-                                    <Button variant="outline" size="sm" className="w-full justify-start"
-                                            onClick={() => setForm({...form, state: 'draft'})}>
-                                        <Clock className="w-4 h-4 mr-2"/>{t('admin.revertToDraft')}
-                                    </Button>
-                                )}
-                                <Button variant="outline" size="sm" className="w-full justify-start"
-                                        onClick={() => setForm({...form, featured: !form.featured})}>
-                                    {form.featured ? <X className="w-4 h-4 mr-2"/> : <CheckCircle className="w-4 h-4 mr-2"/>}
-                                    {form.featured ? t('admin.removeFeatured') : t('admin.setFeatured')}
-                                </Button>
-                                {!form.media_id && (
-                                    <Button variant="outline" size="sm" className="w-full justify-start"
-                                            onClick={() => setMediaSelectorOpen(true)}>
-                                        <Film className="w-4 h-4 mr-2"/>{t('admin.associateVideo')}
-                                    </Button>
-                                )}
-                            </div>
+                                    {/* Visibility */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.visibility', {defaultValue: 'Visibility'})}
+                                        </Label>
+                                        <div className="flex items-center gap-4">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="visibility"
+                                                    checked={form.visibility === 'public'}
+                                                    onChange={() => setForm({...form, visibility: 'public'})}
+                                                    className="text-primary focus:ring-primary border-border"
+                                                />
+                                                <Globe className="w-3.5 h-3.5 text-muted-foreground"/>
+                                                <span className="text-xs">{t('admin.public', {defaultValue: 'Public'})}</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="visibility"
+                                                    checked={form.visibility === 'internal'}
+                                                    onChange={() => setForm({...form, visibility: 'internal'})}
+                                                    className="text-primary focus:ring-primary border-border"
+                                                />
+                                                <Lock className="w-3.5 h-3.5 text-muted-foreground"/>
+                                                <span className="text-xs">{t('admin.internal', {defaultValue: 'Internal'})}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Publish Date */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.publishDate', {defaultValue: 'Publish Date'})}
+                                        </Label>
+                                        <div className="flex items-center gap-2 px-3 py-2 border border-border rounded-input bg-card">
+                                            <Calendar className="w-4 h-4 text-muted-foreground"/>
+                                            <span className="text-xs">
+                                                {article?.published_at
+                                                    ? formatDateTime(article.published_at)
+                                                    : t('admin.immediately', {defaultValue: 'Immediately'})
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* URL Slug */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.urlSlug', {defaultValue: 'URL Slug'})}
+                                        </Label>
+                                        <div className="flex items-center border border-border rounded-input bg-muted/30 overflow-hidden">
+                                            <span className="text-xs px-3 text-muted-foreground border-r border-border py-2">/blog/</span>
+                                            <input
+                                                className="flex-1 border-0 bg-transparent text-sm px-3 py-2 focus:ring-0 focus:outline-none"
+                                                placeholder="article-title-here"
+                                                value={form.slug}
+                                                onChange={e => {
+                                                    setForm({...form, slug: e.target.value});
+                                                    setSlugManuallyEdited(true);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Taxonomy */}
+                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <div className="px-5 py-4 border-b border-border bg-muted/20">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                        {t('admin.taxonomy', {defaultValue: 'Taxonomy'})}
+                                    </h3>
+                                </div>
+                                <div className="p-5 space-y-5">
+                                    {/* Category */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.category', {defaultValue: 'Category'})}
+                                        </Label>
+                                        <Select
+                                            value={form.category_id !== '' && form.category_id !== undefined ? String(form.category_id) : '_none_'}
+                                            onValueChange={val => setForm({...form, category_id: val === '_none_' ? '' : val})}
+                                        >
+                                            <SelectTrigger className="rounded-input">
+                                                <SelectValue placeholder={t('admin.selectCategory', {defaultValue: 'Select Category...'})}/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="_none_">
+                                                    {t('admin.noCategory', {defaultValue: 'No Category'})}
+                                                </SelectItem>
+                                                {categoryOptions.map((cat: any) => (
+                                                    <SelectItem key={cat.id} value={String(cat.id)}>
+                                                        {cat.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Tags */}
+                                    <div>
+                                        <Label className="text-xs text-muted-foreground mb-2 block">
+                                            {t('admin.tags', {defaultValue: 'Tags'})}
+                                        </Label>
+                                        <div className="flex flex-wrap gap-2 p-2 border border-border rounded-input bg-card min-h-[80px]">
+                                            {tagsList.map((tag) => (
+                                                <div
+                                                    key={tag}
+                                                    className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-badge text-xs"
+                                                >
+                                                    <span>{tag}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTag(tag)}
+                                                        className="hover:text-destructive transition-colors cursor-pointer"
+                                                    >
+                                                        <X className="w-3 h-3"/>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <input
+                                                className="flex-1 border-0 bg-transparent text-sm min-w-[100px] focus:ring-0 focus:outline-none p-1"
+                                                placeholder={t('admin.addTag', {defaultValue: 'Add tag...'})}
+                                                value={tagInput}
+                                                onChange={e => setTagInput(e.target.value)}
+                                                onKeyDown={handleTagKeyDown}
+                                                onBlur={() => {
+                                                    if (tagInput.trim()) addTag(tagInput);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Featured Image */}
+                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <div className="px-5 py-4 border-b border-border bg-muted/20">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                        {t('admin.featuredImage', {defaultValue: 'Featured Image'})}
+                                    </h3>
+                                </div>
+                                <div className="p-5">
+                                    <div className="w-full aspect-video rounded-input border border-border bg-muted flex items-center justify-center relative group overflow-hidden">
+                                        {displayThumbnail && !thumbnailError ? (
+                                            <>
+                                                <img
+                                                    src={displayThumbnail}
+                                                    alt="Featured"
+                                                    className="w-full h-full object-cover"
+                                                    onError={() => setThumbnailError(true)}
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        type="button"
+                                                        className="bg-card text-foreground px-4 py-2 rounded-btn text-xs font-medium shadow-lg hover:bg-muted transition-colors cursor-pointer"
+                                                        onClick={() => {
+                                                            const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter image URL:'}));
+                                                            if (url) setForm(prev => ({...prev, thumbnail: url}));
+                                                        }}
+                                                    >
+                                                        {t('admin.changeImage', {defaultValue: 'Change Image'})}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <ImageIcon className="w-10 h-10 text-muted-foreground/40"/>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-3 text-center">
+                                        {t('admin.appearsInSearchResults', {defaultValue: 'Appears in search results and cards'})}
+                                    </p>
+                                </div>
+                            </section>
+
+                            {/* SEO Settings (Collapsible) */}
+                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
+                                    <CollapsibleTrigger asChild>
+                                        <button className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/10 transition-colors cursor-pointer">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                {t('admin.seoSettings', {defaultValue: 'SEO Settings'})}
+                                            </h3>
+                                            <ChevronDown className={cn(
+                                                'w-4 h-4 text-muted-foreground transition-transform duration-200',
+                                                seoOpen && 'rotate-180'
+                                            )}/>
+                                        </button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <div className="px-5 pb-5 border-t border-border pt-5 space-y-4">
+                                            <div>
+                                                <Label className="text-xs text-muted-foreground mb-2 block">
+                                                    {t('admin.metaTitle', {defaultValue: 'Meta Title'})}
+                                                </Label>
+                                                <Input
+                                                    className="rounded-input"
+                                                    placeholder={t('admin.googleSearchTitle', {defaultValue: 'Google Search Title'})}
+                                                    value={form.meta_title}
+                                                    onChange={e => setForm({...form, meta_title: e.target.value})}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="text-xs text-muted-foreground mb-2 block">
+                                                    {t('admin.metaDescription', {defaultValue: 'Meta Description'})}
+                                                </Label>
+                                                <Textarea
+                                                    className="rounded-input h-24 resize-none"
+                                                    placeholder={t('admin.enterSeoDescription', {defaultValue: 'Enter SEO description...'})}
+                                                    value={form.meta_description}
+                                                    onChange={e => setForm({...form, meta_description: e.target.value})}
+                                                />
+                                            </div>
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            </section>
+
+                            {/* Metadata (edit mode only) */}
+                            {mode === 'edit' && article && (
+                                <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                    <div className="px-5 py-4 border-b border-border bg-muted/20">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                            {t('admin.metadata', {defaultValue: 'Metadata'})}
+                                        </h3>
+                                    </div>
+                                    <div className="p-5">
+                                        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+                                            <span className="text-muted-foreground">{t('admin.id', {defaultValue: 'ID'})}</span>
+                                            <span className="font-mono text-xs text-right break-all">{article.id}</span>
+                                            <span className="text-muted-foreground">{t('admin.views', {defaultValue: 'Views'})}</span>
+                                            <span className="text-xs text-right">{article.view_count}</span>
+                                            <span className="text-muted-foreground">{t('admin.comments', {defaultValue: 'Comments'})}</span>
+                                            <span className="text-xs text-right">{article.comment_count}</span>
+                                            <span className="text-muted-foreground">{t('admin.created', {defaultValue: 'Created'})}</span>
+                                            <span className="text-xs text-right whitespace-nowrap">{formatDateTime(article.create_time)}</span>
+                                            <span className="text-muted-foreground">{t('admin.updated', {defaultValue: 'Updated'})}</span>
+                                            <span className="text-xs text-right whitespace-nowrap">{formatDateTime(article.update_time)}</span>
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Quick Actions */}
+                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <div className="px-5 py-4 border-b border-border bg-muted/20">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                        {t('admin.quickActions', {defaultValue: 'Quick Actions'})}
+                                    </h3>
+                                </div>
+                                <div className="p-5 space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <Switch
+                                            id="featured"
+                                            checked={form.featured}
+                                            onCheckedChange={checked => setForm({...form, featured: checked})}
+                                        />
+                                        <Label htmlFor="featured" className="cursor-pointer text-sm">
+                                            {t('admin.featuredArticle', {defaultValue: 'Featured Article'})}
+                                        </Label>
+                                    </div>
+                                    {mode === 'edit' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-start text-destructive hover:text-destructive"
+                                            onClick={() => setDeleteDialogOpen(true)}
+                                        >
+                                            <X className="w-4 h-4 mr-2"/>
+                                            {t('admin.deleteArticle', {defaultValue: 'Delete Article'})}
+                                        </Button>
+                                    )}
+                                </div>
+                            </section>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
+
+            {/* ===== Sticky Bottom Bar ===== */}
+            <footer className="fixed bottom-0 right-0 left-0 h-16 bg-card border-t border-border px-6 flex items-center justify-between z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                <div className="flex items-center gap-2">
+                    <span className={cn(
+                        'h-2 w-2 rounded-full animate-pulse',
+                        saveState === 'success' ? 'bg-green-500' : saveState === 'error' ? 'bg-destructive' : 'bg-muted-foreground'
+                    )}/>
+                    <span className="text-xs text-muted-foreground italic">{autoSaveText}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="outline"
+                        className="rounded-btn font-semibold"
+                        onClick={handleSaveDraft}
+                        disabled={isSaving}
+                    >
+                        <Save className="w-4 h-4 mr-2"/>
+                        {t('admin.saveDraft', {defaultValue: 'Save Draft'})}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="rounded-btn border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
+                        onClick={handleSubmitForReview}
+                        disabled={isSaving}
+                    >
+                        <Send className="w-4 h-4 mr-2"/>
+                        {t('admin.submitForReview', {defaultValue: 'Submit for Review'})}
+                    </Button>
+                    <Button
+                        className="rounded-btn bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
+                        onClick={handlePublish}
+                        disabled={isSaving}
+                    >
+                        {t('admin.publish', {defaultValue: 'Publish'})}
+                    </Button>
+                </div>
+            </footer>
 
             {/* Media Selector Dialog */}
             <MediaSelectorDialog
@@ -714,7 +1188,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                 <DeleteConfirmDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                    title={article?.title || t('admin.untitledArticle')}
+                    title={article?.title || t('admin.untitledArticle', {defaultValue: 'Untitled Article'})}
                     isDeleting={isDeleting}
                     onConfirm={handleDelete}
                 />
