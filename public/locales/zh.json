@@ -924,6 +924,8 @@
     "groupMedia": "媒体处理",
     "groupMonetization": "商业化",
     "groupSystem": "系统管理",
+    "contentStructure": "内容结构",
+    "transcoding": "转码",
     "portalConfig": "门户配置",
     "portalConfigDesc": "管理导航栏、Banner、广告位和首页展示内容",
     "navigationTab": "导航管理",

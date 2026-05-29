@@ -36,6 +36,7 @@ import { Route as PortalPSlugRouteImport } from "./routes/_portal/p.$slug";
 import { Route as PortalChannelIdRouteImport } from "./routes/_portal/channel.$id";
 import { Route as PortalCIdRouteImport } from "./routes/_portal/c.$id";
 import { Route as AuthenticatedAdminUsersRouteImport } from "./routes/_authenticated/admin/users";
+import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_authenticated/admin/transcoding";
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
 import { Route as AuthenticatedAdminSettingsRouteImport } from "./routes/_authenticated/admin/settings";
 import { Route as AuthenticatedAdminPortalRouteImport } from "./routes/_authenticated/admin/portal";
@@ -43,8 +44,8 @@ import { Route as AuthenticatedAdminPlaylistsRouteImport } from "./routes/_authe
 import { Route as AuthenticatedAdminPermissionsRouteImport } from "./routes/_authenticated/admin/permissions";
 import { Route as AuthenticatedAdminPaymentRouteImport } from "./routes/_authenticated/admin/payment";
 import { Route as AuthenticatedAdminNotificationsRouteImport } from "./routes/_authenticated/admin/notifications";
-import { Route as AuthenticatedAdminDrmRouteImport } from "./routes/_authenticated/admin/drm";
 import { Route as AuthenticatedAdminLiveRoomsRouteImport } from "./routes/_authenticated/admin/live-rooms";
+import { Route as AuthenticatedAdminDrmRouteImport } from "./routes/_authenticated/admin/drm";
 import { Route as AuthenticatedAdminCommentsRouteImport } from "./routes/_authenticated/admin/comments";
 import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authenticated/admin/channels";
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
@@ -208,6 +209,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: "/users",
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any);
+const AuthenticatedAdminTranscodingRoute =
+  AuthenticatedAdminTranscodingRouteImport.update({
+    id: "/transcoding",
+    path: "/transcoding",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminTagsRoute = AuthenticatedAdminTagsRouteImport.update({
   id: "/tags",
   path: "/tags",
@@ -249,14 +256,15 @@ const AuthenticatedAdminNotificationsRoute =
     path: "/notifications",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
+const AuthenticatedAdminLiveRoomsRoute =
+  AuthenticatedAdminLiveRoomsRouteImport.update({
+    id: "/live-rooms",
+    path: "/live-rooms",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminDrmRoute = AuthenticatedAdminDrmRouteImport.update({
   id: "/drm",
   path: "/drm",
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any);
-const AuthenticatedAdminLiveRoomsRoute = AuthenticatedAdminLiveRoomsRouteImport.update({
-  id: "/live-rooms",
-  path: "/live-rooms",
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any);
 const AuthenticatedAdminCommentsRoute =
@@ -326,15 +334,15 @@ const AuthenticatedPortalArticlesIndexRoute =
   } as any);
 const AuthenticatedAdminTranscodingStatusRoute =
   AuthenticatedAdminTranscodingStatusRouteImport.update({
-    id: "/transcoding/status",
-    path: "/transcoding/status",
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: "/status",
+    path: "/status",
+    getParentRoute: () => AuthenticatedAdminTranscodingRoute,
   } as any);
 const AuthenticatedAdminTranscodingProfilesRoute =
   AuthenticatedAdminTranscodingProfilesRouteImport.update({
-    id: "/transcoding/profiles",
-    path: "/transcoding/profiles",
-    getParentRoute: () => AuthenticatedAdminRoute,
+    id: "/profiles",
+    path: "/profiles",
+    getParentRoute: () => AuthenticatedAdminTranscodingRoute,
   } as any);
 const AuthenticatedAdminMediaIdRoute =
   AuthenticatedAdminMediaIdRouteImport.update({
@@ -474,6 +482,7 @@ export interface FileRoutesByFullPath {
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
+  "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
@@ -535,6 +544,7 @@ export interface FileRoutesByTo {
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
+  "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
@@ -603,6 +613,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/_authenticated/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
+  "/_authenticated/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/_authenticated/admin/users": typeof AuthenticatedAdminUsersRoute;
   "/_portal/c/$id": typeof PortalCIdRoute;
   "/_portal/channel/$id": typeof PortalChannelIdRoute;
@@ -670,6 +681,7 @@ export interface FileRouteTypes {
     | "/admin/portal"
     | "/admin/settings"
     | "/admin/tags"
+    | "/admin/transcoding"
     | "/admin/users"
     | "/c/$id"
     | "/channel/$id"
@@ -731,6 +743,7 @@ export interface FileRouteTypes {
     | "/admin/portal"
     | "/admin/settings"
     | "/admin/tags"
+    | "/admin/transcoding"
     | "/admin/users"
     | "/c/$id"
     | "/channel/$id"
@@ -798,6 +811,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/portal"
     | "/_authenticated/admin/settings"
     | "/_authenticated/admin/tags"
+    | "/_authenticated/admin/transcoding"
     | "/_authenticated/admin/users"
     | "/_portal/c/$id"
     | "/_portal/channel/$id"
@@ -1027,6 +1041,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
+    "/_authenticated/admin/transcoding": {
+      id: "/_authenticated/admin/transcoding";
+      path: "/transcoding";
+      fullPath: "/admin/transcoding";
+      preLoaderRoute: typeof AuthenticatedAdminTranscodingRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
     "/_authenticated/admin/tags": {
       id: "/_authenticated/admin/tags";
       path: "/tags";
@@ -1076,18 +1097,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedAdminNotificationsRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
-    "/_authenticated/admin/drm": {
-      id: "/_authenticated/admin/drm";
-      path: "/drm";
-      fullPath: "/admin/drm";
-      preLoaderRoute: typeof AuthenticatedAdminDrmRouteImport;
-      parentRoute: typeof AuthenticatedAdminRoute;
-    };
     "/_authenticated/admin/live-rooms": {
       id: "/_authenticated/admin/live-rooms";
       path: "/live-rooms";
       fullPath: "/admin/live-rooms";
       preLoaderRoute: typeof AuthenticatedAdminLiveRoomsRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/drm": {
+      id: "/_authenticated/admin/drm";
+      path: "/drm";
+      fullPath: "/admin/drm";
+      preLoaderRoute: typeof AuthenticatedAdminDrmRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/admin/comments": {
@@ -1169,17 +1190,17 @@ declare module "@tanstack/react-router" {
     };
     "/_authenticated/admin/transcoding/status": {
       id: "/_authenticated/admin/transcoding/status";
-      path: "/transcoding/status";
+      path: "/status";
       fullPath: "/admin/transcoding/status";
       preLoaderRoute: typeof AuthenticatedAdminTranscodingStatusRouteImport;
-      parentRoute: typeof AuthenticatedAdminRoute;
+      parentRoute: typeof AuthenticatedAdminTranscodingRoute;
     };
     "/_authenticated/admin/transcoding/profiles": {
       id: "/_authenticated/admin/transcoding/profiles";
-      path: "/transcoding/profiles";
+      path: "/profiles";
       fullPath: "/admin/transcoding/profiles";
       preLoaderRoute: typeof AuthenticatedAdminTranscodingProfilesRouteImport;
-      parentRoute: typeof AuthenticatedAdminRoute;
+      parentRoute: typeof AuthenticatedAdminTranscodingRoute;
     };
     "/_authenticated/admin/media/$id": {
       id: "/_authenticated/admin/media/$id";
@@ -1474,6 +1495,24 @@ const AuthenticatedAdminMediaRouteRouteWithChildren =
     AuthenticatedAdminMediaRouteRouteChildren,
   );
 
+interface AuthenticatedAdminTranscodingRouteChildren {
+  AuthenticatedAdminTranscodingProfilesRoute: typeof AuthenticatedAdminTranscodingProfilesRoute;
+  AuthenticatedAdminTranscodingStatusRoute: typeof AuthenticatedAdminTranscodingStatusRoute;
+}
+
+const AuthenticatedAdminTranscodingRouteChildren: AuthenticatedAdminTranscodingRouteChildren =
+  {
+    AuthenticatedAdminTranscodingProfilesRoute:
+      AuthenticatedAdminTranscodingProfilesRoute,
+    AuthenticatedAdminTranscodingStatusRoute:
+      AuthenticatedAdminTranscodingStatusRoute,
+  };
+
+const AuthenticatedAdminTranscodingRouteWithChildren =
+  AuthenticatedAdminTranscodingRoute._addFileChildren(
+    AuthenticatedAdminTranscodingRouteChildren,
+  );
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminArticlesRouteRoute: typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   AuthenticatedAdminMediaRouteRoute: typeof AuthenticatedAdminMediaRouteRouteWithChildren;
@@ -1489,10 +1528,9 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute;
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute;
   AuthenticatedAdminTagsRoute: typeof AuthenticatedAdminTagsRoute;
+  AuthenticatedAdminTranscodingRoute: typeof AuthenticatedAdminTranscodingRouteWithChildren;
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute;
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute;
-  AuthenticatedAdminTranscodingProfilesRoute: typeof AuthenticatedAdminTranscodingProfilesRoute;
-  AuthenticatedAdminTranscodingStatusRoute: typeof AuthenticatedAdminTranscodingStatusRoute;
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -1512,12 +1550,10 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTagsRoute: AuthenticatedAdminTagsRoute,
+  AuthenticatedAdminTranscodingRoute:
+    AuthenticatedAdminTranscodingRouteWithChildren,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
-  AuthenticatedAdminTranscodingProfilesRoute:
-    AuthenticatedAdminTranscodingProfilesRoute,
-  AuthenticatedAdminTranscodingStatusRoute:
-    AuthenticatedAdminTranscodingStatusRoute,
 };
 
 const AuthenticatedAdminRouteWithChildren =

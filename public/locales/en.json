@@ -924,6 +924,8 @@
     "groupMedia": "Media Processing",
     "groupMonetization": "Monetization",
     "groupSystem": "System",
+    "contentStructure": "Content Structure",
+    "transcoding": "Transcoding",
     "portalConfig": "Portal Configuration",
     "portalConfigDesc": "Manage navigation, banners, ad placements and homepage content",
     "navigationTab": "Navigation",
