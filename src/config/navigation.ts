@@ -10,6 +10,8 @@ import {
     UserCircle,
     FileText,
     Tv,
+    CreditCard,
+    Shield,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -21,6 +23,7 @@ export const NAV_CONFIG: NavSection[] = [
             {id: 'home', label: 'nav.home', to: '/', icon: Home},
             {id: 'featured', label: 'nav.featured', to: '/featured', icon: Star, module: 'videos'},
             {id: 'latest', label: 'nav.latest', to: '/latest', icon: Clock, module: 'videos'},
+            {id: 'live', label: 'nav.live', to: '/live', icon: Radio, module: 'live'},
         ],
     },
     {
@@ -46,6 +49,7 @@ export const NAV_CONFIG: NavSection[] = [
             {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
             {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
             {id: 'my-articles', label: 'nav.myArticles', to: '/me/articles', icon: FileText, module: 'articles'},
+            {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
             {id: 'history', label: 'nav.history', to: '/me/history', icon: History},
             {id: 'favorites', label: 'nav.favorites', to: '/me/favorites', icon: Heart},
             {id: 'playlists', label: 'nav.playlists', to: '/me/playlists', icon: ListVideo, module: 'videos'},
