@@ -249,4 +249,54 @@ export const adminUserApi = {
         api.patch<void>(`/admin/users/${id}/role`, {role}),
 };
 
+export interface UserProfile {
+    avatar: string;
+    name: string;
+    bio: string;
+    location: string;
+    website: string;
+}
+
+export interface UserSetting {
+    theme: string;
+    language: string;
+    timezone: string;
+    preferences: Record<string, string>;
+}
+
+export interface UpdateProfileRequest {
+    nickname?: string;
+    email?: string;
+    phone?: string;
+    bio?: string;
+    location?: string;
+}
+
+export interface UpdateSettingRequest {
+    theme?: string;
+    language?: string;
+    timezone?: string;
+    preferences?: Record<string, string>;
+}
+
+export const profileApi = {
+    getProfile: () => api.get<UserProfile>("/me/profile"),
+
+    updateProfile: (data: UpdateProfileRequest) => api.put<UserProfile>("/me/profile", data),
+
+    uploadAvatar: (file: File) => {
+        const form = new FormData();
+        form.append("avatar", file);
+        return api.post<{avatar_url: string}>("/me/avatar", form, {
+            headers: {"Content-Type": "multipart/form-data"},
+        });
+    },
+
+    deleteAvatar: () => api.del<void>("/me/avatar"),
+
+    getSetting: () => api.get<UserSetting>("/me/setting"),
+
+    updateSetting: (data: UpdateSettingRequest) => api.put<UserSetting>("/me/setting", data),
+};
+
 export default userApi;

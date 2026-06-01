@@ -10,7 +10,7 @@ export {signIn, signUp, signOut, refreshToken, getCurrentUser, isAuthenticated, 
 export type {CurrentUser} from "./auth";
 
 // ==================== Users ====================
-export {userApi, adminUserApi} from "./user";
+export {userApi, adminUserApi, profileApi} from "./user";
 export type {
     User,
     UserListResponse,
@@ -19,7 +19,10 @@ export type {
     UpdateProfileRequest,
     ChangePasswordRequest,
     SubscriptionStatusResponse,
-    SubscriptionListResponse
+    SubscriptionListResponse,
+    UserProfile,
+    UserSetting,
+    UpdateSettingRequest,
 } from "./user";
 
 // ==================== Media ====================
