@@ -22,6 +22,8 @@ import { Camera, Loader2 } from 'lucide-react';
 
 const ORIGSTUDIO_URL = 'origstudio.com/@';
 
+const OUTPUT_SIZE = 400;
+
 function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -29,8 +31,8 @@ function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
     image.src = imageSrc;
     image.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = pixelCrop.width;
-      canvas.height = pixelCrop.height;
+      canvas.width = OUTPUT_SIZE;
+      canvas.height = OUTPUT_SIZE;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         reject(new Error('Failed to get canvas context'));
@@ -44,8 +46,8 @@ function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
         pixelCrop.height,
         0,
         0,
-        pixelCrop.width,
-        pixelCrop.height
+        OUTPUT_SIZE,
+        OUTPUT_SIZE
       );
       canvas.toBlob((blob) => {
         if (!blob) {
@@ -125,6 +127,13 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error('File too large, max 5MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     if (cropImage) {
       URL.revokeObjectURL(cropImage);
     }
@@ -132,6 +141,13 @@ export default function ProfilePage() {
     const img = new Image();
     img.src = objectUrl;
     img.onload = () => {
+      const MAX_AVATAR_DIMENSION = 4000;
+      if (img.naturalWidth > MAX_AVATAR_DIMENSION || img.naturalHeight > MAX_AVATAR_DIMENSION) {
+        URL.revokeObjectURL(objectUrl);
+        toast.error('Image too large, max 4000×4000 pixels');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
       if (img.naturalWidth < 200 || img.naturalHeight < 200) {
         URL.revokeObjectURL(objectUrl);
         toast.error(t('avatarTooSmall'));
@@ -242,7 +258,7 @@ export default function ProfilePage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 className="hidden"
                 onChange={handleAvatarChange}
               />
@@ -340,6 +356,18 @@ export default function ProfilePage() {
                 onZoomChange={setZoom}
               />
             )}
+          </div>
+          <div className="px-4 py-2">
+            <Label>Zoom</Label>
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="w-full"
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCropCancel}>
