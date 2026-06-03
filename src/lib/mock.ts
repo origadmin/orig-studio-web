@@ -247,11 +247,16 @@ const mockRoutes: [RegExp, MockHandler][] = [
         status: 'active',
     })],
 
-    // Portal config
+    // Portal config (satisfies both PortalConfig and ModulePortalConfig)
     [/\/portal\/config$/, () => ({
-        modules: {articles: true, videos: true, music: false},
-        layout: 'mixed',
+        // PortalConfig fields
+        navigation: {items: [], visible_count: 8},
+        banners: [],
+        featured_users: [],
         site: {
+            name: 'OrigStudio',
+            default_lang: 'en',
+            // ModulePortalConfig site fields
             site_name: 'OrigStudio',
             site_description: 'Enterprise Content Platform',
             allow_registration: true,
@@ -262,6 +267,9 @@ const mockRoutes: [RegExp, MockHandler][] = [
             reviewWorkflow: true, enterpriseNotification: true,
             drm: true, liveRooms: true, payment: true, promotion: true, ads: true,
         },
+        // ModulePortalConfig fields
+        modules: {articles: true, videos: true, music: false},
+        layout: 'mixed' as const,
     })],
 
     // Dashboard stats
