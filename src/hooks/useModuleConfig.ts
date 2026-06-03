@@ -15,7 +15,14 @@ const FALLBACK_CONFIG: ModulePortalConfig = {
 export function useModuleConfig() {
     return useQuery({
         queryKey: ['portal-config'],
-        queryFn: () => portalApi.getModuleConfig(),
+        queryFn: async () => {
+            const res = await portalApi.getModuleConfig();
+            return {
+                modules: res?.modules ?? FALLBACK_CONFIG.modules,
+                layout: res?.layout ?? FALLBACK_CONFIG.layout,
+                site: res?.site ?? FALLBACK_CONFIG.site,
+            } satisfies ModulePortalConfig;
+        },
         staleTime: 5 * 60_000,
         gcTime: 30 * 60_000,
         retry: 1,
