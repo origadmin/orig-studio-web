@@ -1,5 +1,51 @@
 import {api} from "../request";
 
+export interface Promotion {
+    id: string;
+    name: string;
+    type: string;
+    value: number;
+    code?: string;
+    description?: string;
+    max_uses?: number;
+    used_count?: number;
+    starts_at?: string;
+    expires_at?: string;
+    is_active: boolean;
+    create_time: string;
+    update_time: string;
+}
+
+export interface PromotionListResponse {
+    items: Promotion[];
+    total: number;
+    page: number;
+    page_size: number;
+}
+
+export interface CreatePromotionRequest {
+    name: string;
+    type: string;
+    value: number;
+    code?: string;
+    description?: string;
+    max_uses?: number;
+    starts_at?: string;
+    expires_at?: string;
+}
+
+export interface UpdatePromotionRequest {
+    name?: string;
+    type?: string;
+    value?: number;
+    code?: string;
+    description?: string;
+    max_uses?: number;
+    starts_at?: string;
+    expires_at?: string;
+    is_active?: boolean;
+}
+
 export interface PromotionChannel {
     id: string;
     name: string;
@@ -108,6 +154,18 @@ export interface CreatePromotionTaskRequest {
 }
 
 export const adminPromotionApi = {
+    list: (params?: { page?: number; page_size?: number; type?: string }) =>
+        api.get<PromotionListResponse>('/admin/promotions', params as Record<string, unknown>),
+
+    create: (data: CreatePromotionRequest) =>
+        api.post<Promotion>('/admin/promotions', data),
+
+    update: (id: string, data: UpdatePromotionRequest) =>
+        api.put<Promotion>(`/admin/promotions/${id}`, data),
+
+    delete: (id: string) =>
+        api.del<void>(`/admin/promotions/${id}`),
+
     listChannels: (page?: number, pageSize?: number) =>
         api.get<PromotionChannelListResponse>(`/admin/promotion-channels?page=${page || 1}&page_size=${pageSize || 20}`),
 

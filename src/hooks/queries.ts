@@ -13,7 +13,7 @@ import {adminPermissionApi} from '@/lib/api/permission';
 import {adminDrmApi} from '@/lib/api/drm';
 import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
 import {adminLiveApi, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
-import {adminPromotionApi, type CreatePromotionChannelRequest, type CreatePromotionTemplateRequest, type CreatePromotionTaskRequest, type UpdatePromotionChannelRequest, type UpdatePromotionTemplateRequest} from '@/lib/api/promotion';
+import {adminPromotionApi, type CreatePromotionRequest, type UpdatePromotionRequest, type CreatePromotionChannelRequest, type CreatePromotionTemplateRequest, type CreatePromotionTaskRequest, type UpdatePromotionChannelRequest, type UpdatePromotionTemplateRequest} from '@/lib/api/promotion';
 import {adminAdsApi, type CreateAdCampaignRequest, type CreateAdSlotRequest, type UpdateAdCampaignRequest, type UpdateAdSlotRequest} from '@/lib/api/ads';
 import {spriteApi} from '@/lib/api/sprite';
 import {favoriteApi} from '@/lib/api/favorite';
@@ -1413,6 +1413,46 @@ export function useAdminPromotionLogs(params?: { page?: number; page_size?: numb
         queryFn: async () => {
             const res = await adminPromotionApi.listLogs(undefined, params?.page, params?.page_size);
             return res;
+        },
+    });
+}
+
+export function useAdminPromotions(params?: { page?: number; page_size?: number; type?: string }) {
+    return useQuery({
+        queryKey: ['admin', 'promotions', params],
+        queryFn: async () => {
+            const res = await adminPromotionApi.list(params);
+            return res;
+        },
+    });
+}
+
+export function useCreatePromotion() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreatePromotionRequest) => adminPromotionApi.create(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotions']});
+        },
+    });
+}
+
+export function useUpdatePromotion() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdatePromotionRequest}) => adminPromotionApi.update(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotions']});
+        },
+    });
+}
+
+export function useDeletePromotion() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPromotionApi.delete(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotions']});
         },
     });
 }
