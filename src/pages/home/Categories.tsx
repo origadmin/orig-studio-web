@@ -13,7 +13,7 @@ import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree
 
 const VideoCard: React.FC<{media: any}> = ({media}) => (
     <Link to="/watch" search={{v: media.short_token}} className="group">
-        <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="relative aspect-video overflow-hidden">
                 <img
                     src={media.thumbnail ? getFullUrl(media.thumbnail) : undefined}
@@ -30,7 +30,7 @@ const VideoCard: React.FC<{media: any}> = ({media}) => (
                 </div>
             </div>
             <div className="p-3">
-                <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-1.5 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm line-clamp-2 mb-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {media.title}
                 </h3>
                 <div className="flex items-center gap-2 mb-1">
@@ -39,7 +39,7 @@ const VideoCard: React.FC<{media: any}> = ({media}) => (
                         alt={media.edges?.user?.[0]?.username}
                         className="w-5 h-5 rounded-full object-cover"
                     />
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-500 dark:text-muted-foreground">
                         {media.edges?.user?.[0]?.username || 'Unknown'}
                     </span>
                 </div>
@@ -67,7 +67,7 @@ const CategoryFilter: React.FC<{
                 onClick={() => onSelect(null)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     selectedId === null
-                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
                 }`}
             >
@@ -100,7 +100,7 @@ const CategoryGroup: React.FC<{
                     onClick={() => onSelect(selectedId === node.id ? null : node.id)}
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         selectedId === node.id
-                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            ? 'bg-emerald-600 text-white shadow-sm'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
                     }`}
                 >
@@ -120,8 +120,8 @@ const CategoryGroup: React.FC<{
                                 onClick={() => onSelect(selectedId === child.id ? null : child.id)}
                                 className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
                                     selectedId === child.id
-                                        ? 'bg-primary text-white shadow-sm'
-                                        : 'bg-muted text-gray-500 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-700'
+                                        ? 'bg-emerald-500 text-white shadow-sm'
+                                        : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-700'
                                 }`}
                             >
                                 {child.name}
@@ -138,7 +138,7 @@ const CategoryGroup: React.FC<{
             onClick={() => onSelect(selectedId === node.id ? null : node.id)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 selectedId === node.id
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-emerald-600 text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
             }`}
         >
@@ -161,7 +161,7 @@ const CategoriesPage = () => {
             try {
                 setLoading(true);
                 const response = await categoryApi.getAll();
-                setCategories((Array.isArray((response as any)?.items) ? (response as any).items : Array.isArray(response) ? response : []));
+                setCategories(response?.items || []);
             } catch (err) {
                 setError(t('common.error', 'Error'));
                 console.error('Failed to fetch categories:', err);
@@ -226,8 +226,8 @@ const CategoriesPage = () => {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-3">
-                <Folder size={24} className="text-primary"/>
-                <h1 className="text-2xl font-bold text-foreground">
+                <Folder size={24} className="text-emerald-600"/>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     {t('categories.title', 'Categories')}
                 </h1>
             </div>
@@ -248,7 +248,7 @@ const CategoriesPage = () => {
                     </span>
                     <button
                         onClick={() => setSelectedId(null)}
-                        className="text-xs text-primary hover:text-primary/80 ml-2"
+                        className="text-xs text-emerald-600 hover:text-emerald-700 ml-2"
                     >
                         {t('categories.clearFilter', 'Clear')}
                     </button>

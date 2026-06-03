@@ -1,5 +1,7 @@
 // API client - Article module
+import {z} from 'zod';
 import {api} from "../request";
+import {safeValidate} from './validation';
 
 export interface MediaBrief {
     id: string;
@@ -37,6 +39,60 @@ export interface ArticleListResponse {
     total: number;
     page: number;
     page_size: number;
+}
+
+const mediaBriefSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    thumbnail: z.string().optional(),
+    duration: z.number(),
+    type: z.string(),
+    short_token: z.string().optional(),
+});
+
+const articleSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    slug: z.string(),
+    short_token: z.string(),
+    content: z.string(),
+    summary: z.string().optional(),
+    state: z.string(),
+    user_id: z.string(),
+    category_id: z.number().optional(),
+    media_id: z.string().optional(),
+    thumbnail: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    view_count: z.number(),
+    comment_count: z.number(),
+    featured: z.boolean(),
+    published_at: z.string().optional(),
+    create_time: z.string(),
+    update_time: z.string().optional(),
+    media: mediaBriefSchema.optional(),
+});
+
+const articleListResponseSchema = z.object({
+    items: z.array(articleSchema),
+    total: z.number(),
+    page: z.number(),
+    page_size: z.number(),
+});
+
+function normalizeArticleList(raw: unknown): unknown {
+    if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
+    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.articles) ? obj.articles : [];
+        return {
+            items,
+            total: obj.total ?? items.length,
+            page: obj.page ?? 1,
+            page_size: obj.page_size ?? items.length,
+        };
+    }
+    return {items: [], total: 0, page: 1, page_size: 0};
 }
 
 export interface CreateArticleRequest {
@@ -93,14 +149,18 @@ export interface UserUpdateArticleRequest {
 
 export const articleApi = {
     // Get article list (public, only published)
-    list: (params?: {
+    list: async (params?: {
         page?: number;
         page_size?: number;
         category_id?: number;
         keyword?: string;
         state?: string;
         user_id?: string;
-    }) => api.get<ArticleListResponse>("/articles", {...params, state: params?.state || "published"}),
+    }) => {
+        const response = await api.get<unknown>("/articles", {...params, state: params?.state || "published"});
+        const normalized = normalizeArticleList(response);
+        return safeValidate(articleListResponseSchema, normalized, 'articleApi.list');
+    },
 
     // Get article detail (public, by slug)
     get: (slug: string) => api.get<Article>(`/articles/${slug}`),
@@ -115,13 +175,17 @@ export const articleApi = {
 // ==================== Admin Article API (requires JWT + Admin) ====================
 export const adminArticleApi = {
     // List all articles including unpublished (Admin)
-    adminList: (params?: {
+    adminList: async (params?: {
         page?: number;
         page_size?: number;
         state?: string;
         keyword?: string;
         category_id?: number;
-    }) => api.get<ArticleListResponse>("/admin/articles", params),
+    }) => {
+        const response = await api.get<unknown>("/admin/articles", params);
+        const normalized = normalizeArticleList(response);
+        return safeValidate(articleListResponseSchema, normalized, 'adminArticleApi.adminList');
+    },
 
     // Get article detail (Admin)
     get: (id: string) => api.get<Article>(`/admin/articles/${id}`),
@@ -146,11 +210,15 @@ export const userArticleApi = {
      * List current user's articles (all states)
      * GET /articles/me
      */
-    myArticles: (params?: {
+    myArticles: async (params?: {
         page?: number;
         page_size?: number;
         state?: string;
-    }) => api.get<ArticleListResponse>("/articles/me", params),
+    }) => {
+        const response = await api.get<unknown>("/articles/me", params);
+        const normalized = normalizeArticleList(response);
+        return safeValidate(articleListResponseSchema, normalized, 'userArticleApi.myArticles');
+    },
 
     /**
      * Create article (user-side)

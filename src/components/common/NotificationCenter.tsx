@@ -30,7 +30,7 @@ const NotificationCenter: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await notificationApi.getAll({page_size: 20});
-            setNotifications((Array.isArray((response as any)?.items) ? (response as any).items : Array.isArray(response) ? response : []));
+            setNotifications(response.items);
         } catch (err) {
             setError('Failed to fetch notifications');
             console.error('Failed to fetch notifications:', err);
@@ -181,7 +181,7 @@ const NotificationCenter: React.FC = () => {
                                     )}
                                     <Button variant="ghost" size="sm" onClick={exitBatchMode}>
                                         <X className="w-4 h-4 mr-1"/>
-                                        {t('common.cancel')}
+                                        {t('common.cancel') || 'Cancel'}
                                     </Button>
                                 </>
                             ) : (
@@ -194,7 +194,7 @@ const NotificationCenter: React.FC = () => {
                                                 onClick={() => setBatchMode(true)}
                                             >
                                                 <CheckSquare className="w-4 h-4 mr-1"/>
-                                                {t('notifications.selectUsers')}
+                                                {t('notifications.selectUsers') || 'Select'}
                                             </Button>
                                             <Button
                                                 variant="ghost"
@@ -237,7 +237,7 @@ const NotificationCenter: React.FC = () => {
                                     <span className="text-sm text-muted-foreground">
                                         {selectedIds.size > 0
                                             ? t('notifications.selectUsers') + ` (${selectedIds.size}/${notifications.length})`
-                                            : t('notifications.allUsers')}
+                                            : t('notifications.allUsers') || 'Select all'}
                                     </span>
                                 </div>
                             )}

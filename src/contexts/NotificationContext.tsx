@@ -34,9 +34,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
                 notificationApi.getUnreadCount(),
                 notificationApi.getAll({page_size: 5}),
             ]);
-            setUnreadCount((countRes as any)?.count || (countRes as any)?.unread_count || 0);
-            const notifList = (notifsRes as any)?.notifications || (notifsRes as any)?.items;
-            setRecentNotifications(Array.isArray(notifList) ? notifList : Array.isArray(notifsRes) ? notifsRes : []);
+            setUnreadCount(countRes);
+            setRecentNotifications(notifsRes.items);
         } catch (err) {
             console.error('Failed to refresh notification state:', err);
         }

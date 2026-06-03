@@ -52,7 +52,7 @@ async function refreshUserFromMe(storedUser: User): Promise<User> {
             status?: string;
         }>('/me');
 
-        const userData = (meData as any)?.user || meData;
+        const userData = meData;
         const {roles, isSuperuser} = resolveUserRoles(userData);
 
         const updatedUser: User = {

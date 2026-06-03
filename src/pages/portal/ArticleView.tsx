@@ -57,14 +57,14 @@ export default function ArticleViewPage() {
         if (!slug) return;
         setLoading(true);
         setError(null);
-        articleApi.get(slug)
+        articleApi.getBySlug(slug)
             .then(data => {
-                const articleData = (data as any)?.article ?? (data as any)?.data?.article ?? (data as any)?.data ?? data;
+                const articleData = data;
                 setArticle(articleData);
                 if (articleData.media_id && articleData.media?.short_token) {
                     publicMediaApi.get(articleData.media.short_token)
                         .then(mediaRes => {
-                            const mediaData = (mediaRes as any)?.media ?? (mediaRes as any)?.data?.media ?? (mediaRes as any)?.data ?? mediaRes;
+                            const mediaData = mediaRes;
                             setMedia(mediaData);
                         })
                         .catch(err => {
@@ -72,16 +72,14 @@ export default function ArticleViewPage() {
                         });
                 }
                 if (articleData.user_id) {
-                    // Try to use embedded user data from article response first,
-                    // then fall back to fetching by username if available.
-                    // Note: userApi.get() now expects a slug, not an ID.
-                    const embeddedUser = articleData.user;
-                    if (embeddedUser && (embeddedUser.slug || embeddedUser.username)) {
-                        setAuthor(embeddedUser);
-                    } else if (embeddedUser) {
-                        setAuthor(embeddedUser);
-                    }
-                    // If no embedded user data, author will show as "User {id}"
+                    userApi.get(String(articleData.user_id))
+                        .then(authorData => {
+                            const authorRes = authorData;
+                            setAuthor(authorRes);
+                        })
+                        .catch(err => {
+                            console.error('Error loading author:', err);
+                        });
                 }
             })
             .catch(err => {

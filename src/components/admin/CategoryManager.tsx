@@ -55,7 +55,7 @@ const CategoryManager: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await categoryApi.getAll();
-            setCategories((Array.isArray((response as any)?.items) ? (response as any).items : Array.isArray(response) ? response : []));
+            setCategories(response?.items || []);
         } catch (err) {
             setError('Failed to fetch categories');
             console.error('Failed to fetch categories:', err);
@@ -191,7 +191,7 @@ const CategoryManager: React.FC = () => {
                             <span className="font-medium">{category.name}</span>
                             {isParentDisabled(category) && (
                                 <span className="text-xs text-warning ml-1 whitespace-nowrap">
-                                    ({t('admin.parentDisabled')})
+                                    ({t('admin.parentDisabled') || 'Parent Disabled'})
                                 </span>
                             )}
                         </div>
@@ -471,7 +471,7 @@ const CategoryManager: React.FC = () => {
                                         .filter(category => (!currentCategory || category.id !== currentCategory.id) && (category.status === 1 || category.id === formData.parent_id))
                                         .map(category => (
                                             <SelectItem key={category.id} value={String(category.id)}>
-                                                {category.name}{category.status !== 1 ? ` (${t('admin.disabled')})` : ''}
+                                                {category.name}{category.status !== 1 ? ` (${t('admin.disabled') || 'Disabled'})` : ''}
                                             </SelectItem>
                                         ))}
                                 </SelectContent>

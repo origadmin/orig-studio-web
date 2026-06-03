@@ -26,7 +26,7 @@ export default function MediaPage() {
             ]);
             const mediaRes = await mediaApi.list(params);
             setMediaList(mediaRes.items || []);
-            setCategories((Array.isArray((catRes as any)?.items) ? (catRes as any).items : Array.isArray(catRes) ? catRes : []));
+            setCategories(catRes?.items || []);
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -130,7 +130,8 @@ export default function MediaPage() {
                         {mediaList.map((media) => (
                             <Link
                                 key={media.id}
-                                {...{to: "/v/$id", params: {id: media.id}} as any}
+                                to="/v/$id"
+                                params={{id: media.id}}
                                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
                             >
                                 <div className="relative aspect-video bg-gray-100">
@@ -160,9 +161,9 @@ export default function MediaPage() {
                                         {media.description}
                                     </p>
                                     <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                                        <span>👁 {media.view_count}</span>
-                                        <span>❤️ {media.like_count}</span>
-                                        <span>{formatSize(Number(media.size) || 0)}</span>
+                                        <span>👁 {media.view_count || 0}</span>
+                                        <span>❤️ {media.like_count || 0}</span>
+                                        <span>{formatSize(media.size ? parseInt(media.size) : 0)}</span>
                                     </div>
                                 </div>
                             </Link>

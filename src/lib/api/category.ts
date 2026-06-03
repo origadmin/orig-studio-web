@@ -1,6 +1,7 @@
 // Category API
+import {z} from 'zod';
 import {api} from "../request";
-import {PaginatedResponse} from "./types";
+import {safeValidate} from './validation';
 
 export interface Category {
     id: number;
@@ -15,22 +16,62 @@ export interface Category {
     update_time: string;
 }
 
+const categorySchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    slug: z.string(),
+    description: z.string().optional(),
+    parent_id: z.number().optional(),
+    order: z.number(),
+    status: z.number().optional(),
+    media_count: z.number().optional(),
+    create_time: z.string(),
+    update_time: z.string(),
+});
+
+const categoryListResponseSchema = z.object({
+    items: z.array(categorySchema),
+    total: z.number(),
+    page: z.number(),
+    page_size: z.number(),
+});
+
+function normalizeCategoryList(raw: unknown): unknown {
+    if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
+    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.categories) ? obj.categories : [];
+        return {
+            items,
+            total: obj.total ?? items.length,
+            page: obj.page ?? 1,
+            page_size: obj.page_size ?? items.length,
+        };
+    }
+    return {items: [], total: 0, page: 1, page_size: 0};
+}
+
 export const categoryApi = {
-    getAll: (params?: {page?: number; page_size?: number}) => api.get<PaginatedResponse<Category>>("/categories", params),
-    // Get category by slug (public portal route)
-    get: (slug: string) => api.get<Category>(`/categories/${slug}`),
+    getAll: async (params?: {page?: number; page_size?: number}) => {
+        const response = await api.get<unknown>("/categories", params);
+        const normalized = normalizeCategoryList(response);
+        return safeValidate(categoryListResponseSchema, normalized, 'categoryApi.getAll');
+    },
+    get: (id: number | string) => api.get<Category>(`/categories/${id}`),
     create: (data: Partial<Category>) => api.post<Category>("/categories", data),
-    // Update category by slug
-    update: (slug: string, data: Partial<Category>) => api.put<Category>(`/categories/${slug}`, data),
-    // Delete category by slug
-    delete: (slug: string) => api.del<void>(`/categories/${slug}`),
+    update: (id: number | string, data: Partial<Category>) => api.put<Category>(`/categories/${id}`, data),
+    delete: (id: number | string) => api.del<void>(`/categories/${id}`),
 };
 
 // ==================== Admin Category API (requires JWT + Admin) ====================
 export const adminCategoryApi = {
     // List all categories (Admin, includes all statuses)
-    list: (params?: {page?: number; page_size?: number}) =>
-        api.get<PaginatedResponse<Category>>("/admin/categories", params),
+    list: async (params?: {page?: number; page_size?: number}) => {
+        const response = await api.get<unknown>("/admin/categories", params);
+        const normalized = normalizeCategoryList(response);
+        return safeValidate(categoryListResponseSchema, normalized, 'adminCategoryApi.list');
+    },
 
     // Get category detail (Admin)
     get: (id: number | string) =>

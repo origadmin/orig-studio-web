@@ -1,4 +1,6 @@
+import {z} from 'zod';
 import {api} from "../request";
+import {safeValidate} from './validation';
 
 // PlaylistMediaItem represents a media item within a playlist (simplified for display).
 // Matches backend biz.PlaylistMediaItem struct.
@@ -36,6 +38,54 @@ export interface PlaylistListResponse {
     page_size: number;
 }
 
+const playlistMediaItemSchema = z.object({
+    id: z.string(),
+    short_token: z.string(),
+    title: z.string(),
+    thumbnail: z.string(),
+    duration: z.number(),
+    type: z.string(),
+    view_count: z.number(),
+    encoding_status: z.string(),
+    create_time: z.string(),
+});
+
+const playlistSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().optional(),
+    short_token: z.string().optional(),
+    user_id: z.string(),
+    is_public: z.boolean(),
+    media_items: z.array(z.string()).optional(),
+    media_details: z.array(playlistMediaItemSchema).optional(),
+    create_time: z.string(),
+    update_time: z.string(),
+});
+
+const playlistListResponseSchema = z.object({
+    items: z.array(playlistSchema),
+    total: z.number(),
+    page: z.number(),
+    page_size: z.number(),
+});
+
+function normalizePlaylistList(raw: unknown): unknown {
+    if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
+    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.playlists) ? obj.playlists : [];
+        return {
+            items,
+            total: obj.total ?? items.length,
+            page: obj.page ?? 1,
+            page_size: obj.page_size ?? items.length,
+        };
+    }
+    return {items: [], total: 0, page: 1, page_size: 0};
+}
+
 export interface CreatePlaylistRequest {
     title: string;
     description?: string;
@@ -51,8 +101,11 @@ export interface UpdatePlaylistRequest {
 // ==================== User Playlist API (/me/playlists - requires JWT) ====================
 export const playlistApi = {
     // List current user's playlists
-    getMyPlaylists: (params?: { page?: number; page_size?: number }) =>
-        api.get<PlaylistListResponse>("/me/playlists", params as Record<string, unknown>),
+    getMyPlaylists: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>("/me/playlists", params as Record<string, unknown>);
+        const normalized = normalizePlaylistList(response);
+        return safeValidate(playlistListResponseSchema, normalized, 'playlistApi.getMyPlaylists');
+    },
 
     // Get a public playlist by short_token (portal view)
     // Portal routes use short_token, not database id (A005 design principle)
@@ -87,8 +140,11 @@ export const playlistApi = {
 // ==================== Admin Playlist API (/admin/playlists - requires JWT + Admin) ====================
 export const adminPlaylistApi = {
     // List all playlists (Admin, includes non-public)
-    list: (params?: { page?: number; page_size?: number }) =>
-        api.get<PlaylistListResponse>("/admin/playlists", params as Record<string, unknown>),
+    list: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>("/admin/playlists", params as Record<string, unknown>);
+        const normalized = normalizePlaylistList(response);
+        return safeValidate(playlistListResponseSchema, normalized, 'adminPlaylistApi.list');
+    },
 
     // Get playlist detail by UUID (Admin)
     get: (id: string) =>

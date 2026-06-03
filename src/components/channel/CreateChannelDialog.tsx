@@ -142,7 +142,7 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
             }
 
             const res = await channelApi.create(submitData);
-            const channel = (res as any)?.data ?? res;
+            const channel = res;
 
             queryClient.invalidateQueries({queryKey: ['channels', 'me']});
             queryClient.invalidateQueries({queryKey: ['channel', 'limits']});

@@ -1,5 +1,7 @@
-// API 客户端 - 用户模块
+// API client - user module
+import {z} from 'zod';
 import {api} from "../request";
+import {safeValidate} from './validation';
 
 export interface User {
     id: string;
@@ -21,6 +23,34 @@ export interface User {
     create_time: string;
     update_time?: string;
 }
+
+export const userSchema = z.object({
+    id: z.string(),
+    username: z.string(),
+    nickname: z.string().optional(),
+    email: z.string(),
+    avatar: z.string().optional(),
+    cover: z.string().optional(),
+    bio: z.string().optional(),
+    phone: z.string().optional(),
+    role: z.string(),
+    status: z.union([z.number(), z.string()]),
+    is_me: z.boolean().optional(),
+    subscriber_count: z.number().optional(),
+    total_views: z.number().optional(),
+    is_verified: z.boolean().optional(),
+    channel_id: z.string().optional(),
+    links: z.array(z.object({title: z.string().optional(), url: z.string()})).optional(),
+    create_time: z.string(),
+    update_time: z.string().optional(),
+});
+
+export const userListResponseSchema = z.object({
+    items: z.array(userSchema),
+    total: z.number(),
+    page: z.number(),
+    page_size: z.number(),
+});
 
 // Map proto UserStatus numeric enum values to frontend string labels
 export const USER_STATUS_MAP: Record<number, string> = {
@@ -155,10 +185,29 @@ export interface PublicProfile {
     is_subscribed?: boolean;
 }
 
+function normalizeUserList(raw: unknown): unknown {
+    if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
+    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.users) ? obj.users : [];
+        return {
+            items,
+            total: obj.total ?? items.length,
+            page: obj.page ?? 1,
+            page_size: obj.page_size ?? items.length,
+        };
+    }
+    return {items: [], total: 0, page: 1, page_size: 0};
+}
+
 export const userApi = {
-    // 获取用户列表
-    list: (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) =>
-        api.get<UserListResponse>("/users", params),
+    // list users
+    list: async (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) => {
+        const response = await api.get<unknown>("/users", params);
+        const normalized = normalizeUserList(response);
+        return safeValidate(userListResponseSchema, normalized, 'userApi.list');
+    },
 
     // 获取用户详情（公开，使用 slug）
     get: (slug: string) => api.get<User>(`/users/${slug}`),
@@ -209,13 +258,19 @@ export const userApi = {
     unsubscribe: (slug: string) =>
         api.del<{ success: boolean }>(`/users/${slug}/subscribe`),
 
-    // 获取我的订阅列表
-    getSubscriptions: (params?: { page?: number; page_size?: number }) =>
-        api.get<SubscriptionListResponse>("/me/subscriptions", params),
+    // Get my subscriptions list
+    getSubscriptions: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>("/me/subscriptions", params);
+        const normalized = normalizeUserList(response);
+        return safeValidate(userListResponseSchema, normalized, 'userApi.getSubscriptions');
+    },
 
     // Get my followers list
-    getFollowers: (params?: { page?: number; page_size?: number }) =>
-        api.get<SubscriptionListResponse>("/me/followers", params),
+    getFollowers: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>("/me/followers", params);
+        const normalized = normalizeUserList(response);
+        return safeValidate(userListResponseSchema, normalized, 'userApi.getFollowers');
+    },
 };
 
 // ==================== Admin User API (UUID based, requires JWT + Admin) ====================
@@ -225,8 +280,11 @@ export const adminUserApi = {
         api.post<User>("/admin/users", data),
 
     // List all users (Admin)
-    list: (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) =>
-        api.get<UserListResponse>("/admin/users", params),
+    list: async (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) => {
+        const response = await api.get<unknown>("/admin/users", params);
+        const normalized = normalizeUserList(response);
+        return safeValidate(userListResponseSchema, normalized, 'adminUserApi.list');
+    },
 
     // Get user detail by ID (Admin)
     get: (id: string) =>

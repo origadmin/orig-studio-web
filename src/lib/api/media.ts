@@ -1,7 +1,9 @@
-// API 客户端 - 媒体模块
-// 对应后端 /api/v1 路径
-// 类型定义对齐后端 ent entity JSON 输出
+// API client - media module
+// Maps to backend /api/v1 routes
+// Type definitions aligned with backend ent entity JSON output
+import {z} from 'zod';
 import {api, getAccessToken, API_BASE_URL} from "../request";
+import {safeValidate} from './validation';
 
 // 统一响应格式接口
 export interface ApiResponse<T> {
@@ -177,6 +179,84 @@ export interface MediaListResponse {
     page_size: number;
 }
 
+const mediaSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string().optional(),
+    short_token: z.string().optional(),
+    type: z.string(),
+    url: z.string(),
+    hls_file: z.string().optional(),
+    thumbnail: z.string().optional(),
+    poster: z.string().optional(),
+    preview_file_path: z.string().optional(),
+    preview_file: z.string().optional(),
+    duration: z.number(),
+    size: z.string().optional(),
+    width: z.number(),
+    height: z.number(),
+    mime_type: z.string().optional(),
+    md5sum: z.string().optional(),
+    extension: z.string().optional(),
+    privacy: z.number(),
+    encoding_status: z.string(),
+    sprite_status: z.string().optional(),
+    sprite_path: z.string().optional(),
+    vtt_path: z.string().optional(),
+    state: z.string(),
+    view_count: z.number(),
+    like_count: z.number(),
+    dislike_count: z.number(),
+    comment_count: z.number(),
+    favorite_count: z.number(),
+    download_count: z.number().optional(),
+    allow_download: z.boolean().optional(),
+    enable_comments: z.boolean().optional(),
+    featured: z.boolean().optional(),
+    review_status: z.string().optional(),
+    listable: z.boolean().optional(),
+    reported_times: z.number().optional(),
+    tags: z.array(z.string()).optional(),
+    user_id: z.string(),
+    channel_id: z.string().optional(),
+    category_id: z.number().optional(),
+    published_at: z.string().optional(),
+    create_time: z.string().optional(),
+    update_time: z.string().optional(),
+    user: z.any().optional(),
+    category: z.any().optional(),
+    channel: z.any().optional(),
+    edges: z.any().optional(),
+});
+
+const mediaListResponseSchema = z.object({
+    items: z.array(mediaSchema),
+    total: z.number(),
+    page: z.number(),
+    page_size: z.number(),
+});
+
+/**
+ * normalizeMediaListResponse normalizes a raw API response into a MediaListResponse shape,
+ * then applies normalizeMediaList to the items array.
+ */
+function normalizeMediaListResponse(raw: unknown): unknown {
+    if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
+    if (Array.isArray(raw)) return {items: normalizeMediaList(raw), total: raw.length, page: 1, page_size: raw.length};
+    if (typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const rawItems = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.media) ? obj.media : [];
+        const items = normalizeMediaList(rawItems as Media[]);
+        return {
+            items,
+            total: obj.total ?? items.length,
+            page: obj.page ?? 1,
+            page_size: obj.page_size ?? items.length,
+        };
+    }
+    return {items: [], total: 0, page: 1, page_size: 0};
+}
+
 export interface CreateMediaRequest {
     title: string;
     description?: string;
@@ -338,8 +418,8 @@ export const encodingApi = {
 
 // ==================== Media API ====================
 export const mediaApi = {
-    // 获取媒体列表（公开，默认只返回 active 状态）
-    list: (params?: {
+    // Get media list (public, defaults to active state)
+    list: async (params?: {
         page?: number;
         page_size?: number;
         type?: string;
@@ -351,7 +431,11 @@ export const mediaApi = {
         featured?: string;
         order_by?: string;
         descending?: boolean;
-    }) => api.get<MediaListResponse>("/medias", params as Record<string, unknown>),
+    }) => {
+        const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
+        const normalized = normalizeMediaListResponse(response);
+        return safeValidate(mediaListResponseSchema, normalized, 'mediaApi.list');
+    },
 
     // 获取媒体详情（公开，使用 short_token）
     get: (token: number | string) => {
@@ -359,14 +443,18 @@ export const mediaApi = {
         return api.get<Media>(`/medias/${cleanToken}`);
     },
 
-    // 管理端：获取所有媒体（包括未发布的）
-    adminList: (params?: {
+    // Admin: get all media (including unpublished)
+    adminList: async (params?: {
         page?: number;
         page_size?: number;
         type?: string;
         state?: string;
         keyword?: string;
-    }) => api.get<MediaListResponse>("/admin/medias", params as Record<string, unknown>),
+    }) => {
+        const response = await api.get<unknown>("/admin/medias", params as Record<string, unknown>);
+        const normalized = normalizeMediaListResponse(response);
+        return safeValidate(mediaListResponseSchema, normalized, 'mediaApi.adminList');
+    },
 
     // 上传媒体文件（需要 JWT，支持进度回调）
     // Uses the backend simple upload endpoint POST /uploads/simple
@@ -595,8 +683,8 @@ export const legacyMediaApi = {
 // 用于公开页面、Watch 页面、用户交互操作
 // 无需认证或可选 JWT 认证
 export const publicMediaApi = {
-    // 获取媒体列表（公开，默认只返回 active 状态）
-    list: (params?: {
+    // Get media list (public, defaults to active state)
+    list: async (params?: {
         page?: number;
         page_size?: number;
         type?: string;
@@ -607,7 +695,11 @@ export const publicMediaApi = {
         featured?: string;
         order_by?: string;
         descending?: boolean;
-    }) => api.get<MediaListResponse>("/medias", params as Record<string, unknown>),
+    }) => {
+        const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
+        const normalized = normalizeMediaListResponse(response);
+        return safeValidate(mediaListResponseSchema, normalized, 'publicMediaApi.list');
+    },
 
     // 获取媒体公开详情（使用 short_token）
     // 返回公开字段，不包含敏感信息
@@ -732,8 +824,8 @@ export const publicMediaApi = {
 // 用于管理后台、CRUD 操作、完整数据访问
 // 需要 JWT + Admin 角色权限
 export const adminMediaApi = {
-    // 管理端：获取所有媒体（包括未发布的，支持更多过滤条件）
-    list: (params?: {
+    // Admin: get all media (including unpublished, supports more filters)
+    list: async (params?: {
         page?: number;
         page_size?: number;
         type?: string;
@@ -745,7 +837,11 @@ export const adminMediaApi = {
         tags?: string[];
         order_by?: string;
         descending?: boolean;
-    }) => api.get<MediaListResponse>("/admin/medias", params as Record<string, unknown>),
+    }) => {
+        const response = await api.get<unknown>("/admin/medias", params as Record<string, unknown>);
+        const normalized = normalizeMediaListResponse(response);
+        return safeValidate(mediaListResponseSchema, normalized, 'adminMediaApi.list');
+    },
 
     // 获取媒体完整详情（返回所有字段，包括私有视频）
     // 使用 UUID ID，不接受 short_token
