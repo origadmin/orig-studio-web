@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "rsbuild dev",
+    "dev:mock": "rsbuild dev --config rsbuild.config.mock.ts",
     "build": "rsbuild build",
+    "build:mock": "rsbuild build --config rsbuild.config.mock.ts",
     "preview": "rsbuild preview",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
