@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 OrigAdmin. All rights reserved.
+ */
+
 import React, {useState} from 'react';
 import {Outlet, Link, useRouterState} from '@tanstack/react-router';
 import {
@@ -18,99 +22,102 @@ import {
     Home,
     FileText,
     Bell,
-    Layout,
-    CreditCard,
     Shield,
-    ChevronDown,
-    ChevronRight,
-    Database,
+    CreditCard,
     Megaphone,
-    Lock,
+    Tv2,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '@/themes';
+import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
-
-interface MenuGroup {
-    id: string;
-    label: string;
-    icon: React.ElementType;
-    items: { id: string; icon: React.ElementType; label: string; path: string }[];
-}
 
 const AdminLayout = () => {
     const {t} = useTranslation();
     const {isDark, toggleDark} = useTheme();
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-        content: true,
-        media: true,
-        monetization: true,
-        system: true,
-    });
     const routerState = useRouterState();
+    const featureFlags = useFeatureFlags();
 
-    const menuGroups: MenuGroup[] = [
+    const menuItems = [
+        {id: "dashboard", icon: LayoutDashboard, label: t('admin.dashboard'), path: "/admin"},
+        {id: "media", icon: Film, label: t('admin.media'), path: "/admin/media"},
         {
-            id: 'content',
-            label: t('admin.groupContent', 'Content'),
-            icon: FileText,
-            items: [
-                {id: "media", icon: Film, label: t('admin.media'), path: "/admin/media"},
-                {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
-                {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
-                {id: "content-structure", icon: FolderTree, label: t('admin.contentStructure', 'Content Structure'), path: "/admin/content-structure"},
-                {id: "comments", icon: MessageSquare, label: t('admin.comments'), path: "/admin/comments"},
-            ],
-        },
-        {
-            id: 'media',
-            label: t('admin.groupMedia', 'Media Processing'),
+            id: "transcoding-profiles",
             icon: Cpu,
-            items: [
-                {id: "transcoding", icon: Cpu, label: t('admin.transcoding', 'Transcoding'), path: "/admin/transcoding"},
-                {id: "portal", icon: Layout, label: t('admin.portal'), path: "/admin/portal"},
-            ],
+            label: t('admin.transcodingProfiles') || "Transcoding Profiles",
+            path: "/admin/transcoding/profiles"
         },
         {
-            id: 'monetization',
-            label: t('admin.groupMonetization', 'Monetization'),
-            icon: CreditCard,
-            items: [
-                {id: "live-rooms", icon: Radio, label: t('admin.liveRooms', 'Live Rooms'), path: "/admin/live-rooms"},
-                {id: "payment", icon: CreditCard, label: t('admin.payment'), path: "/admin/payment"},
-                {id: "drm", icon: Shield, label: t('admin.drm'), path: "/admin/drm"},
-            ],
+            id: "transcoding-status",
+            icon: Activity,
+            label: t('admin.transcodingStatus') || "Transcoding Status",
+            path: "/admin/transcoding/status"
         },
-        {
-            id: 'system',
-            label: t('admin.groupSystem', 'System'),
-            icon: Database,
-            items: [
-                {id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"},
-                {id: "notifications", icon: Bell, label: t('admin.notifications'), path: "/admin/notifications"},
-                {id: "permissions", icon: Lock, label: t('admin.permissions'), path: "/admin/permissions"},
-                {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
-            ],
-        },
+        {id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"},
+        {id: "categories", icon: FolderTree, label: t('admin.categories'), path: "/admin/categories"},
+        {id: "channels", icon: Radio, label: t('admin.channels'), path: "/admin/channels"},
+        {id: "tags", icon: Tags, label: t('admin.tags'), path: "/admin/tags"},
+        {id: "comments", icon: MessageSquare, label: t('admin.comments'), path: "/admin/comments"},
+        {id: "notifications", icon: Bell, label: t('admin.notifications') || "Notifications", path: "/admin/notifications"},
+        {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
+        {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
+        // EE features — only shown when feature flag is enabled
+        ...(featureFlags.liveRooms ? [{id: "live-rooms", icon: Tv2, label: t('admin.liveRooms', 'Live Rooms'), path: "/admin/live-rooms"}] : []),
+        ...(featureFlags.drm ? [{id: "drm", icon: Shield, label: t('admin.drm', 'DRM'), path: "/admin/drm"}] : []),
+        ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', 'Payment'), path: "/admin/payment"}] : []),
+        ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', 'Promotion'), path: "/admin/promotion"}] : []),
+        ...(featureFlags.ads ? [{id: "ads", icon: Megaphone, label: t('admin.ads', 'Ads'), path: "/admin/ads"}] : []),
+        {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
     ];
 
-    const toggleGroup = (groupId: string) => {
-        setExpandedGroups(prev => ({...prev, [groupId]: !prev[groupId]}));
-    };
-
+    // 生成面包屑路径
     const getBreadcrumbs = () => {
         const path = routerState.location.pathname;
-        const breadcrumbs: { label: string; path: string; icon?: any }[] = [
-            {label: t('nav.home'), path: "/admin", icon: Home},
+        const breadcrumbs: {label: string; path: string; icon?: any}[] = [
+            {label: t('nav.home'), path: "/admin", icon: Home}
         ];
 
-        const allItems = menuGroups.flatMap(g => g.items);
-        for (const item of allItems) {
-            if (path.startsWith(item.path)) {
-                breadcrumbs.push({label: item.label, path: item.path});
-                break;
-            }
+        if (path.startsWith("/admin/media")) {
+            breadcrumbs.push({label: t('admin.media'), path: "/admin/media"});
+        } else if (path.startsWith("/admin/transcoding/profiles")) {
+            breadcrumbs.push({label: t('admin.media'), path: "/admin/media"});
+            breadcrumbs.push({label: t('admin.transcodingProfiles'), path: "/admin/transcoding/profiles"});
+        } else if (path.startsWith("/admin/transcoding/status")) {
+            breadcrumbs.push({label: t('admin.media'), path: "/admin/media"});
+            breadcrumbs.push({label: t('admin.transcodingStatus'), path: "/admin/transcoding/status"});
+        } else if (path.startsWith("/admin/users")) {
+            breadcrumbs.push({label: t('admin.users'), path: "/admin/users"});
+        } else if (path.startsWith("/admin/categories")) {
+            breadcrumbs.push({label: t('admin.categories'), path: "/admin/categories"});
+        } else if (path.startsWith("/admin/channels")) {
+            breadcrumbs.push({label: t('admin.channels'), path: "/admin/channels"});
+        } else if (path.startsWith("/admin/tags")) {
+            breadcrumbs.push({label: t('admin.tags'), path: "/admin/tags"});
+        } else if (path.startsWith("/admin/comments")) {
+            breadcrumbs.push({label: t('admin.comments'), path: "/admin/comments"});
+        } else if (path.startsWith("/admin/notifications")) {
+            breadcrumbs.push({label: t('admin.notifications') || "Notifications", path: "/admin/notifications"});
+        } else if (path.startsWith("/admin/playlists")) {
+            breadcrumbs.push({label: t('admin.playlists'), path: "/admin/playlists"});
+        } else if (path.startsWith("/admin/articles")) {
+            breadcrumbs.push({label: t('admin.articles'), path: "/admin/articles"});
+        } else if (path.startsWith("/admin/settings")) {
+            breadcrumbs.push({label: t('admin.settings'), path: "/admin/settings"});
+        } else if (path.startsWith("/admin/live-rooms")) {
+            breadcrumbs.push({label: t('admin.liveRooms', 'Live Rooms'), path: "/admin/live-rooms"});
+        } else if (path.startsWith("/admin/payment")) {
+            breadcrumbs.push({label: t('admin.payment', 'Payment'), path: "/admin/payment"});
+        } else if (path.startsWith("/admin/drm")) {
+            breadcrumbs.push({label: t('admin.drm', 'DRM'), path: "/admin/drm"});
+        } else if (path.startsWith("/admin/promotion")) {
+            breadcrumbs.push({label: t('admin.promotion', 'Promotion'), path: "/admin/promotion"});
+        } else if (path.startsWith("/admin/ads")) {
+            breadcrumbs.push({label: t('admin.ads', 'Ads'), path: "/admin/ads"});
+        } else if (path.startsWith("/admin/permissions")) {
+            breadcrumbs.push({label: t('admin.permissions'), path: "/admin/permissions"});
+        } else if (path.startsWith("/admin/portal")) {
+            breadcrumbs.push({label: t('admin.portal', 'Portal'), path: "/admin/portal"});
         }
 
         return breadcrumbs;
@@ -120,83 +127,29 @@ const AdminLayout = () => {
 
     return (
         <div className="min-h-screen bg-background flex">
+            {/* Sidebar */}
             <aside
                 className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-sidebar text-sidebar-foreground flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out`}>
-                <div
-                    className={`flex items-center border-b border-sidebar-border ${sidebarCollapsed ? 'justify-center py-3' : 'px-4 py-3'}`}>
+                <div className={`flex items-center border-b border-sidebar-border ${sidebarCollapsed ? 'justify-center py-3' : 'px-4 py-3'}`}>
                     <Link to="/admin" className="flex items-center gap-2 transition-all duration-300 ease-in-out">
-                        <img src="/logo.svg" alt="OrigStudio" className="h-14 w-14 flex-shrink-0"/>
+                        <img src="/logo.svg" alt="OrigStudio" className="h-14 w-14 flex-shrink-0" />
                         {!sidebarCollapsed && (
-                            <span
-                                className="text-lg font-semibold tracking-tight text-brand whitespace-nowrap">{t('admin.welcomeAdmin')}</span>
+                            <span className="text-lg font-semibold tracking-tight text-brand whitespace-nowrap">{t('admin.welcomeAdmin')}</span>
                         )}
                     </Link>
                 </div>
-
-                <nav className={`flex-grow overflow-y-auto ${sidebarCollapsed ? 'px-2' : 'px-3'} py-2`}>
-                    <NavItem
-                        to="/admin"
-                        icon={<LayoutDashboard size={24}/>}
-                        label={t('admin.dashboard')}
-                        exact={true}
-                        collapsed={sidebarCollapsed}
-                    />
-
-                    {menuGroups.map((group) => (
-                        <div key={group.id} className="mt-1">
-                            {!sidebarCollapsed ? (
-                                <>
-                                    <button
-                                        onClick={() => toggleGroup(group.id)}
-                                        className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
-                                    >
-                                        <span>{group.label}</span>
-                                        {expandedGroups[group.id] ? (
-                                            <ChevronDown size={14}/>) : (
-                                            <ChevronRight size={14}/>)}
-                                    </button>
-                                    {expandedGroups[group.id] && (
-                                        <div className="space-y-0.5">
-                                            {group.items.map((item) => (
-                                                <NavItem
-                                                    key={item.path}
-                                                    to={item.path}
-                                                    icon={<item.icon size={20}/>}
-                                                    label={item.label}
-                                                    collapsed={false}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center py-1">
-                                    <button
-                                        onClick={() => toggleGroup(group.id)}
-                                        className="w-12 h-12 flex flex-col items-center justify-center rounded-lg hover:bg-sidebar-accent/50 transition-colors"
-                                        title={group.label}
-                                    >
-                                        <group.icon size={22} className="text-muted-foreground"/>
-                                    </button>
-                                    {expandedGroups[group.id] && (
-                                        <div className="mt-1 space-y-0.5">
-                                            {group.items.map((item) => (
-                                                <NavItem
-                                                    key={item.path}
-                                                    to={item.path}
-                                                    icon={<item.icon size={18}/>}
-                                                    label={item.label}
-                                                    collapsed={true}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                <nav className={`flex-grow space-y-2 ${sidebarCollapsed ? 'px-2' : 'px-4'}`}>
+                    {menuItems.map((item) => (
+                        <NavItem
+                            key={item.path}
+                            to={item.path}
+                            icon={<item.icon size={24}/>}
+                            label={item.label}
+                            exact={item.path === "/admin"}
+                            collapsed={sidebarCollapsed}
+                        />
                     ))}
                 </nav>
-
                 <div className={`${sidebarCollapsed ? 'p-3' : 'p-6'} border-t border-sidebar-border`}>
                     <Link
                         to="/"
@@ -208,17 +161,19 @@ const AdminLayout = () => {
                 </div>
             </aside>
 
+            {/* Main Content */}
             <div className="flex-grow flex flex-col min-w-0 relative">
+                {/* Floating toggle button on the divider line */}
                 <button
                     onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                     className="absolute top-12 z-50 w-8 h-8 bg-card border border-border rounded-full shadow-md flex items-center justify-center hover:bg-accent transition-all duration-200 hover:scale-110"
-                    style={{left: -16}}
+                    style={{ left: -16 }}
                     title={sidebarCollapsed ? t('nav.expandMenu') : t('nav.collapseMenu')}
                 >
                     {sidebarCollapsed ? (
-                        <PanelLeftOpen size={18} className="text-muted-foreground"/>
+                        <PanelLeftOpen size={18} className="text-muted-foreground" />
                     ) : (
-                        <PanelLeftClose size={18} className="text-muted-foreground"/>
+                        <PanelLeftClose size={18} className="text-muted-foreground" />
                     )}
                 </button>
 
@@ -226,7 +181,9 @@ const AdminLayout = () => {
                     <div className="flex items-center gap-2">
                         {breadcrumbs.map((crumb, index) => (
                             <React.Fragment key={crumb.path}>
-                                {index > 0 && <span className="text-muted-foreground"> {'>'} </span>}
+                                {index > 0 && (
+                                    <span className="text-muted-foreground"> {'>'} </span>
+                                )}
                                 <Link
                                     to={crumb.path}
                                     className={`flex items-center gap-1 text-sm ${
@@ -242,8 +199,7 @@ const AdminLayout = () => {
                         ))}
                     </div>
                     <div className="flex items-center space-x-4">
-                        <LanguageSwitcher variant="compact"
-                                          buttonClassName="text-muted-foreground hover:text-foreground"/>
+                        <LanguageSwitcher variant="compact" buttonClassName="text-muted-foreground hover:text-foreground" />
                         <div
                             className="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center text-brand font-bold">A
                         </div>
@@ -274,14 +230,14 @@ const NavItem = ({to, icon, label, exact = false, collapsed = false}: {
             to={to}
             className={`flex items-center rounded-lg transition-all duration-300 ease-in-out ${
                 collapsed
-                    ? 'justify-center w-12 h-10 mx-auto'
-                    : 'space-x-3 px-3 py-2'
+                    ? 'justify-center w-12 h-12 mx-auto'
+                    : 'space-x-3 px-4 py-2'
             } ${
                 isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
             }`}
             title={collapsed ? label : undefined}
         >
-            {collapsed ? React.cloneElement(icon as React.ReactElement<any>, {size: 22}) : icon}
+            {collapsed ? React.cloneElement(icon as React.ReactElement<any>, { size: 28 }) : icon}
             {!collapsed && <span className="font-medium text-sm truncate">{label}</span>}
         </Link>
     );

@@ -1,20 +1,11 @@
 import React, {useState} from 'react';
 import {
-    Shield, Plus, Edit, Trash2, Key, FileCheck,
+    Shield, Plus, Edit, Trash2, Key, FileCheck, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
-import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Input} from '@/components/ui/input';
-import {Badge} from '@/components/ui/badge';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog';
+import {Dialog, DialogContent} from '@/components/ui/dialog';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -28,33 +19,49 @@ import {
 } from '@/hooks/queries';
 import {type DrmPolicy, type DrmKey, type CreateDrmPolicyRequest, type GenerateDrmKeyRequest} from '@/lib/api/drm';
 
+const StitchBadge: React.FC<{style: 'emerald' | 'slate' | 'amber' | 'red'; children: React.ReactNode; pulse?: boolean}> = ({style, children, pulse}) => {
+    const styles = {
+        emerald: 'bg-emerald-50 text-emerald-700',
+        slate: 'bg-slate-100 text-slate-600',
+        amber: 'bg-amber-50 text-amber-700',
+        red: 'bg-red-50 text-red-700',
+    };
+    const dotStyles = {
+        emerald: 'bg-emerald-500',
+        slate: 'bg-slate-400',
+        amber: 'bg-amber-500',
+        red: 'bg-red-500',
+    };
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[style]}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${dotStyles[style]}${pulse ? ' animate-pulse' : ''}`}></span>
+            {children}
+        </span>
+    );
+};
+
 export default function DRMPage() {
     const {t} = useTranslation();
+    const [activeTab, setActiveTab] = useState('policies');
+
     return (
         <div className="space-y-4 p-4 md:p-6">
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
                     <Shield className="h-6 w-6"/>{t('admin.drmManagement', 'DRM Management')}
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">{t('admin.drmManagementDesc', 'Manage DRM policies, encryption keys, and licenses')}</p>
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">{t('admin.drmManagementDesc', 'Manage DRM policies, encryption keys, and licenses')}</p>
             </div>
 
-            <Tabs defaultValue="policies">
-                <TabsList>
-                    <TabsTrigger value="policies">{t('admin.drmPolicies', 'Policies')}</TabsTrigger>
-                    <TabsTrigger value="keys">{t('admin.drmKeys', 'Keys')}</TabsTrigger>
-                    <TabsTrigger value="licenses">{t('admin.drmLicenses', 'Licenses')}</TabsTrigger>
-                </TabsList>
-                <TabsContent value="policies" className="mt-4">
-                    <PoliciesTab/>
-                </TabsContent>
-                <TabsContent value="keys" className="mt-4">
-                    <KeysTab/>
-                </TabsContent>
-                <TabsContent value="licenses" className="mt-4">
-                    <LicensesTab/>
-                </TabsContent>
-            </Tabs>
+            <div className="flex border-b border-slate-200 bg-white mb-6">
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'policies' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('policies')}>{t('admin.drmPolicies', 'Policies')}</button>
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'keys' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('keys')}>{t('admin.drmKeys', 'Keys')}</button>
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'licenses' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('licenses')}>{t('admin.drmLicenses', 'Licenses')}</button>
+            </div>
+
+            {activeTab === 'policies' && <PoliciesTab/>}
+            {activeTab === 'keys' && <KeysTab/>}
+            {activeTab === 'licenses' && <LicensesTab/>}
         </div>
     );
 }
@@ -133,59 +140,74 @@ const PoliciesTab: React.FC = () => {
 
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5"/>{t('admin.drmPolicyManagement', 'DRM Policy Management')}</CardTitle>
-                            <CardDescription>{t('admin.drmPolicyDesc', 'Define DRM protection policies for your content')}</CardDescription>
-                        </div>
-                        <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>{t('admin.addDrmPolicy', 'Add Policy')}</Button>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><Shield className="w-5 h-5"/>{t('admin.drmPolicyManagement', 'DRM Policy Management')}</h3>
+                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmPolicyDesc', 'Define DRM protection policies for your content')}</p>
                     </div>
-                </CardHeader>
-                <CardContent>
+                    <button onClick={() => setCreateDialogOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.addDrmPolicy', 'Add Policy')}</button>
+                </div>
+                <div className="p-6">
                     {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.drmPolicyName', 'Name')}</TableHead>
-                                    <TableHead>{t('admin.drmPolicyType', 'Type')}</TableHead>
-                                    <TableHead>{t('admin.drmPolicyDefault', 'Default')}</TableHead>
-                                    <TableHead>{t('admin.drmPolicyDescription', 'Description')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions', 'Actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {policies.length > 0 ? policies.map(p => (
-                                    <TableRow key={p.id}>
-                                        <TableCell className="font-medium">{p.name}</TableCell>
-                                        <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
-                                        <TableCell>{p.is_default ? <Badge variant="default">{t('admin.enabled', 'Enabled')}</Badge> : <span className="text-xs text-muted-foreground">-</span>}</TableCell>
-                                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{p.description || '-'}</TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(p)}>
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setEditingItem(p); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{t('admin.noDrmPolicies', 'No DRM policies found')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyName', 'Name')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyType', 'Type')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyDefault', 'Default')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyDescription', 'Description')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {policies.length > 0 ? policies.map(p => (
+                                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-6 py-3.5 text-sm text-slate-700 font-medium">{p.name}</td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{typeLabels[p.type] || p.type}</span>
+                                            </td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                {p.is_default ? <StitchBadge style="emerald">{t('admin.enabled', 'Enabled')}</StitchBadge> : <span className="text-xs text-slate-400">-</span>}
+                                            </td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-500 max-w-[200px] truncate">{p.description || '-'}</td>
+                                            <td className="px-6 py-3.5 text-sm text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(p)}>
+                                                        <Edit className="w-4 h-4"/>
+                                                    </button>
+                                                    <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setEditingItem(p); setDeleteDialogOpen(true); }}>
+                                                        <Trash2 className="w-4 h-4"/>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={5}>
+                                                <div className="py-16 flex flex-col items-center justify-center text-center">
+                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                                        <Shield size={32} className="text-slate-300"/>
+                                                    </div>
+                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmPolicies', 'No DRM policies found')}</h3>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader><DialogTitle>{t('admin.addDrmPolicyTitle', 'Add DRM Policy')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.addDrmPolicyTitle', 'Add DRM Policy')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyName', 'Name')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.drmPolicyName', 'Name')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyType', 'Type')}</Label>
                             <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
@@ -205,17 +227,19 @@ const PoliciesTab: React.FC = () => {
                             <Label htmlFor="create-policy-default">{t('admin.drmPolicyDefault', 'Default')}</Label>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.name}>{t('common.add', 'Add')}</Button>
-                    </DialogFooter>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleCreate} disabled={!createForm.name}>{t('common.add', 'Add')}</button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader><DialogTitle>{t('admin.editDrmPolicy', 'Edit DRM Policy')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.editDrmPolicy', 'Edit DRM Policy')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyName', 'Name')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyType', 'Type')}</Label>
                             <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
@@ -237,20 +261,23 @@ const PoliciesTab: React.FC = () => {
                             <Label htmlFor="edit-policy-default">{t('admin.drmPolicyDefault', 'Default')}</Label>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.name}>{t('common.save', 'Save')}</Button>
-                    </DialogFooter>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleUpdate} disabled={!editForm.name}>{t('common.save', 'Save')}</button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteDrmPolicyConfirm', 'Are you sure you want to delete this DRM policy?')}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete', 'Delete')}</AlertDialogAction>
-                    </AlertDialogFooter>
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteDrmPolicyConfirm', 'Are you sure you want to delete this DRM policy?')}</AlertDialogDescription>
+                    </div>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <AlertDialogCancel className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 border-0">{t('admin.delete', 'Delete')}</AlertDialogAction>
+                    </div>
                 </AlertDialogContent>
             </AlertDialog>
         </>
@@ -295,81 +322,95 @@ const KeysTab: React.FC = () => {
 
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2"><Key className="w-5 h-5"/>{t('admin.drmKeyManagement', 'DRM Key Management')}</CardTitle>
-                            <CardDescription>{t('admin.drmKeyDesc', 'Generate and manage encryption keys')}</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
-                                <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('admin.selectDrmPolicy', 'Select Policy')}/></SelectTrigger>
-                                <SelectContent>
-                                    {policies.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <Button size="sm" onClick={() => setGenerateDialogOpen(true)} disabled={!selectedPolicy}><Plus className="w-4 h-4 mr-2"/>{t('admin.generateKey', 'Generate Key')}</Button>
-                        </div>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><Key className="w-5 h-5"/>{t('admin.drmKeyManagement', 'DRM Key Management')}</h3>
+                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmKeyDesc', 'Generate and manage encryption keys')}</p>
                     </div>
-                </CardHeader>
-                <CardContent>
+                    <div className="flex items-center gap-2">
+                        <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
+                            <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('admin.selectDrmPolicy', 'Select Policy')}/></SelectTrigger>
+                            <SelectContent>
+                                {policies.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <button onClick={() => setGenerateDialogOpen(true)} disabled={!selectedPolicy} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.generateKey', 'Generate Key')}</button>
+                    </div>
+                </div>
+                <div className="p-6">
                     {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.drmKeyContentId', 'Content ID')}</TableHead>
-                                    <TableHead>{t('admin.drmKeyId', 'Key ID')}</TableHead>
-                                    <TableHead>{t('admin.drmKeyIv', 'IV')}</TableHead>
-                                    <TableHead>{t('admin.drmKeyCreatedAt', 'Created')}</TableHead>
-                                    <TableHead>{t('admin.drmKeyExpiresAt', 'Expires')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions', 'Actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {keys.length > 0 ? keys.map(k => (
-                                    <TableRow key={k.id}>
-                                        <TableCell className="font-medium"><code className="text-xs bg-muted px-1 py-0.5 rounded">{k.content_id}</code></TableCell>
-                                        <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{k.key_id.substring(0, 16)}...</code></TableCell>
-                                        <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{k.iv ? k.iv.substring(0, 16) + '...' : '-'}</code></TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">{k.created_at ? new Date(k.created_at).toLocaleDateString() : '-'}</TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">{k.expires_at ? new Date(k.expires_at).toLocaleDateString() : '-'}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingKey(k); setDeleteDialogOpen(true); }}>
-                                                <Trash2 className="w-4 h-4"/>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">{selectedPolicy ? t('admin.noDrmKeys', 'No keys found') : t('admin.selectDrmPolicyFirst', 'Select a policy first')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyContentId', 'Content ID')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyId', 'Key ID')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyIv', 'IV')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyCreatedAt', 'Created')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyExpiresAt', 'Expires')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {keys.length > 0 ? keys.map(k => (
+                                        <tr key={k.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <td className="px-6 py-3.5 text-sm text-slate-700 font-medium"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.content_id}</code></td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.key_id.substring(0, 16)}...</code></td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.iv ? k.iv.substring(0, 16) + '...' : '-'}</code></td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-500">{k.created_at ? new Date(k.created_at).toLocaleDateString() : '-'}</td>
+                                            <td className="px-6 py-3.5 text-sm text-slate-500">{k.expires_at ? new Date(k.expires_at).toLocaleDateString() : '-'}</td>
+                                            <td className="px-6 py-3.5 text-sm text-right">
+                                                <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setDeletingKey(k); setDeleteDialogOpen(true); }}>
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan={6}>
+                                                <div className="py-16 flex flex-col items-center justify-center text-center">
+                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                                        <Key size={32} className="text-slate-300"/>
+                                                    </div>
+                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{selectedPolicy ? t('admin.noDrmKeys', 'No keys found') : t('admin.selectDrmPolicyFirst', 'Select a policy first')}</h3>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-                <DialogContent className="sm:max-w-[450px]">
-                    <DialogHeader><DialogTitle>{t('admin.generateDrmKeyTitle', 'Generate DRM Key')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="sm:max-w-[450px] p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.generateDrmKeyTitle', 'Generate DRM Key')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmKeyContentId', 'Content ID')}</Label><Input value={generateForm.content_id} onChange={e => setGenerateForm({...generateForm, content_id: e.target.value})} placeholder="media-uuid"/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmKeyExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={generateForm.expires_at || ''} onChange={e => setGenerateForm({...generateForm, expires_at: e.target.value})}/></div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setGenerateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleGenerate} disabled={!generateForm.content_id}>{t('admin.generate', 'Generate')}</Button>
-                    </DialogFooter>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setGenerateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleGenerate} disabled={!generateForm.content_id}>{t('admin.generate', 'Generate')}</button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteDrmKeyConfirm', 'Are you sure you want to delete this DRM key?')}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete', 'Delete')}</AlertDialogAction>
-                    </AlertDialogFooter>
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteDrmKeyConfirm', 'Are you sure you want to delete this DRM key?')}</AlertDialogDescription>
+                    </div>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <AlertDialogCancel className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 border-0">{t('admin.delete', 'Delete')}</AlertDialogAction>
+                    </div>
                 </AlertDialogContent>
             </AlertDialog>
         </>
@@ -383,63 +424,82 @@ const LicensesTab: React.FC = () => {
 
     const licenses = licensesData?.items || [];
     const total = licensesData?.total || 0;
+    const totalPages = Math.ceil(total / 20);
 
-    const statusLabels: Record<string, {label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'}> = {
-        active: {label: t('admin.licenseActive', 'Active'), variant: 'default'},
-        expired: {label: t('admin.licenseExpired', 'Expired'), variant: 'secondary'},
-        revoked: {label: t('admin.licenseRevoked', 'Revoked'), variant: 'destructive'},
+    const statusLabels: Record<string, {label: string; style: 'emerald' | 'slate' | 'amber' | 'red'}> = {
+        active: {label: t('admin.licenseActive', 'Active'), style: 'emerald'},
+        expired: {label: t('admin.licenseExpired', 'Expired'), style: 'slate'},
+        revoked: {label: t('admin.licenseRevoked', 'Revoked'), style: 'red'},
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <div>
-                    <CardTitle className="flex items-center gap-2"><FileCheck className="w-5 h-5"/>{t('admin.drmLicenseManagement', 'DRM License Management')}</CardTitle>
-                    <CardDescription>{t('admin.drmLicenseDesc', 'View issued DRM licenses')}</CardDescription>
-                </div>
-            </CardHeader>
-            <CardContent>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100">
+                <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><FileCheck className="w-5 h-5"/>{t('admin.drmLicenseManagement', 'DRM License Management')}</h3>
+                <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmLicenseDesc', 'View issued DRM licenses')}</p>
+            </div>
+            <div className="p-6">
                 {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
                     <>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.drmLicenseKeyId', 'Key ID')}</TableHead>
-                                    <TableHead>{t('admin.drmLicenseUserId', 'User ID')}</TableHead>
-                                    <TableHead>{t('admin.drmLicenseDeviceId', 'Device ID')}</TableHead>
-                                    <TableHead>{t('admin.drmLicenseStatus', 'Status')}</TableHead>
-                                    <TableHead>{t('admin.drmLicenseIssuedAt', 'Issued')}</TableHead>
-                                    <TableHead>{t('admin.drmLicenseExpiresAt', 'Expires')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {licenses.length > 0 ? licenses.map(l => {
-                                    const statusInfo = statusLabels[l.status] || {label: l.status, variant: 'outline' as const};
-                                    return (
-                                        <TableRow key={l.id}>
-                                            <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{l.key_id.substring(0, 16)}...</code></TableCell>
-                                            <TableCell className="text-sm">{l.user_id ? <code className="text-xs bg-muted px-1 py-0.5 rounded">{l.user_id.substring(0, 8)}...</code> : '-'}</TableCell>
-                                            <TableCell className="text-sm">{l.device_id ? <code className="text-xs bg-muted px-1 py-0.5 rounded">{l.device_id.substring(0, 8)}...</code> : '-'}</TableCell>
-                                            <TableCell><Badge variant={statusInfo.variant}>{statusInfo.label}</Badge></TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{l.issued_at ? new Date(l.issued_at).toLocaleDateString() : '-'}</TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{l.expires_at ? new Date(l.expires_at).toLocaleDateString() : '-'}</TableCell>
-                                        </TableRow>
-                                    );
-                                }) : (
-                                    <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">{t('admin.noDrmLicenses', 'No licenses found')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseKeyId', 'Key ID')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseUserId', 'User ID')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseDeviceId', 'Device ID')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseStatus', 'Status')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseIssuedAt', 'Issued')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseExpiresAt', 'Expires')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {licenses.length > 0 ? licenses.map(l => {
+                                        const statusInfo = statusLabels[l.status] || {label: l.status, style: 'slate' as const};
+                                        return (
+                                            <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.key_id.substring(0, 16)}...</code></td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">{l.user_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.user_id.substring(0, 8)}...</code> : '-'}</td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">{l.device_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.device_id.substring(0, 8)}...</code> : '-'}</td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700"><StitchBadge style={statusInfo.style}>{statusInfo.label}</StitchBadge></td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-500">{l.issued_at ? new Date(l.issued_at).toLocaleDateString() : '-'}</td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-500">{l.expires_at ? new Date(l.expires_at).toLocaleDateString() : '-'}</td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan={6}>
+                                                <div className="py-16 flex flex-col items-center justify-center text-center">
+                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                                        <FileCheck size={32} className="text-slate-300"/>
+                                                    </div>
+                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmLicenses', 'No licenses found')}</h3>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                         {total > 20 && (
-                            <div className="flex items-center justify-end gap-2 mt-4">
-                                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>{t('common.prev', 'Prev')}</Button>
-                                <span className="text-sm text-muted-foreground">{page} / {Math.ceil(total / 20)}</span>
-                                <Button variant="outline" size="sm" disabled={page >= Math.ceil(total / 20)} onClick={() => setPage(p => p + 1)}>{t('common.next', 'Next')}</Button>
+                            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                                <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
+                                <div className="flex items-center gap-1">
+                                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                                        <ChevronLeft size={16}/>
+                                    </button>
+                                    {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
+                                        <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
+                                    ))}
+                                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                                        <ChevronRight size={16}/>
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 };

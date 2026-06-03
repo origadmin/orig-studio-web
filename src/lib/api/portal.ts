@@ -246,29 +246,16 @@ export interface UpdateAdRequest {
 }
 
 export interface PortalConfig {
-    modules: {
-        articles: boolean;
-        videos: boolean;
-        music: boolean;
+    navigation: {
+        items: NavItem[];
+        visible_count: number;
     };
-    layout: 'video' | 'article' | 'mixed' | 'welcome' | 'doc';
-    site: {
-        site_name: string;
-        site_description: string;
-        allow_registration: boolean;
-        allow_upload: boolean;
-        primary_url?: string;
-        allowed_urls?: string[];
-    };
-    navigation: NavItem[];
     banners: Banner[];
-    categories: {
-        id: number;
+    featured_users: FeaturedUser[];
+    site: {
         name: string;
-        slug: string;
-        order: number;
-    }[];
-    pages: CustomPage[];
+        default_lang: string;
+    };
     features: Record<string, boolean>;
 }
 

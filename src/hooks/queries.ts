@@ -6,13 +6,15 @@ import {channelApi, type Channel, type ChannelDetail, type ChannelLimits} from '
 import {userApi, type PublicProfile} from '@/lib/api/user';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
-import {adminDrmApi} from '@/lib/api/drm';
 import {reviewApi} from '@/lib/api/review';
 import {adminCommentApi} from '@/lib/api/comment';
 import {configApi, type SettingCategory} from '@/lib/api/config';
 import {adminPermissionApi} from '@/lib/api/permission';
+import {adminDrmApi} from '@/lib/api/drm';
 import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
 import {adminLiveApi, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
+import {adminPromotionApi, type CreatePromotionChannelRequest, type CreatePromotionTemplateRequest, type CreatePromotionTaskRequest, type UpdatePromotionChannelRequest, type UpdatePromotionTemplateRequest} from '@/lib/api/promotion';
+import {adminAdsApi, type CreateAdCampaignRequest, type CreateAdSlotRequest, type UpdateAdCampaignRequest, type UpdateAdSlotRequest} from '@/lib/api/ads';
 import {spriteApi} from '@/lib/api/sprite';
 import {favoriteApi} from '@/lib/api/favorite';
 import {PAGINATION_CONFIG} from '@/config/pagination';
@@ -169,18 +171,18 @@ export function useAdminMediaList(params: {
 }
 
 /**
- * useMediaDetail: Fetch single media details (Legacy - uses short_token)
+ * useMediaDetail: Fetch single media details (Legacy - uses ID or short_token)
  */
-export function useMediaDetail(token: string | null) {
-    // 清理 token：移除任何引号、空格
-    const cleanToken = token ? String(token).replace(/["']/g, '').trim() : null;
+export function useMediaDetail(id: string | null) {
+    // 彻底清理 id：移除任何引号、空格，并确保是纯数字字符串
+    const cleanId = id ? String(id).replace(/["']/g, '').trim() : null;
     return useQuery({
-        queryKey: mediaKeys.detail(cleanToken!),
+        queryKey: mediaKeys.detail(cleanId!),
         queryFn: async () => {
-            const res = await mediaApi.get(cleanToken!);
+            const res = await mediaApi.get(cleanId!);
             return normalizeMedia(res);
         },
-        enabled: !!cleanToken,
+        enabled: !!cleanId,
     });
 }
 
@@ -876,17 +878,17 @@ export function useUpdatePermission() {
 // ==================== Sprite Hooks ====================
 
 /**
- * useSpriteList: Get sprite URLs for a media item (by short_token)
+ * useSpriteList: Get sprite URLs for a media item
  */
-export function useSpriteList(shortToken: string | null) {
+export function useSpriteList(mediaId: string | null) {
     return useQuery({
-        queryKey: ['sprite', shortToken],
+        queryKey: ['sprite', mediaId],
         queryFn: async () => {
-            const vttUrl = spriteApi.getVttUrl(shortToken!);
-            const spriteUrl = spriteApi.getSpriteUrl(shortToken!);
+            const vttUrl = spriteApi.getVttUrl(mediaId!);
+            const spriteUrl = spriteApi.getSpriteUrl(mediaId!);
             return {vttUrl, spriteUrl};
         },
-        enabled: !!shortToken,
+        enabled: !!mediaId,
     });
 }
 
@@ -1287,6 +1289,214 @@ export function useEndLiveRoom() {
         mutationFn: (id: string) => adminLiveApi.end(id),
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'liveRooms']});
+        },
+    });
+}
+
+// ==================== Promotion Hooks ====================
+
+export function useAdminPromotionChannels(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'promotionChannels', params],
+        queryFn: async () => {
+            const res = await adminPromotionApi.listChannels(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useCreatePromotionChannel() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreatePromotionChannelRequest) => adminPromotionApi.createChannel(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionChannels']});
+        },
+    });
+}
+
+export function useUpdatePromotionChannel() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdatePromotionChannelRequest}) =>
+            adminPromotionApi.updateChannel(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionChannels']});
+        },
+    });
+}
+
+export function useDeletePromotionChannel() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPromotionApi.deleteChannel(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionChannels']});
+        },
+    });
+}
+
+export function useAdminPromotionTemplates() {
+    return useQuery({
+        queryKey: ['admin', 'promotionTemplates'],
+        queryFn: async () => {
+            const res = await adminPromotionApi.listTemplates();
+            return res;
+        },
+    });
+}
+
+export function useCreatePromotionTemplate() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreatePromotionTemplateRequest) => adminPromotionApi.createTemplate(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionTemplates']});
+        },
+    });
+}
+
+export function useUpdatePromotionTemplate() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdatePromotionTemplateRequest}) =>
+            adminPromotionApi.updateTemplate(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionTemplates']});
+        },
+    });
+}
+
+export function useDeletePromotionTemplate() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPromotionApi.deleteTemplate(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionTemplates']});
+        },
+    });
+}
+
+export function useAdminPromotionTasks(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'promotionTasks', params],
+        queryFn: async () => {
+            const res = await adminPromotionApi.listTasks(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useCreatePromotionTask() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreatePromotionTaskRequest) => adminPromotionApi.createTask(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionTasks']});
+        },
+    });
+}
+
+export function useDeletePromotionTask() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminPromotionApi.deleteTask(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'promotionTasks']});
+        },
+    });
+}
+
+export function useAdminPromotionLogs(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'promotionLogs', params],
+        queryFn: async () => {
+            const res = await adminPromotionApi.listLogs(undefined, params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+// ==================== Ads Hooks ====================
+
+export function useAdminAdCampaigns(params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['admin', 'adCampaigns', params],
+        queryFn: async () => {
+            const res = await adminAdsApi.listCampaigns(params?.page, params?.page_size);
+            return res;
+        },
+    });
+}
+
+export function useCreateAdCampaign() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreateAdCampaignRequest) => adminAdsApi.createCampaign(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
+        },
+    });
+}
+
+export function useUpdateAdCampaign() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdateAdCampaignRequest}) =>
+            adminAdsApi.updateCampaign(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
+        },
+    });
+}
+
+export function useDeleteAdCampaign() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminAdsApi.deleteCampaign(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
+        },
+    });
+}
+
+export function useAdminAdSlots() {
+    return useQuery({
+        queryKey: ['admin', 'adSlots'],
+        queryFn: async () => {
+            const res = await adminAdsApi.listSlots();
+            return res;
+        },
+    });
+}
+
+export function useCreateAdSlot() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: CreateAdSlotRequest) => adminAdsApi.createSlot(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
+        },
+    });
+}
+
+export function useUpdateAdSlot() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({id, data}: {id: string; data: UpdateAdSlotRequest}) =>
+            adminAdsApi.updateSlot(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
+        },
+    });
+}
+
+export function useDeleteAdSlot() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: string) => adminAdsApi.deleteSlot(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
         },
     });
 }

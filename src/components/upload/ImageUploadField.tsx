@@ -27,7 +27,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
         try {
             const result = await mediaApi.upload(file, {
                 title: file.name.replace(/\.[^.]+$/, ''),
-            }, (percent) => {
+            }, (percent: number) => {
                 setProgress(percent);
             });
             const media = result.data;

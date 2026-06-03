@@ -2,11 +2,18 @@ import React, {createContext, useContext, useMemo} from 'react';
 import {usePortalConfig} from '@/hooks/queries';
 
 interface FeatureFlags {
+    // CE features (always available)
     multiTenant: boolean;
     auditLog: boolean;
     advancedRBAC: boolean;
     reviewWorkflow: boolean;
     enterpriseNotification: boolean;
+    // EE features (controlled by feature flags)
+    drm: boolean;
+    liveRooms: boolean;
+    payment: boolean;
+    promotion: boolean;
+    ads: boolean;
     [key: string]: boolean;
 }
 
@@ -16,6 +23,11 @@ const defaultFeatures: FeatureFlags = {
     advancedRBAC: false,
     reviewWorkflow: false,
     enterpriseNotification: false,
+    drm: false,
+    liveRooms: false,
+    payment: false,
+    promotion: false,
+    ads: false,
 };
 
 const FeatureFlagsContext = createContext<FeatureFlags>(defaultFeatures);

@@ -39,6 +39,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from "./routes/_authentic
 import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_authenticated/admin/transcoding";
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
 import { Route as AuthenticatedAdminSettingsRouteImport } from "./routes/_authenticated/admin/settings";
+import { Route as AuthenticatedAdminPromotionRouteImport } from "./routes/_authenticated/admin/promotion";
 import { Route as AuthenticatedAdminPortalRouteImport } from "./routes/_authenticated/admin/portal";
 import { Route as AuthenticatedAdminPlaylistsRouteImport } from "./routes/_authenticated/admin/playlists";
 import { Route as AuthenticatedAdminPermissionsRouteImport } from "./routes/_authenticated/admin/permissions";
@@ -49,6 +50,7 @@ import { Route as AuthenticatedAdminDrmRouteImport } from "./routes/_authenticat
 import { Route as AuthenticatedAdminCommentsRouteImport } from "./routes/_authenticated/admin/comments";
 import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authenticated/admin/channels";
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
+import { Route as AuthenticatedAdminAdsRouteImport } from "./routes/_authenticated/admin/ads";
 import { Route as AuthenticatedPortalSubscriptionsRouteImport } from "./routes/_authenticated/_portal/subscriptions";
 import { Route as AuthenticatedPortalMeRouteImport } from "./routes/_authenticated/_portal/me";
 import { Route as AuthenticatedAdminMediaRouteRouteImport } from "./routes/_authenticated/admin/media/route";
@@ -226,6 +228,12 @@ const AuthenticatedAdminSettingsRoute =
     path: "/settings",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
+const AuthenticatedAdminPromotionRoute =
+  AuthenticatedAdminPromotionRouteImport.update({
+    id: "/promotion",
+    path: "/promotion",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminPortalRoute =
   AuthenticatedAdminPortalRouteImport.update({
     id: "/portal",
@@ -285,6 +293,11 @@ const AuthenticatedAdminCategoriesRoute =
     path: "/categories",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
+const AuthenticatedAdminAdsRoute = AuthenticatedAdminAdsRouteImport.update({
+  id: "/ads",
+  path: "/ads",
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any);
 const AuthenticatedPortalSubscriptionsRoute =
   AuthenticatedPortalSubscriptionsRouteImport.update({
     id: "/subscriptions",
@@ -470,6 +483,7 @@ export interface FileRoutesByFullPath {
   "/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
   "/me": typeof AuthenticatedPortalMeRouteWithChildren;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
+  "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
@@ -480,6 +494,7 @@ export interface FileRoutesByFullPath {
   "/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
+  "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
@@ -532,6 +547,7 @@ export interface FileRoutesByTo {
   "/auth/signup": typeof AuthSignupRoute;
   "/me": typeof AuthenticatedPortalMeRouteWithChildren;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
+  "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
@@ -542,6 +558,7 @@ export interface FileRoutesByTo {
   "/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
+  "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
@@ -601,6 +618,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
   "/_authenticated/_portal/me": typeof AuthenticatedPortalMeRouteWithChildren;
   "/_authenticated/_portal/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
+  "/_authenticated/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/_authenticated/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/_authenticated/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/_authenticated/admin/comments": typeof AuthenticatedAdminCommentsRoute;
@@ -611,6 +629,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/permissions": typeof AuthenticatedAdminPermissionsRoute;
   "/_authenticated/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/_authenticated/admin/portal": typeof AuthenticatedAdminPortalRoute;
+  "/_authenticated/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/_authenticated/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/_authenticated/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
@@ -669,6 +688,7 @@ export interface FileRouteTypes {
     | "/admin/media"
     | "/me"
     | "/subscriptions"
+    | "/admin/ads"
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
@@ -679,6 +699,7 @@ export interface FileRouteTypes {
     | "/admin/permissions"
     | "/admin/playlists"
     | "/admin/portal"
+    | "/admin/promotion"
     | "/admin/settings"
     | "/admin/tags"
     | "/admin/transcoding"
@@ -731,6 +752,7 @@ export interface FileRouteTypes {
     | "/auth/signup"
     | "/me"
     | "/subscriptions"
+    | "/admin/ads"
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
@@ -741,6 +763,7 @@ export interface FileRouteTypes {
     | "/admin/permissions"
     | "/admin/playlists"
     | "/admin/portal"
+    | "/admin/promotion"
     | "/admin/settings"
     | "/admin/tags"
     | "/admin/transcoding"
@@ -799,6 +822,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/media"
     | "/_authenticated/_portal/me"
     | "/_authenticated/_portal/subscriptions"
+    | "/_authenticated/admin/ads"
     | "/_authenticated/admin/categories"
     | "/_authenticated/admin/channels"
     | "/_authenticated/admin/comments"
@@ -809,6 +833,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/permissions"
     | "/_authenticated/admin/playlists"
     | "/_authenticated/admin/portal"
+    | "/_authenticated/admin/promotion"
     | "/_authenticated/admin/settings"
     | "/_authenticated/admin/tags"
     | "/_authenticated/admin/transcoding"
@@ -1062,6 +1087,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
+    "/_authenticated/admin/promotion": {
+      id: "/_authenticated/admin/promotion";
+      path: "/promotion";
+      fullPath: "/admin/promotion";
+      preLoaderRoute: typeof AuthenticatedAdminPromotionRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
     "/_authenticated/admin/portal": {
       id: "/_authenticated/admin/portal";
       path: "/portal";
@@ -1130,6 +1162,13 @@ declare module "@tanstack/react-router" {
       path: "/categories";
       fullPath: "/admin/categories";
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/ads": {
+      id: "/_authenticated/admin/ads";
+      path: "/ads";
+      fullPath: "/admin/ads";
+      preLoaderRoute: typeof AuthenticatedAdminAdsRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/_portal/subscriptions": {
@@ -1516,6 +1555,7 @@ const AuthenticatedAdminTranscodingRouteWithChildren =
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminArticlesRouteRoute: typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   AuthenticatedAdminMediaRouteRoute: typeof AuthenticatedAdminMediaRouteRouteWithChildren;
+  AuthenticatedAdminAdsRoute: typeof AuthenticatedAdminAdsRoute;
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute;
   AuthenticatedAdminChannelsRoute: typeof AuthenticatedAdminChannelsRoute;
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute;
@@ -1526,6 +1566,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPermissionsRoute: typeof AuthenticatedAdminPermissionsRoute;
   AuthenticatedAdminPlaylistsRoute: typeof AuthenticatedAdminPlaylistsRoute;
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute;
+  AuthenticatedAdminPromotionRoute: typeof AuthenticatedAdminPromotionRoute;
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute;
   AuthenticatedAdminTagsRoute: typeof AuthenticatedAdminTagsRoute;
   AuthenticatedAdminTranscodingRoute: typeof AuthenticatedAdminTranscodingRouteWithChildren;
@@ -1538,6 +1579,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminArticlesRouteRouteWithChildren,
   AuthenticatedAdminMediaRouteRoute:
     AuthenticatedAdminMediaRouteRouteWithChildren,
+  AuthenticatedAdminAdsRoute: AuthenticatedAdminAdsRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminChannelsRoute: AuthenticatedAdminChannelsRoute,
   AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
@@ -1548,6 +1590,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPermissionsRoute: AuthenticatedAdminPermissionsRoute,
   AuthenticatedAdminPlaylistsRoute: AuthenticatedAdminPlaylistsRoute,
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
+  AuthenticatedAdminPromotionRoute: AuthenticatedAdminPromotionRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminTagsRoute: AuthenticatedAdminTagsRoute,
   AuthenticatedAdminTranscodingRoute:

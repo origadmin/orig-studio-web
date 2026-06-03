@@ -1,13 +1,9 @@
 import React, {useState} from 'react';
-import {Plus, Edit, Trash2, Play, Square, Radio} from 'lucide-react';
+import {Plus, Edit, Trash2, Play, Square, Radio, ChevronLeft, ChevronRight} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
-import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Input} from '@/components/ui/input';
-import {Badge} from '@/components/ui/badge';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
+import {Dialog, DialogContent} from '@/components/ui/dialog';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -24,12 +20,33 @@ import {
 } from '@/hooks/queries';
 import {type LiveRoom, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
 
-const statusConfig: Record<string, {label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive'}> = {
-    idle: {label: 'Idle', variant: 'secondary'},
-    preparing: {label: 'Preparing', variant: 'outline'},
-    live: {label: 'Live', variant: 'default'},
-    ended: {label: 'Ended', variant: 'secondary'},
-    offline: {label: 'Offline', variant: 'outline'},
+const statusConfig: Record<string, {label: string; style: 'emerald' | 'slate' | 'amber' | 'red'}> = {
+    idle: {label: 'Idle', style: 'slate'},
+    preparing: {label: 'Preparing', style: 'amber'},
+    live: {label: 'Live', style: 'emerald'},
+    ended: {label: 'Ended', style: 'slate'},
+    offline: {label: 'Offline', style: 'slate'},
+};
+
+const StitchBadge: React.FC<{style: 'emerald' | 'slate' | 'amber' | 'red'; children: React.ReactNode; pulse?: boolean}> = ({style, children, pulse}) => {
+    const styles = {
+        emerald: 'bg-emerald-50 text-emerald-700',
+        slate: 'bg-slate-100 text-slate-600',
+        amber: 'bg-amber-50 text-amber-700',
+        red: 'bg-red-50 text-red-700',
+    };
+    const dotStyles = {
+        emerald: 'bg-emerald-500',
+        slate: 'bg-slate-400',
+        amber: 'bg-amber-500',
+        red: 'bg-red-500',
+    };
+    return (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[style]}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${dotStyles[style]}${pulse ? ' animate-pulse' : ''}`}></span>
+            {children}
+        </span>
+    );
 };
 
 export default function LiveRoomsPage() {
@@ -37,10 +54,10 @@ export default function LiveRoomsPage() {
     return (
         <div className="space-y-4 p-4 md:p-6">
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
+                <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
                     <Radio className="h-6 w-6"/>{t('admin.liveRooms', 'Live Rooms')}
-                </h1>
-                <p className="text-muted-foreground text-sm mt-1">{t('admin.liveRoomsDesc', 'Manage live streaming rooms')}</p>
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">{t('admin.liveRoomsDesc', 'Manage live streaming rooms')}</p>
             </div>
             <LiveRoomsTab/>
         </div>
@@ -70,6 +87,7 @@ const LiveRoomsTab: React.FC = () => {
 
     const rooms = liveRoomsData?.items || [];
     const total = liveRoomsData?.total || 0;
+    const totalPages = Math.ceil(total / 20);
 
     const handleCreate = async () => {
         try {
@@ -134,116 +152,126 @@ const LiveRoomsTab: React.FC = () => {
 
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2">
-                                <Radio className="w-5 h-5"/>
-                                {t('admin.liveRoomManagement', 'Live Room Management')}
-                            </CardTitle>
-                            <CardDescription>{t('admin.liveRoomManagementDesc', 'Create and manage live streaming rooms')}</CardDescription>
-                        </div>
-                        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-                            <Plus className="w-4 h-4 mr-2"/>{t('admin.addLiveRoom', 'Add Room')}
-                        </Button>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                            <Radio className="w-5 h-5"/>
+                            {t('admin.liveRoomManagement', 'Live Room Management')}
+                        </h3>
+                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.liveRoomManagementDesc', 'Create and manage live streaming rooms')}</p>
                     </div>
-                </CardHeader>
-                <CardContent>
+                    <button onClick={() => setCreateDialogOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm">
+                        <Plus className="w-4 h-4 mr-2 inline"/>{t('admin.addLiveRoom', 'Add Room')}
+                    </button>
+                </div>
+                <div className="p-6">
                     {isLoading ? (
                         <div className="py-12 text-center"><Spinner className="mx-auto"/></div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.liveRoomTitle', 'Title')}</TableHead>
-                                    <TableHead>{t('admin.liveRoomCategory', 'Category')}</TableHead>
-                                    <TableHead>{t('admin.liveRoomStatus', 'Status')}</TableHead>
-                                    <TableHead>{t('admin.liveRoomViewers', 'Viewers')}</TableHead>
-                                    <TableHead>{t('admin.liveRoomCreatedAt', 'Created')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions', 'Actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {rooms.length > 0 ? rooms.map(room => {
-                                    const sc = statusConfig[room.status] || statusConfig.idle;
-                                    return (
-                                        <TableRow key={room.id}>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    {room.thumbnail && (
-                                                        <img src={room.thumbnail} alt="" className="w-8 h-8 rounded object-cover"/>
-                                                    )}
-                                                    <span className="font-medium">{room.title}</span>
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.liveRoomTitle', 'Title')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.liveRoomCategory', 'Category')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.liveRoomStatus', 'Status')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.liveRoomViewers', 'Viewers')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.liveRoomCreatedAt', 'Created')}</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {rooms.length > 0 ? rooms.map(room => {
+                                        const sc = statusConfig[room.status] || statusConfig.idle;
+                                        return (
+                                            <tr key={room.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                    <div className="flex items-center gap-2">
+                                                        {room.thumbnail && (
+                                                            <img src={room.thumbnail} alt="" className="w-8 h-8 rounded object-cover"/>
+                                                        )}
+                                                        <span className="font-medium">{room.title}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                    {room.category ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{room.category}</span>
+                                                    ) : <span className="text-slate-400">-</span>}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                    <StitchBadge style={sc.style} pulse={room.status === 'preparing'}>{sc.label}</StitchBadge>
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-700">
+                                                    {room.current_viewers}/{room.max_viewers || '∞'}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-slate-500">
+                                                    {new Date(room.create_time).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-3.5 text-sm text-right">
+                                                    <div className="flex items-center justify-end gap-1">
+                                                        {room.status !== 'live' && room.status !== 'ended' && (
+                                                            <button onClick={() => handleStart(room.id)} title="Start" className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-slate-100 rounded-lg">
+                                                                <Play className="w-4 h-4"/>
+                                                            </button>
+                                                        )}
+                                                        {room.status === 'live' && (
+                                                            <button onClick={() => handleEnd(room.id)} title="End" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg">
+                                                                <Square className="w-4 h-4"/>
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => openEditDialog(room)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg">
+                                                            <Edit className="w-4 h-4"/>
+                                                        </button>
+                                                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg"
+                                                            onClick={() => { setDeletingRoom(room); setDeleteDialogOpen(true); }}>
+                                                            <Trash2 className="w-4 h-4"/>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr>
+                                            <td colSpan={6}>
+                                                <div className="py-16 flex flex-col items-center justify-center text-center">
+                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                                        <Radio size={32} className="text-slate-300"/>
+                                                    </div>
+                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noLiveRooms', 'No live rooms found')}</h3>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell>
-                                                {room.category ? <Badge variant="outline">{room.category}</Badge> : <span className="text-muted-foreground">-</span>}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={sc.variant}>{sc.label}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                {room.current_viewers}/{room.max_viewers || '∞'}
-                                            </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">
-                                                {new Date(room.create_time).toLocaleDateString()}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    {room.status !== 'live' && room.status !== 'ended' && (
-                                                        <Button variant="ghost" size="icon-sm" onClick={() => handleStart(room.id)} title="Start">
-                                                            <Play className="w-4 h-4 text-green-600"/>
-                                                        </Button>
-                                                    )}
-                                                    {room.status === 'live' && (
-                                                        <Button variant="ghost" size="icon-sm" onClick={() => handleEnd(room.id)} title="End">
-                                                            <Square className="w-4 h-4 text-red-600"/>
-                                                        </Button>
-                                                    )}
-                                                    <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(room)}>
-                                                        <Edit className="w-4 h-4"/>
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon-sm" className="text-destructive"
-                                                        onClick={() => { setDeletingRoom(room); setDeleteDialogOpen(true); }}>
-                                                        <Trash2 className="w-4 h-4"/>
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                }) : (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                                            {t('admin.noLiveRooms', 'No live rooms found')}
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                     {total > 20 && (
-                        <div className="flex items-center justify-between mt-4">
-                            <span className="text-sm text-muted-foreground">{t('admin.total', 'Total')}: {total}</span>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                                    {t('common.prev', 'Previous')}
-                                </Button>
-                                <Button variant="outline" size="sm" disabled={page * 20 >= total} onClick={() => setPage(p => p + 1)}>
-                                    {t('common.next', 'Next')}
-                                </Button>
+                        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                            <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
+                            <div className="flex items-center gap-1">
+                                <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                                    <ChevronLeft size={16}/>
+                                </button>
+                                {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
+                                    <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
+                                ))}
+                                <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                                    <ChevronRight size={16}/>
+                                </button>
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.createLiveRoom', 'Create Live Room')}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.createLiveRoom', 'Create Live Room')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.liveRoomTitle', 'Title')}</Label>
                             <Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder="Live Room Title"/>
@@ -276,19 +304,19 @@ const LiveRoomsTab: React.FC = () => {
                             <Input value={createForm.hls_url || ''} onChange={e => setCreateForm({...createForm, hls_url: e.target.value})} placeholder="https://.../stream.m3u8"/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title}>{t('common.add', 'Add')}</Button>
-                    </DialogFooter>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleCreate} disabled={!createForm.title}>{t('common.add', 'Add')}</button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editLiveRoom', 'Edit Live Room')}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.editLiveRoom', 'Edit Live Room')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.liveRoomTitle', 'Title')}</Label>
                             <Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/>
@@ -321,27 +349,27 @@ const LiveRoomsTab: React.FC = () => {
                             <Input value={editForm.hls_url} onChange={e => setEditForm({...editForm, hls_url: e.target.value})}/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.title}>{t('common.save', 'Save')}</Button>
-                    </DialogFooter>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleUpdate} disabled={!editForm.title}>{t('common.save', 'Save')}</button>
+                    </div>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
-                        <AlertDialogDescription>
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">
                             {t('admin.deleteLiveRoomConfirm', 'Are you sure you want to delete this live room?', {title: deletingRoom?.title})}
                         </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                    </div>
+                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                        <AlertDialogCancel className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 border-0">
                             {t('admin.delete', 'Delete')}
                         </AlertDialogAction>
-                    </AlertDialogFooter>
+                    </div>
                 </AlertDialogContent>
             </AlertDialog>
         </>

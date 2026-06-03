@@ -382,6 +382,13 @@ async function fetchApi<T>(
     method: Method = "GET",
     options: RequestOptions = {}
 ): Promise<T> {
+    // Mock mode interception — return fake data without hitting network
+    const {mockFetch} = await import('./mock');
+    const mockResult = await mockFetch<T>(url, method, options.body);
+    if (mockResult !== null) {
+        return mockResult;
+    }
+
     const request = getRequest();
 
     // Normalize pagination params before sending request
