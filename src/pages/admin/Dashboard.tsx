@@ -4,25 +4,21 @@ import {
     Film,
     Users,
     Eye,
-    Heart,
-    BarChart3,
+    MessageSquare,
     TrendingUp,
     TrendingDown,
-    Minus,
-    MessageCircle,
-    DollarSign
+    Download,
+    RefreshCw,
+    BarChart3,
 } from 'lucide-react';
-import {Button} from '@/components/ui/button';
 import {useTranslation} from 'react-i18next';
 import {useQuery} from '@tanstack/react-query';
-import {statsApi, DashboardStats} from '@/lib/api/stats';
-import {Link} from '@tanstack/react-router';
-import {Card, CardContent} from '@/components/ui/card';
+import {statsApi, type DashboardStats} from '@/lib/api/stats';
 
 const Dashboard = () => {
     const {t} = useTranslation();
 
-    const {data, isLoading, error} = useQuery({
+    const {data, isLoading, error, refetch} = useQuery({
         queryKey: ['admin', 'stats'],
         queryFn: async () => {
             return await statsApi.getDashboard();
@@ -39,7 +35,7 @@ const Dashboard = () => {
 
     if (error) {
         return (
-            <div className="text-center py-20 text-muted-foreground">
+            <div className="p-8 text-center py-20 text-slate-500">
                 <p className="text-lg mb-1">{t('common.loading')}</p>
                 <p className="text-sm">{(error as Error).message}</p>
             </div>
@@ -78,340 +74,259 @@ const Dashboard = () => {
         return num.toString();
     };
 
+    const mediaTypeTotal = stats.media_by_type?.video + stats.media_by_type?.image + stats.media_by_type?.audio + stats.media_by_type?.other || 1;
+    const usersTotal = stats.total_users || 1;
+
     return (
-        <div className="space-y-6 p-4 md:p-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-8">
+            {/* Page Title Area */}
+            <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-[28px] font-semibold leading-9 text-foreground">{t('admin.dashboard')}</h1>
-                    <p className="text-sm text-muted-foreground mt-1">{t('admin.dashboardDesc')}</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.dashboard')}</h2>
+                    <p className="text-sm text-slate-500 mt-1">{t('admin.dashboardDesc')}</p>
                 </div>
-                <div className="flex gap-3">
-                    <Button
-                        variant="outline"
-                        className="px-5 py-2 rounded-xl text-sm font-semibold"
+                <div className="flex items-center gap-2">
+                    <button className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                        <Download className="w-4 h-4"/>
+                        {t('admin.exportReport', 'Export PDF')}
+                    </button>
+                    <button
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+                        onClick={() => refetch()}
                     >
-                        {t('admin.exportReport')}
-                    </Button>
-                    <Link to="/admin/articles">
-                        <Button
-                            variant="default"
-                            className="px-5 py-2 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-                        >
-                            {t('admin.manageArticles')}
-                        </Button>
-                    </Link>
+                        <RefreshCw className="w-4 h-4"/>
+                        {t('admin.syncData', 'Sync Data')}
+                    </button>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatCard
-                    icon={<Film className="h-6 w-6"/>}
-                    label={t('admin.totalMedia')}
-                    value={formatNumber(stats.total_media)}
-                    trend={`+${stats.new_media_today} today`}
-                    trendUp={stats.new_media_today > 0}
-                    color="sky"
-                />
-                <StatCard
-                    icon={<Users className="h-6 w-6"/>}
-                    label={t('admin.totalUsers')}
-                    value={formatNumber(stats.total_users)}
-                    trend={`+${stats.new_users_today} today`}
-                    trendUp={stats.new_users_today > 0}
-                    color="emerald"
-                />
-                <StatCard
-                    icon={<Eye className="h-6 w-6"/>}
-                    label={t('admin.totalViews')}
-                    value={formatNumber(stats.total_views)}
-                    trend={`+${formatNumber(stats.new_views_today)} today`}
-                    trendUp={stats.new_views_today > 0}
-                    color="purple"
-                />
-                <StatCard
-                    icon={<MessageCircle className="h-6 w-6"/>}
-                    label={t('admin.totalComments')}
-                    value={formatNumber(stats.total_comments)}
-                    trend={`+${stats.new_comments_today} today`}
-                    trendUp={stats.new_comments_today > 0}
-                    color="red"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Total Media */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalMedia')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(stats.total_media)}</h3>
+                            <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                {stats.new_media_today > 0 ? <TrendingUp className="w-3 h-3"/> : <TrendingDown className="w-3 h-3"/>}
+                                +{stats.new_media_today} vs last month
+                            </p>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Film className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Total Users */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalUsers')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(stats.total_users)}</h3>
+                            <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                {stats.new_users_today > 0 ? <TrendingUp className="w-3 h-3"/> : <TrendingDown className="w-3 h-3"/>}
+                                +{stats.new_users_today} vs last month
+                            </p>
+                        </div>
+                        <div className="w-11 h-11 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center group-hover:bg-sky-600 group-hover:text-white transition-colors">
+                            <Users className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Total Views */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalViews')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(stats.total_views)}</h3>
+                            <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                {stats.new_views_today > 0 ? <TrendingUp className="w-3 h-3"/> : <TrendingDown className="w-3 h-3"/>}
+                                +{formatNumber(stats.new_views_today)} vs last month
+                            </p>
+                        </div>
+                        <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <Eye className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Comments */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalComments')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(stats.total_comments)}</h3>
+                            <p className={`text-xs font-semibold mt-2 flex items-center gap-1 ${stats.new_comments_today > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                {stats.new_comments_today > 0 ? <TrendingUp className="w-3 h-3"/> : <TrendingDown className="w-3 h-3"/>}
+                                {stats.new_comments_today > 0 ? '+' : ''}{stats.new_comments_today} vs last month
+                            </p>
+                        </div>
+                        <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <MessageSquare className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Secondary Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <StatCard
-                    icon={<Heart className="h-6 w-6"/>}
-                    label={t('admin.totalSubscribers')}
-                    value={formatNumber(stats.total_subscribers)}
-                    trend={`+${stats.new_subscribers_today} today`}
-                    trendUp={stats.new_subscribers_today > 0}
-                    color="pink"
-                    small
-                />
-                <StatCard
-                    icon={<DollarSign className="h-6 w-6"/>}
-                    label={t('admin.totalRevenue')}
-                    value={`$${formatNumber(stats.total_revenue)}`}
-                    trend="+12% this month"
-                    trendUp={true}
-                    color="amber"
-                    small
-                />
-                <StatCard
-                    icon={<Users className="h-6 w-6"/>}
-                    label={t('admin.activeUsers')}
-                    value={formatNumber(stats.active_users)}
-                    trend="Currently online"
-                    trendUp={true}
-                    color="cyan"
-                    small
-                />
+            {/* Middle Row: Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                {/* Content Type Distribution */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="text-base font-semibold text-slate-800 mb-6">{t('admin.mediaByType', 'Content Type Distribution')}</h4>
+                    <div className="flex items-center justify-center h-48 relative">
+                        <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 160 160">
+                            <circle className="text-slate-100" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" strokeWidth="12"/>
+                            <circle className="text-indigo-600" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor"
+                                    strokeDasharray={440}
+                                    strokeDashoffset={440 - 440 * (stats.media_by_type?.video / mediaTypeTotal)}
+                                    strokeWidth="12"/>
+                            <circle className="text-sky-400" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor"
+                                    strokeDasharray={440}
+                                    strokeDashoffset={440 - 440 * (stats.media_by_type?.image / mediaTypeTotal)}
+                                    strokeWidth="12"/>
+                        </svg>
+                        <div className="absolute flex flex-col items-center">
+                            <span className="text-2xl font-bold text-slate-800">{formatNumber(stats.total_media)}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Items</span>
+                        </div>
+                    </div>
+                    <div className="mt-6 space-y-2">
+                        <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-sm text-slate-600">
+                                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>Videos
+                            </span>
+                            <span className="font-mono text-xs text-slate-500">{mediaTypeTotal > 0 ? Math.round((stats.media_by_type?.video / mediaTypeTotal) * 100) : 0}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-sm text-slate-600">
+                                <span className="w-2.5 h-2.5 rounded-full bg-sky-400"></span>Images
+                            </span>
+                            <span className="font-mono text-xs text-slate-500">{mediaTypeTotal > 0 ? Math.round((stats.media_by_type?.image / mediaTypeTotal) * 100) : 0}%</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="flex items-center gap-2 text-sm text-slate-600">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>Audio
+                            </span>
+                            <span className="font-mono text-xs text-slate-500">{mediaTypeTotal > 0 ? Math.round((stats.media_by_type?.audio / mediaTypeTotal) * 100) : 0}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* User Role Distribution */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="text-base font-semibold text-slate-800 mb-6">{t('admin.usersByRole', 'User Role Distribution')}</h4>
+                    <div className="flex items-center justify-center h-48">
+                        <div className="relative w-40 h-40 rounded-full overflow-hidden flex items-center justify-center">
+                            <div className="absolute inset-0 bg-indigo-600 opacity-20" style={{clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos(-Math.PI/2 + 2*Math.PI*(stats.users_by_role?.admin/usersTotal))}% ${50 - 50 * Math.sin(-Math.PI/2 + 2*Math.PI*(stats.users_by_role?.admin/usersTotal))}%, ${50 + 50 * Math.cos(-Math.PI/2 + 2*Math.PI*((stats.users_by_role?.admin + stats.users_by_role?.editor)/usersTotal))}% ${50 - 50 * Math.sin(-Math.PI/2 + 2*Math.PI*((stats.users_by_role?.admin + stats.users_by_role?.editor)/usersTotal))}%, 100% 50%)`}}></div>
+                            <div className="absolute inset-0 bg-sky-400 opacity-40" style={{clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos(-Math.PI/2 + 2*Math.PI*((stats.users_by_role?.admin + stats.users_by_role?.editor)/usersTotal))}% ${50 - 50 * Math.sin(-Math.PI/2 + 2*Math.PI*((stats.users_by_role?.admin + stats.users_by_role?.editor)/usersTotal))}%, 100% 100%, 0% 100%)`}}></div>
+                            <div className="absolute inset-0 bg-emerald-500 opacity-30" style={{clipPath: `polygon(50% 50%, 0% 100%, 0% 0%, 50% 0%)`}}></div>
+                            <div className="w-32 h-32 bg-white rounded-full z-10 flex flex-col items-center justify-center">
+                                <Users className="w-6 h-6 text-indigo-600"/>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Users</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-6 flex flex-wrap gap-2">
+                        <div className="bg-slate-50 px-2.5 py-1.5 rounded-lg flex items-center gap-2 border border-slate-100">
+                            <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            <span className="text-xs font-medium text-slate-600">Admin: {usersTotal > 0 ? Math.round((stats.users_by_role?.admin / usersTotal) * 100) : 0}%</span>
+                        </div>
+                        <div className="bg-slate-50 px-2.5 py-1.5 rounded-lg flex items-center gap-2 border border-slate-100">
+                            <span className="w-2 h-2 rounded-full bg-sky-400"></span>
+                            <span className="text-xs font-medium text-slate-600">Editor: {usersTotal > 0 ? Math.round((stats.users_by_role?.editor / usersTotal) * 100) : 0}%</span>
+                        </div>
+                        <div className="bg-slate-50 px-2.5 py-1.5 rounded-lg flex items-center gap-2 border border-slate-100">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span className="text-xs font-medium text-slate-600">Regular: {usersTotal > 0 ? Math.round((stats.users_by_role?.user / usersTotal) * 100) : 0}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Top Categories */}
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <h4 className="text-base font-semibold text-slate-800 mb-6">{t('admin.topCategories', 'Top Categories')}</h4>
+                    <div className="space-y-6">
+                        {stats.top_categories?.slice(0, 3).map((category: any, index: number) => {
+                            const maxCount = stats.top_categories?.[0]?.count || 1;
+                            const percentage = Math.round((category.count / maxCount) * 100);
+                            const colors = ['bg-indigo-600', 'bg-sky-400', 'bg-emerald-500'];
+                            return (
+                                <div key={category.id} className="space-y-2">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-600 font-medium">{category.name}</span>
+                                        <span className="font-mono text-slate-500 text-xs">{percentage}%</span>
+                                    </div>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className={`h-full ${colors[index] || 'bg-slate-400'}`} style={{width: `${percentage}%`}}></div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {(!stats.top_categories || stats.top_categories.length === 0) && (
+                            <p className="text-sm text-slate-400 text-center py-8">No categories yet</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            {/* Content Breakdown */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Media by Type */}
-                <Card className="shadow-sm relative overflow-hidden">
-                    <CardContent className="p-6">
-                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2">
-                            <BarChart3 size={20} className="text-info"/>
-                            {t('admin.mediaByType')}
-                        </h3>
-                        <div className="space-y-4">
-                            <TypeBar label="Videos" count={stats.media_by_type?.video || 0} total={stats.total_media}
-                                     color="bg-info"/>
-                            <TypeBar label="Images" count={stats.media_by_type?.image || 0} total={stats.total_media}
-                                     color="bg-success"/>
-                            <TypeBar label="Audio" count={stats.media_by_type?.audio || 0} total={stats.total_media}
-                                     color="bg-purple-500"/>
-                            <TypeBar label="Other" count={stats.media_by_type?.other || 0} total={stats.total_media}
-                                     color="bg-gray-500"/>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-info w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-
-                {/* Users by Role */}
-                <Card className="shadow-sm relative overflow-hidden">
-                    <CardContent className="p-6">
-                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2">
-                            <Users size={20} className="text-destructive"/>
-                            {t('admin.usersByRole')}
-                        </h3>
-                        <div className="space-y-4">
-                            <TypeBar label="Admins" count={stats.users_by_role?.admin || 0} total={stats.total_users}
-                                     color="bg-destructive"/>
-                            <TypeBar label="Editors" count={stats.users_by_role?.editor || 0} total={stats.total_users}
-                                     color="bg-amber-500"/>
-                            <TypeBar label="Users" count={stats.users_by_role?.user || 0} total={stats.total_users}
-                                     color="bg-emerald-500"/>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-destructive w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-
-                {/* Trending Content */}
-                <Card className="shadow-sm relative overflow-hidden">
-                    <CardContent className="p-6">
-                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2">
-                            <TrendingUp size={20} className="text-success"/>
-                            {t('admin.trendingContent')}
-                        </h3>
-                        <div className="space-y-4">
+            {/* Performance Table */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                    <h3 className="text-base font-semibold text-slate-800">{t('admin.trendingContent', 'Top Content Performance')}</h3>
+                    <button className="text-indigo-600 text-sm font-semibold hover:underline">{t('admin.viewAllReport', 'View All Report')}</button>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.mediaItem', 'Media Item')}</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.category', 'Category')}</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-center">{t('admin.views', 'Views')}</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-center">{t('admin.engagement', 'Engagement')}</th>
+                                <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.status', 'Status')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
                             {stats.top_media?.slice(0, 5).map((item: any, index: number) => (
-                                <TrendingItem
-                                    key={index}
-                                    title={item.title}
-                                    views={formatNumber(item.views)}
-                                    index={index + 1}
-                                />
+                                <tr key={item.id || index} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-8 rounded bg-slate-100 flex items-center justify-center">
+                                                <Film className="w-4 h-4 text-slate-400"/>
+                                            </div>
+                                            <span className="text-sm font-semibold text-slate-700">{item.title}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-slate-600">—</td>
+                                    <td className="px-6 py-4 text-center font-mono text-xs text-slate-500">{formatNumber(item.views)}</td>
+                                    <td className="px-6 py-4 text-center font-mono text-xs text-emerald-600 font-semibold">—</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Live
+                                        </span>
+                                    </td>
+                                </tr>
                             ))}
                             {(!stats.top_media || stats.top_media.length === 0) && (
-                                <p className="text-sm text-muted-foreground text-center py-4">No trending content yet</p>
-                            )}
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-success w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Top Categories & Creators */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Top Categories */}
-                <Card className="shadow-sm relative overflow-hidden">
-                    <CardContent className="p-6">
-                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2">
-                            <BarChart3 size={20} className="text-emerald-500"/>
-                            {t('admin.topCategories')}
-                        </h3>
-                        <div className="absolute bottom-0 left-0 h-1 bg-emerald-500 w-full opacity-10"/>
-                        <div className="space-y-3">
-                            {stats.top_categories?.map((category: any, index: number) => (
-                                <div key={category.id}
-                                     className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <span
-                                            className="w-6 h-6 flex items-center justify-center bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded">
-                                            {index + 1}
-                                        </span>
-                                        <span
-                                            className="font-medium text-foreground">{category.name}</span>
-                                    </div>
-                                    <span className="text-sm text-muted-foreground">{category.count} items</span>
-                                </div>
-                            ))}
-                            {(!stats.top_categories || stats.top_categories.length === 0) && (
-                                <p className="text-sm text-muted-foreground text-center py-4">No categories yet</p>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Top Creators */}
-                <Card className="shadow-sm relative overflow-hidden">
-                    <CardContent className="p-6">
-                        <h3 className="font-bold text-foreground mb-6 flex items-center gap-2">
-                            <Users size={20} className="text-info"/>
-                            {t('admin.topCreators')}
-                        </h3>
-                        <div className="absolute bottom-0 left-0 h-1 bg-info w-full opacity-10"/>
-                        <div className="space-y-3">
-                            {stats.top_creators?.map((creator: any, index: number) => (
-                                <div key={creator.id}
-                                     className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <span
-                                            className="w-6 h-6 flex items-center justify-center bg-blue-100 dark:bg-blue-900 text-info dark:text-blue-400 text-xs font-bold rounded">
-                                            {index + 1}
-                                        </span>
-                                        <div>
-                                            <span
-                                                className="font-medium text-foreground block">{creator.name}</span>
-                                            <span className="text-xs text-muted-foreground">{creator.media_count} videos</span>
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-16 text-center">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <BarChart3 className="w-8 h-8 text-slate-300"/>
                                         </div>
-                                    </div>
-                                    <span className="text-sm text-muted-foreground">{formatNumber(creator.views)} views</span>
-                                </div>
-                            ))}
-                            {(!stats.top_creators || stats.top_creators.length === 0) && (
-                                <p className="text-sm text-muted-foreground text-center py-4">No creators yet</p>
+                                        <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noTrendingContent', 'No trending content yet')}</h3>
+                                        <p className="text-sm text-slate-500 max-w-sm mx-auto">{t('admin.noTrendingContentDesc', 'Content performance data will appear here as views accumulate.')}</p>
+                                    </td>
+                                </tr>
                             )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    );
-};
-
-const StatCard = ({icon, label, value, trend, trendUp, small = false, color = "primary"}: {icon: React.ReactNode; label: string; value: string | number; trend?: string; trendUp?: boolean; small?: boolean; color?: string}) => {
-    // 定义颜色映射
-    const colorMap = {
-        primary: {
-            bg: 'bg-blue-50 dark:bg-blue-950/30',
-            text: 'text-info dark:text-blue-400',
-            bar: 'bg-info'
-        },
-        pink: {
-            bg: 'bg-pink-50 dark:bg-pink-950/30',
-            text: 'text-pink-500 dark:text-pink-400',
-            bar: 'bg-pink-500'
-        },
-        cyan: {
-            bg: 'bg-cyan-50 dark:bg-cyan-950/30',
-            text: 'text-cyan-500 dark:text-cyan-400',
-            bar: 'bg-cyan-500'
-        },
-        amber: {
-            bg: 'bg-amber-50 dark:bg-amber-950/30',
-            text: 'text-amber-500 dark:text-amber-400',
-            bar: 'bg-amber-500'
-        },
-        green: {
-            bg: 'bg-green-50 dark:bg-green-950/30',
-            text: 'text-success dark:text-green-400',
-            bar: 'bg-success'
-        },
-        sky: {
-            bg: 'bg-sky-50 dark:bg-sky-950/30',
-            text: 'text-sky-500 dark:text-sky-400',
-            bar: 'bg-sky-500'
-        },
-        emerald: {
-            bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-            text: 'text-emerald-500 dark:text-emerald-400',
-            bar: 'bg-emerald-500'
-        },
-        purple: {
-            bg: 'bg-purple-50 dark:bg-purple-950/30',
-            text: 'text-purple-500 dark:text-purple-400',
-            bar: 'bg-purple-500'
-        },
-        red: {
-            bg: 'bg-red-50 dark:bg-red-950/30',
-            text: 'text-destructive dark:text-red-400',
-            bar: 'bg-destructive'
-        }
-    };
-    
-    // 确保 color 是一个有效的颜色值
-    const validColor = colorMap[color as keyof typeof colorMap] || colorMap.primary;
-    
-    return (
-        <Card className="relative overflow-hidden border-none shadow-sm bg-card ring-1 ring-border rounded-2xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-            <CardContent className={`p-3 ${small ? '' : ''}`}>
-                <div className="flex items-start justify-between gap-1">
-                    <div className="min-w-0">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
-                        <h3 className={`text-xl font-bold tabular-nums mt-0.5 truncate ${validColor.text} ${small ? 'text-base' : ''}`}>{value}</h3>
-                    </div>
-                    <div className={`p-1.5 rounded-lg flex-shrink-0 ${validColor.bg}`}>
-                        {React.cloneElement(icon as React.ReactElement<any>, {
-                            className: `h-4 w-4 ${validColor.text}`
-                        })}
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
-                <div className={`mt-2 pt-2 border-t border-muted/30 flex items-center text-[11px] font-semibold gap-0.5 ${trendUp === true ? 'text-success' : trendUp === false ? 'text-destructive' : 'text-muted-foreground'}`}>
-                    {trendUp === true ? <TrendingUp size={14}/> : trendUp === false ? <TrendingDown size={14}/> : <Minus size={14}/>}
-                    {trend}
-                </div>
-                <div className={`absolute bottom-0 left-0 h-1 ${validColor.bar} w-full opacity-10 z-10`}/>
-            </CardContent>
-        </Card>
-    );
-};
-
-const TypeBar = ({label, count, total, color}: { label: string, count: number, total: number, color: string }) => {
-    const percentage = total > 0 ? (count / total) * 100 : 0;
-    return (
-        <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{label}</span>
-                <span className="font-medium text-foreground">{count}</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className={`h-full ${color} rounded-full transition-all duration-500`}
-                     style={{width: `${percentage}%`}}/>
             </div>
         </div>
     );
 };
-
-const TrendingItem = ({title, views, index}: { title: string, views: string, index: number }) => (
-    <div className="flex items-center gap-3 p-2 hover:bg-accent rounded-lg transition-colors">
-        <span
-            className="w-6 h-6 flex items-center justify-center bg-muted text-muted-foreground text-xs font-bold rounded shrink-0">
-            {index}
-        </span>
-        <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{title}</p>
-            <p className="text-xs text-muted-foreground">{views} views</p>
-        </div>
-        <TrendingUp size={16} className="text-success shrink-0"/>
-    </div>
-);
 
 export default Dashboard;

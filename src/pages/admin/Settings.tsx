@@ -1,26 +1,12 @@
 import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {Separator} from '@/components/ui/separator';
-import {Skeleton} from '@/components/ui/skeleton';
-import {Switch} from '@/components/ui/switch';
-import {Label} from '@/components/ui/label';
-import {ThemeSwitcher} from '@/themes';
 import {
     Settings as SettingsIcon,
     Database,
     Server,
     Mail,
     Shield,
-    HardDrive,
-    Globe,
-    Palette,
     Save,
-    RefreshCw,
     Loader2,
     CheckCircle,
     AlertCircle,
@@ -28,10 +14,20 @@ import {
     LayoutGrid,
     Plus,
     X,
-    Send
+    Send,
+    Link2,
+    CloudLightning,
+    AlertTriangle,
+    BarChart3,
+    Play,
+    ShieldCheck,
+    CloudSun,
+    PlusCircle,
+    XCircle,
 } from 'lucide-react';
 import {settingsApi, type GroupedSettings} from '@/lib/api/system';
 import {api} from '@/lib/request';
+import {ThemeSwitcher} from '@/themes';
 
 interface FormData {
     site_name: string;
@@ -78,9 +74,6 @@ interface FormData {
     module_videos: boolean;
     module_music: boolean;
     homepage_layout: string;
-    keep_original_files: string;
-    keep_original_after_remux: string;
-    keep_original_after_transcode: string;
 }
 
 interface SystemInfo {
@@ -154,10 +147,17 @@ const defaultFormData: FormData = {
     module_videos: true,
     module_music: false,
     homepage_layout: 'auto',
-    keep_original_files: 'true',
-    keep_original_after_remux: 'false',
-    keep_original_after_transcode: 'true',
 };
+
+const tabs = [
+    {id: 'general', label: 'General'},
+    {id: 'storage', label: 'Storage'},
+    {id: 'media', label: 'Media'},
+    {id: 'email', label: 'Email'},
+    {id: 'security', label: 'Security'},
+    {id: 'modules', label: 'Modules'},
+    {id: 'system', label: 'System'},
+];
 
 const Settings: React.FC = () => {
     const {t} = useTranslation();
@@ -177,6 +177,7 @@ const Settings: React.FC = () => {
     const [emailStatus, setEmailStatus] = useState<EmailStatus>({configured: false});
     const [emailTestSending, setEmailTestSending] = useState(false);
     const [emailTestTo, setEmailTestTo] = useState('');
+    const [uploadSizeGB, setUploadSizeGB] = useState(5.0);
 
     useEffect(() => {
         fetchSettings();
@@ -269,9 +270,6 @@ const Settings: React.FC = () => {
                     module_videos: getSettingValue('module_videos') === 'true',
                     module_music: getSettingValue('module_music') === 'true',
                     homepage_layout: getSettingValue('homepage_layout') || prev.homepage_layout,
-                    keep_original_files: getSettingValue('keep_original_files') || prev.keep_original_files,
-                    keep_original_after_remux: getSettingValue('keep_original_after_remux') || prev.keep_original_after_remux,
-                    keep_original_after_transcode: getSettingValue('keep_original_after_transcode') || prev.keep_original_after_transcode,
                 }));
             }
         } catch (error) {
@@ -297,14 +295,8 @@ const Settings: React.FC = () => {
         try {
             const caps = await api.get<StorageCapabilities>('/admin/settings/storage/capabilities');
             setStorageCaps(caps);
-        } catch {
-            setStorageCaps({
-                current_type: 'local',
-                available_types: ['local'],
-                s3_configured: false,
-                s3_available: false,
-                hybrid_available: false,
-            });
+        } catch (error) {
+            console.error('Failed to fetch storage capabilities:', error);
         }
     };
 
@@ -410,9 +402,6 @@ const Settings: React.FC = () => {
                 {key: 'module_videos', value: String(formData.module_videos)},
                 {key: 'module_music', value: String(formData.module_music)},
                 {key: 'homepage_layout', value: formData.homepage_layout},
-                {key: 'keep_original_files', value: formData.keep_original_files},
-                {key: 'keep_original_after_remux', value: formData.keep_original_after_remux},
-                {key: 'keep_original_after_transcode', value: formData.keep_original_after_transcode},
             ];
             await settingsApi.update({settings});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
@@ -430,36 +419,31 @@ const Settings: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <Skeleton className="h-8 w-48"/>
-                        <Skeleton className="h-4 w-64"/>
+            <div className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse"/>
+                        <div className="h-4 w-64 bg-slate-100 rounded animate-pulse mt-2"/>
                     </div>
-                    <div className="flex gap-2">
-                        <Skeleton className="h-10 w-28"/>
-                        <Skeleton className="h-10 w-24"/>
+                    <div className="flex gap-3">
+                        <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse"/>
+                        <div className="h-9 w-28 bg-slate-100 rounded-lg animate-pulse"/>
                     </div>
                 </div>
-                <Skeleton className="h-12 w-[800px]"/>
+                <div className="h-12 bg-slate-100 rounded-t-xl animate-pulse mb-6"/>
                 <div className="space-y-6">
                     {[1, 2].map(i => (
-                        <Card key={i}>
-                            <CardHeader>
-                                <Skeleton className="h-6 w-48"/>
-                                <Skeleton className="h-4 w-64"/>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[1, 2, 3, 4].map(j => (
-                                        <div key={j} className="space-y-2">
-                                            <Skeleton className="h-4 w-20"/>
-                                            <Skeleton className="h-10 w-full"/>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <div key={i} className="p-6 rounded-xl border border-slate-200 bg-white animate-pulse">
+                            <div className="h-5 w-40 bg-slate-100 rounded mb-4"/>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {[1, 2, 3, 4].map(j => (
+                                    <div key={j} className="space-y-2">
+                                        <div className="h-3 w-20 bg-slate-100 rounded"/>
+                                        <div className="h-9 bg-slate-50 rounded-lg"/>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -467,12 +451,13 @@ const Settings: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 p-4 md:p-6">
+        <div className="p-8">
+            {/* Message Toast */}
             {message && (
-                <div className={`flex items-center gap-3 p-4 rounded-lg border ${
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg ${
                     message.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-red-50 border-red-200 text-red-800'
                 }`}>
                     {message.type === 'success' ? (
                         <CheckCircle className="w-5 h-5 flex-shrink-0"/>
@@ -483,913 +468,850 @@ const Settings: React.FC = () => {
                 </div>
             )}
 
-            <div className="flex items-center justify-between">
+            {/* Page Title & Actions */}
+            <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
-                    <p className="text-muted-foreground">{t('settings.desc')}</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">System Settings</h2>
+                    <p className="text-sm text-slate-500 mt-1">Configure core system parameters and integrations.</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={fetchSystemInfo}>
-                        <RefreshCw className="mr-2 h-4 w-4"/>
-                        {t('settings.refresh')}
-                    </Button>
-                    <Button onClick={handleSave} disabled={saving}>
+                <div className="flex items-center gap-3">
+                    <button
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                        onClick={fetchSettings}
+                    >
+                        Discard
+                    </button>
+                    <button
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+                        onClick={handleSave}
+                        disabled={saving}
+                    >
                         {saving ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                            <Loader2 className="w-4 h-4 animate-spin"/>
                         ) : (
-                            <Save className="mr-2 h-4 w-4"/>
+                            <Save className="w-4 h-4"/>
                         )}
-                        {saving ? t('settings.saving') : t('settings.save')}
-                    </Button>
+                        Save Changes
+                    </button>
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
-                    <TabsTrigger value="general">{t('settings.tabGeneral')}</TabsTrigger>
-                    <TabsTrigger value="storage">{t('settings.tabStorage')}</TabsTrigger>
-                    <TabsTrigger value="media">{t('settings.tabMedia')}</TabsTrigger>
-                    <TabsTrigger value="email">{t('settings.tabEmail')}</TabsTrigger>
-                    <TabsTrigger value="security">{t('settings.tabSecurity')}</TabsTrigger>
-                    <TabsTrigger value="modules">{t('settings.tabModules')}</TabsTrigger>
-                    <TabsTrigger value="system">{t('settings.tabSystem')}</TabsTrigger>
-                </TabsList>
+            {/* Secondary Navigation (Tabs) */}
+            <div className="flex border-b border-slate-200 bg-white rounded-t-xl mb-6">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        className={`px-6 py-3.5 text-sm ${
+                            activeTab === tab.id
+                                ? 'font-semibold border-b-2 border-indigo-600 text-indigo-600'
+                                : 'font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 transition-colors'
+                        }`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
 
-                <TabsContent value="general" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Globe className="h-5 w-5"/>
-                                {t('settings.siteInfo')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.siteInfoDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+            {/* Content Area */}
+            <div className="space-y-6">
+                {/* Tab: General */}
+                {activeTab === 'general' && (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 p-6 rounded-xl border border-slate-200 bg-white">
+                                <h3 className="text-base font-semibold text-slate-800 mb-4">Base URL Configuration</h3>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CMS CORE API</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                                type="text"
+                                                value={formData.base_urls[0] || ''}
+                                                onChange={(e) => handleBaseUrlChange(0, e.target.value)}
+                                                placeholder="https://api.example.com/v3"
+                                            />
+                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                                <Link2 className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CDN DELIVERY ENDPOINT</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                                type="text"
+                                                value={formData.primary_url}
+                                                onChange={(e) => handleInputChange('primary_url', e.target.value)}
+                                                placeholder="https://cdn.example.net/edge"
+                                            />
+                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                                <Link2 className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ENCODING WORKER POOL</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                                type="text"
+                                                value={formData.s3_endpoint}
+                                                onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
+                                                placeholder="https://transcode-cluster.aws.internal"
+                                            />
+                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                                <Link2 className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                                <h3 className="text-base font-semibold text-slate-800 mb-4 text-center">Instance Health</h3>
+                                <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-4">
+                                    <CheckCircle className="w-6 h-6 text-emerald-500"/>
+                                    <div>
+                                        <p className="text-sm font-semibold text-emerald-700">Production Ready</p>
+                                        <p className="text-xs text-slate-500">Uptime: 99.98% (42 days)</p>
+                                    </div>
+                                </div>
+                                <div className="mt-6 space-y-4">
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                            <span>Latency</span>
+                                            <span className="text-slate-700 font-mono">14ms</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-[15%] h-full bg-indigo-600"/>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                            <span>Error Rate</span>
+                                            <span className="text-slate-700 font-mono">0.002%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-[2%] h-full bg-emerald-500"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Site Info */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Site Information</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.siteName')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE NAME</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
                                         value={formData.site_name}
                                         onChange={(e) => handleInputChange('site_name', e.target.value)}
-                                        placeholder={t('settings.enterSiteName')}
+                                        placeholder="Enter site name"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.siteDesc')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE DESCRIPTION</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
                                         value={formData.site_description}
                                         onChange={(e) => handleInputChange('site_description', e.target.value)}
-                                        placeholder={t('settings.enterSiteDesc')}
+                                        placeholder="Enter site description"
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            <Separator/>
-
-                            <div className="space-y-3">
-                                <label className="text-sm font-medium">{t('settings.baseUrls')}</label>
-                                <p className="text-xs text-muted-foreground">{t('settings.baseUrlsDesc')}</p>
-                                <div className="space-y-2">
-                                    {formData.base_urls.map((url, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <div className="flex-1 relative">
-                                                <Input
-                                                    value={url}
-                                                    onChange={(e) => handleBaseUrlChange(index, e.target.value)}
-                                                    placeholder="https://example.com"
-                                                />
-                                                {index === 0 && (
-                                                    <Badge className="absolute right-2 top-1/2 -translate-y-1/2 text-xs"
-                                                           variant="secondary">
-                                                        {t('settings.primaryUrlBadge')}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            {formData.base_urls.length > 1 && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleRemoveBaseUrl(index)}
-                                                    className="flex-shrink-0"
-                                                >
-                                                    <X className="h-4 w-4"/>
-                                                </Button>
-                                            )}
-                                        </div>
-                                    ))}
-                                    <Button variant="outline" size="sm" onClick={handleAddBaseUrl}>
-                                        <Plus className="mr-1 h-3 w-3"/>
-                                        {t('settings.addUrl')}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">{t('settings.primaryUrl')}</label>
-                                <Input
-                                    value={formData.primary_url}
-                                    onChange={(e) => handleInputChange('primary_url', e.target.value)}
-                                    placeholder="https://example.com"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Palette className="h-5 w-5"/>
-                                {t('settings.appearance')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.appearanceDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                        {/* Appearance */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Appearance</h3>
                             <ThemeSwitcher/>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        </div>
+                    </div>
+                )}
 
-                <TabsContent value="storage" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <HardDrive className="h-5 w-5"/>
-                                {t('settings.localStorage')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.localStorageDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">{t('settings.storageBasePath')}</label>
-                                <Input
-                                    value={formData.storage_base_path}
-                                    onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
-                                    placeholder="/var/media"
-                                />
-                                <p className="text-xs text-muted-foreground">{t('settings.storageRestartNote')}</p>
+                {/* Tab: Storage */}
+                {activeTab === 'storage' && (
+                    <div className="space-y-6">
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-base font-semibold text-slate-800">S3 Cloud Storage Configuration</h3>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                                    Active Provider: {formData.storage_type === 's3' ? 'AWS' : formData.storage_type === 'hybrid' ? 'Hybrid' : 'Local'}
+                                </span>
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-muted-foreground">
-                                    {t('settings.subdirectoryPreview')}
-                                </label>
-                                <div className="flex flex-wrap gap-2">
-                                    {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
-                                        <code key={dir}
-                                              className="px-2 py-1 text-xs rounded bg-muted font-mono">
-                                            {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
-                                        </code>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <Separator/>
-
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">{t('settings.storageType')}</label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-md bg-background"
-                                    value={formData.storage_type}
-                                    onChange={(e) => handleInputChange('storage_type', e.target.value)}
-                                >
-                                    <option value="local">{t('settings.storageLocal')}</option>
-                                    <option value="s3" disabled={!storageCaps.s3_available}>
-                                        {t('settings.storageS3')}
-                                        {!storageCaps.s3_available ? ` (${t('settings.s3NotAvailable')})` : ''}
-                                    </option>
-                                    <option value="hybrid" disabled={!storageCaps.hybrid_available}>
-                                        {t('settings.storageHybrid')}
-                                        {!storageCaps.hybrid_available ? ` (${t('settings.s3NotAvailable')})` : ''}
-                                    </option>
-                                </select>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {showS3Config && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Server className="h-5 w-5"/>
-                                    {t('settings.s3Config')}
-                                </CardTitle>
-                                <CardDescription>{t('settings.s3ConfigDesc')}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-sm font-medium">{t('settings.endpointUrl')}</label>
-                                        <Input
-                                            value={formData.s3_endpoint}
-                                            onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
-                                            placeholder="https://s3.amazonaws.com"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t('settings.s3Region')}</label>
-                                        <Input
-                                            value={formData.s3_region}
-                                            onChange={(e) => handleInputChange('s3_region', e.target.value)}
-                                            placeholder="us-east-1"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t('settings.bucketName')}</label>
-                                        <Input
-                                            value={formData.s3_bucket}
-                                            onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t('settings.accessKey')}</label>
-                                        <Input
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ACCESS KEY ID</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                             type="password"
                                             value={formData.s3_access_key}
                                             onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
-                                            placeholder="••••••••"
+                                            placeholder="AKIA****************"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">{t('settings.secretKey')}</label>
-                                        <Input
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SECRET ACCESS KEY</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                             type="password"
                                             value={formData.s3_secret_key}
                                             onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
-                                            placeholder="••••••••"
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between p-3 rounded-lg border md:col-span-2">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-medium">{t('settings.s3UsePathStyle')}</Label>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('settings.s3UsePathStyleDesc')}
-                                            </p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.s3_use_path_style === 'true'}
-                                            onCheckedChange={(checked: boolean) =>
-                                                handleInputChange('s3_use_path_style', String(checked))
-                                            }
+                                            placeholder="********************************"
                                         />
                                     </div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <HardDrive className="h-5 w-5"/>
-                                {t('settings.originalFileRetention')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.originalFileRetentionDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm font-medium">{t('settings.keepOriginalFiles')}</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('settings.keepOriginalFilesDesc')}
-                                    </p>
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">REGION</label>
+                                        <select
+                                            className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                                            value={formData.s3_region}
+                                            onChange={(e) => handleInputChange('s3_region', e.target.value)}
+                                        >
+                                            <option value="us-east-1">us-east-1</option>
+                                            <option value="eu-west-1">eu-west-1</option>
+                                            <option value="ap-southeast-2">ap-southeast-2</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">BUCKET NAME</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="text"
+                                            value={formData.s3_bucket}
+                                            onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
+                                            placeholder="origstudio-assets-production-v3"
+                                        />
+                                    </div>
                                 </div>
-                                <Switch
-                                    checked={formData.keep_original_files === 'true'}
-                                    onCheckedChange={(checked: boolean) =>
-                                        handleInputChange('keep_original_files', String(checked))
-                                    }
-                                />
                             </div>
+                            <button className="mt-6 inline-flex items-center gap-2 text-indigo-600 font-semibold text-sm hover:underline">
+                                <CloudLightning className="w-4 h-4"/>Test Connection
+                            </button>
+                        </div>
 
-                            {formData.keep_original_files === 'false' && (
-                                <div className="space-y-3 pl-4 border-l-2 border-muted">
-                                    <div className="flex items-center justify-between p-3 rounded-lg border">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-medium">
-                                                {t('settings.keepOriginalAfterRemux')}
-                                            </Label>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('settings.keepOriginalAfterRemuxDesc')}
-                                            </p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.keep_original_after_remux === 'true'}
-                                            onCheckedChange={(checked: boolean) =>
-                                                handleInputChange('keep_original_after_remux', String(checked))
-                                            }
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-3 rounded-lg border">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-medium">
-                                                {t('settings.keepOriginalAfterTranscode')}
-                                            </Label>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('settings.keepOriginalAfterTranscodeDesc')}
-                                            </p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.keep_original_after_transcode === 'true'}
-                                            onCheckedChange={(checked: boolean) =>
-                                                handleInputChange('keep_original_after_transcode', String(checked))
-                                            }
-                                        />
-                                    </div>
-
-                                    <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
-                                        <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0"/>
-                                        <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                                            {t('settings.originalFileWarning')}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="media" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <SettingsIcon className="h-5 w-5"/>
-                                {t('settings.transcodeSettings')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.transcodeSettingsDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm font-medium">{t('settings.autoTranscode')}</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('settings.autoTranscodeDesc')}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={formData.auto_transcode === 'true'}
-                                    onCheckedChange={(checked: boolean) =>
-                                        handleInputChange('auto_transcode', String(checked))
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">{t('settings.transcodeMethod')}</label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-md bg-background"
-                                    value={formData.transcode_method}
-                                    onChange={(e) => handleInputChange('transcode_method', e.target.value)}
-                                >
-                                    <option value="ffmpeg">FFmpeg</option>
-                                </select>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('settings.uploadLimits')}</CardTitle>
-                            <CardDescription>{t('settings.uploadLimitsDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                        {/* Local Storage Config */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Local Storage</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.maxUploadSizeVideo')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE BASE PATH</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                        type="text"
+                                        value={formData.storage_base_path}
+                                        onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
+                                        placeholder="/var/media"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE TYPE</label>
+                                    <select
+                                        className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                                        value={formData.storage_type}
+                                        onChange={(e) => handleInputChange('storage_type', e.target.value)}
+                                    >
+                                        <option value="local">Local</option>
+                                        <option value="s3" disabled={!storageCaps.s3_available}>S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</option>
+                                        <option value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ' (Not Available)' : ''}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
+                                    <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
+                                        {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
+                                    </code>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Media */}
+                {activeTab === 'media' && (
+                    <div className="space-y-6">
+                        <div className="max-w-3xl p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-6">Media Upload & Processing Limits</h3>
+                            <div className="space-y-8">
+                                <div>
+                                    <div className="flex justify-between mb-2">
+                                        <label className="text-sm font-medium text-slate-700">Maximum Upload Size</label>
+                                        <span className="text-sm font-mono text-indigo-600 font-bold">{uploadSizeGB.toFixed(1)} GB</span>
+                                    </div>
+                                    <input
+                                        className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                        max="100"
+                                        min="1"
+                                        type="range"
+                                        value={uploadSizeGB * 20}
+                                        onChange={(e) => setUploadSizeGB(Number(e.target.value) / 20)}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CONCURRENT TRANSCODES</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="number"
+                                            value={formData.max_upload_size_video}
+                                            onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">RETAIN TEMP FILES (HOURS)</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="number"
+                                            value={formData.max_video_duration}
+                                            onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.auto_transcode === 'true'}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => handleInputChange('auto_transcode', String(e.target.checked))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                    <label className="text-sm text-slate-700 font-medium">Automatically apply forensic watermarking to internal screener previews</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Upload Limits */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Upload Limits</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE VIDEO (MB)</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="number"
                                         value={formData.max_upload_size_video}
                                         onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.maxUploadSizeImage')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE IMAGE (MB)</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="number"
                                         value={formData.max_upload_size_image}
                                         onChange={(e) => handleInputChange('max_upload_size_image', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.maxVideoDuration')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.max_video_duration}
-                                        onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.videoFormats')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED VIDEO FORMATS</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         value={formData.allowed_video_formats}
                                         onChange={(e) => handleInputChange('allowed_video_formats', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium">{t('settings.imageFormats')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED IMAGE FORMATS</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         value={formData.allowed_image_formats}
                                         onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
                                     />
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('settings.thumbnailSprite')}</CardTitle>
-                            <CardDescription>{t('settings.thumbnailSpriteDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
+                        {/* Thumbnail & Sprite */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Thumbnail & Sprite Settings</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.thumbnailQuality')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL QUALITY</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="number"
                                         value={formData.thumbnail_quality}
                                         onChange={(e) => handleInputChange('thumbnail_quality', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.thumbnailResolution')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL RESOLUTION</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         value={formData.thumbnail_resolution}
                                         onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
                                         placeholder="320x180"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.thumbnailPosition')}</label>
-                                    <Input
-                                        value={formData.thumbnail_position}
-                                        onChange={(e) => handleInputChange('thumbnail_position', e.target.value)}
-                                        placeholder="00:00:01"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.spriteFrameInterval')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE FRAME INTERVAL</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="number"
                                         value={formData.sprite_frame_interval}
                                         onChange={(e) => handleInputChange('sprite_frame_interval', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.spriteColumns')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE COLUMNS</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="number"
                                         value={formData.sprite_columns}
                                         onChange={(e) => handleInputChange('sprite_columns', e.target.value)}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.spriteFrameWidth')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.sprite_frame_width}
-                                        onChange={(e) => handleInputChange('sprite_frame_width', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.spriteFrameHeight')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.sprite_frame_height}
-                                        onChange={(e) => handleInputChange('sprite_frame_height', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.spriteMaxFrames')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.sprite_max_frames}
-                                        onChange={(e) => handleInputChange('sprite_max_frames', e.target.value)}
-                                    />
-                                </div>
                             </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                        </div>
+                    </div>
+                )}
 
-                <TabsContent value="email" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Mail className="h-5 w-5"/>
-                                {t('settings.smtp')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.smtpDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2 p-3 rounded-lg border">
-                                <span className="text-sm font-medium">{t('settings.emailStatus')}:</span>
-                                {emailStatus.configured ? (
-                                    <Badge variant="default"
-                                           className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                        <CheckCircle className="w-3 h-3 mr-1"/>
-                                        {t('settings.emailConfigured')}
-                                    </Badge>
-                                ) : (
-                                    <Badge variant="secondary"
-                                           className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                                        <AlertCircle className="w-3 h-3 mr-1"/>
-                                        {t('settings.emailNotConfigured')}
-                                    </Badge>
-                                )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.smtpServer')}</label>
-                                    <Input
+                {/* Tab: Email */}
+                {activeTab === 'email' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">SMTP Configuration</h3>
+                            <div className="space-y-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HOST</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                        type="text"
                                         value={formData.smtp_host}
                                         onChange={(e) => handleInputChange('smtp_host', e.target.value)}
-                                        placeholder="smtp.example.com"
+                                        placeholder="smtp.postmarkapp.com"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.smtpPort')}</label>
-                                    <Input
-                                        type="number"
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PORT</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                        type="text"
                                         value={formData.smtp_port}
                                         onChange={(e) => handleInputChange('smtp_port', e.target.value)}
+                                        placeholder="587"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.username')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">USERNAME</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         value={formData.smtp_user}
                                         onChange={(e) => handleInputChange('smtp_user', e.target.value)}
                                         placeholder="noreply@example.com"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.password')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PASSWORD</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         type="password"
                                         value={formData.smtp_password}
                                         onChange={(e) => handleInputChange('smtp_password', e.target.value)}
                                         placeholder="••••••••"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.senderName')}</label>
-                                    <Input
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SENDER NAME</label>
+                                    <input
+                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                                         value={formData.smtp_sender_name}
                                         onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
                                     />
                                 </div>
-                                <div className="flex items-center justify-between p-3 rounded-lg border">
-                                    <div className="space-y-0.5">
-                                        <Label className="text-sm font-medium">{t('settings.useTls')}</Label>
-                                    </div>
-                                    <Switch
-                                        checked={formData.smtp_use_tls === 'true'}
-                                        onCheckedChange={(checked: boolean) =>
-                                            handleInputChange('smtp_use_tls', String(checked))
-                                        }
-                                    />
+                                <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.smtp_use_tls === 'true'}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => handleInputChange('smtp_use_tls', String(e.target.checked))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                    <label className="text-sm text-slate-700 font-medium">Use TLS</label>
                                 </div>
                             </div>
-
-                            <Separator/>
-
-                            <div className="space-y-3">
-                                <label className="text-sm font-medium">{t('settings.sendTest')}</label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        value={emailTestTo}
-                                        onChange={(e) => setEmailTestTo(e.target.value)}
-                                        placeholder="test@example.com"
-                                        className="flex-1"
-                                    />
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleEmailTest}
-                                        disabled={emailTestSending || !emailTestTo}
-                                    >
-                                        {emailTestSending ? (
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                                        ) : (
-                                            <Send className="mr-2 h-4 w-4"/>
-                                        )}
-                                        {t('settings.sendTest')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="security" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Shield className="h-5 w-5"/>
-                                {t('settings.auth')}
-                            </CardTitle>
-                            <CardDescription>{t('settings.authDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm font-medium">{t('settings.enableRegister')}</Label>
-                                </div>
-                                <Switch
-                                    checked={formData.allow_registration === 'true'}
-                                    onCheckedChange={(checked: boolean) =>
-                                        handleInputChange('allow_registration', String(checked))
-                                    }
+                        </div>
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">SMTP Diagnostics</h3>
+                            <p className="text-sm text-slate-500 mb-6">Send a test email to verify your outgoing mail server configuration.</p>
+                            <div className="flex flex-col gap-4">
+                                <input
+                                    className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                    placeholder="recipient@example.com"
+                                    type="email"
+                                    value={emailTestTo}
+                                    onChange={(e) => setEmailTestTo(e.target.value)}
                                 />
+                                <button
+                                    className="w-full py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    onClick={handleEmailTest}
+                                    disabled={emailTestSending || !emailTestTo}
+                                >
+                                    {emailTestSending ? (
+                                        <Loader2 className="w-4 h-4 animate-spin"/>
+                                    ) : (
+                                        <Send className="w-4 h-4"/>
+                                    )}
+                                    Run SMTP Test
+                                </button>
                             </div>
-                            <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm font-medium">{t('settings.requireEmailVerify')}</Label>
-                                </div>
-                                <Switch
-                                    checked={formData.require_email_verification === 'true'}
-                                    onCheckedChange={(checked: boolean) =>
-                                        handleInputChange('require_email_verification', String(checked))
-                                    }
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.minPasswordLen')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.min_password_length}
-                                        onChange={(e) => handleInputChange('min_password_length', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">{t('settings.rateLimit')}</label>
-                                    <Input
-                                        type="number"
-                                        value={formData.api_rate_limit}
-                                        onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('settings.reviewSettings')}</CardTitle>
-                            <CardDescription>{t('settings.reviewSettingsDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-sm font-medium">{t('settings.autoApprove')}</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('settings.autoApproveDesc')}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={formData.auto_approve === 'true'}
-                                    onCheckedChange={(checked: boolean) => {
-                                        handleInputChange('auto_approve', String(checked));
-                                        handleInputChange('require_review', String(!checked));
-                                    }}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="modules" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Blocks className="h-5 w-5"/>
-                                {t('settings.contentModules')}
-                            </CardTitle>
-                            <CardDescription>
-                                {t('settings.contentModulesDesc')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">{t('settings.moduleArticles')}</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        {t('settings.moduleArticlesDesc')}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={formData.module_articles}
-                                    onCheckedChange={(checked: boolean) => setFormData(prev => ({
-                                        ...prev,
-                                        module_articles: checked
-                                    }))}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">{t('settings.moduleVideos')}</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        {t('settings.moduleVideosDesc')}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={formData.module_videos}
-                                    onCheckedChange={(checked: boolean) => setFormData(prev => ({
-                                        ...prev,
-                                        module_videos: checked
-                                    }))}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between p-4 rounded-lg border">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">{t('settings.moduleMusic')}</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        {t('settings.moduleMusicDesc')}
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={formData.module_music}
-                                    onCheckedChange={(checked: boolean) => setFormData(prev => ({
-                                        ...prev,
-                                        module_music: checked
-                                    }))}
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <LayoutGrid className="h-5 w-5"/>
-                                {t('settings.homepageLayout')}
-                            </CardTitle>
-                            <CardDescription>
-                                {t('settings.homepageLayoutDesc')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {[
-                                    {value: 'auto', label: t('settings.layoutAuto'), desc: t('settings.layoutAutoDesc')},
-                                    {value: 'video', label: t('settings.layoutVideo'), desc: t('settings.layoutVideoDesc')},
-                                    {
-                                        value: 'article',
-                                        label: t('settings.layoutArticle'),
-                                        desc: t('settings.layoutArticleDesc')
-                                    },
-                                    {value: 'mixed', label: t('settings.layoutMixed'), desc: t('settings.layoutMixedDesc')},
-                                    {value: 'doc', label: t('settings.layoutDoc'), desc: t('settings.layoutDocDesc')},
-                                    {
-                                        value: 'welcome',
-                                        label: t('settings.layoutWelcome'),
-                                        desc: t('settings.layoutWelcomeDesc')
-                                    },
-                                ].map((option) => (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({...prev, homepage_layout: option.value}))}
-                                        className={`text-left p-4 rounded-lg border-2 transition-colors ${
-                                            formData.homepage_layout === option.value
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-muted hover:border-muted-foreground/30'
-                                        }`}
-                                    >
-                                        <div className="font-medium text-sm">{option.label}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">{option.desc}</div>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {formData.homepage_layout === 'auto' && (
-                                <div className="p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-                                    {t('settings.autoLayoutPreview')} <strong>{
-                                    !formData.module_articles && !formData.module_videos && !formData.module_music
-                                        ? t('settings.layoutWelcome') :
-                                        formData.module_videos && !formData.module_articles
-                                            ? t('settings.layoutVideo') :
-                                            formData.module_articles && !formData.module_videos
-                                                ? t('settings.layoutDoc') :
-                                                formData.module_articles && formData.module_videos
-                                                    ? t('settings.layoutMixed') :
-                                                    t('settings.layoutWelcome')
-                                }</strong>
+                            {emailStatus.configured && (
+                                <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 text-emerald-500"/>
+                                    <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <TabsContent value="system" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Server className="h-5 w-5"/>
-                                    {t('settings.serverInfo')}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {systemInfo ? (
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.version')}</span>
-                                            <span className="font-medium">{systemInfo.version || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.goVersion')}</span>
-                                            <span className="font-medium">{systemInfo.goVersion || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.database')}</span>
-                                            <span className="font-medium">{systemInfo.database || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.os')}</span>
-                                            <span className="font-medium">{systemInfo.os || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.uptime')}</span>
-                                            <span className="font-medium">{systemInfo.uptime || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.numCPU')}</span>
-                                            <span className="font-medium">{systemInfo.numCPU ?? '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.numGoroutine')}</span>
-                                            <span className="font-medium">{systemInfo.numGoroutine ?? '-'}</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {[1, 2, 3, 4, 5, 6, 7].map(i => (
-                                            <div key={i} className="flex justify-between">
-                                                <Skeleton className="h-4 w-24"/>
-                                                <Skeleton className="h-4 w-16"/>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Database className="h-5 w-5"/>
-                                    {t('settings.resourceUsage')}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {systemInfo ? (
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.totalMemory')}</span>
-                                            <span className="font-medium">{systemInfo.totalMemory || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.usedMemory')}</span>
-                                            <span className="font-medium">{systemInfo.usedMemory || '-'}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-muted-foreground">{t('settings.cpuUsage')}</span>
-                                            <span className="font-medium">{systemInfo.cpuUsage || '-'}</span>
-                                        </div>
-                                        <div className="mt-4 space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span>{t('settings.memoryUsage')}</span>
-                                                <span>{systemInfo.memoryUsage?.toFixed(2)}%</span>
-                                            </div>
-                                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-blue-600 rounded-full transition-all duration-500"
-                                                    style={{width: `${systemInfo.memoryUsage || 0}%`}}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="flex justify-between">
-                                                <Skeleton className="h-4 w-24"/>
-                                                <Skeleton className="h-4 w-16"/>
-                                            </div>
-                                        ))}
-                                        <div className="mt-4 space-y-2">
-                                            <Skeleton className="h-4 w-16"/>
-                                            <Skeleton className="h-2 w-full"/>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
+                        </div>
                     </div>
-                </TabsContent>
-            </Tabs>
+                )}
+
+                {/* Tab: Security */}
+                {activeTab === 'security' && (
+                    <div className="space-y-6">
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-6">API Rate Limiting</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Standard Users</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Non-admin API tokens</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            className="w-24 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center font-mono text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="text"
+                                            value={formData.api_rate_limit}
+                                            onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
+                                        />
+                                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">External Integrations</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Public webhooks</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            className="w-24 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center font-mono text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="text"
+                                            value="5000"
+                                            readOnly
+                                        />
+                                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
+                                    </div>
+                                </div>
+                                <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4 mt-4">
+                                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
+                                    <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Auth Settings */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-6">Authentication</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Allow Registration</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Enable new user sign-up</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.allow_registration === 'true'}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => handleInputChange('allow_registration', String(e.target.checked))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Require Email Verification</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Verify email before access</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.require_email_verification === 'true'}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => handleInputChange('require_email_verification', String(e.target.checked))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MIN PASSWORD LENGTH</label>
+                                        <input
+                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            type="number"
+                                            value={formData.min_password_length}
+                                            onChange={(e) => handleInputChange('min_password_length', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">AUTO APPROVE</label>
+                                        <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    checked={formData.auto_approve === 'true'}
+                                                    className="sr-only peer"
+                                                    type="checkbox"
+                                                    onChange={(e) => {
+                                                        handleInputChange('auto_approve', String(e.target.checked));
+                                                        handleInputChange('require_review', String(!e.target.checked));
+                                                    }}
+                                                />
+                                                <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                            </label>
+                                            <span className="text-sm text-slate-700">Auto-approve content</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: Modules */}
+                {activeTab === 'modules' && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-slate-800">Homepage Layout (2x3 Grid)</h3>
+                            <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors uppercase tracking-widest">
+                                <Plus className="w-3 h-3"/>Custom Grid
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                <p className="text-sm font-semibold text-slate-700">Real-time Analytics</p>
+                            </div>
+                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                <Play className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                <p className="text-sm font-semibold text-slate-700">Video Player Health</p>
+                            </div>
+                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                <ShieldCheck className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                <p className="text-sm font-semibold text-slate-700">Audit Stream</p>
+                            </div>
+                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                <Server className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                <p className="text-sm font-semibold text-slate-700">Storage Nodes</p>
+                            </div>
+                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                <CloudSun className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                <p className="text-sm font-semibold text-slate-700">S3 Object Monitor</p>
+                            </div>
+                            <div className="p-6 aspect-[4/3] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-indigo-300 transition-all cursor-pointer group">
+                                <PlusCircle className="w-6 h-6 text-slate-400 group-hover:text-indigo-600"/>
+                                <p className="text-sm font-semibold text-slate-400 group-hover:text-indigo-600">Add Module</p>
+                            </div>
+                        </div>
+
+                        {/* Content Modules Toggle */}
+                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                            <h3 className="text-base font-semibold text-slate-800 mb-4">Content Modules</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Articles Module</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.module_articles}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => setFormData(prev => ({...prev, module_articles: e.target.checked}))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Videos Module</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.module_videos}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => setFormData(prev => ({...prev, module_videos: e.target.checked}))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div>
+                                        <p className="text-sm font-semibold text-slate-800">Music Module</p>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            checked={formData.module_music}
+                                            className="sr-only peer"
+                                            type="checkbox"
+                                            onChange={(e) => setFormData(prev => ({...prev, module_music: e.target.checked}))}
+                                        />
+                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tab: System */}
+                {activeTab === 'system' && (
+                    <div className="space-y-8">
+                        {/* Resource Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU USAGE</span>
+                                    <span className="text-sm font-mono font-bold text-indigo-600">{systemInfo?.cpuUsage || '64%'}</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-[64%] h-full bg-indigo-600 rounded-full"/>
+                                </div>
+                            </div>
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY</span>
+                                    <span className="text-sm font-mono font-bold text-emerald-600">{systemInfo?.memoryUsage?.toFixed(0) || '42'}%</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-500 rounded-full" style={{width: `${systemInfo?.memoryUsage || 42}%`}}/>
+                                </div>
+                            </div>
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DISK I/O</span>
+                                    <span className="text-sm font-mono font-bold text-amber-600">88%</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-[88%] h-full bg-amber-500 rounded-full"/>
+                                </div>
+                            </div>
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NETWORK</span>
+                                    <span className="text-sm font-mono font-bold text-slate-700">12%</span>
+                                </div>
+                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="w-[12%] h-full bg-slate-600 rounded-full"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Process Table */}
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                            <div className="px-6 py-4 border-b border-slate-100">
+                                <h3 className="text-base font-semibold text-slate-800">Active System Processes</h3>
+                            </div>
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">PROCESS ID</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">SERVICE</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">STATUS</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">MEMORY</th>
+                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    <tr className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">81920</td>
+                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Media-Worker-A1</td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>RUNNING
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">1,024 MB</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                <XCircle className="w-4 h-4"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">44211</td>
+                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Distribution-Edge-UK</td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>RUNNING
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">512 MB</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                <XCircle className="w-4 h-4"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">09212</td>
+                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Ingest-Proxy-Service</td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>IDLE
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">256 MB</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                <XCircle className="w-4 h-4"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Server Info */}
+                        {systemInfo && (
+                            <div className="p-6 rounded-xl border border-slate-200 bg-white">
+                                <h3 className="text-base font-semibold text-slate-800 mb-4">Server Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[
+                                        {label: 'Version', value: systemInfo.version || '-'},
+                                        {label: 'Go Version', value: systemInfo.goVersion || '-'},
+                                        {label: 'Database', value: systemInfo.database || '-'},
+                                        {label: 'OS', value: systemInfo.os || '-'},
+                                        {label: 'Uptime', value: systemInfo.uptime || '-'},
+                                        {label: 'CPUs', value: String(systemInfo.numCPU ?? '-')},
+                                        {label: 'Goroutines', value: String(systemInfo.numGoroutine ?? '-')},
+                                        {label: 'Total Memory', value: systemInfo.totalMemory || '-'},
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                                            <span className="text-sm font-medium text-slate-700 font-mono">{item.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

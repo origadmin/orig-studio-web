@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {
     Shield, Plus, Edit, Trash2, Key, FileCheck, ChevronLeft, ChevronRight,
+    Download, ShieldPlus,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Spinner} from '@/components/ui/spinner';
@@ -45,23 +46,41 @@ export default function DRMPage() {
     const [activeTab, setActiveTab] = useState('policies');
 
     return (
-        <div className="space-y-4 p-4 md:p-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
-                    <Shield className="h-6 w-6"/>{t('admin.drmManagement', 'DRM Management')}
-                </h2>
-                <p className="text-sm text-slate-500 mt-1">{t('admin.drmManagementDesc', 'Manage DRM policies, encryption keys, and licenses')}</p>
+        <div className="p-8">
+            {/* Page Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-3">
+                        <Shield className="h-6 w-6 text-indigo-600"/>
+                        {t('admin.drmManagement', 'DRM Management')}
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-1">{t('admin.drmManagementDesc', 'Configure digital rights policies, encryption keys, and license issuance rules.')}</p>
+                </div>
+                <div className="flex gap-3">
+                    <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2">
+                        <Download className="w-4 h-4"/>
+                        {t('admin.exportLogs', 'Export Logs')}
+                    </button>
+                    <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 flex items-center gap-2">
+                        <ShieldPlus className="w-4 h-4"/>
+                        {t('admin.createPolicy', 'Create Policy')}
+                    </button>
+                </div>
             </div>
 
-            <div className="flex border-b border-slate-200 bg-white mb-6">
-                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'policies' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('policies')}>{t('admin.drmPolicies', 'Policies')}</button>
-                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'keys' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('keys')}>{t('admin.drmKeys', 'Keys')}</button>
-                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'licenses' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('licenses')}>{t('admin.drmLicenses', 'Licenses')}</button>
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 bg-white">
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'policies' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('policies')}>{t('admin.drmPolicies', 'Policies')}</button>
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'keys' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('keys')}>{t('admin.drmKeys', 'Keys')}</button>
+                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'licenses' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`} onClick={() => setActiveTab('licenses')}>{t('admin.drmLicenses', 'Licenses')}</button>
             </div>
 
-            {activeTab === 'policies' && <PoliciesTab/>}
-            {activeTab === 'keys' && <KeysTab/>}
-            {activeTab === 'licenses' && <LicensesTab/>}
+            {/* Tab Content */}
+            <div className="mt-6">
+                {activeTab === 'policies' && <PoliciesTab/>}
+                {activeTab === 'keys' && <KeysTab/>}
+                {activeTab === 'licenses' && <LicensesTab/>}
+            </div>
         </div>
     );
 }
@@ -140,70 +159,59 @@ const PoliciesTab: React.FC = () => {
 
     return (
         <>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><Shield className="w-5 h-5"/>{t('admin.drmPolicyManagement', 'DRM Policy Management')}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmPolicyDesc', 'Define DRM protection policies for your content')}</p>
-                    </div>
-                    <button onClick={() => setCreateDialogOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.addDrmPolicy', 'Add Policy')}</button>
-                </div>
-                <div className="p-6">
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyName', 'Name')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyType', 'Type')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyDefault', 'Default')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmPolicyDescription', 'Description')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {policies.length > 0 ? policies.map(p => (
-                                        <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-3.5 text-sm text-slate-700 font-medium">{p.name}</td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{typeLabels[p.type] || p.type}</span>
-                                            </td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                {p.is_default ? <StitchBadge style="emerald">{t('admin.enabled', 'Enabled')}</StitchBadge> : <span className="text-xs text-slate-400">-</span>}
-                                            </td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-500 max-w-[200px] truncate">{p.description || '-'}</td>
-                                            <td className="px-6 py-3.5 text-sm text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(p)}>
-                                                        <Edit className="w-4 h-4"/>
-                                                    </button>
-                                                    <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setEditingItem(p); setDeleteDialogOpen(true); }}>
-                                                        <Trash2 className="w-4 h-4"/>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={5}>
-                                                <div className="py-16 flex flex-col items-center justify-center text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                        <Shield size={32} className="text-slate-300"/>
-                                                    </div>
-                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmPolicies', 'No DRM policies found')}</h3>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50">
+                            <th className="px-6 py-4">{t('admin.drmPolicyName', 'Name')}</th>
+                            <th className="px-6 py-4">{t('admin.drmPolicyType', 'Type')}</th>
+                            <th className="px-6 py-4">{t('admin.drmPolicyDefault', 'Default')}</th>
+                            <th className="px-6 py-4">{t('admin.drmPolicyDescription', 'Description')}</th>
+                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {isLoading ? (
+                            <tr><td colSpan={5} className="py-12 text-center"><Spinner className="mx-auto"/></td></tr>
+                        ) : policies.length > 0 ? policies.map(p => (
+                            <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-sm text-slate-700 font-medium">{p.name}</td>
+                                <td className="px-6 py-4 text-sm text-slate-700">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{typeLabels[p.type] || p.type}</span>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-700">
+                                    {p.is_default ? <StitchBadge style="emerald">{t('admin.enabled', 'Enabled')}</StitchBadge> : <span className="text-xs text-slate-400">-</span>}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-500 max-w-[200px] truncate">{p.description || '-'}</td>
+                                <td className="px-6 py-4 text-sm text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(p)}>
+                                            <Edit className="w-4 h-4"/>
+                                        </button>
+                                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setEditingItem(p); setDeleteDialogOpen(true); }}>
+                                            <Trash2 className="w-4 h-4"/>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={5}>
+                                    <div className="py-16 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                            <Shield size={32} className="text-slate-300"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmPolicies', 'No DRM policies found')}</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <h3 className="text-lg font-semibold text-slate-800">{t('admin.addDrmPolicyTitle', 'Add DRM Policy')}</h3>
                     </div>
@@ -235,7 +243,7 @@ const PoliciesTab: React.FC = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <h3 className="text-lg font-semibold text-slate-800">{t('admin.editDrmPolicy', 'Edit DRM Policy')}</h3>
                     </div>
@@ -269,7 +277,7 @@ const PoliciesTab: React.FC = () => {
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteDrmPolicyConfirm', 'Are you sure you want to delete this DRM policy?')}</AlertDialogDescription>
@@ -322,71 +330,80 @@ const KeysTab: React.FC = () => {
 
     return (
         <>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><Key className="w-5 h-5"/>{t('admin.drmKeyManagement', 'DRM Key Management')}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmKeyDesc', 'Generate and manage encryption keys')}</p>
+            {/* Search / Filter Bar */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                        <input className="h-9 bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 text-sm max-w-sm focus:outline-none focus:ring-1 focus:ring-indigo-600" placeholder={t('admin.searchKeys', 'Search keys by Asset ID...')} type="text"/>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Select value={selectedPolicy} onValueChange={setSelectedPolicy}>
-                            <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('admin.selectDrmPolicy', 'Select Policy')}/></SelectTrigger>
-                            <SelectContent>
-                                {policies.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                        <button onClick={() => setGenerateDialogOpen(true)} disabled={!selectedPolicy} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.generateKey', 'Generate Key')}</button>
-                    </div>
+                    <select className="h-9 bg-slate-50 border border-slate-200 rounded-lg px-3 text-sm text-slate-700" value={selectedPolicy} onChange={e => setSelectedPolicy(e.target.value)}>
+                        <option value="">{t('admin.selectDrmPolicy', 'Select Policy')}</option>
+                        {policies.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
                 </div>
-                <div className="p-6">
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyContentId', 'Content ID')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyId', 'Key ID')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyIv', 'IV')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyCreatedAt', 'Created')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmKeyExpiresAt', 'Expires')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {keys.length > 0 ? keys.map(k => (
-                                        <tr key={k.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-3.5 text-sm text-slate-700 font-medium"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.content_id}</code></td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.key_id.substring(0, 16)}...</code></td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{k.iv ? k.iv.substring(0, 16) + '...' : '-'}</code></td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-500">{k.created_at ? new Date(k.created_at).toLocaleDateString() : '-'}</td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-500">{k.expires_at ? new Date(k.expires_at).toLocaleDateString() : '-'}</td>
-                                            <td className="px-6 py-3.5 text-sm text-right">
-                                                <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setDeletingKey(k); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={6}>
-                                                <div className="py-16 flex flex-col items-center justify-center text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                        <Key size={32} className="text-slate-300"/>
-                                                    </div>
-                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{selectedPolicy ? t('admin.noDrmKeys', 'No keys found') : t('admin.selectDrmPolicyFirst', 'Select a policy first')}</h3>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                <div className="flex gap-2">
+                    <button onClick={() => setGenerateDialogOpen(true)} disabled={!selectedPolicy} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        <Plus className="w-4 h-4"/>
+                        {t('admin.generateKey', 'Generate Key')}
+                    </button>
                 </div>
             </div>
 
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50">
+                            <th className="px-6 py-4">{t('admin.drmKeyContentId', 'Key ID / Asset')}</th>
+                            <th className="px-6 py-4">{t('admin.drmKeyId', 'Encryption Key (Masked)')}</th>
+                            <th className="px-6 py-4">{t('admin.drmKeyStatus', 'Status')}</th>
+                            <th className="px-6 py-4">{t('admin.drmKeyExpiresAt', 'Expiry Date')}</th>
+                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {isLoading ? (
+                            <tr><td colSpan={5} className="py-12 text-center"><Spinner className="mx-auto"/></td></tr>
+                        ) : keys.length > 0 ? keys.map(k => (
+                            <tr key={k.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="text-sm font-semibold text-slate-700">{k.content_id}</div>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded tracking-widest text-slate-500">•••••••• {k.key_id.substring(0, 4)} ••••</code>
+                                </td>
+                                <td className="px-6 py-4">
+                                    <StitchBadge style={k.expires_at && new Date(k.expires_at) > new Date() ? 'emerald' : 'red'}>
+                                        {k.expires_at && new Date(k.expires_at) > new Date() ? t('admin.licenseActive', 'Active') : t('admin.licenseExpired', 'Expired')}
+                                    </StitchBadge>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-500 font-mono">{k.expires_at ? new Date(k.expires_at).toLocaleDateString() : '-'}</td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setDeletingKey(k); setDeleteDialogOpen(true); }}>
+                                            <Trash2 className="w-4 h-4"/>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={5}>
+                                    <div className="py-16 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                            <Key size={32} className="text-slate-300"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-slate-700 mb-1">{selectedPolicy ? t('admin.noDrmKeys', 'No keys found') : t('admin.selectDrmPolicyFirst', 'Select a policy first')}</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
             <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-                <DialogContent className="sm:max-w-[450px] p-0 gap-0 rounded-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[450px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <h3 className="text-lg font-semibold text-slate-800">{t('admin.generateDrmKeyTitle', 'Generate DRM Key')}</h3>
                     </div>
@@ -402,7 +419,7 @@ const KeysTab: React.FC = () => {
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteDrmKeyConfirm', 'Are you sure you want to delete this DRM key?')}</AlertDialogDescription>
@@ -433,73 +450,63 @@ const LicensesTab: React.FC = () => {
     };
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100">
-                <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><FileCheck className="w-5 h-5"/>{t('admin.drmLicenseManagement', 'DRM License Management')}</h3>
-                <p className="text-sm text-slate-500 mt-0.5">{t('admin.drmLicenseDesc', 'View issued DRM licenses')}</p>
-            </div>
-            <div className="p-6">
-                {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                    <>
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseKeyId', 'Key ID')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseUserId', 'User ID')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseDeviceId', 'Device ID')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseStatus', 'Status')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseIssuedAt', 'Issued')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.drmLicenseExpiresAt', 'Expires')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {licenses.length > 0 ? licenses.map(l => {
-                                        const statusInfo = statusLabels[l.status] || {label: l.status, style: 'slate' as const};
-                                        return (
-                                            <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-3.5 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.key_id.substring(0, 16)}...</code></td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">{l.user_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.user_id.substring(0, 8)}...</code> : '-'}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">{l.device_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.device_id.substring(0, 8)}...</code> : '-'}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700"><StitchBadge style={statusInfo.style}>{statusInfo.label}</StitchBadge></td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-500">{l.issued_at ? new Date(l.issued_at).toLocaleDateString() : '-'}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-500">{l.expires_at ? new Date(l.expires_at).toLocaleDateString() : '-'}</td>
-                                            </tr>
-                                        );
-                                    }) : (
-                                        <tr>
-                                            <td colSpan={6}>
-                                                <div className="py-16 flex flex-col items-center justify-center text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                        <FileCheck size={32} className="text-slate-300"/>
-                                                    </div>
-                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmLicenses', 'No licenses found')}</h3>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                        {total > 20 && (
-                            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                                <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
-                                <div className="flex items-center gap-1">
-                                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                                        <ChevronLeft size={16}/>
-                                    </button>
-                                    {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
-                                        <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
-                                    ))}
-                                    <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                                        <ChevronRight size={16}/>
-                                    </button>
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <table className="w-full text-left">
+                <thead>
+                    <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50">
+                        <th className="px-6 py-4">{t('admin.drmLicenseKeyId', 'Key ID')}</th>
+                        <th className="px-6 py-4">{t('admin.drmLicenseUserId', 'User ID')}</th>
+                        <th className="px-6 py-4">{t('admin.drmLicenseDeviceId', 'Device ID')}</th>
+                        <th className="px-6 py-4">{t('admin.drmLicenseStatus', 'Status')}</th>
+                        <th className="px-6 py-4">{t('admin.drmLicenseIssuedAt', 'Issued')}</th>
+                        <th className="px-6 py-4">{t('admin.drmLicenseExpiresAt', 'Expires')}</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                    {isLoading ? (
+                        <tr><td colSpan={6} className="py-12 text-center"><Spinner className="mx-auto"/></td></tr>
+                    ) : licenses.length > 0 ? licenses.map(l => {
+                        const statusInfo = statusLabels[l.status] || {label: l.status, style: 'slate' as const};
+                        return (
+                            <tr key={l.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4 text-sm text-slate-700"><code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.key_id.substring(0, 16)}...</code></td>
+                                <td className="px-6 py-4 text-sm text-slate-700">{l.user_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.user_id.substring(0, 8)}...</code> : '-'}</td>
+                                <td className="px-6 py-4 text-sm text-slate-700">{l.device_id ? <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{l.device_id.substring(0, 8)}...</code> : '-'}</td>
+                                <td className="px-6 py-4 text-sm text-slate-700"><StitchBadge style={statusInfo.style}>{statusInfo.label}</StitchBadge></td>
+                                <td className="px-6 py-4 text-sm text-slate-500">{l.issued_at ? new Date(l.issued_at).toLocaleDateString() : '-'}</td>
+                                <td className="px-6 py-4 text-sm text-slate-500">{l.expires_at ? new Date(l.expires_at).toLocaleDateString() : '-'}</td>
+                            </tr>
+                        );
+                    }) : (
+                        <tr>
+                            <td colSpan={6}>
+                                <div className="py-16 flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                        <FileCheck size={32} className="text-slate-300"/>
+                                    </div>
+                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noDrmLicenses', 'No licenses found')}</h3>
                                 </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+            {total > 20 && (
+                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                    <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
+                    <div className="flex items-center gap-1">
+                        <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                            <ChevronLeft size={16}/>
+                        </button>
+                        {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
+                            <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
+                        ))}
+                        <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                            <ChevronRight size={16}/>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

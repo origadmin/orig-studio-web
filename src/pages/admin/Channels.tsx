@@ -1,60 +1,32 @@
 import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {MoreHorizontal, Plus, Search, Edit, Trash2, Eye, UserPlus, Users, Filter, Loader2, RotateCcw} from 'lucide-react';
-import {formatDateTime} from '@/lib/format';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+    Plus,
+    Search,
+    Edit3,
+    Trash2,
+    Tv,
+    Users,
+    CheckCircle,
+    Clock,
+    ChevronLeft,
+    ChevronRight,
+    RotateCcw,
+    X,
+} from 'lucide-react';
 import {adminApi, Channel} from '@/lib/api/admin';
-import {TablePagination} from '@/components/common/TablePagination';
 import {usePagination} from '@/hooks/usePagination';
+import {formatDateTime} from '@/lib/format';
 
 const Channels: React.FC = () => {
     const {t} = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [channels, setChannels] = useState<Channel[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const {page, pageSize, total, setPage, setTotal, getParams} = usePagination();
+    const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination();
     const [showCreateDialog, setShowCreateDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -66,7 +38,6 @@ const Channels: React.FC = () => {
         status: 'active',
     });
 
-    // 加载频道数据
     useEffect(() => {
         loadChannels();
     }, [page]);
@@ -111,7 +82,6 @@ const Channels: React.FC = () => {
 
     const handleUpdate = async () => {
         if (!currentChannel) return;
-
         try {
             await adminApi.updateChannel(currentChannel.id, formData);
             await loadChannels();
@@ -125,7 +95,6 @@ const Channels: React.FC = () => {
 
     const handleDelete = async () => {
         if (!currentChannel) return;
-
         try {
             await adminApi.deleteChannel(currentChannel.id);
             await loadChannels();
@@ -169,477 +138,509 @@ const Channels: React.FC = () => {
     const pendingCount = channels.filter(c => c.status === 'pending').length;
 
     const getStatusBadge = (status: string) => {
-        const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-            verified: 'default',
-            active: 'secondary',
-            pending: 'outline',
-            banned: 'destructive',
+        const config: Record<string, {bg: string; text: string; dot: string; label: string}> = {
+            verified: {bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: t('common.verified')},
+            active: {bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: t('admin.normal')},
+            pending: {bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', label: t('admin.pending')},
+            banned: {bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: t('admin.banned')},
         };
-        const labels: Record<string, string> = {
-            verified: t('common.verified'),
-            active: t('admin.normal'),
-            pending: t('admin.pending'),
-            banned: t('admin.banned'),
-        };
-        return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>;
+        const c = config[status] || config.active;
+        return (
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${c.dot}${status === 'pending' ? ' animate-pulse' : ''}`}/>
+                {c.label}
+            </span>
+        );
     };
 
     const formatNumber = (num: number | undefined | null) => {
         if (num === undefined || num === null) return '0';
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 10000) return (num / 10000).toFixed(1) + t('common.wan');
-        return num.toString();
+        return num.toLocaleString();
     };
 
+    const handleReset = () => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setCategoryFilter('all');
+    };
+
+    const startItem = (page - 1) * pageSize + 1;
+    const endItem = Math.min(page * pageSize, total);
+
     return (
-        <div className="space-y-4 p-4 md:p-6">
-            {/* 操作栏 */}
-            <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                    <div className="flex flex-col gap-4">
-                        {/* 页面标题 */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">{t('admin.channels')}</h2>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    {t('admin.manageChannels')}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* 分隔线 */}
-                        <div className="border-t border-border my-2"/>
-
-                        {/* 搜索和筛选 */}
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 min-w-[120px] max-w-[400px]">
-                                <div className="relative w-full">
-                                    <Search
-                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                    <Input
-                                        placeholder={t('admin.search') || t('admin.channels') + '...'}
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                    <SelectTrigger className="w-[140px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4"/>
-                                            {statusFilter === 'all' ? (
-                                                <span className="text-muted-foreground">{t('admin.status')}</span>
-                                            ) : (
-                                                <SelectValue placeholder={t('admin.status')}/>
-                                            )}
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all" className="justify-center text-center font-medium opacity-70">--- {t('admin.allStatus')} ---</SelectItem>
-                                        <SelectItem value="verified">{t('common.verified')}</SelectItem>
-                                        <SelectItem value="active">{t('admin.normal')}</SelectItem>
-                                        <SelectItem value="pending">{t('admin.pending')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSearchTerm('');
-                                            setStatusFilter('all');
-                                        }}
-                                    >
-                                        <RotateCcw className="h-4 w-4 mr-2"/>
-                                        {t('admin.reset')}
-                                    </Button>
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => {
-                                        }}
-                                    >
-                                        <Search className="h-4 w-4 mr-2"/>
-                                        {t('common.search')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* 统计卡片 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('admin.channelTotal')}</p>
-                                <p className="text-2xl font-bold text-info">{channels.length}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                                <Users className="w-6 h-6 text-info"/>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-info w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('admin.totalSubscribers')}</p>
-                                <p className="text-2xl font-bold text-purple-600">{formatNumber(totalSubscribers)}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                                <UserPlus className="w-6 h-6 text-purple-600"/>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-purple-500 w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('admin.verifiedChannels')}</p>
-                                <p className="text-2xl font-bold text-success">{verifiedCount}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                                <Eye className="w-6 h-6 text-success"/>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-success w-full opacity-10"/>
-                    </CardContent>
-                </Card>
-                <Card className="relative overflow-hidden shadow-sm border-none ring-1 ring-border">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('admin.pending')}</p>
-                                <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 text-yellow-600"/>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 h-1 bg-warning w-full opacity-10"/>
-                    </CardContent>
-                </Card>
+        <div className="p-8">
+            {/* Page Header */}
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.channels')}</h2>
+                    <p className="text-sm text-slate-500 mt-1">{t('admin.manageChannels')}</p>
+                </div>
+                <button
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+                    onClick={openCreateDialog}
+                >
+                    <Plus className="w-4 h-4"/>
+                    {t('admin.newChannel')}
+                </button>
             </div>
 
-            {/* 频道表格 */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
                         <div>
-                            <CardTitle>{t('admin.channelList')}</CardTitle>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.channelTotal')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{channels.length}</h3>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Button size="sm" onClick={openCreateDialog}>
-                                <Plus className="mr-2 h-4 w-4"/>
-                                {t('admin.newChannel')}
-                            </Button>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Tv className="w-5 h-5"/>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t('admin.channel')}</TableHead>
-                                <TableHead>{t('admin.owner')}</TableHead>
-                                <TableHead className="text-right">{t('admin.subscriberCount')}</TableHead>
-                                <TableHead className="text-right">{t('admin.videoCount')}</TableHead>
-                                <TableHead>{t('admin.category')}</TableHead>
-                                <TableHead>{t('admin.status')}</TableHead>
-                                <TableHead>{t('admin.createdAt')}</TableHead>
-                                <TableHead className="text-right">{t('admin.actions')}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loading ? (
-                                <TableRow key="loading">
-                                    <TableCell colSpan={8} className="text-center py-8">
-                                        <div className="animate-pulse">{t('admin.loadingChannels')}</div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : error ? (
-                                <TableRow key="error">
-                                    <TableCell colSpan={8} className="text-center py-8">
-                                        <div className="text-destructive">{error}</div>
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
-                                            className="mt-2"
-                                            onClick={() => window.location.reload()}
-                                        >
-                                            {t('common.retry')}
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ) : filteredChannels.length === 0 ? (
-                                <TableRow key="empty">
-                                    <TableCell colSpan={8} className="text-center py-8">
-                                        {t('admin.noChannelsFound')}
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                filteredChannels.map((channel) => (
-                                    <TableRow key={channel.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-10 w-10">
-                                                    <AvatarFallback>{channel.name[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-medium">{channel.name}</div>
-                                                    <div className="text-xs text-muted-foreground">{channel.short_token}</div>
-                                                </div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalSubscribers')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(totalSubscribers)}</h3>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Users className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.verifiedChannels')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{verifiedCount}</h3>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <CheckCircle className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.pending')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{pendingCount}</h3>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Clock className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Filters Section */}
+            <div className="mb-6">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                        <input
+                            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                            placeholder={t('admin.search') || t('admin.channels') + '...'}
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    <select
+                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="all">{t('admin.category')}: {t('admin.allStatus')}</option>
+                        <option value="tech">Tech</option>
+                        <option value="cooking">Cooking</option>
+                        <option value="music">Music</option>
+                        <option value="gaming">Gaming</option>
+                    </select>
+                    <select
+                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                    >
+                        <option value="all">{t('admin.status')}: {t('admin.allStatus')}</option>
+                        <option value="verified">{t('common.verified')}</option>
+                        <option value="active">{t('admin.normal')}</option>
+                        <option value="pending">{t('admin.pending')}</option>
+                        <option value="banned">{t('admin.banned')}</option>
+                    </select>
+                    <button
+                        className="inline-flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors"
+                        onClick={handleReset}
+                    >
+                        <RotateCcw className="w-3.5 h-3.5"/>
+                        {t('admin.reset')}
+                    </button>
+                </div>
+            </div>
+
+            {/* Main Table */}
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.channel')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.owner')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.subscriberCount')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.videoCount')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.category')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.createdAt')}</th>
+                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                        {loading ? (
+                            <tr>
+                                <td colSpan={8} className="px-6 py-12 text-center">
+                                    <div className="animate-pulse text-slate-400">{t('admin.loadingChannels')}</div>
+                                </td>
+                            </tr>
+                        ) : error ? (
+                            <tr>
+                                <td colSpan={8} className="px-6 py-12 text-center">
+                                    <div className="text-red-500">{error}</div>
+                                    <button
+                                        className="mt-2 text-sm text-indigo-600 hover:text-indigo-700"
+                                        onClick={() => window.location.reload()}
+                                    >
+                                        {t('common.retry')}
+                                    </button>
+                                </td>
+                            </tr>
+                        ) : filteredChannels.length === 0 ? (
+                            <tr>
+                                <td colSpan={8} className="px-6 py-12 text-center text-slate-400">
+                                    {t('admin.noChannelsFound')}
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredChannels.map((channel) => (
+                                <tr
+                                    key={channel.id}
+                                    className={`hover:bg-slate-50/50 transition-colors${channel.status === 'banned' ? ' bg-slate-50/30' : ''}`}
+                                >
+                                    <td className="px-6 py-4">
+                                        <div className={`flex items-center gap-3${channel.status === 'banned' ? ' opacity-60' : ''}`}>
+                                            <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                                                {channel.name[0]}
                                             </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Avatar className="h-6 w-6">
-                                                    <AvatarFallback
-                                                        className="text-xs">{channel.user_id.substring(0, 1).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="text-muted-foreground">{t('admin.user')} ID: {channel.user_id}</span>
+                                            <div>
+                                                <p className={`text-sm font-semibold text-slate-800${channel.status === 'banned' ? ' line-through' : ''}`}>
+                                                    {channel.name}
+                                                </p>
+                                                <p className="text-xs text-slate-400 font-mono">@{channel.short_token}</p>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="text-right font-medium">
-                                            {formatNumber(channel.subscriber_count)}
-                                        </TableCell>
-                                        <TableCell className="text-right">{channel.media_count || 0}</TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">-</Badge>
-                                        </TableCell>
-                                        <TableCell>{getStatusBadge(channel.status ?? 'active')}</TableCell>
-                                        <TableCell className="text-muted-foreground">
-                                            {formatDateTime(channel.create_time)}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        className="h-6 w-6" 
-                                                        title={t('admin.moreActions')}
-                                                    >
-                                                        <MoreHorizontal className="h-3 w-3"/>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>{t('admin.actions')}</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator/>
-                                                    <DropdownMenuItem>
-                                                        <Eye className="mr-2 h-4 w-4"/>
-                                                        {t('admin.view')}
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => openEditDialog(channel)}>
-                                                        <Edit className="mr-2 h-4 w-4"/>
-                                                        {t('admin.edit')}
-                                                    </DropdownMenuItem>
-                                                    {channel.status === 'pending' && (
-                                                        <DropdownMenuItem>
-                                                            <UserPlus className="mr-2 h-4 w-4"/>
-                                                            {t('admin.verify')}
-                                                        </DropdownMenuItem>
-                                                    )}
-                                                    <DropdownMenuItem 
-                                                        className="text-destructive focus:text-destructive" 
-                                                        onClick={() => openDeleteDialog(channel)}
-                                                    >
-                                                        <Trash2 className="mr-2 h-4 w-4"/>
-                                                        {t('admin.delete')}
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-mono text-slate-500">{channel.user_id}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-700 tabular-nums">{formatNumber(channel.subscriber_count)}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-700 tabular-nums">{channel.media_count || 0}</td>
+                                    <td className="px-6 py-4">
+                                        <span className="inline-flex px-2 py-0.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600">-</span>
+                                    </td>
+                                    <td className="px-6 py-4">{getStatusBadge(channel.status ?? 'active')}</td>
+                                    <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(channel.create_time)}</td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex justify-end gap-1">
+                                            <button
+                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                onClick={() => openEditDialog(channel)}
+                                                title={t('admin.edit')}
+                                            >
+                                                <Edit3 className="w-4 h-4"/>
+                                            </button>
+                                            <button
+                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                onClick={() => openDeleteDialog(channel)}
+                                                title={t('admin.delete')}
+                                            >
+                                                <Trash2 className="w-4 h-4"/>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+
+                {/* Pagination */}
+                {total > pageSize && (
+                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                        <p className="text-xs text-slate-500">
+                            Showing {startItem} to {endItem} of {total} channels
+                        </p>
+                        <div className="flex items-center gap-1">
+                            <button
+                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
+                                disabled={page <= 1}
+                                onClick={() => setPage(page - 1)}
+                            >
+                                <ChevronLeft className="w-4 h-4"/>
+                            </button>
+                            {Array.from({length: Math.min(totalPages, 5)}, (_, i) => {
+                                let pageNum: number;
+                                if (totalPages <= 5) {
+                                    pageNum = i + 1;
+                                } else if (page <= 3) {
+                                    pageNum = i + 1;
+                                } else if (page >= totalPages - 2) {
+                                    pageNum = totalPages - 4 + i;
+                                } else {
+                                    pageNum = page - 2 + i;
+                                }
+                                return (
+                                    <button
+                                        key={pageNum}
+                                        className={`h-8 px-3 rounded-lg text-sm font-medium ${pageNum === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                                        onClick={() => setPage(pageNum)}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+                            {totalPages > 5 && page < totalPages - 2 && (
+                                <span className="text-slate-300 mx-1">...</span>
                             )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            <TablePagination
-                page={page}
-                pageSize={pageSize}
-                total={total}
-                onPageChange={setPage}
-            />
-
-            {/* Create Channel Dialog */}
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.newChannel')}</DialogTitle>
-                        <DialogDescription>
-                            {t('admin.createChannelDesc')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                                {t('admin.name')} *
-                            </h4>
-                            <Input
-                                placeholder={t('admin.enterChannelName')}
-                                value={formData.name || ''}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.shortToken')} *
-                            </h4>
-                            <Input
-                                placeholder={t('admin.enterChannelShortToken')}
-                                value={formData.short_token || ''}
-                                onChange={(e) => setFormData({...formData, short_token: e.target.value})}
-                                maxLength={12}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.description')}
-                            </h4>
-                            <Textarea
-                                placeholder={t('admin.enterChannelDescription')}
-                                value={formData.description || ''}
-                                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.status')}
-                            </h4>
-                            <Select
-                                value={formData.status || 'active'}
-                                onValueChange={(value) => setFormData({...formData, status: value})}
+                            {totalPages > 5 && page < totalPages - 2 && (
+                                <button
+                                    className="h-8 w-8 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                    onClick={() => setPage(totalPages)}
+                                >
+                                    {totalPages}
+                                </button>
+                            )}
+                            <button
+                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
+                                disabled={page >= totalPages}
+                                onClick={() => setPage(page + 1)}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={t('admin.selectStatus')}/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">{t('admin.active')}</SelectItem>
-                                    <SelectItem value="verified">{t('admin.verified')}</SelectItem>
-                                    <SelectItem value="pending">{t('admin.pending')}</SelectItem>
-                                    <SelectItem value="banned">{t('admin.banned')}</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                <ChevronRight className="w-4 h-4"/>
+                            </button>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                            {t('admin.cancel')}
-                        </Button>
-                        <Button onClick={handleCreate}>
-                            {t('admin.create')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                )}
+            </div>
 
-            {/* Edit Channel Dialog */}
-            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editChannel')}</DialogTitle>
-                        <DialogDescription>
-                            {t('admin.updateChannelInfo')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.name')} *
-                            </h4>
-                            <Input
-                                placeholder={t('admin.enterChannelName')}
-                                value={formData.name || ''}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.shortToken')}
-                            </h4>
-                            <Input
-                                placeholder={t('admin.enterChannelShortToken')}
-                                value={formData.short_token || ''}
-                                onChange={(e) => setFormData({...formData, short_token: e.target.value})}
-                                maxLength={12}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.description')}
-                            </h4>
-                            <Textarea
-                                placeholder={t('admin.enterChannelDescription')}
-                                value={formData.description || ''}
-                                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                            />
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                {t('admin.status')}
-                            </h4>
-                            <Select
-                                value={formData.status || 'active'}
-                                onValueChange={(value) => setFormData({...formData, status: value})}
+            {/* Create Channel Modal */}
+            {showCreateDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowCreateDialog(false)}/>
+                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.newChannel')}</h3>
+                            <button
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+                                onClick={() => setShowCreateDialog(false)}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={t('admin.selectStatus')}/>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="active">{t('admin.active')}</SelectItem>
-                                    <SelectItem value="verified">{t('admin.verified')}</SelectItem>
-                                    <SelectItem value="pending">{t('admin.pending')}</SelectItem>
-                                    <SelectItem value="banned">{t('admin.banned')}</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                <X className="w-5 h-5"/>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.name')} *</label>
+                                <input
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelName')}
+                                    type="text"
+                                    value={formData.name || ''}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.shortToken')} *</label>
+                                <input
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelShortToken')}
+                                    type="text"
+                                    value={formData.short_token || ''}
+                                    onChange={(e) => setFormData({...formData, short_token: e.target.value})}
+                                    maxLength={12}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700">{t('admin.category')}</label>
+                                    <select
+                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
+                                        value={formData.category_id || ''}
+                                        onChange={(e) => setFormData({...formData, category_id: e.target.value ? Number(e.target.value) : undefined})}
+                                    >
+                                        <option value="">-</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700">{t('admin.status')}</label>
+                                    <select
+                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
+                                        value={formData.status || 'active'}
+                                        onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                    >
+                                        <option value="active">{t('admin.active')}</option>
+                                        <option value="verified">{t('admin.verified')}</option>
+                                        <option value="pending">{t('admin.pending')}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.description')}</label>
+                                <textarea
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelDescription')}
+                                    rows={3}
+                                    value={formData.description || ''}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                            <button
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                onClick={() => setShowCreateDialog(false)}
+                            >
+                                {t('admin.cancel')}
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700"
+                                onClick={handleCreate}
+                            >
+                                {t('admin.create')}
+                            </button>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-                            {t('admin.cancel')}
-                        </Button>
-                        <Button onClick={handleUpdate}>
-                            {t('admin.save')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                </div>
+            )}
 
-            {/* Delete Channel Dialog */}
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('admin.deleteChannel')}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {t('admin.deleteChannelConfirm')}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowDeleteDialog(false)}>
-                            {t('admin.cancel')}
-                        </AlertDialogCancel>
-                        <AlertDialogAction 
-                            onClick={handleDelete}
-                            className="bg-red-600 hover:bg-red-700"
-                        >
-                            {t('admin.delete')}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {/* Edit Channel Modal */}
+            {showEditDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditDialog(false)}/>
+                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.editChannel')}</h3>
+                            <button
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+                                onClick={() => setShowEditDialog(false)}
+                            >
+                                <X className="w-5 h-5"/>
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.name')} *</label>
+                                <input
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelName')}
+                                    type="text"
+                                    value={formData.name || ''}
+                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.shortToken')}</label>
+                                <input
+                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelShortToken')}
+                                    type="text"
+                                    value={formData.short_token || ''}
+                                    onChange={(e) => setFormData({...formData, short_token: e.target.value})}
+                                    maxLength={12}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700">{t('admin.category')}</label>
+                                    <select
+                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
+                                        value={formData.category_id || ''}
+                                        onChange={(e) => setFormData({...formData, category_id: e.target.value ? Number(e.target.value) : undefined})}
+                                    >
+                                        <option value="">-</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium text-slate-700">{t('admin.status')}</label>
+                                    <select
+                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
+                                        value={formData.status || 'active'}
+                                        onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                    >
+                                        <option value="active">{t('admin.active')}</option>
+                                        <option value="verified">{t('admin.verified')}</option>
+                                        <option value="pending">{t('admin.pending')}</option>
+                                        <option value="banned">{t('admin.banned')}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700">{t('admin.description')}</label>
+                                <textarea
+                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                                    placeholder={t('admin.enterChannelDescription')}
+                                    rows={3}
+                                    value={formData.description || ''}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                />
+                            </div>
+                        </div>
+                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                            <button
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                onClick={() => setShowEditDialog(false)}
+                            >
+                                {t('admin.cancel')}
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700"
+                                onClick={handleUpdate}
+                            >
+                                {t('admin.save')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Channel Modal */}
+            {showDeleteDialog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowDeleteDialog(false)}/>
+                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.deleteChannel')}</h3>
+                            <button
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
+                                onClick={() => setShowDeleteDialog(false)}
+                            >
+                                <X className="w-5 h-5"/>
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <p className="text-sm text-slate-600">{t('admin.deleteChannelConfirm')}</p>
+                        </div>
+                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
+                            <button
+                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                onClick={() => setShowDeleteDialog(false)}
+                            >
+                                {t('admin.cancel')}
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700"
+                                onClick={handleDelete}
+                            >
+                                {t('admin.delete')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

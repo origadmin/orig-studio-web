@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {
-    Megaphone, Plus, Edit, Trash2, BarChart3, LayoutGrid, DollarSign, Eye, MousePointerClick, ChevronLeft, ChevronRight,
+    Megaphone, Plus, Edit, Trash2, Eye, ChevronLeft, ChevronRight, Download,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Spinner} from '@/components/ui/spinner';
@@ -12,28 +12,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {
-    useAdminAdCampaigns, useCreateAdCampaign, useUpdateAdCampaign, useDeleteAdCampaign,
-    useAdminAdSlots, useCreateAdSlot, useUpdateAdSlot, useDeleteAdSlot,
+    useAdminAds, useCreateAd, useUpdateAd, useDeleteAd,
 } from '@/hooks/queries';
-import {type AdCampaign, type AdSlot, type CreateAdCampaignRequest, type CreateAdSlotRequest} from '@/lib/api/ads';
-
-const campaignStatusConfig: Record<string, {label: string; style: 'emerald' | 'slate' | 'amber' | 'red'}> = {
-    draft: {label: 'Draft', style: 'slate'},
-    active: {label: 'Active', style: 'emerald'},
-    paused: {label: 'Paused', style: 'amber'},
-    completed: {label: 'Completed', style: 'emerald'},
-    expired: {label: 'Expired', style: 'red'},
-};
-
-const adTypeLabels: Record<string, string> = {
-    banner: 'Banner',
-    video: 'Video',
-    native: 'Native',
-    popup: 'Popup',
-    sidebar: 'Sidebar',
-    overlay: 'Overlay',
-};
+import {type Ad, type CreateAdRequest, type UpdateAdRequest} from '@/lib/api/ads';
 
 const StitchBadge: React.FC<{style: 'emerald' | 'slate' | 'amber' | 'red'; children: React.ReactNode; pulse?: boolean}> = ({style, children, pulse}) => {
     const styles = {
@@ -58,407 +41,331 @@ const StitchBadge: React.FC<{style: 'emerald' | 'slate' | 'amber' | 'red'; child
 
 export default function AdsPage() {
     const {t} = useTranslation();
-    const [activeTab, setActiveTab] = useState('campaigns');
 
     return (
-        <div className="space-y-4 p-4 md:p-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
-                    <Megaphone className="h-6 w-6"/>{t('admin.adsManagement', 'Ads Management')}
-                </h2>
-                <p className="text-sm text-slate-500 mt-1">{t('admin.adsDesc', 'Manage ad campaigns, slots, and performance')}</p>
+        <div className="p-8">
+            {/* Page Header */}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-3">
+                        <Megaphone className="h-6 w-6 text-indigo-600"/>
+                        {t('admin.adsManagement', 'Ads Management')}
+                    </h1>
+                    <p className="text-sm text-slate-500 mt-1">{t('admin.adsManagementDesc', 'Create, schedule, and monitor advertising campaigns across all channels.')}</p>
+                </div>
+                <div className="flex gap-3">
+                    <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2">
+                        <Download className="w-4 h-4"/>
+                        {t('admin.exportReport', 'Export Report')}
+                    </button>
+                    <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 flex items-center gap-2">
+                        <Plus className="w-4 h-4"/>
+                        {t('admin.createAd', 'Create Ad')}
+                    </button>
+                </div>
             </div>
 
-            <div className="flex border-b border-slate-200 bg-white mb-6">
-                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'campaigns' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('campaigns')}>{t('admin.campaigns', 'Campaigns')}</button>
-                <button className={`px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'slots' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`} onClick={() => setActiveTab('slots')}>{t('admin.slots', 'Slots')}</button>
-            </div>
-
-            {activeTab === 'campaigns' && <CampaignsTab/>}
-            {activeTab === 'slots' && <SlotsTab/>}
+            <AdsTab/>
         </div>
     );
 }
 
-const CampaignsTab: React.FC = () => {
+const AdsTab: React.FC = () => {
     const {t} = useTranslation();
     const [page, setPage] = useState(1);
-    const {data: campaignsData, isLoading} = useAdminAdCampaigns({page, page_size: 20});
-    const createMutation = useCreateAdCampaign();
-    const updateMutation = useUpdateAdCampaign();
-    const deleteMutation = useDeleteAdCampaign();
+    const {data: adsData, isLoading} = useAdminAds({page, page_size: 20});
+    const createMutation = useCreateAd();
+    const updateMutation = useUpdateAd();
+    const deleteMutation = useDeleteAd();
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<AdCampaign | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdCampaignRequest>({name: '', type: 'banner', start_date: '', end_date: ''});
-    const [editForm, setEditForm] = useState({name: '', type: '', status: '', budget: 0, target_url: '', priority: 0});
+    const [editingAd, setEditingAd] = useState<Ad | null>(null);
+    const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
+    const [createForm, setCreateForm] = useState<CreateAdRequest>({
+        title: '', type: 'banner', position: 'top',
+    });
+    const [editForm, setEditForm] = useState<UpdateAdRequest>({
+        title: '', type: 'banner', position: 'top', is_active: true,
+    });
 
-    const campaigns = campaignsData?.items || [];
-    const total = campaignsData?.total || 0;
+    const ads = adsData?.items || [];
+    const total = adsData?.total || 0;
     const totalPages = Math.ceil(total / 20);
 
     const handleCreate = async () => {
         try {
             await createMutation.mutateAsync(createForm);
             setCreateDialogOpen(false);
-            setCreateForm({name: '', type: 'banner', start_date: '', end_date: ''});
-        } catch (err) { console.error('Failed to create campaign:', err); }
+            setCreateForm({title: '', type: 'banner', position: 'top'});
+        } catch (err) {
+            console.error('Failed to create ad:', err);
+        }
     };
 
-    const openEditDialog = (c: AdCampaign) => {
-        setEditingItem(c);
-        setEditForm({name: c.name, type: c.type, status: c.status, budget: c.budget, target_url: c.target_url, priority: c.priority});
+    const openEditDialog = (ad: Ad) => {
+        setEditingAd(ad);
+        setEditForm({
+            title: ad.title,
+            type: ad.type,
+            position: ad.position,
+            image_url: ad.image_url,
+            target_url: ad.target_url,
+            description: ad.description,
+            starts_at: ad.starts_at,
+            expires_at: ad.expires_at,
+            is_active: ad.is_active,
+        });
         setEditDialogOpen(true);
     };
 
     const handleUpdate = async () => {
-        if (!editingItem) return;
+        if (!editingAd) return;
         try {
-            await updateMutation.mutateAsync({id: editingItem.id, data: editForm});
+            await updateMutation.mutateAsync({id: editingAd.id, data: editForm});
             setEditDialogOpen(false);
-        } catch (err) { console.error('Failed to update campaign:', err); }
+        } catch (err) {
+            console.error('Failed to update ad:', err);
+        }
     };
 
     const handleDelete = async () => {
-        if (!editingItem) return;
+        if (!deletingAd) return;
         try {
-            await deleteMutation.mutateAsync(editingItem.id);
+            await deleteMutation.mutateAsync(deletingAd.id);
             setDeleteDialogOpen(false);
-        } catch (err) { console.error('Failed to delete campaign:', err); }
+        } catch (err) {
+            console.error('Failed to delete ad:', err);
+        }
+    };
+
+    const typeLabels: Record<string, string> = {
+        banner: 'Banner',
+        video: 'Video',
+        native: 'Native',
+        interstitial: 'Interstitial',
+        popup: 'Popup',
+    };
+
+    const positionLabels: Record<string, string> = {
+        top: 'Top',
+        sidebar: 'Sidebar',
+        bottom: 'Bottom',
+        inline: 'Inline',
+        fullscreen: 'Fullscreen',
+    };
+
+    const statusStyle = (ad: Ad): 'emerald' | 'slate' | 'amber' | 'red' => {
+        if (!ad.is_active) return 'slate';
+        if (ad.expires_at && new Date(ad.expires_at) < new Date()) return 'red';
+        if (ad.starts_at && new Date(ad.starts_at) > new Date()) return 'amber';
+        return 'emerald';
+    };
+
+    const statusLabel = (ad: Ad): string => {
+        if (!ad.is_active) return t('admin.disabled', 'Disabled');
+        if (ad.expires_at && new Date(ad.expires_at) < new Date()) return t('admin.expired', 'Expired');
+        if (ad.starts_at && new Date(ad.starts_at) > new Date()) return t('admin.scheduled', 'Scheduled');
+        return t('admin.active', 'Active');
     };
 
     return (
         <>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><BarChart3 className="w-5 h-5"/>{t('admin.adCampaigns', 'Ad Campaigns')}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.adCampaignsDesc', 'Create and manage advertising campaigns')}</p>
-                    </div>
-                    <button onClick={() => setCreateDialogOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.addCampaign', 'Add Campaign')}</button>
-                </div>
-                <div className="p-6">
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.campaignName', 'Name')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.type', 'Type')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status', 'Status')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><Eye className="w-4 h-4 inline mr-1"/>{t('admin.impressions', 'Impressions')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><MousePointerClick className="w-4 h-4 inline mr-1"/>{t('admin.clicks', 'Clicks')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.ctr', 'CTR')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400"><DollarSign className="w-4 h-4 inline mr-1"/>{t('admin.spent', 'Spent')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {campaigns.length > 0 ? campaigns.map(c => {
-                                        const sc = campaignStatusConfig[c.status] || campaignStatusConfig.draft;
-                                        return (
-                                            <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-3.5 text-sm text-slate-700 font-medium">{c.name}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{adTypeLabels[c.type] || c.type}</span>
-                                                </td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                    <StitchBadge style={sc.style} pulse={c.status === 'active'}>{sc.label}</StitchBadge>
-                                                </td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">{c.impressions.toLocaleString()}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">{c.clicks.toLocaleString()}</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">{(c.ctr * 100).toFixed(2)}%</td>
-                                                <td className="px-6 py-3.5 text-sm text-slate-700">${c.spent.toFixed(2)}</td>
-                                                <td className="px-6 py-3.5 text-sm text-right">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(c)}><Edit className="w-4 h-4"/></button>
-                                                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setEditingItem(c); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4"/></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    }) : (
-                                        <tr>
-                                            <td colSpan={8}>
-                                                <div className="py-16 flex flex-col items-center justify-center text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                        <BarChart3 size={32} className="text-slate-300"/>
-                                                    </div>
-                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noCampaigns', 'No campaigns found')}</h3>
+            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-50">
+                            <th className="px-6 py-4">{t('admin.adTitle', 'Ad Title & Preview')}</th>
+                            <th className="px-6 py-4">{t('admin.adType', 'Type')}</th>
+                            <th className="px-6 py-4">{t('admin.adPosition', 'Position')}</th>
+                            <th className="px-6 py-4">{t('admin.adStatus', 'Status')}</th>
+                            <th className="px-6 py-4 text-right">{t('admin.adImpressions', 'Impressions')}</th>
+                            <th className="px-6 py-4">{t('admin.adExpires', 'Expires')}</th>
+                            <th className="px-6 py-4 text-right">{t('admin.actions', 'Actions')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                        {isLoading ? (
+                            <tr><td colSpan={7} className="py-12 text-center"><Spinner className="mx-auto"/></td></tr>
+                        ) : ads.length > 0 ? ads.map(ad => (
+                            <tr key={ad.id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 rounded-lg bg-slate-100 relative overflow-hidden flex-shrink-0">
+                                            {ad.image_url ? (
+                                                <img src={ad.image_url} alt="" className="object-cover w-full h-full"/>
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <Megaphone className="w-5 h-5 text-slate-300"/>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-semibold text-slate-700">{ad.title}</div>
+                                            {ad.description && <div className="text-xs text-slate-400 truncate max-w-[200px]">{ad.description}</div>}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-700">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{typeLabels[ad.type] || ad.type}</span>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-700">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{positionLabels[ad.position] || ad.position}</span>
+                                </td>
+                                <td className="px-6 py-4 text-sm">
+                                    <StitchBadge style={statusStyle(ad)} pulse={ad.is_active && (!ad.starts_at || new Date(ad.starts_at) <= new Date()) && (!ad.expires_at || new Date(ad.expires_at) >= new Date())}>{statusLabel(ad)}</StitchBadge>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-700 text-right font-semibold tabular-nums">{ad.impressions || 0}</td>
+                                <td className="px-6 py-4 text-sm text-slate-500">{ad.expires_at ? new Date(ad.expires_at).toLocaleDateString() : '-'}</td>
+                                <td className="px-6 py-4 text-sm text-right">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(ad)}>
+                                            <Edit className="w-4 h-4"/>
+                                        </button>
+                                        <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setDeletingAd(ad); setDeleteDialogOpen(true); }}>
+                                            <Trash2 className="w-4 h-4"/>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )) : (
+                            <tr>
+                                <td colSpan={7}>
+                                    <div className="py-16 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                            <Megaphone size={32} className="text-slate-300"/>
+                                        </div>
+                                        <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noAds', 'No ads found')}</h3>
+                                    </div>
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+                {total > 20 && (
+                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                        <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
+                        <div className="flex items-center gap-1">
+                            <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                                <ChevronLeft size={16}/>
+                            </button>
+                            {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
+                                <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
+                            ))}
+                            <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                                <ChevronRight size={16}/>
+                            </button>
                         </div>
-                    )}
-                    {total > 20 && (
-                        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                            <p className="text-xs text-slate-500">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
-                            <div className="flex items-center gap-1">
-                                <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                                    <ChevronLeft size={16}/>
-                                </button>
-                                {Array.from({length: totalPages}, (_, i) => i + 1).slice(Math.max(0, page - 2), page + 1).map(p => (
-                                    <button key={p} className={`h-8 px-3 rounded-lg text-sm font-medium ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`} onClick={() => setPage(p)}>{p}</button>
-                                ))}
-                                <button className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                                    <ChevronRight size={16}/>
-                                </button>
+                    </div>
+                )}
+            </div>
+
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.createAd', 'Create Ad')}</h3>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div className="grid gap-2"><Label>{t('admin.adTitle', 'Title')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder="Ad Title"/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adType', 'Type')}</Label>
+                                <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="banner">Banner</SelectItem>
+                                        <SelectItem value="video">Video</SelectItem>
+                                        <SelectItem value="native">Native</SelectItem>
+                                        <SelectItem value="interstitial">Interstitial</SelectItem>
+                                        <SelectItem value="popup">Popup</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2"><Label>{t('admin.adPosition', 'Position')}</Label>
+                                <Select value={createForm.position} onValueChange={v => setCreateForm({...createForm, position: v})}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="top">Top</SelectItem>
+                                        <SelectItem value="sidebar">Sidebar</SelectItem>
+                                        <SelectItem value="bottom">Bottom</SelectItem>
+                                        <SelectItem value="inline">Inline</SelectItem>
+                                        <SelectItem value="fullscreen">Fullscreen</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                    )}
-                </div>
-            </div>
-
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] p-0 gap-0 rounded-2xl overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.addCampaign', 'Add Campaign')}</h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <div className="grid gap-2"><Label>{t('admin.campaignName', 'Name')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder="Summer Sale Banner"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.type', 'Type')}</Label>
-                            <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">Banner</SelectItem>
-                                    <SelectItem value="video">Video</SelectItem>
-                                    <SelectItem value="native">Native</SelectItem>
-                                    <SelectItem value="popup">Popup</SelectItem>
-                                    <SelectItem value="sidebar">Sidebar</SelectItem>
-                                    <SelectItem value="overlay">Overlay</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <ImageUploadField value={createForm.image_url || ''} onChange={url => setCreateForm({...createForm, image_url: url})} label={t('admin.adImage', 'Ad Image')}/>
+                        <div className="grid gap-2"><Label>{t('admin.adTargetUrl', 'Target URL')}</Label><Input value={createForm.target_url || ''} onChange={e => setCreateForm({...createForm, target_url: e.target.value})} placeholder="https://..."/></div>
+                        <div className="grid gap-2"><Label>{t('admin.adDescription', 'Description')}</Label><Input value={createForm.description || ''} onChange={e => setCreateForm({...createForm, description: e.target.value})}/></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.startDate', 'Start Date')}</Label><Input type="date" value={createForm.start_date} onChange={e => setCreateForm({...createForm, start_date: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.endDate', 'End Date')}</Label><Input type="date" value={createForm.end_date} onChange={e => setCreateForm({...createForm, end_date: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adStartsAt', 'Starts At')}</Label><Input type="datetime-local" value={createForm.starts_at || ''} onChange={e => setCreateForm({...createForm, starts_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={createForm.expires_at || ''} onChange={e => setCreateForm({...createForm, expires_at: e.target.value})}/></div>
                         </div>
-                        <div className="grid gap-2"><Label>{t('admin.budget', 'Budget')}</Label><Input type="number" value={createForm.budget || 0} onChange={e => setCreateForm({...createForm, budget: Number(e.target.value)})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.targetUrl', 'Target URL')}</Label><Input value={createForm.target_url || ''} onChange={e => setCreateForm({...createForm, target_url: e.target.value})} placeholder="https://..."/></div>
                     </div>
                     <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
                         <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleCreate} disabled={!createForm.name}>{t('common.add', 'Add')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleCreate} disabled={!createForm.title}>{t('common.add', 'Add')}</button>
                     </div>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] p-0 gap-0 rounded-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
-                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.editCampaign', 'Edit Campaign')}</h3>
+                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.editAd', 'Edit Ad')}</h3>
                     </div>
                     <div className="p-6 space-y-4">
-                        <div className="grid gap-2"><Label>{t('admin.campaignName', 'Name')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.status', 'Status')}</Label>
-                            <Select value={editForm.status} onValueChange={v => setEditForm({...editForm, status: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="draft">Draft</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="paused">Paused</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className="grid gap-2"><Label>{t('admin.adTitle', 'Title')</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adType', 'Type')}</Label>
+                                <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="banner">Banner</SelectItem>
+                                        <SelectItem value="video">Video</SelectItem>
+                                        <SelectItem value="native">Native</SelectItem>
+                                        <SelectItem value="interstitial">Interstitial</SelectItem>
+                                        <SelectItem value="popup">Popup</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2"><Label>{t('admin.adPosition', 'Position')}</Label>
+                                <Select value={editForm.position} onValueChange={v => setEditForm({...editForm, position: v})}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="top">Top</SelectItem>
+                                        <SelectItem value="sidebar">Sidebar</SelectItem>
+                                        <SelectItem value="bottom">Bottom</SelectItem>
+                                        <SelectItem value="inline">Inline</SelectItem>
+                                        <SelectItem value="fullscreen">Fullscreen</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                        <div className="grid gap-2"><Label>{t('admin.budget', 'Budget')}</Label><Input type="number" value={editForm.budget} onChange={e => setEditForm({...editForm, budget: Number(e.target.value)})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.targetUrl', 'Target URL')}</Label><Input value={editForm.target_url} onChange={e => setEditForm({...editForm, target_url: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.priority', 'Priority')}</Label><Input type="number" value={editForm.priority} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
-                    </div>
-                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleUpdate}>{t('common.save', 'Save')}</button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                        <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteCampaignConfirm', 'Are you sure you want to delete this campaign?')}</AlertDialogDescription>
-                    </div>
-                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                        <AlertDialogCancel className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 border-0">{t('admin.delete', 'Delete')}</AlertDialogAction>
-                    </div>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    );
-};
-
-const SlotsTab: React.FC = () => {
-    const {t} = useTranslation();
-    const {data: slotsData, isLoading} = useAdminAdSlots();
-    const createMutation = useCreateAdSlot();
-    const updateMutation = useUpdateAdSlot();
-    const deleteMutation = useDeleteAdSlot();
-
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<AdSlot | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdSlotRequest>({name: '', position: '', ad_type: 'banner'});
-    const [editForm, setEditForm] = useState({name: '', position: '', ad_type: '', is_active: true});
-
-    const slots = (slotsData as AdSlot[] | undefined) || [];
-
-    const handleCreate = async () => {
-        try {
-            await createMutation.mutateAsync(createForm);
-            setCreateDialogOpen(false);
-            setCreateForm({name: '', position: '', ad_type: 'banner'});
-        } catch (err) { console.error('Failed to create slot:', err); }
-    };
-
-    const openEditDialog = (s: AdSlot) => {
-        setEditingItem(s);
-        setEditForm({name: s.name, position: s.position, ad_type: s.ad_type, is_active: s.is_active});
-        setEditDialogOpen(true);
-    };
-
-    const handleUpdate = async () => {
-        if (!editingItem) return;
-        try {
-            await updateMutation.mutateAsync({id: editingItem.id, data: editForm});
-            setEditDialogOpen(false);
-        } catch (err) { console.error('Failed to update slot:', err); }
-    };
-
-    const handleDelete = async () => {
-        if (!editingItem) return;
-        try {
-            await deleteMutation.mutateAsync(editingItem.id);
-            setDeleteDialogOpen(false);
-        } catch (err) { console.error('Failed to delete slot:', err); }
-    };
-
-    return (
-        <>
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2"><LayoutGrid className="w-5 h-5"/>{t('admin.adSlots', 'Ad Slots')}</h3>
-                        <p className="text-sm text-slate-500 mt-0.5">{t('admin.adSlotsDesc', 'Configure ad placement slots')}</p>
-                    </div>
-                    <button onClick={() => setCreateDialogOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm"><Plus className="w-4 h-4 mr-2 inline"/>{t('admin.addSlot', 'Add Slot')}</button>
-                </div>
-                <div className="p-6">
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.slotName', 'Name')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.position', 'Position')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.type', 'Type')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.dimensions', 'Dimensions')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status', 'Status')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.impressions', 'Impressions')}</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {slots.length > 0 ? slots.map(s => (
-                                        <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="px-6 py-3.5 text-sm text-slate-700 font-medium">{s.name}</td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{s.position}</span>
-                                            </td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">{adTypeLabels[s.ad_type] || s.ad_type}</span>
-                                            </td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">{s.dimensions || '-'}</td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">
-                                                <StitchBadge style={s.is_active ? 'emerald' : 'slate'}>{s.is_active ? t('admin.active', 'Active') : t('admin.inactive', 'Inactive')}</StitchBadge>
-                                            </td>
-                                            <td className="px-6 py-3.5 text-sm text-slate-700">{s.impressions.toLocaleString()}</td>
-                                            <td className="px-6 py-3.5 text-sm text-right">
-                                                <div className="flex items-center justify-end gap-1">
-                                                    <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg" onClick={() => openEditDialog(s)}><Edit className="w-4 h-4"/></button>
-                                                    <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-slate-100 rounded-lg" onClick={() => { setEditingItem(s); setDeleteDialogOpen(true); }}><Trash2 className="w-4 h-4"/></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )) : (
-                                        <tr>
-                                            <td colSpan={7}>
-                                                <div className="py-16 flex flex-col items-center justify-center text-center">
-                                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                        <LayoutGrid size={32} className="text-slate-300"/>
-                                                    </div>
-                                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noSlots', 'No slots found')}</h3>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                        <ImageUploadField value={editForm.image_url || ''} onChange={url => setEditForm({...editForm, image_url: url})} label={t('admin.adImage', 'Ad Image')}/>
+                        <div className="grid gap-2"><Label>{t('admin.adTargetUrl', 'Target URL')}</Label><Input value={editForm.target_url || ''} onChange={e => setEditForm({...editForm, target_url: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.adDescription', 'Description')</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adStartsAt', 'Starts At')}</Label><Input type="datetime-local" value={editForm.starts_at || ''} onChange={e => setEditForm({...editForm, starts_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adExpiresAt', 'Expires At')</Label><Input type="datetime-local" value={editForm.expires_at || ''} onChange={e => setEditForm({...editForm, expires_at: e.target.value})}/></div>
                         </div>
-                    )}
-                </div>
-            </div>
-
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.addSlot', 'Add Slot')}</h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <div className="grid gap-2"><Label>{t('admin.slotName', 'Name')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder="Homepage Banner"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.position', 'Position')}</Label><Input value={createForm.position} onChange={e => setCreateForm({...createForm, position: e.target.value})} placeholder="header, sidebar, footer"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.type', 'Type')}</Label>
-                            <Select value={createForm.ad_type} onValueChange={v => setCreateForm({...createForm, ad_type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">Banner</SelectItem>
-                                    <SelectItem value="video">Video</SelectItem>
-                                    <SelectItem value="native">Native</SelectItem>
-                                    <SelectItem value="popup">Popup</SelectItem>
-                                    <SelectItem value="sidebar">Sidebar</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid gap-2"><Label>{t('admin.dimensions', 'Dimensions')}</Label><Input value={createForm.dimensions || ''} onChange={e => setCreateForm({...createForm, dimensions: e.target.value})} placeholder="728x90"/></div>
-                    </div>
-                    <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                        <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleCreate} disabled={!createForm.name || !createForm.position}>{t('common.add', 'Add')}</button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.editSlot', 'Edit Slot')}</h3>
-                    </div>
-                    <div className="p-6 space-y-4">
-                        <div className="grid gap-2"><Label>{t('admin.slotName', 'Name')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.position', 'Position')}</Label><Input value={editForm.position} onChange={e => setEditForm({...editForm, position: e.target.value})}/></div>
                         <div className="flex items-center gap-2">
-                            <input type="checkbox" id="edit-slot-active" checked={editForm.is_active} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
-                            <Label htmlFor="edit-slot-active">{t('admin.active', 'Active')}</Label>
+                            <input type="checkbox" id="edit-ad-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
+                            <Label htmlFor="edit-ad-active">{t('admin.enabled', 'Enabled')}</Label>
                         </div>
                     </div>
                     <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
                         <button className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</button>
-                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleUpdate}>{t('common.save', 'Save')}</button>
+                        <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700" onClick={handleUpdate} disabled={!editForm.title}>{t('common.save', 'Save')}</button>
                     </div>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl overflow-hidden">
+                <AlertDialogContent className="p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100">
                         <AlertDialogTitle className="text-lg font-semibold text-slate-800">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteSlotConfirm', 'Are you sure you want to delete this slot?')}</AlertDialogDescription>
+                        <AlertDialogDescription className="text-sm text-slate-500 mt-1">{t('admin.deleteAdConfirm', 'Are you sure you want to delete this ad?')}</AlertDialogDescription>
                     </div>
                     <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
                         <AlertDialogCancel className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
