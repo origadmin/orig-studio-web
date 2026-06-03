@@ -194,6 +194,76 @@ function paginate<T>(items: T[], page = 1, pageSize = 20) {
 type MockHandler = (url: string, method: string, body?: any, fullUrl?: string) => any;
 
 const mockRoutes: [RegExp, MockHandler][] = [
+    // Auth — mock login always succeeds with admin user
+    [/\/auth\/signin$/, (_url, method, body) => {
+        const username = (body as any)?.username || 'admin';
+        return {
+            access_token: 'mock_access_token_' + uid(),
+            refresh_token: 'mock_refresh_token_' + uid(),
+            token_type: 'Bearer',
+            expires_in: 86400,
+            user: {
+                id: '1',
+                username,
+                nickname: 'Admin',
+                email: `${username}@example.com`,
+                role: 'admin',
+                is_superuser: true,
+                is_staff: true,
+            },
+        };
+    }],
+
+    // Auth — mock signup
+    [/\/auth\/signup$/, (_url, method, body) => {
+        const username = (body as any)?.username || 'newuser';
+        return {
+            access_token: 'mock_access_token_' + uid(),
+            refresh_token: 'mock_refresh_token_' + uid(),
+            token_type: 'Bearer',
+            expires_in: 86400,
+            user: {
+                id: uid(),
+                username,
+                nickname: username,
+                email: (body as any)?.email || `${username}@example.com`,
+                role: 'user',
+                is_superuser: false,
+                is_staff: false,
+            },
+        };
+    }],
+
+    // Current user profile
+    [/\/me$/, () => ({
+        id: '1',
+        username: 'admin',
+        nickname: 'Admin',
+        email: 'admin@example.com',
+        avatar: '',
+        role: 'admin',
+        is_superuser: true,
+        is_staff: true,
+        status: 'active',
+    })],
+
+    // Portal config
+    [/\/portal\/config$/, () => ({
+        modules: {articles: true, videos: true, music: false},
+        layout: 'mixed',
+        site: {
+            site_name: 'OrigStudio',
+            site_description: 'Enterprise Content Platform',
+            allow_registration: true,
+            allow_upload: true,
+        },
+        features: {
+            multiTenant: false, auditLog: true, advancedRBAC: true,
+            reviewWorkflow: true, enterpriseNotification: true,
+            drm: true, liveRooms: true, payment: true, promotion: true, ads: true,
+        },
+    })],
+
     // Dashboard stats
     [/\/admin\/stats/, () => ({
         total_media: 1284, total_users: 5672, total_views: 892340, total_revenue: 45230.50,

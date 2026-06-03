@@ -152,14 +152,29 @@ export const isTokenExpired = (bufferSeconds: number = 60): boolean => {
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) return true;
 
+    // Check explicit expires_at first (covers mock tokens and setAuth-saved expiry)
+    const expiresAt = localStorage.getItem(EXPIRES_KEY);
+    if (expiresAt) {
+        const expires = Number(expiresAt);
+        if (!isNaN(expires) && expires > 0) {
+            return Date.now() > expires - bufferSeconds * 1000;
+        }
+    }
+
     try {
         // 解析 JWT token 来获取 exp 字段
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+            // Not a JWT — if we have a token but no exp, treat as valid
+            return false;
+        }
+        const payload = JSON.parse(atob(parts[1]));
         if (!payload.exp) return true;
         // 提前 bufferSeconds 认为过期，避免边界情况
         return Date.now() > (payload.exp - bufferSeconds) * 1000;
     } catch {
-        return true;
+        // Non-JWT token (e.g. mock) — treat as valid if it exists
+        return false;
     }
 };
 
