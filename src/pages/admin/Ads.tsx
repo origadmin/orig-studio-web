@@ -315,7 +315,7 @@ const AdsTab: React.FC = () => {
                         <h3 className="text-lg font-semibold text-slate-800">{t('admin.editAd', 'Edit Ad')}</h3>
                     </div>
                     <div className="p-6 space-y-4">
-                        <div className="grid gap-2"><Label>{t('admin.adTitle', 'Title')</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.adTitle', 'Title')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.adType', 'Type')}</Label>
                                 <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
@@ -344,10 +344,10 @@ const AdsTab: React.FC = () => {
                         </div>
                         <ImageUploadField value={editForm.image_url || ''} onChange={url => setEditForm({...editForm, image_url: url})} label={t('admin.adImage', 'Ad Image')}/>
                         <div className="grid gap-2"><Label>{t('admin.adTargetUrl', 'Target URL')}</Label><Input value={editForm.target_url || ''} onChange={e => setEditForm({...editForm, target_url: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.adDescription', 'Description')</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.adDescription', 'Description')}</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.adStartsAt', 'Starts At')}</Label><Input type="datetime-local" value={editForm.starts_at || ''} onChange={e => setEditForm({...editForm, starts_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adExpiresAt', 'Expires At')</Label><Input type="datetime-local" value={editForm.expires_at || ''} onChange={e => setEditForm({...editForm, expires_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={editForm.expires_at || ''} onChange={e => setEditForm({...editForm, expires_at: e.target.value})}/></div>
                         </div>
                         <div className="flex items-center gap-2">
                             <input type="checkbox" id="edit-ad-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>

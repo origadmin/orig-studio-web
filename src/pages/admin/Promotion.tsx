@@ -267,9 +267,9 @@ const CouponsTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.promotionValue', 'Value')}</Label><Input type="number" step="0.01" value={createForm.value} onChange={e => setCreateForm({...createForm, value: Number(e.target.value)})}/></div>
                         </div>
                         <div className="grid gap-2"><Label>{t('admin.promotionCode', 'Code')}</Label><Input value={createForm.code || ''} onChange={e => setCreateForm({...createForm, code: e.target.value})} placeholder="PROMO2024"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.promotionDescription', 'Description')</Label><Input value={createForm.description || ''} onChange={e => setCreateForm({...createForm, description: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.promotionDescription', 'Description')}</Label><Input value={createForm.description || ''} onChange={e => setCreateForm({...createForm, description: e.target.value})}/></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.promotionStartsAt', 'Starts At')</Label><Input type="datetime-local" value={createForm.starts_at || ''} onChange={e => setCreateForm({...createForm, starts_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.promotionStartsAt', 'Starts At')}</Label><Input type="datetime-local" value={createForm.starts_at || ''} onChange={e => setCreateForm({...createForm, starts_at: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.promotionExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={createForm.expires_at || ''} onChange={e => setCreateForm({...createForm, expires_at: e.target.value})}/></div>
                         </div>
                         <div className="grid gap-2"><Label>{t('admin.promotionMaxUses', 'Max Uses')}</Label><Input type="number" value={createForm.max_uses || 0} onChange={e => setCreateForm({...createForm, max_uses: Number(e.target.value)})}/></div>
@@ -302,13 +302,13 @@ const CouponsTab: React.FC = () => {
                             </div>
                             <div className="grid gap-2"><Label>{t('admin.promotionValue', 'Value')}</Label><Input type="number" step="0.01" value={editForm.value} onChange={e => setEditForm({...editForm, value: Number(e.target.value)})}/></div>
                         </div>
-                        <div className="grid gap-2"><Label>{t('admin.promotionCode', 'Code')</Label><Input value={editForm.code || ''} onChange={e => setEditForm({...editForm, code: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.promotionDescription', 'Description')</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.promotionCode', 'Code')}</Label><Input value={editForm.code || ''} onChange={e => setEditForm({...editForm, code: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.promotionDescription', 'Description')}</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.promotionStartsAt', 'Starts At')</Label><Input type="datetime-local" value={editForm.starts_at || ''} onChange={e => setEditForm({...editForm, starts_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.promotionExpiresAt', 'Expires At')</Label><Input type="datetime-local" value={editForm.expires_at || ''} onChange={e => setEditForm({...editForm, expires_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.promotionStartsAt', 'Starts At')}</Label><Input type="datetime-local" value={editForm.starts_at || ''} onChange={e => setEditForm({...editForm, starts_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.promotionExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={editForm.expires_at || ''} onChange={e => setEditForm({...editForm, expires_at: e.target.value})}/></div>
                         </div>
-                        <div className="grid gap-2"><Label>{t('admin.promotionMaxUses', 'Max Uses')</Label><Input type="number" value={editForm.max_uses || 0} onChange={e => setEditForm({...editForm, max_uses: Number(e.target.value)})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.promotionMaxUses', 'Max Uses')}</Label><Input type="number" value={editForm.max_uses || 0} onChange={e => setEditForm({...editForm, max_uses: Number(e.target.value)})}/></div>
                         <div className="flex items-center gap-2">
                             <input type="checkbox" id="edit-promo-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
                             <Label htmlFor="edit-promo-active">{t('admin.enabled', 'Enabled')}</Label>

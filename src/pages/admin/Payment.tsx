@@ -254,7 +254,7 @@ const PlansTab: React.FC = () => {
                             </div>
                             <div className="grid gap-2"><Label>{t('admin.planSortOrder', 'Sort Order')}</Label><Input type="number" value={editForm.sort_order || 0} onChange={e => setEditForm({...editForm, sort_order: Number(e.target.value)})}/></div>
                         </div>
-                        <div className="grid gap-2"><Label>{t('admin.planDescription', 'Description')</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
+                        <div className="grid gap-2"><Label>{t('admin.planDescription', 'Description')}</Label><Input value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})}/></div>
                         <div className="flex items-center gap-2">
                             <input type="checkbox" id="edit-plan-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
                             <Label htmlFor="edit-plan-active">{t('admin.enabled', 'Enabled')}</Label>
