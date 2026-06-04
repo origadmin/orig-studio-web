@@ -3,6 +3,8 @@ import {
     Layout, Plus, Edit, Trash2, ToggleLeft, ToggleRight,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3,
 } from 'lucide-react';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
+import {Link} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
@@ -37,6 +39,19 @@ export default function PortalConfigPage() {
     const {t} = useTranslation();
     return (
         <div className="space-y-4 p-4 md:p-6">
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.portal', 'Portal')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             <div>
                 <h1 className="text-2xl font-bold flex items-center gap-2">
                     <Layout className="h-6 w-6"/>{t('admin.portalConfig')}

@@ -1,6 +1,7 @@
 import {Spinner} from "@/components/ui/spinner"
 import {useState, useEffect, useMemo, useCallback} from 'react';
-import {useParams, useNavigate} from '@tanstack/react-router';
+import {useParams, useNavigate, Link} from '@tanstack/react-router';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {useTranslation} from 'react-i18next';
 import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
@@ -434,6 +435,25 @@ export default function MediaEditPage() {
 
     return (
         <div className="min-h-screen bg-background">
+            <Breadcrumb className="mb-4 px-6 pt-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin/media">{t('admin.mediaManagement', 'Media Library')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.editMedia', 'Edit Media')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             <EditPageHeader
                 title={media.title || '未命名媒体'}
                 isDirty={isDirty}

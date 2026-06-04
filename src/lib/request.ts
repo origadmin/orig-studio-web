@@ -83,6 +83,19 @@ export const attemptRefresh = async (): Promise<boolean> => {
     if (!refreshToken) return false;
 
     try {
+        // In mock mode, use fetchApi (which goes through mockFetch) instead of raw axios
+        const {isMockMode} = await import('./mock');
+        if (isMockMode()) {
+            const data = await fetchApi<Token>('/auth/refresh', 'POST', {
+                body: {refresh_token: refreshToken}
+            });
+            if (data?.access_token) {
+                setAuth(data);
+                return true;
+            }
+            return false;
+        }
+
         // Use raw axios (not the request instance) to avoid circular interceptor calls.
         // Since this bypasses the response interceptor that auto-unwraps {code, data},
         // we must manually unwrap the unified response format (B096 fix).
@@ -286,11 +299,28 @@ function createRequest() {
             }
 
             try {
+                // In mock mode, use fetchApi (which goes through mockFetch) for token refresh
+                const {isMockMode} = await import('./mock');
+                if (isMockMode()) {
+                    const mockData = await fetchApi<Token>('/auth/refresh', 'POST', {
+                        body: {refresh_token: refreshToken}
+                    });
+                    if (!mockData?.access_token) {
+                        throw new Error("Token refresh failed in mock mode");
+                    }
+                    setAuth(mockData);
+                    if (originalRequest.headers) {
+                        originalRequest.headers.Authorization = `Bearer ${mockData.access_token}`;
+                    }
+                    processQueue(null, mockData.access_token);
+                    return request(originalRequest);
+                }
+
                 // Use raw axios (not the request instance) to avoid circular interceptor calls.
                 // Since this bypasses the response interceptor that auto-unwraps {code, data},
                 // we must manually unwrap the unified response format (B096 fix).
                 const { data: responseBody } = await axios.post<ApiResponse<Token>>(
-                    (API_BASE_URL || "") + API_PREFIX + "/auth/refresh", 
+                    (API_BASE_URL || "") + API_PREFIX + "/auth/refresh",
                     { refresh_token: refreshToken }
                 );
 

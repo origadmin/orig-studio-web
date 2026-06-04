@@ -4,7 +4,7 @@
  */
 
 import {useState, useEffect, useMemo, useCallback, useRef} from 'react';
-import {useParams, useNavigate} from '@tanstack/react-router';
+import {useParams, useNavigate, Link as RouterLink} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {adminArticleApi, type Article, type CreateArticleRequest, type UpdateArticleRequest, type MediaBrief} from '@/lib/api/article';
 import {adminMediaApi, type Media} from '@/lib/api/media';
@@ -13,13 +13,16 @@ import {API_BASE_URL} from '@/lib/request';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
+import {Card, CardContent} from '@/components/ui/card';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
 import {Switch} from '@/components/ui/switch';
+import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
     ArrowLeft, Eye, Bell, Bold, Italic, Underline,
     List, ListOrdered, Link, ImagePlus, Code,
@@ -137,10 +140,11 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {medias.map(media => (
-                                <button
+                                <Button
                                     key={media.id}
+                                    variant="ghost"
                                     className={cn(
-                                        'relative rounded-input border-2 overflow-hidden text-left transition-colors',
+                                        'relative rounded-input border-2 overflow-hidden text-left transition-colors p-0 h-auto',
                                         selectedId === media.id
                                             ? 'border-primary'
                                             : 'border-transparent hover:border-muted-foreground/30'
@@ -164,7 +168,7 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                                     <div className="p-2">
                                         <p className="text-xs font-medium truncate">{media.title}</p>
                                     </div>
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     )}
@@ -199,17 +203,19 @@ interface ToolbarButtonProps {
 
 function ToolbarButton({icon, title, onClick, active}: ToolbarButtonProps) {
     return (
-        <button
+        <Button
             type="button"
+            variant="ghost"
+            size="icon"
             title={title}
             onClick={onClick}
             className={cn(
-                'p-1.5 rounded text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors',
+                'h-auto w-auto p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5',
                 active && 'text-primary bg-primary/5'
             )}
         >
             {icon}
-        </button>
+        </Button>
     );
 }
 
@@ -650,13 +656,15 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
             {/* ===== Top Navigation Bar ===== */}
             <header className="sticky top-0 z-40 h-14 bg-card border-b border-border shadow-sm flex items-center justify-between px-6">
                 <div className="flex items-center gap-4">
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={handleBack}
-                        className="text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                        className="text-muted-foreground hover:text-foreground"
                         aria-label={t('admin.backToList', {defaultValue: 'Back'})}
                     >
                         <ArrowLeft className="w-5 h-5"/>
-                    </button>
+                    </Button>
                     <h1 className="text-lg font-semibold text-primary">
                         {mode === 'create'
                             ? t('admin.createArticle', {defaultValue: 'Create Article'})
@@ -666,17 +674,19 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                 </div>
                 <div className="flex items-center gap-2">
                     {mode === 'edit' && article?.slug && (
-                        <button
+                        <Button
+                            variant="outline"
+                            size="sm"
                             onClick={handlePreview}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-btn border border-border bg-muted hover:bg-accent transition-colors cursor-pointer"
+                            className="flex items-center gap-2 rounded-lg"
                         >
                             <Eye className="w-4 h-4"/>
                             <span className="text-xs font-medium">{t('admin.preview', {defaultValue: 'Preview'})}</span>
-                        </button>
+                        </Button>
                     )}
-                    <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors cursor-pointer">
+                    <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-foreground hover:bg-muted">
                         <Bell className="w-5 h-5"/>
-                    </button>
+                    </Button>
                     <div className="h-8 w-8 rounded-full bg-primary/10 overflow-hidden ml-1 border border-border flex items-center justify-center">
                         <span className="text-xs font-bold text-primary">A</span>
                     </div>
@@ -686,152 +696,173 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
             {/* ===== Main Content ===== */}
             <main className="flex-1 pb-24">
                 <div className="max-w-7xl mx-auto px-6 py-8">
+                    <Breadcrumb className="mb-4">
+                        <BreadcrumbList>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink asChild>
+                                    <RouterLink to="/admin">{t('admin.title', 'Admin')}</RouterLink>
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator/>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink asChild>
+                                    <RouterLink to="/admin/articles">{t('admin.articles', 'Articles')}</RouterLink>
+                                </BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator/>
+                            <BreadcrumbItem>
+                                <BreadcrumbPage>{t('admin.editArticle', 'Edit Article')}</BreadcrumbPage>
+                            </BreadcrumbItem>
+                        </BreadcrumbList>
+                    </Breadcrumb>
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* ===== Left Column: Editor (Col 1-8) ===== */}
                         <div className="lg:col-span-8 space-y-8">
-                            <div className="bg-card rounded-card shadow-sm border border-border p-8">
-                                {/* Title Input */}
-                                <div className="space-y-4 mb-8">
-                                    <input
-                                        className="w-full border-0 p-0 text-3xl font-extrabold focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 bg-transparent tracking-tight"
-                                        placeholder={t('admin.enterArticleTitle', {defaultValue: 'Enter article title...'})}
-                                        value={form.title}
-                                        onChange={e => {
-                                            setForm({...form, title: e.target.value});
-                                            if (!slugManuallyEdited) {
-                                                setForm(prev => ({...prev, slug: generateSlug(e.target.value)}));
+                            <Card className="rounded-card">
+                                <CardContent className="p-8">
+                                    {/* Title Input */}
+                                    <div className="space-y-4 mb-8">
+                                        <Input
+                                            className="w-full border-0 p-0 text-3xl font-extrabold focus:ring-0 focus:outline-none placeholder:text-muted-foreground/50 bg-transparent tracking-tight h-auto shadow-none"
+                                            placeholder={t('admin.enterArticleTitle', {defaultValue: 'Enter article title...'})}
+                                            value={form.title}
+                                            onChange={e => {
+                                                setForm({...form, title: e.target.value});
+                                                if (!slugManuallyEdited) {
+                                                    setForm(prev => ({...prev, slug: generateSlug(e.target.value)}));
+                                                }
+                                            }}
+                                        />
+                                        <Input
+                                            className="w-full border-0 p-0 text-base focus:ring-0 focus:outline-none placeholder:text-muted-foreground/40 bg-transparent h-auto shadow-none"
+                                            placeholder={t('admin.addSubtitle', {defaultValue: 'Add a compelling subtitle or summary...'})}
+                                            value={form.summary}
+                                            onChange={e => setForm({...form, summary: e.target.value})}
+                                        />
+                                    </div>
+
+                                    {/* Cover Image Upload */}
+                                    <div
+                                        className="w-full aspect-video rounded-card border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center bg-muted/30 group hover:bg-muted/50 transition-colors cursor-pointer mb-8 overflow-hidden relative"
+                                        onClick={() => {
+                                            // Trigger file input or URL input
+                                            const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter cover image URL:'}));
+                                            if (url) {
+                                                setForm(prev => ({...prev, thumbnail: url}));
                                             }
                                         }}
-                                    />
-                                    <input
-                                        className="w-full border-0 p-0 text-base focus:ring-0 focus:outline-none placeholder:text-muted-foreground/40 bg-transparent"
-                                        placeholder={t('admin.addSubtitle', {defaultValue: 'Add a compelling subtitle or summary...'})}
-                                        value={form.summary}
-                                        onChange={e => setForm({...form, summary: e.target.value})}
-                                    />
-                                </div>
+                                    >
+                                        {displayThumbnail && !thumbnailError ? (
+                                            <>
+                                                <img
+                                                    src={displayThumbnail}
+                                                    alt="Cover"
+                                                    className="w-full h-full object-cover"
+                                                    onError={() => setThumbnailError(true)}
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="bg-card text-foreground px-4 py-2 rounded-lg text-xs font-medium shadow-lg">
+                                                        {t('admin.changeImage', {defaultValue: 'Change Image'})}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="p-4 rounded-full bg-muted mb-3 group-hover:scale-110 transition-transform duration-200">
+                                                    <ImagePlus className="w-8 h-8 text-primary"/>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground font-medium">
+                                                    {t('admin.clickToUploadCover', {defaultValue: 'Click to upload cover image'})}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground/60 mt-1">
+                                                    1920x1080px (PNG, JPG, WEBP)
+                                                </p>
+                                            </>
+                                        )}
+                                    </div>
 
-                                {/* Cover Image Upload */}
-                                <div
-                                    className="w-full aspect-video rounded-card border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center bg-muted/30 group hover:bg-muted/50 transition-colors cursor-pointer mb-8 overflow-hidden relative"
-                                    onClick={() => {
-                                        // Trigger file input or URL input
-                                        const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter cover image URL:'}));
-                                        if (url) {
-                                            setForm(prev => ({...prev, thumbnail: url}));
-                                        }
-                                    }}
-                                >
-                                    {displayThumbnail && !thumbnailError ? (
-                                        <>
-                                            <img
-                                                src={displayThumbnail}
-                                                alt="Cover"
-                                                className="w-full h-full object-cover"
-                                                onError={() => setThumbnailError(true)}
+                                    {/* Rich Text Editor */}
+                                    <div className="border border-border rounded-card overflow-hidden">
+                                        {/* Toolbar */}
+                                        <div className="bg-muted px-3 py-2 border-b border-border flex flex-wrap items-center gap-1">
+                                            <ToolbarButton
+                                                icon={<Bold className="w-4 h-4"/>}
+                                                title="Bold"
+                                                onClick={() => execCommand('bold')}
                                             />
-                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="bg-card text-foreground px-4 py-2 rounded-btn text-xs font-medium shadow-lg">
-                                                    {t('admin.changeImage', {defaultValue: 'Change Image'})}
+                                            <ToolbarButton
+                                                icon={<Italic className="w-4 h-4"/>}
+                                                title="Italic"
+                                                onClick={() => execCommand('italic')}
+                                            />
+                                            <ToolbarButton
+                                                icon={<Underline className="w-4 h-4"/>}
+                                                title="Underline"
+                                                onClick={() => execCommand('underline')}
+                                            />
+                                            <div className="w-px h-5 bg-border mx-1"/>
+                                            <ToolbarButton
+                                                icon={<List className="w-4 h-4"/>}
+                                                title="Bullet List"
+                                                onClick={() => execCommand('insertUnorderedList')}
+                                            />
+                                            <ToolbarButton
+                                                icon={<ListOrdered className="w-4 h-4"/>}
+                                                title="Numbered List"
+                                                onClick={() => execCommand('insertOrderedList')}
+                                            />
+                                            <div className="w-px h-5 bg-border mx-1"/>
+                                            <ToolbarButton
+                                                icon={<Link className="w-4 h-4"/>}
+                                                title="Insert Link"
+                                                onClick={() => {
+                                                    const url = window.prompt('Enter URL:');
+                                                    if (url) execCommand('createLink', url);
+                                                }}
+                                            />
+                                            <ToolbarButton
+                                                icon={<ImagePlus className="w-4 h-4"/>}
+                                                title="Insert Image"
+                                                onClick={() => {
+                                                    const url = window.prompt('Enter image URL:');
+                                                    if (url) execCommand('insertImage', url);
+                                                }}
+                                            />
+                                            <ToolbarButton
+                                                icon={<Code className="w-4 h-4"/>}
+                                                title="Code Block"
+                                                onClick={() => execCommand('formatBlock', 'pre')}
+                                            />
+                                            <div className="ml-auto flex items-center gap-2">
+                                                <span className="text-xs text-muted-foreground px-2">
+                                                    {t('admin.words', {defaultValue: 'Words'})}: {wordCount}
                                                 </span>
                                             </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="p-4 rounded-full bg-muted mb-3 group-hover:scale-110 transition-transform duration-200">
-                                                <ImagePlus className="w-8 h-8 text-primary"/>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground font-medium">
-                                                {t('admin.clickToUploadCover', {defaultValue: 'Click to upload cover image'})}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground/60 mt-1">
-                                                1920x1080px (PNG, JPG, WEBP)
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
-
-                                {/* Rich Text Editor */}
-                                <div className="border border-border rounded-card overflow-hidden">
-                                    {/* Toolbar */}
-                                    <div className="bg-muted px-3 py-2 border-b border-border flex flex-wrap items-center gap-1">
-                                        <ToolbarButton
-                                            icon={<Bold className="w-4 h-4"/>}
-                                            title="Bold"
-                                            onClick={() => execCommand('bold')}
-                                        />
-                                        <ToolbarButton
-                                            icon={<Italic className="w-4 h-4"/>}
-                                            title="Italic"
-                                            onClick={() => execCommand('italic')}
-                                        />
-                                        <ToolbarButton
-                                            icon={<Underline className="w-4 h-4"/>}
-                                            title="Underline"
-                                            onClick={() => execCommand('underline')}
-                                        />
-                                        <div className="w-px h-5 bg-border mx-1"/>
-                                        <ToolbarButton
-                                            icon={<List className="w-4 h-4"/>}
-                                            title="Bullet List"
-                                            onClick={() => execCommand('insertUnorderedList')}
-                                        />
-                                        <ToolbarButton
-                                            icon={<ListOrdered className="w-4 h-4"/>}
-                                            title="Numbered List"
-                                            onClick={() => execCommand('insertOrderedList')}
-                                        />
-                                        <div className="w-px h-5 bg-border mx-1"/>
-                                        <ToolbarButton
-                                            icon={<Link className="w-4 h-4"/>}
-                                            title="Insert Link"
-                                            onClick={() => {
-                                                const url = window.prompt('Enter URL:');
-                                                if (url) execCommand('createLink', url);
-                                            }}
-                                        />
-                                        <ToolbarButton
-                                            icon={<ImagePlus className="w-4 h-4"/>}
-                                            title="Insert Image"
-                                            onClick={() => {
-                                                const url = window.prompt('Enter image URL:');
-                                                if (url) execCommand('insertImage', url);
-                                            }}
-                                        />
-                                        <ToolbarButton
-                                            icon={<Code className="w-4 h-4"/>}
-                                            title="Code Block"
-                                            onClick={() => execCommand('formatBlock', 'pre')}
-                                        />
-                                        <div className="ml-auto flex items-center gap-2">
-                                            <span className="text-xs text-muted-foreground px-2">
-                                                {t('admin.words', {defaultValue: 'Words'})}: {wordCount}
-                                            </span>
                                         </div>
+                                        {/* Editor Content Area */}
+                                        <div
+                                            ref={editorRef}
+                                            contentEditable
+                                            onInput={handleEditorInput}
+                                            className="min-h-[500px] p-6 focus:outline-none bg-card text-sm text-muted-foreground/80 prose prose-sm max-w-none"
+                                            data-placeholder={t('admin.startTyping', {defaultValue: 'Start typing your story here...'})}
+                                            suppressContentEditableWarning
+                                        />
                                     </div>
-                                    {/* Editor Content Area */}
-                                    <div
-                                        ref={editorRef}
-                                        contentEditable
-                                        onInput={handleEditorInput}
-                                        className="min-h-[500px] p-6 focus:outline-none bg-card text-sm text-muted-foreground/80 prose prose-sm max-w-none"
-                                        data-placeholder={t('admin.startTyping', {defaultValue: 'Start typing your story here...'})}
-                                        suppressContentEditableWarning
-                                    />
-                                </div>
-                            </div>
+                                </CardContent>
+                            </Card>
                         </div>
 
                         {/* ===== Right Column: Settings (Col 9-12) ===== */}
                         <div className="lg:col-span-4 space-y-6">
                             {/* Publishing Settings */}
-                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                            <Card className="rounded-card overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.publishingSettings', {defaultValue: 'Publishing Settings'})}
                                     </h3>
                                 </div>
-                                <div className="p-5 space-y-5">
+                                <CardContent className="p-5 space-y-5">
                                     {/* Status */}
                                     <div>
                                         <Label className="text-xs text-muted-foreground mb-2 block">
@@ -862,30 +893,26 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                         <Label className="text-xs text-muted-foreground mb-2 block">
                                             {t('admin.visibility', {defaultValue: 'Visibility'})}
                                         </Label>
-                                        <div className="flex items-center gap-4">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="visibility"
-                                                    checked={form.visibility === 'public'}
-                                                    onChange={() => setForm({...form, visibility: 'public'})}
-                                                    className="text-primary focus:ring-primary border-border"
-                                                />
-                                                <Globe className="w-3.5 h-3.5 text-muted-foreground"/>
-                                                <span className="text-xs">{t('admin.public', {defaultValue: 'Public'})}</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="visibility"
-                                                    checked={form.visibility === 'internal'}
-                                                    onChange={() => setForm({...form, visibility: 'internal'})}
-                                                    className="text-primary focus:ring-primary border-border"
-                                                />
-                                                <Lock className="w-3.5 h-3.5 text-muted-foreground"/>
-                                                <span className="text-xs">{t('admin.internal', {defaultValue: 'Internal'})}</span>
-                                            </label>
-                                        </div>
+                                        <RadioGroup
+                                            value={form.visibility}
+                                            onValueChange={val => setForm({...form, visibility: val as 'public' | 'internal'})}
+                                            className="flex items-center gap-4"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem value="public" id="visibility-public"/>
+                                                <Label htmlFor="visibility-public" className="flex items-center gap-2 cursor-pointer">
+                                                    <Globe className="w-3.5 h-3.5 text-muted-foreground"/>
+                                                    <span className="text-xs">{t('admin.public', {defaultValue: 'Public'})}</span>
+                                                </Label>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <RadioGroupItem value="internal" id="visibility-internal"/>
+                                                <Label htmlFor="visibility-internal" className="flex items-center gap-2 cursor-pointer">
+                                                    <Lock className="w-3.5 h-3.5 text-muted-foreground"/>
+                                                    <span className="text-xs">{t('admin.internal', {defaultValue: 'Internal'})}</span>
+                                                </Label>
+                                            </div>
+                                        </RadioGroup>
                                     </div>
 
                                     {/* Publish Date */}
@@ -911,8 +938,8 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                         </Label>
                                         <div className="flex items-center border border-border rounded-input bg-muted/30 overflow-hidden">
                                             <span className="text-xs px-3 text-muted-foreground border-r border-border py-2">/blog/</span>
-                                            <input
-                                                className="flex-1 border-0 bg-transparent text-sm px-3 py-2 focus:ring-0 focus:outline-none"
+                                            <Input
+                                                className="flex-1 border-0 bg-transparent text-sm px-3 py-2 focus:ring-0 focus:outline-none h-auto shadow-none"
                                                 placeholder="article-title-here"
                                                 value={form.slug}
                                                 onChange={e => {
@@ -922,17 +949,17 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                             />
                                         </div>
                                     </div>
-                                </div>
-                            </section>
+                                </CardContent>
+                            </Card>
 
                             {/* Taxonomy */}
-                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                            <Card className="rounded-card overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.taxonomy', {defaultValue: 'Taxonomy'})}
                                     </h3>
                                 </div>
-                                <div className="p-5 space-y-5">
+                                <CardContent className="p-5 space-y-5">
                                     {/* Category */}
                                     <div>
                                         <Label className="text-xs text-muted-foreground mb-2 block">
@@ -970,17 +997,19 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                                     className="flex items-center gap-1.5 bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-badge text-xs"
                                                 >
                                                     <span>{tag}</span>
-                                                    <button
+                                                    <Button
                                                         type="button"
+                                                        variant="ghost"
+                                                        size="icon"
                                                         onClick={() => removeTag(tag)}
-                                                        className="hover:text-destructive transition-colors cursor-pointer"
+                                                        className="hover:text-destructive h-auto w-auto p-0"
                                                     >
                                                         <X className="w-3 h-3"/>
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             ))}
-                                            <input
-                                                className="flex-1 border-0 bg-transparent text-sm min-w-[100px] focus:ring-0 focus:outline-none p-1"
+                                            <Input
+                                                className="flex-1 border-0 bg-transparent text-sm min-w-[100px] focus:ring-0 focus:outline-none p-1 h-auto shadow-none"
                                                 placeholder={t('admin.addTag', {defaultValue: 'Add tag...'})}
                                                 value={tagInput}
                                                 onChange={e => setTagInput(e.target.value)}
@@ -991,17 +1020,17 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                             />
                                         </div>
                                     </div>
-                                </div>
-                            </section>
+                                </CardContent>
+                            </Card>
 
                             {/* Featured Image */}
-                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                            <Card className="rounded-card overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.featuredImage', {defaultValue: 'Featured Image'})}
                                     </h3>
                                 </div>
-                                <div className="p-5">
+                                <CardContent className="p-5">
                                     <div className="w-full aspect-video rounded-input border border-border bg-muted flex items-center justify-center relative group overflow-hidden">
                                         {displayThumbnail && !thumbnailError ? (
                                             <>
@@ -1012,16 +1041,18 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                                     onError={() => setThumbnailError(true)}
                                                 />
                                                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
+                                                    <Button
                                                         type="button"
-                                                        className="bg-card text-foreground px-4 py-2 rounded-btn text-xs font-medium shadow-lg hover:bg-muted transition-colors cursor-pointer"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="bg-card text-foreground px-4 py-2 rounded-lg text-xs font-medium shadow-lg hover:bg-muted"
                                                         onClick={() => {
                                                             const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter image URL:'}));
                                                             if (url) setForm(prev => ({...prev, thumbnail: url}));
                                                         }}
                                                     >
                                                         {t('admin.changeImage', {defaultValue: 'Change Image'})}
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </>
                                         ) : (
@@ -1031,14 +1062,14 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                     <p className="text-xs text-muted-foreground mt-3 text-center">
                                         {t('admin.appearsInSearchResults', {defaultValue: 'Appears in search results and cards'})}
                                     </p>
-                                </div>
-                            </section>
+                                </CardContent>
+                            </Card>
 
                             {/* SEO Settings (Collapsible) */}
-                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                            <Card className="rounded-card overflow-hidden">
                                 <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
                                     <CollapsibleTrigger asChild>
-                                        <button className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/10 transition-colors cursor-pointer">
+                                        <Button variant="ghost" className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/10">
                                             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                                 {t('admin.seoSettings', {defaultValue: 'SEO Settings'})}
                                             </h3>
@@ -1046,10 +1077,10 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                                 'w-4 h-4 text-muted-foreground transition-transform duration-200',
                                                 seoOpen && 'rotate-180'
                                             )}/>
-                                        </button>
+                                        </Button>
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
-                                        <div className="px-5 pb-5 border-t border-border pt-5 space-y-4">
+                                        <CardContent className="px-5 pb-5 border-t border-border pt-5 space-y-4">
                                             <div>
                                                 <Label className="text-xs text-muted-foreground mb-2 block">
                                                     {t('admin.metaTitle', {defaultValue: 'Meta Title'})}
@@ -1072,20 +1103,20 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                                     onChange={e => setForm({...form, meta_description: e.target.value})}
                                                 />
                                             </div>
-                                        </div>
+                                        </CardContent>
                                     </CollapsibleContent>
                                 </Collapsible>
-                            </section>
+                            </Card>
 
                             {/* Metadata (edit mode only) */}
                             {mode === 'edit' && article && (
-                                <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                                <Card className="rounded-card overflow-hidden">
                                     <div className="px-5 py-4 border-b border-border bg-muted/20">
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                             {t('admin.metadata', {defaultValue: 'Metadata'})}
                                         </h3>
                                     </div>
-                                    <div className="p-5">
+                                    <CardContent className="p-5">
                                         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
                                             <span className="text-muted-foreground">{t('admin.id', {defaultValue: 'ID'})}</span>
                                             <span className="font-mono text-xs text-right break-all">{article.id}</span>
@@ -1098,18 +1129,18 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                             <span className="text-muted-foreground">{t('admin.updated', {defaultValue: 'Updated'})}</span>
                                             <span className="text-xs text-right whitespace-nowrap">{formatDateTime(article.update_time)}</span>
                                         </div>
-                                    </div>
-                                </section>
+                                    </CardContent>
+                                </Card>
                             )}
 
                             {/* Quick Actions */}
-                            <section className="bg-card rounded-card shadow-sm border border-border overflow-hidden">
+                            <Card className="rounded-card overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.quickActions', {defaultValue: 'Quick Actions'})}
                                     </h3>
                                 </div>
-                                <div className="p-5 space-y-2">
+                                <CardContent className="p-5 space-y-2">
                                     <div className="flex items-center gap-3">
                                         <Switch
                                             id="featured"
@@ -1131,8 +1162,8 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                             {t('admin.deleteArticle', {defaultValue: 'Delete Article'})}
                                         </Button>
                                     )}
-                                </div>
-                            </section>
+                                </CardContent>
+                            </Card>
                         </div>
                     </div>
                 </div>
@@ -1150,7 +1181,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                 <div className="flex items-center gap-3">
                     <Button
                         variant="outline"
-                        className="rounded-btn font-semibold"
+                        className="rounded-lg font-semibold"
                         onClick={handleSaveDraft}
                         disabled={isSaving}
                     >
@@ -1159,7 +1190,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                     </Button>
                     <Button
                         variant="outline"
-                        className="rounded-btn border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
+                        className="rounded-lg border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 font-semibold"
                         onClick={handleSubmitForReview}
                         disabled={isSaving}
                     >
@@ -1167,7 +1198,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                         {t('admin.submitForReview', {defaultValue: 'Submit for Review'})}
                     </Button>
                     <Button
-                        className="rounded-btn bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
+                        className="rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all"
                         onClick={handlePublish}
                         disabled={isSaving}
                     >

@@ -16,6 +16,9 @@ export default defineConfig({
         entry: {
             index: './src/index.tsx',
         },
+        define: {
+            __MOCK_MODE__: JSON.stringify(false),
+        },
     },
     resolve: {
         alias: {

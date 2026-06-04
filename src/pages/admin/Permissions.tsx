@@ -3,10 +3,12 @@ import {
     Shield, Plus, Edit, Trash2, Users, ToggleLeft, ToggleRight,
     Search, ArrowLeft,
 } from 'lucide-react';
+import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
 import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -20,6 +22,7 @@ import {
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
 import {Separator} from '@/components/ui/separator';
+import {Typography} from '@/components/ui/typography';
 import {
     usePermissionGroups, usePermissionGroup, useGroupMembers,
     useUserPermissions,
@@ -131,12 +134,25 @@ export default function PermissionsPage() {
 
     return (
         <div className="space-y-4 p-4 md:p-6">
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.permissions', 'Permissions')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                    <Typography variant="h2" as="h1" className="font-bold flex items-center gap-2">
                         <Shield className="h-6 w-6"/>{t('permissions.title')}
-                    </h1>
-                    <p className="text-muted-foreground text-sm mt-1">{t('permissions.description')}</p>
+                    </Typography>
+                    <Typography variant="muted" as="p" className="mt-1">{t('permissions.description')}</Typography>
                 </div>
                 {view !== 'list' && (
                     <Button variant="outline" size="sm" onClick={() => { setView('list'); setSelectedGroupId(null); }}>
@@ -155,13 +171,13 @@ export default function PermissionsPage() {
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                            <Input placeholder={t('permissions.searchGroups')} value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-8 rounded-btn-sm"/>
+                            <Input placeholder={t('permissions.searchGroups')} value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-8 rounded-md"/>
                         </div>
                     </div>
                     <Card>
                         <CardContent className="p-0">
                             {isLoading ? (
-                                <div className="py-12 text-center text-muted-foreground">{t('common.loading')}</div>
+                                <Typography variant="muted" as="div" className="py-12 text-center">{t('common.loading')}</Typography>
                             ) : (
                                 <Table>
                                     <TableHeader>
@@ -242,7 +258,7 @@ export default function PermissionsPage() {
                                     {groupDetail.permissions.map(p => (
                                         <Badge key={p} variant="outline">{p}</Badge>
                                     ))}
-                                    {groupDetail.permissions.length === 0 && <span className="text-sm text-muted-foreground">{t('permissions.noPermissions')}</span>}
+                                    {groupDetail.permissions.length === 0 && <Typography variant="muted" as="span">{t('permissions.noPermissions')}</Typography>}
                                 </div>
                             </div>
                             {groupDetail.category_scope && groupDetail.category_scope.length > 0 && (
@@ -335,7 +351,7 @@ export default function PermissionsPage() {
                                                 {g.name}
                                             </Badge>
                                         ))}
-                                        {userPermsData.groups.length === 0 && <span className="text-sm text-muted-foreground">{t('permissions.noGroups')}</span>}
+                                        {userPermsData.groups.length === 0 && <Typography variant="muted" as="span">{t('permissions.noGroups')}</Typography>}
                                     </div>
                                 </div>
                                 <div>
@@ -344,8 +360,8 @@ export default function PermissionsPage() {
                                         {Object.entries(userPermsData.effective_permissions).map(([key, val]) => (
                                             <div key={key} className="flex items-center gap-2 p-2 rounded bg-muted/50">
                                                 <Badge variant="outline">{key}</Badge>
-                                                <span className="text-xs text-muted-foreground">{t('permissions.source')}: {val.sources.join(', ')}</span>
-                                                {val.scope && <span className="text-xs text-muted-foreground">{t('permissions.scope')}: {val.scope.join(', ')}</span>}
+                                                <Typography variant="muted" as="span" className="text-xs">{t('permissions.source')}: {val.sources.join(', ')}</Typography>
+                                                {val.scope && <Typography variant="muted" as="span" className="text-xs">{t('permissions.scope')}: {val.scope.join(', ')}</Typography>}
                                             </div>
                                         ))}
                                     </div>

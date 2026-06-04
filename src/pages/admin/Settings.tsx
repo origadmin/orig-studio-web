@@ -28,6 +28,18 @@ import {
 import {settingsApi, type GroupedSettings} from '@/lib/api/system';
 import {api} from '@/lib/request';
 import {ThemeSwitcher} from '@/themes';
+import {Button} from '@/components/ui/button';
+import {Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter} from '@/components/ui/card';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from '@/components/ui/select';
+import {Switch} from '@/components/ui/switch';
+import {Badge} from '@/components/ui/badge';
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
+import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
+import {Separator} from '@/components/ui/separator';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
+import {Link} from '@tanstack/react-router';
 
 interface FormData {
     site_name: string;
@@ -433,17 +445,21 @@ const Settings: React.FC = () => {
                 <div className="h-12 bg-slate-100 rounded-t-xl animate-pulse mb-6"/>
                 <div className="space-y-6">
                     {[1, 2].map(i => (
-                        <div key={i} className="p-6 rounded-xl border border-slate-200 bg-white animate-pulse">
-                            <div className="h-5 w-40 bg-slate-100 rounded mb-4"/>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[1, 2, 3, 4].map(j => (
-                                    <div key={j} className="space-y-2">
-                                        <div className="h-3 w-20 bg-slate-100 rounded"/>
-                                        <div className="h-9 bg-slate-50 rounded-lg"/>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <Card key={i} className="animate-pulse">
+                            <CardHeader>
+                                <div className="h-5 w-40 bg-slate-100 rounded"/>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[1, 2, 3, 4].map(j => (
+                                        <div key={j} className="space-y-2">
+                                            <div className="h-3 w-20 bg-slate-100 rounded"/>
+                                            <div className="h-9 bg-slate-50 rounded-lg"/>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
             </div>
@@ -468,6 +484,21 @@ const Settings: React.FC = () => {
                 </div>
             )}
 
+            {/* Breadcrumb */}
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>System Settings</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
             {/* Page Title & Actions */}
             <div className="flex items-center justify-between mb-6">
                 <div>
@@ -475,14 +506,13 @@ const Settings: React.FC = () => {
                     <p className="text-sm text-slate-500 mt-1">Configure core system parameters and integrations.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                    <Button
+                        variant="outline"
                         onClick={fetchSettings}
                     >
                         Discard
-                    </button>
-                    <button
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+                    </Button>
+                    <Button
                         onClick={handleSave}
                         disabled={saving}
                     >
@@ -492,826 +522,868 @@ const Settings: React.FC = () => {
                             <Save className="w-4 h-4"/>
                         )}
                         Save Changes
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* Secondary Navigation (Tabs) */}
-            <div className="flex border-b border-slate-200 bg-white rounded-t-xl mb-6">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`px-6 py-3.5 text-sm ${
-                            activeTab === tab.id
-                                ? 'font-semibold border-b-2 border-indigo-600 text-indigo-600'
-                                : 'font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 transition-colors'
-                        }`}
-                        onClick={() => setActiveTab(tab.id)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-white p-0 h-auto">
+                    {tabs.map(tab => (
+                        <TabsTrigger
+                            key={tab.id}
+                            value={tab.id}
+                            className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:shadow-none rounded-none font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 transition-colors"
+                        >
+                            {tab.label}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
 
-            {/* Content Area */}
-            <div className="space-y-6">
-                {/* Tab: General */}
-                {activeTab === 'general' && (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 p-6 rounded-xl border border-slate-200 bg-white">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Base URL Configuration</h3>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CMS CORE API</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                                type="text"
-                                                value={formData.base_urls[0] || ''}
-                                                onChange={(e) => handleBaseUrlChange(0, e.target.value)}
-                                                placeholder="https://api.example.com/v3"
-                                            />
-                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                                <Link2 className="w-4 h-4"/>
-                                            </button>
+                {/* Content Area */}
+                <div className="space-y-6 mt-6">
+                    {/* Tab: General */}
+                    <TabsContent value="general">
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <Card className="lg:col-span-2">
+                                    <CardHeader>
+                                        <CardTitle>Base URL Configuration</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">API ENDPOINTS</Label>
+                                            <div className="space-y-2">
+                                                {formData.base_urls.map((url, index) => (
+                                                    <div key={index} className="flex gap-2 items-center">
+                                                        <Input
+                                                            className="flex-1 font-mono"
+                                                            type="text"
+                                                            value={url}
+                                                            onChange={(e) => handleBaseUrlChange(index, e.target.value)}
+                                                            placeholder="https://api.example.com/v3"
+                                                        />
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            onClick={() => handleRemoveBaseUrl(index)}
+                                                            disabled={formData.base_urls.length <= 1}
+                                                            className="text-slate-400 hover:text-red-500"
+                                                        >
+                                                            <XCircle className="w-4 h-4"/>
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleAddBaseUrl}
+                                                    className="w-full border-dashed"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5 mr-1"/>
+                                                    Add Endpoint
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CDN DELIVERY ENDPOINT</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                                type="text"
-                                                value={formData.primary_url}
-                                                onChange={(e) => handleInputChange('primary_url', e.target.value)}
-                                                placeholder="https://cdn.example.net/edge"
-                                            />
-                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                                <Link2 className="w-4 h-4"/>
-                                            </button>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CDN DELIVERY ENDPOINT</Label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    className="flex-1 font-mono"
+                                                    type="text"
+                                                    value={formData.primary_url}
+                                                    onChange={(e) => handleInputChange('primary_url', e.target.value)}
+                                                    placeholder="https://cdn.example.net/edge"
+                                                />
+                                                <Button variant="ghost" size="icon-sm">
+                                                    <Link2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ENCODING WORKER POOL</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                                type="text"
-                                                value={formData.s3_endpoint}
-                                                onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
-                                                placeholder="https://transcode-cluster.aws.internal"
-                                            />
-                                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                                <Link2 className="w-4 h-4"/>
-                                            </button>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ENCODING WORKER POOL</Label>
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    className="flex-1 font-mono"
+                                                    type="text"
+                                                    value={formData.s3_endpoint}
+                                                    onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
+                                                    placeholder="https://transcode-cluster.aws.internal"
+                                                />
+                                                <Button variant="ghost" size="icon-sm">
+                                                    <Link2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-center">Instance Health</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-4">
+                                            <CheckCircle className="w-6 h-6 text-emerald-500"/>
+                                            <div>
+                                                <p className="text-sm font-semibold text-emerald-700">Production Ready</p>
+                                                <p className="text-xs text-slate-500">Uptime: 99.98% (42 days)</p>
+                                            </div>
+                                        </div>
+                                        <div className="mt-6 space-y-4">
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                                    <span>Latency</span>
+                                                    <span className="text-slate-700 font-mono">14ms</span>
+                                                </div>
+                                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="w-[15%] h-full bg-indigo-600"/>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                                    <span>Error Rate</span>
+                                                    <span className="text-slate-700 font-mono">0.002%</span>
+                                                </div>
+                                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div className="w-[2%] h-full bg-emerald-500"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4 text-center">Instance Health</h3>
-                                <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-4">
-                                    <CheckCircle className="w-6 h-6 text-emerald-500"/>
+
+                            {/* Site Info */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Site Information</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE NAME</Label>
+                                            <Input
+                                                value={formData.site_name}
+                                                onChange={(e) => handleInputChange('site_name', e.target.value)}
+                                                placeholder="Enter site name"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE DESCRIPTION</Label>
+                                            <Input
+                                                value={formData.site_description}
+                                                onChange={(e) => handleInputChange('site_description', e.target.value)}
+                                                placeholder="Enter site description"
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Appearance */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Appearance</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ThemeSwitcher/>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* Tab: Storage */}
+                    <TabsContent value="storage">
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <div className="flex justify-between items-center">
+                                        <CardTitle>S3 Cloud Storage Configuration</CardTitle>
+                                        <Badge variant="soft-primary">
+                                            Active Provider: {formData.storage_type === 's3' ? 'AWS' : formData.storage_type === 'hybrid' ? 'Hybrid' : 'Local'}
+                                        </Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ACCESS KEY ID</Label>
+                                                <Input
+                                                    className="font-mono"
+                                                    type="password"
+                                                    value={formData.s3_access_key}
+                                                    onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
+                                                    placeholder="AKIA****************"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SECRET ACCESS KEY</Label>
+                                                <Input
+                                                    className="font-mono"
+                                                    type="password"
+                                                    value={formData.s3_secret_key}
+                                                    onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
+                                                    placeholder="********************************"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">REGION</Label>
+                                                <Select
+                                                    value={formData.s3_region}
+                                                    onValueChange={(value) => handleInputChange('s3_region', value)}
+                                                >
+                                                    <SelectTrigger className="font-mono">
+                                                        <SelectValue placeholder="Select region"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="us-east-1">us-east-1</SelectItem>
+                                                        <SelectItem value="eu-west-1">eu-west-1</SelectItem>
+                                                        <SelectItem value="ap-southeast-2">ap-southeast-2</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">BUCKET NAME</Label>
+                                                <Input
+                                                    className="font-mono"
+                                                    type="text"
+                                                    value={formData.s3_bucket}
+                                                    onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
+                                                    placeholder="origstudio-assets-production-v3"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button variant="link" className="mt-6 p-0 h-auto font-semibold text-sm">
+                                        <CloudLightning className="w-4 h-4"/>Test Connection
+                                    </Button>
+                                </CardContent>
+                            </Card>
+
+                            {/* Local Storage Config */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Local Storage</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE BASE PATH</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="text"
+                                                value={formData.storage_base_path}
+                                                onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
+                                                placeholder="/var/media"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE TYPE</Label>
+                                            <Select
+                                                value={formData.storage_type}
+                                                onValueChange={(value) => handleInputChange('storage_type', value)}
+                                            >
+                                                <SelectTrigger className="font-mono">
+                                                    <SelectValue placeholder="Select storage type"/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="local">Local</SelectItem>
+                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</SelectItem>
+                                                    <SelectItem value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ' (Not Available)' : ''}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
+                                            <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
+                                                {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
+                                            </code>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* Tab: Media */}
+                    <TabsContent value="media">
+                        <div className="space-y-6">
+                            <Card className="max-w-3xl">
+                                <CardHeader>
+                                    <CardTitle>Media Upload & Processing Limits</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-8">
                                     <div>
-                                        <p className="text-sm font-semibold text-emerald-700">Production Ready</p>
-                                        <p className="text-xs text-slate-500">Uptime: 99.98% (42 days)</p>
-                                    </div>
-                                </div>
-                                <div className="mt-6 space-y-4">
-                                    <div className="space-y-1.5">
-                                        <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            <span>Latency</span>
-                                            <span className="text-slate-700 font-mono">14ms</span>
+                                        <div className="flex justify-between mb-2">
+                                            <Label className="text-sm font-medium text-slate-700">Maximum Upload Size</Label>
+                                            <span className="text-sm font-mono text-indigo-600 font-bold">{uploadSizeGB.toFixed(1)} GB</span>
                                         </div>
-                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="w-[15%] h-full bg-indigo-600"/>
+                                        <input
+                                            className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                            max="100"
+                                            min="1"
+                                            type="range"
+                                            value={uploadSizeGB * 20}
+                                            onChange={(e) => setUploadSizeGB(Number(e.target.value) / 20)}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CONCURRENT TRANSCODES</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.max_upload_size_video}
+                                                onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">RETAIN TEMP FILES (HOURS)</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.max_video_duration}
+                                                onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
+                                            />
                                         </div>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            <span>Error Rate</span>
-                                            <span className="text-slate-700 font-mono">0.002%</span>
-                                        </div>
-                                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="w-[2%] h-full bg-emerald-500"/>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Site Info */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Site Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE NAME</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                        value={formData.site_name}
-                                        onChange={(e) => handleInputChange('site_name', e.target.value)}
-                                        placeholder="Enter site name"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE DESCRIPTION</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                        value={formData.site_description}
-                                        onChange={(e) => handleInputChange('site_description', e.target.value)}
-                                        placeholder="Enter site description"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Appearance */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Appearance</h3>
-                            <ThemeSwitcher/>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tab: Storage */}
-                {activeTab === 'storage' && (
-                    <div className="space-y-6">
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-base font-semibold text-slate-800">S3 Cloud Storage Configuration</h3>
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
-                                    Active Provider: {formData.storage_type === 's3' ? 'AWS' : formData.storage_type === 'hybrid' ? 'Hybrid' : 'Local'}
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ACCESS KEY ID</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="password"
-                                            value={formData.s3_access_key}
-                                            onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
-                                            placeholder="AKIA****************"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SECRET ACCESS KEY</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="password"
-                                            value={formData.s3_secret_key}
-                                            onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
-                                            placeholder="********************************"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">REGION</label>
-                                        <select
-                                            className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
-                                            value={formData.s3_region}
-                                            onChange={(e) => handleInputChange('s3_region', e.target.value)}
-                                        >
-                                            <option value="us-east-1">us-east-1</option>
-                                            <option value="eu-west-1">eu-west-1</option>
-                                            <option value="ap-southeast-2">ap-southeast-2</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">BUCKET NAME</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="text"
-                                            value={formData.s3_bucket}
-                                            onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
-                                            placeholder="origstudio-assets-production-v3"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <button className="mt-6 inline-flex items-center gap-2 text-indigo-600 font-semibold text-sm hover:underline">
-                                <CloudLightning className="w-4 h-4"/>Test Connection
-                            </button>
-                        </div>
-
-                        {/* Local Storage Config */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Local Storage</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE BASE PATH</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="text"
-                                        value={formData.storage_base_path}
-                                        onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
-                                        placeholder="/var/media"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE TYPE</label>
-                                    <select
-                                        className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
-                                        value={formData.storage_type}
-                                        onChange={(e) => handleInputChange('storage_type', e.target.value)}
-                                    >
-                                        <option value="local">Local</option>
-                                        <option value="s3" disabled={!storageCaps.s3_available}>S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</option>
-                                        <option value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ' (Not Available)' : ''}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
-                                    <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
-                                        {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
-                                    </code>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tab: Media */}
-                {activeTab === 'media' && (
-                    <div className="space-y-6">
-                        <div className="max-w-3xl p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-6">Media Upload & Processing Limits</h3>
-                            <div className="space-y-8">
-                                <div>
-                                    <div className="flex justify-between mb-2">
-                                        <label className="text-sm font-medium text-slate-700">Maximum Upload Size</label>
-                                        <span className="text-sm font-mono text-indigo-600 font-bold">{uploadSizeGB.toFixed(1)} GB</span>
-                                    </div>
-                                    <input
-                                        className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                                        max="100"
-                                        min="1"
-                                        type="range"
-                                        value={uploadSizeGB * 20}
-                                        onChange={(e) => setUploadSizeGB(Number(e.target.value) / 20)}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CONCURRENT TRANSCODES</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="number"
-                                            value={formData.max_upload_size_video}
-                                            onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">RETAIN TEMP FILES (HOURS)</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="number"
-                                            value={formData.max_video_duration}
-                                            onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
+                                    <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                        <Switch
                                             checked={formData.auto_transcode === 'true'}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => handleInputChange('auto_transcode', String(e.target.checked))}
+                                            onCheckedChange={(checked) => handleInputChange('auto_transcode', String(checked))}
                                         />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                    <label className="text-sm text-slate-700 font-medium">Automatically apply forensic watermarking to internal screener previews</label>
-                                </div>
-                            </div>
-                        </div>
+                                        <Label className="text-sm text-slate-700 font-medium">Automatically apply forensic watermarking to internal screener previews</Label>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Upload Limits */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Upload Limits</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE VIDEO (MB)</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="number"
-                                        value={formData.max_upload_size_video}
-                                        onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE IMAGE (MB)</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="number"
-                                        value={formData.max_upload_size_image}
-                                        onChange={(e) => handleInputChange('max_upload_size_image', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED VIDEO FORMATS</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        value={formData.allowed_video_formats}
-                                        onChange={(e) => handleInputChange('allowed_video_formats', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED IMAGE FORMATS</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        value={formData.allowed_image_formats}
-                                        onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
+                            {/* Upload Limits */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Upload Limits</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE VIDEO (MB)</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.max_upload_size_video}
+                                                onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE IMAGE (MB)</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.max_upload_size_image}
+                                                onChange={(e) => handleInputChange('max_upload_size_image', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED VIDEO FORMATS</Label>
+                                            <Input
+                                                value={formData.allowed_video_formats}
+                                                onChange={(e) => handleInputChange('allowed_video_formats', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED IMAGE FORMATS</Label>
+                                            <Input
+                                                value={formData.allowed_image_formats}
+                                                onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Thumbnail & Sprite */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Thumbnail & Sprite Settings</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL QUALITY</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="number"
-                                        value={formData.thumbnail_quality}
-                                        onChange={(e) => handleInputChange('thumbnail_quality', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL RESOLUTION</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        value={formData.thumbnail_resolution}
-                                        onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
-                                        placeholder="320x180"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE FRAME INTERVAL</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="number"
-                                        value={formData.sprite_frame_interval}
-                                        onChange={(e) => handleInputChange('sprite_frame_interval', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE COLUMNS</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="number"
-                                        value={formData.sprite_columns}
-                                        onChange={(e) => handleInputChange('sprite_columns', e.target.value)}
-                                    />
-                                </div>
-                            </div>
+                            {/* Thumbnail & Sprite */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Thumbnail & Sprite Settings</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL QUALITY</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.thumbnail_quality}
+                                                onChange={(e) => handleInputChange('thumbnail_quality', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL RESOLUTION</Label>
+                                            <Input
+                                                value={formData.thumbnail_resolution}
+                                                onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
+                                                placeholder="320x180"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE FRAME INTERVAL</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.sprite_frame_interval}
+                                                onChange={(e) => handleInputChange('sprite_frame_interval', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE COLUMNS</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.sprite_columns}
+                                                onChange={(e) => handleInputChange('sprite_columns', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
-                    </div>
-                )}
+                    </TabsContent>
 
-                {/* Tab: Email */}
-                {activeTab === 'email' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">SMTP Configuration</h3>
-                            <div className="space-y-4">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HOST</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="text"
-                                        value={formData.smtp_host}
-                                        onChange={(e) => handleInputChange('smtp_host', e.target.value)}
-                                        placeholder="smtp.postmarkapp.com"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PORT</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="text"
-                                        value={formData.smtp_port}
-                                        onChange={(e) => handleInputChange('smtp_port', e.target.value)}
-                                        placeholder="587"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">USERNAME</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        value={formData.smtp_user}
-                                        onChange={(e) => handleInputChange('smtp_user', e.target.value)}
-                                        placeholder="noreply@example.com"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PASSWORD</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        type="password"
-                                        value={formData.smtp_password}
-                                        onChange={(e) => handleInputChange('smtp_password', e.target.value)}
-                                        placeholder="••••••••"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SENDER NAME</label>
-                                    <input
-                                        className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                        value={formData.smtp_sender_name}
-                                        onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
-                                    />
-                                </div>
-                                <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
+                    {/* Tab: Email */}
+                    <TabsContent value="email">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>SMTP Configuration</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HOST</Label>
+                                        <Input
+                                            className="font-mono"
+                                            type="text"
+                                            value={formData.smtp_host}
+                                            onChange={(e) => handleInputChange('smtp_host', e.target.value)}
+                                            placeholder="smtp.postmarkapp.com"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PORT</Label>
+                                        <Input
+                                            className="font-mono"
+                                            type="text"
+                                            value={formData.smtp_port}
+                                            onChange={(e) => handleInputChange('smtp_port', e.target.value)}
+                                            placeholder="587"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">USERNAME</Label>
+                                        <Input
+                                            value={formData.smtp_user}
+                                            onChange={(e) => handleInputChange('smtp_user', e.target.value)}
+                                            placeholder="noreply@example.com"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PASSWORD</Label>
+                                        <Input
+                                            type="password"
+                                            value={formData.smtp_password}
+                                            onChange={(e) => handleInputChange('smtp_password', e.target.value)}
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SENDER NAME</Label>
+                                        <Input
+                                            value={formData.smtp_sender_name}
+                                            onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                        <Switch
                                             checked={formData.smtp_use_tls === 'true'}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => handleInputChange('smtp_use_tls', String(e.target.checked))}
+                                            onCheckedChange={(checked) => handleInputChange('smtp_use_tls', String(checked))}
                                         />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                    <label className="text-sm text-slate-700 font-medium">Use TLS</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">SMTP Diagnostics</h3>
-                            <p className="text-sm text-slate-500 mb-6">Send a test email to verify your outgoing mail server configuration.</p>
-                            <div className="flex flex-col gap-4">
-                                <input
-                                    className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                    placeholder="recipient@example.com"
-                                    type="email"
-                                    value={emailTestTo}
-                                    onChange={(e) => setEmailTestTo(e.target.value)}
-                                />
-                                <button
-                                    className="w-full py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                                    onClick={handleEmailTest}
-                                    disabled={emailTestSending || !emailTestTo}
-                                >
-                                    {emailTestSending ? (
-                                        <Loader2 className="w-4 h-4 animate-spin"/>
-                                    ) : (
-                                        <Send className="w-4 h-4"/>
+                                        <Label className="text-sm text-slate-700 font-medium">Use TLS</Label>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>SMTP Diagnostics</CardTitle>
+                                    <CardDescription>Send a test email to verify your outgoing mail server configuration.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="flex flex-col gap-4">
+                                    <Input
+                                        placeholder="recipient@example.com"
+                                        type="email"
+                                        value={emailTestTo}
+                                        onChange={(e) => setEmailTestTo(e.target.value)}
+                                    />
+                                    <Button
+                                        className="w-full"
+                                        onClick={handleEmailTest}
+                                        disabled={emailTestSending || !emailTestTo}
+                                    >
+                                        {emailTestSending ? (
+                                            <Loader2 className="w-4 h-4 animate-spin"/>
+                                        ) : (
+                                            <Send className="w-4 h-4"/>
+                                        )}
+                                        Run SMTP Test
+                                    </Button>
+                                    {emailStatus.configured && (
+                                        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4 text-emerald-500"/>
+                                            <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
+                                        </div>
                                     )}
-                                    Run SMTP Test
-                                </button>
-                            </div>
-                            {emailStatus.configured && (
-                                <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4 text-emerald-500"/>
-                                    <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
-                                </div>
-                            )}
+                                </CardContent>
+                            </Card>
                         </div>
-                    </div>
-                )}
+                    </TabsContent>
 
-                {/* Tab: Security */}
-                {activeTab === 'security' && (
-                    <div className="space-y-6">
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-6">API Rate Limiting</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Standard Users</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Non-admin API tokens</p>
+                    {/* Tab: Security */}
+                    <TabsContent value="security">
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>API Rate Limiting</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Standard Users</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Non-admin API tokens</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Input
+                                                className="w-24 text-center font-mono"
+                                                type="text"
+                                                value={formData.api_rate_limit}
+                                                onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
+                                            />
+                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            className="w-24 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center font-mono text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="text"
-                                            value={formData.api_rate_limit}
-                                            onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
-                                        />
-                                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">External Integrations</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Public webhooks</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Input
+                                                className="w-24 text-center font-mono"
+                                                type="text"
+                                                value="5000"
+                                                readOnly
+                                            />
+                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">External Integrations</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Public webhooks</p>
+                                    <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4 mt-4">
+                                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
+                                        <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            className="w-24 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-center font-mono text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="text"
-                                            value="5000"
-                                            readOnly
-                                        />
-                                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
-                                    </div>
-                                </div>
-                                <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4 mt-4">
-                                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
-                                    <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
-                                </div>
-                            </div>
-                        </div>
+                                </CardContent>
+                            </Card>
 
-                        {/* Auth Settings */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-6">Authentication</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Allow Registration</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Enable new user sign-up</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
+                            {/* Auth Settings */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Authentication</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Allow Registration</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Enable new user sign-up</p>
+                                        </div>
+                                        <Switch
                                             checked={formData.allow_registration === 'true'}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => handleInputChange('allow_registration', String(e.target.checked))}
+                                            onCheckedChange={(checked) => handleInputChange('allow_registration', String(checked))}
                                         />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Require Email Verification</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Verify email before access</p>
                                     </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Require Email Verification</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Verify email before access</p>
+                                        </div>
+                                        <Switch
                                             checked={formData.require_email_verification === 'true'}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => handleInputChange('require_email_verification', String(e.target.checked))}
-                                        />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MIN PASSWORD LENGTH</label>
-                                        <input
-                                            className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500/20 outline-none"
-                                            type="number"
-                                            value={formData.min_password_length}
-                                            onChange={(e) => handleInputChange('min_password_length', e.target.value)}
+                                            onCheckedChange={(checked) => handleInputChange('require_email_verification', String(checked))}
                                         />
                                     </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">AUTO APPROVE</label>
-                                        <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MIN PASSWORD LENGTH</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.min_password_length}
+                                                onChange={(e) => handleInputChange('min_password_length', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">AUTO APPROVE</Label>
+                                            <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                                                <Switch
                                                     checked={formData.auto_approve === 'true'}
-                                                    className="sr-only peer"
-                                                    type="checkbox"
-                                                    onChange={(e) => {
-                                                        handleInputChange('auto_approve', String(e.target.checked));
-                                                        handleInputChange('require_review', String(!e.target.checked));
+                                                    onCheckedChange={(checked) => {
+                                                        handleInputChange('auto_approve', String(checked));
+                                                        handleInputChange('require_review', String(!checked));
                                                     }}
                                                 />
-                                                <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                            </label>
-                                            <span className="text-sm text-slate-700">Auto-approve content</span>
+                                                <span className="text-sm text-slate-700">Auto-approve content</span>
+                                            </div>
                                         </div>
                                     </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* Tab: Modules */}
+                    <TabsContent value="modules">
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-base font-semibold text-slate-800">Homepage Layout (2x3 Grid)</h3>
+                                <Button variant="outline" size="sm" className="text-xs font-bold uppercase tracking-widest">
+                                    <Plus className="w-3 h-3"/>Custom Grid
+                                </Button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                                        <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                        <p className="text-sm font-semibold text-slate-700">Real-time Analytics</p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                                        <Play className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                        <p className="text-sm font-semibold text-slate-700">Video Player Health</p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                                        <ShieldCheck className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                        <p className="text-sm font-semibold text-slate-700">Audit Stream</p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                                        <Server className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                        <p className="text-sm font-semibold text-slate-700">Storage Nodes</p>
+                                    </CardContent>
+                                </Card>
+                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
+                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
+                                        <CloudSun className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
+                                        <p className="text-sm font-semibold text-slate-700">S3 Object Monitor</p>
+                                    </CardContent>
+                                </Card>
+                                <div className="p-6 aspect-[4/3] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-indigo-300 transition-all cursor-pointer group">
+                                    <PlusCircle className="w-6 h-6 text-slate-400 group-hover:text-indigo-600"/>
+                                    <p className="text-sm font-semibold text-slate-400 group-hover:text-indigo-600">Add Module</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                )}
 
-                {/* Tab: Modules */}
-                {activeTab === 'modules' && (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-slate-800">Homepage Layout (2x3 Grid)</h3>
-                            <button className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors uppercase tracking-widest">
-                                <Plus className="w-3 h-3"/>Custom Grid
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                <p className="text-sm font-semibold text-slate-700">Real-time Analytics</p>
-                            </div>
-                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                <Play className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                <p className="text-sm font-semibold text-slate-700">Video Player Health</p>
-                            </div>
-                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                <ShieldCheck className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                <p className="text-sm font-semibold text-slate-700">Audit Stream</p>
-                            </div>
-                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                <Server className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                <p className="text-sm font-semibold text-slate-700">Storage Nodes</p>
-                            </div>
-                            <div className="p-6 aspect-[4/3] rounded-xl border border-slate-200 bg-white flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                <CloudSun className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                <p className="text-sm font-semibold text-slate-700">S3 Object Monitor</p>
-                            </div>
-                            <div className="p-6 aspect-[4/3] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-indigo-300 transition-all cursor-pointer group">
-                                <PlusCircle className="w-6 h-6 text-slate-400 group-hover:text-indigo-600"/>
-                                <p className="text-sm font-semibold text-slate-400 group-hover:text-indigo-600">Add Module</p>
-                            </div>
-                        </div>
-
-                        {/* Content Modules Toggle */}
-                        <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                            <h3 className="text-base font-semibold text-slate-800 mb-4">Content Modules</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Articles Module</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
+                            {/* Content Modules Toggle */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Content Modules</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Articles Module</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
+                                        </div>
+                                        <Switch
                                             checked={formData.module_articles}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => setFormData(prev => ({...prev, module_articles: e.target.checked}))}
+                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_articles: checked}))}
                                         />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Videos Module</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
                                     </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            checked={formData.module_videos}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => setFormData(prev => ({...prev, module_videos: e.target.checked}))}
-                                        />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div>
-                                        <p className="text-sm font-semibold text-slate-800">Music Module</p>
-                                        <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            checked={formData.module_music}
-                                            className="sr-only peer"
-                                            type="checkbox"
-                                            onChange={(e) => setFormData(prev => ({...prev, module_music: e.target.checked}))}
-                                        />
-                                        <div className="w-9 h-5 bg-slate-200 peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"/>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Tab: System */}
-                {activeTab === 'system' && (
-                    <div className="space-y-8">
-                        {/* Resource Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU USAGE</span>
-                                    <span className="text-sm font-mono font-bold text-indigo-600">{systemInfo?.cpuUsage || '64%'}</span>
-                                </div>
-                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="w-[64%] h-full bg-indigo-600 rounded-full"/>
-                                </div>
-                            </div>
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY</span>
-                                    <span className="text-sm font-mono font-bold text-emerald-600">{systemInfo?.memoryUsage?.toFixed(0) || '42'}%</span>
-                                </div>
-                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500 rounded-full" style={{width: `${systemInfo?.memoryUsage || 42}%`}}/>
-                                </div>
-                            </div>
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DISK I/O</span>
-                                    <span className="text-sm font-mono font-bold text-amber-600">88%</span>
-                                </div>
-                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="w-[88%] h-full bg-amber-500 rounded-full"/>
-                                </div>
-                            </div>
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white shadow-sm">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NETWORK</span>
-                                    <span className="text-sm font-mono font-bold text-slate-700">12%</span>
-                                </div>
-                                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                    <div className="w-[12%] h-full bg-slate-600 rounded-full"/>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Process Table */}
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-100">
-                                <h3 className="text-base font-semibold text-slate-800">Active System Processes</h3>
-                            </div>
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">PROCESS ID</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">SERVICE</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">STATUS</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">MEMORY</th>
-                                        <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    <tr className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">81920</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Media-Worker-A1</td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>RUNNING
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">1,024 MB</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                <XCircle className="w-4 h-4"/>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">44211</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Distribution-Edge-UK</td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>RUNNING
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">512 MB</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                <XCircle className="w-4 h-4"/>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50/50 transition-colors">
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">09212</td>
-                                        <td className="px-6 py-4 text-sm font-semibold text-slate-700">Ingest-Proxy-Service</td>
-                                        <td className="px-6 py-4">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>IDLE
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-xs text-slate-500">256 MB</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                                <XCircle className="w-4 h-4"/>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Server Info */}
-                        {systemInfo && (
-                            <div className="p-6 rounded-xl border border-slate-200 bg-white">
-                                <h3 className="text-base font-semibold text-slate-800 mb-4">Server Information</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        {label: 'Version', value: systemInfo.version || '-'},
-                                        {label: 'Go Version', value: systemInfo.goVersion || '-'},
-                                        {label: 'Database', value: systemInfo.database || '-'},
-                                        {label: 'OS', value: systemInfo.os || '-'},
-                                        {label: 'Uptime', value: systemInfo.uptime || '-'},
-                                        {label: 'CPUs', value: String(systemInfo.numCPU ?? '-')},
-                                        {label: 'Goroutines', value: String(systemInfo.numGoroutine ?? '-')},
-                                        {label: 'Total Memory', value: systemInfo.totalMemory || '-'},
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
-                                            <span className="text-sm font-medium text-slate-700 font-mono">{item.value}</span>
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Videos Module</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
                                         </div>
-                                    ))}
-                                </div>
+                                        <Switch
+                                            checked={formData.module_videos}
+                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_videos: checked}))}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Music Module</p>
+                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
+                                        </div>
+                                        <Switch
+                                            checked={formData.module_music}
+                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_music: checked}))}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* Tab: System */}
+                    <TabsContent value="system">
+                        <div className="space-y-8">
+                            {/* Resource Stats */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU USAGE</span>
+                                            <span className="text-sm font-mono font-bold text-indigo-600">{systemInfo?.cpuUsage || '64%'}</span>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-[64%] h-full bg-indigo-600 rounded-full"/>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY</span>
+                                            <span className="text-sm font-mono font-bold text-emerald-600">{systemInfo?.memoryUsage?.toFixed(0) || '42'}%</span>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full bg-emerald-500 rounded-full" style={{width: `${systemInfo?.memoryUsage || 42}%`}}/>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DISK I/O</span>
+                                            <span className="text-sm font-mono font-bold text-amber-600">88%</span>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-[88%] h-full bg-amber-500 rounded-full"/>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NETWORK</span>
+                                            <span className="text-sm font-mono font-bold text-slate-700">12%</span>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-[12%] h-full bg-slate-600 rounded-full"/>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                        )}
-                    </div>
-                )}
-            </div>
+
+                            {/* Process Table */}
+                            <Card className="overflow-hidden">
+                                <CardHeader className="border-b border-slate-100">
+                                    <CardTitle>Active System Processes</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">PROCESS ID</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">SERVICE</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">STATUS</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">MEMORY</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right"></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">81920</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Media-Worker-A1</TableCell>
+                                                <TableCell className="px-6 py-4">
+                                                    <Badge variant="soft-success">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>RUNNING
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">1,024 MB</TableCell>
+                                                <TableCell className="px-6 py-4 text-right">
+                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                        <XCircle className="w-4 h-4"/>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">44211</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Distribution-Edge-UK</TableCell>
+                                                <TableCell className="px-6 py-4">
+                                                    <Badge variant="soft-success">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>RUNNING
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">512 MB</TableCell>
+                                                <TableCell className="px-6 py-4 text-right">
+                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                        <XCircle className="w-4 h-4"/>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">09212</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Ingest-Proxy-Service</TableCell>
+                                                <TableCell className="px-6 py-4">
+                                                    <Badge variant="soft-neutral">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>IDLE
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">256 MB</TableCell>
+                                                <TableCell className="px-6 py-4 text-right">
+                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                        <XCircle className="w-4 h-4"/>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </CardContent>
+                            </Card>
+
+                            {/* Server Info */}
+                            {systemInfo && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Server Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[
+                                                {label: 'Version', value: systemInfo.version || '-'},
+                                                {label: 'Go Version', value: systemInfo.goVersion || '-'},
+                                                {label: 'Database', value: systemInfo.database || '-'},
+                                                {label: 'OS', value: systemInfo.os || '-'},
+                                                {label: 'Uptime', value: systemInfo.uptime || '-'},
+                                                {label: 'CPUs', value: String(systemInfo.numCPU ?? '-')},
+                                                {label: 'Goroutines', value: String(systemInfo.numGoroutine ?? '-')},
+                                                {label: 'Total Memory', value: systemInfo.totalMemory || '-'},
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                                                    <span className="text-sm font-medium text-slate-700 font-mono">{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    </TabsContent>
+                </div>
+            </Tabs>
         </div>
     );
 };

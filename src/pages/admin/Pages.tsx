@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
+import {Link} from '@tanstack/react-router';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -127,6 +129,19 @@ const Pages: React.FC = () => {
 
     return (
         <div className="space-y-6 p-4 md:p-6">
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.pages.title', 'Custom Pages')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold">{t('admin.pages.title', 'Custom Pages')}</h2>

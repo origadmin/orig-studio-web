@@ -10,6 +10,9 @@ import {
     ArrowRight,
     Calendar,
 } from 'lucide-react';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
+import {Link} from '@tanstack/react-router';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Badge} from '@/components/ui/badge';
@@ -214,6 +217,7 @@ const FunnelStep = ({
 // ─── Main Component ──────────────────────────────────────────
 
 const Analytics = () => {
+    const {t} = useTranslation();
     const [dateRange, setDateRange] = useState<DateRange>('30d');
 
     const dateRangeOptions: {key: DateRange; label: string}[] = [
@@ -225,6 +229,21 @@ const Analytics = () => {
 
     return (
         <div className="space-y-6 p-4 md:p-6">
+            {/* ── Breadcrumb ────────────────────────────────── */}
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.analytics', 'Analytics')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
             {/* ── Page Header ────────────────────────────────── */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>

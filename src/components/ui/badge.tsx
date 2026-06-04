@@ -3,8 +3,16 @@ import {cva, type VariantProps} from "class-variance-authority"
 
 import {cn} from "@/lib/utils"
 
+/**
+ * Badge — aligned to the Stitch design system status pills.
+ *
+ * Use the `soft-*` variants to render the design-system status pills
+ * (emerald-50 / amber-50 / red-50 / sky-50 / slate-100 with matching 700-level text).
+ * The `solid-*` variants render status as solid backgrounds for high-contrast
+ * call-outs (e.g. "Failed" toasts).
+ */
 const badgeVariants = cva(
-    "inline-flex items-center whitespace-nowrap rounded-badge border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+    "inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
     {
         variants: {
             variant: {
@@ -21,11 +29,12 @@ const badgeVariants = cva(
                 info:
                     "border-transparent bg-info text-info-foreground hover:bg-info/80",
                 outline: "text-foreground",
-                "soft-success": "border-transparent bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
-                "soft-warning": "border-transparent bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
-                "soft-danger": "border-transparent bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400",
-                "soft-info": "border-transparent bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-400",
-                "soft-neutral": "border-transparent bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+                "soft-success": "border-transparent bg-emerald-50 text-emerald-700",
+                "soft-warning": "border-transparent bg-amber-50 text-amber-700",
+                "soft-danger": "border-transparent bg-red-50 text-red-700",
+                "soft-info": "border-transparent bg-sky-50 text-sky-700",
+                "soft-neutral": "border-transparent bg-slate-100 text-slate-600",
+                "soft-primary": "border-transparent bg-indigo-50 text-indigo-700",
             },
         },
         defaultVariants: {

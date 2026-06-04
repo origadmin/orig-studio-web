@@ -3,14 +3,25 @@
  */
 
 import {useEffect, useState, useMemo} from "react";
-import {mediaApi, encodingApi, type EncodeProfile} from "../../lib/api/media";
+import {useTranslation} from "react-i18next";
+import {Link} from "@tanstack/react-router";
+import {encodingApi, type EncodeProfile} from "../../lib/api/media";
 import {Button} from "../../components/ui/button";
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "../../components/ui/table";
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from "../../components/ui/card";
-import {Badge} from "../../components/ui/badge";
 import {Input} from "../../components/ui/input";
 import {Label} from "../../components/ui/label";
+import {Badge} from "../../components/ui/badge";
+import {Switch} from "../../components/ui/switch";
+import {Card, CardContent} from "../../components/ui/card";
 import {Checkbox} from "../../components/ui/checkbox";
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from "../../components/ui/breadcrumb";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+} from "../../components/ui/table";
 import {
     Dialog,
     DialogContent,
@@ -18,7 +29,6 @@ import {
     DialogTitle,
     DialogDescription,
     DialogFooter,
-    DialogTrigger
 } from "../../components/ui/dialog";
 import {
     Select,
@@ -28,41 +38,33 @@ import {
     SelectValue,
 } from "../../components/ui/select";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-    PlusCircle, Edit, Trash2, CheckCircle, XCircle, Play, Pause, Settings,
-    Search, Filter, MoreVertical, Download, Upload, Copy,
-    Trash, CheckSquare, Square, ArrowUpDown, ChevronDown, ChevronUp, RotateCcw, Terminal
+    Sliders, Search, RotateCcw, Plus, Upload, Edit, Trash2, Copy,
+    Play, Pause, ChevronRight, ChevronLeft, X
 } from "lucide-react";
-import {Separator} from "../../components/ui/separator";
 
 export default function TranscodingProfiles() {
+    const {t} = useTranslation();
+
     const [profiles, setProfiles] = useState<EncodeProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingProfile, setEditingProfile] = useState<Partial<EncodeProfile> | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    // 新增的状态
+    // Filter / selection state
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('');
-    const [codecFilter, setCodecFilter] = useState<string>('');
-    const [extensionFilter, setExtensionFilter] = useState<string>('');
-    const [resolutionFilter, setResolutionFilter] = useState<string>('');
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+    const [codecFilter, setCodecFilter] = useState<string>('-');
+    const [resolutionFilter, setResolutionFilter] = useState<string>('-');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
-    const [sortConfig, setSortConfig] = useState<{ key: keyof EncodeProfile, direction: 'asc' | 'desc' } | null>(null);
 
-    // Command preview states
-    const [commandPreview, setCommandPreview] = useState<string>('');
-    const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
-    const [previewProfile, setPreviewProfile] = useState<EncodeProfile | null>(null);
-    const [previewCommand, setPreviewCommand] = useState('');
+    // Pagination
+    const [page, setPage] = useState(1);
+    const pageSize = 10;
+
+    // Add Profile modal (matches prototype)
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [newProfile, setNewProfile] = useState<Partial<EncodeProfile>>({
+        is_active: true,
+    });
 
     const fetchProfiles = async () => {
         try {
@@ -79,59 +81,39 @@ export default function TranscodingProfiles() {
         fetchProfiles();
     }, []);
 
-    // Auto-fetch command preview when editing profile parameters change
-    useEffect(() => {
-        if (!editingProfile || !editingProfile.extension) {
-            setCommandPreview('');
-            return;
-        }
-        const timer = setTimeout(async () => {
-            try {
-                const response = await encodingApi.profiles.preview(editingProfile);
-                if (response.command) {
-                    setCommandPreview(response.command);
-                } else {
-                    setCommandPreview('');
-                }
-            } catch {
-                setCommandPreview('');
-            }
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [editingProfile?.extension, editingProfile?.resolution, editingProfile?.video_codec, editingProfile?.video_bitrate, editingProfile?.audio_codec, editingProfile?.audio_bitrate]);
+    // Available filter options
+    const availableCodecs = useMemo(() => {
+        const set = new Set<string>();
+        profiles.forEach(p => set.add(p.video_codec));
+        return Array.from(set);
+    }, [profiles]);
 
-    // 筛选和排序逻辑
+    const availableResolutions = useMemo(() => {
+        const set = new Set<string>();
+        profiles.forEach(p => {
+            const height = p.resolution.split('x')[1] || p.resolution;
+            if (height) set.add(height);
+        });
+        return Array.from(set).sort((a, b) => parseInt(a) - parseInt(b));
+    }, [profiles]);
+
+    // Filtering
     const filteredProfiles = useMemo(() => {
         let result = [...profiles];
 
-        // 搜索筛选
         if (searchQuery) {
-            const query = searchQuery.toLowerCase();
+            const q = searchQuery.toLowerCase();
             result = result.filter(p =>
-                p.name.toLowerCase().includes(query) ||
-                p.resolution.toLowerCase().includes(query) ||
-                p.video_codec.toLowerCase().includes(query)
+                p.name.toLowerCase().includes(q) ||
+                p.video_codec.toLowerCase().includes(q) ||
+                p.resolution.toLowerCase().includes(q)
             );
         }
 
-        // 状态筛选
-        if (statusFilter && statusFilter !== '-') {
-            result = result.filter(p =>
-                statusFilter === 'active' ? p.is_active : !p.is_active
-            );
-        }
-
-        // 编码筛选
         if (codecFilter && codecFilter !== '-') {
-            result = result.filter(p => p.video_codec.includes(codecFilter));
+            result = result.filter(p => p.video_codec === codecFilter);
         }
 
-        // 扩展名筛选
-        if (extensionFilter && extensionFilter !== '-') {
-            result = result.filter(p => p.extension === extensionFilter);
-        }
-
-        // 分辨率筛选（只匹配高度部分）
         if (resolutionFilter && resolutionFilter !== '-') {
             result = result.filter(p => {
                 const height = p.resolution.split('x')[1] || p.resolution;
@@ -139,65 +121,17 @@ export default function TranscodingProfiles() {
             });
         }
 
-        // 排序
-        if (sortConfig) {
-            result.sort((a, b) => {
-                const aVal = a[sortConfig.key];
-                const bVal = b[sortConfig.key];
-
-                if (aVal != null && bVal != null && aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aVal != null && bVal != null && aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        } else {
-            // 默认按 ID 升序排序，保持稳定的顺序
-            result.sort((a, b) => a.id - b.id);
-        }
-
         return result;
-    }, [profiles, searchQuery, statusFilter, codecFilter, extensionFilter, resolutionFilter, sortConfig]);
+    }, [profiles, searchQuery, codecFilter, resolutionFilter]);
 
-    // 获取所有可用的编码
-    const availableCodecs = useMemo(() => {
-        const codecs = new Set<string>();
-        profiles.forEach(p => {
-            const codec = p.video_codec.toLowerCase();
-            if (codec.includes('h264')) codecs.add('h264');
-            if (codec.includes('h265') || codec.includes('hevc')) codecs.add('h265');
-            if (codec.includes('vp9')) codecs.add('vp9');
-        });
-        return Array.from(codecs);
-    }, [profiles]);
+    // Pagination
+    const totalPages = Math.max(1, Math.ceil(filteredProfiles.length / pageSize));
+    const safePage = Math.min(page, totalPages);
+    const startIndex = (safePage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, filteredProfiles.length);
+    const paginatedProfiles = filteredProfiles.slice(startIndex, endIndex);
 
-    // 获取所有可用的扩展名
-    const availableExtensions = useMemo(() => {
-        const extensions = new Set<string>();
-        profiles.forEach(p => extensions.add(p.extension));
-        return Array.from(extensions);
-    }, [profiles]);
-
-    // 获取所有可用的分辨率（只取高度部分）
-    const availableResolutions = useMemo(() => {
-        const resolutions = new Set<string>();
-        profiles.forEach(p => {
-            const height = p.resolution.split('x')[1] || p.resolution;
-            if (height && height !== '-') {
-                resolutions.add(height);
-            }
-        });
-        return Array.from(resolutions).sort((a, b) => parseInt(a) - parseInt(b));
-    }, [profiles]);
-
-    const handleSort = (key: keyof EncodeProfile) => {
-        setSortConfig(current => {
-            if (current?.key === key) {
-                return {key, direction: current.direction === 'asc' ? 'desc' : 'asc'};
-            }
-            return {key, direction: 'asc'};
-        });
-    };
-
-    // 批量选择
+    // Selection
     const toggleSelectAll = () => {
         if (selectedRows.length === filteredProfiles.length) {
             setSelectedRows([]);
@@ -212,791 +146,692 @@ export default function TranscodingProfiles() {
         );
     };
 
-    // 批量操作
-    const handleBatchActivate = async () => {
+    const clearSelection = () => setSelectedRows([]);
+
+    // Bulk actions
+    const handleBulkEnable = async () => {
         try {
-            // 乐观更新：先更新本地状态
             setProfiles(prev => prev.map(p =>
                 selectedRows.includes(p.id) ? {...p, is_active: true} : p
             ));
-            // 然后发送 API 请求
             for (const id of selectedRows) {
                 const profile = profiles.find(p => p.id === id);
                 if (profile) {
                     await encodingApi.profiles.update(profile.id, {...profile, is_active: true});
                 }
             }
-            setSelectedRows([]);
+            clearSelection();
         } catch (error) {
-            console.error("Failed to batch activate profiles:", error);
-            // 出错时回滚
+            console.error("Failed to bulk enable profiles:", error);
             fetchProfiles();
         }
     };
 
-    const handleBatchDeactivate = async () => {
+    const handleBulkDisable = async () => {
         try {
-            // 乐观更新：先更新本地状态
             setProfiles(prev => prev.map(p =>
                 selectedRows.includes(p.id) ? {...p, is_active: false} : p
             ));
-            // 然后发送 API 请求
             for (const id of selectedRows) {
                 const profile = profiles.find(p => p.id === id);
                 if (profile) {
                     await encodingApi.profiles.update(profile.id, {...profile, is_active: false});
                 }
             }
-            setSelectedRows([]);
+            clearSelection();
         } catch (error) {
-            console.error("Failed to batch deactivate profiles:", error);
-            // 出错时回滚
+            console.error("Failed to bulk disable profiles:", error);
             fetchProfiles();
         }
     };
 
-    const handleBatchDelete = async () => {
+    const handleBulkDelete = async () => {
         if (!confirm(`Are you sure you want to delete ${selectedRows.length} profiles?`)) return;
         try {
-            // 乐观更新：先更新本地状态
             setProfiles(prev => prev.filter(p => !selectedRows.includes(p.id)));
-            // 然后发送 API 请求
             for (const id of selectedRows) {
                 await encodingApi.profiles.delete(id);
             }
-            setSelectedRows([]);
+            clearSelection();
         } catch (error) {
-            console.error("Failed to batch delete profiles:", error);
-            // 出错时回滚
+            console.error("Failed to bulk delete profiles:", error);
             fetchProfiles();
         }
     };
 
-    const handleSave = async () => {
-        if (!editingProfile) return;
+    // Row actions
+    const handleEdit = (p: EncodeProfile) => {
+        setEditingProfile({...p});
+        setIsDialogOpen(true);
+    };
 
-        // 验证必选字段
-        if (!editingProfile.name || !editingProfile.extension) {
-            alert("Name and Extension are required fields");
-            return;
-        }
-        
-        try {
-            if (editingProfile.id) {
-                // 更新现有配置
-                setProfiles(prev => prev.map(p =>
-                    p.id === editingProfile.id ? {...p, ...editingProfile} as EncodeProfile : p
-                ));
-                await encodingApi.profiles.update(editingProfile.id, editingProfile);
-            } else {
-                // 创建新配置 - 这里需要等待返回的ID，所以不做乐观更新
-                await encodingApi.profiles.create(editingProfile);
-                fetchProfiles();
-            }
-            setIsDialogOpen(false);
-        } catch (error) {
-            console.error("Failed to save profile:", error);
-            // 出错时回滚
-            fetchProfiles();
-        }
+    const handleDuplicate = (p: EncodeProfile) => {
+        const {id: _id, ...rest} = p;
+        const dup: Partial<EncodeProfile> = {
+            ...rest,
+            name: `${p.name} (Copy)`,
+        };
+        setEditingProfile(dup);
+        setIsDialogOpen(true);
     };
 
     const handleDelete = async (id: number) => {
         if (!confirm("Are you sure you want to delete this profile?")) return;
         try {
-            // 乐观更新：先更新本地状态
             setProfiles(prev => prev.filter(p => p.id !== id));
-            // 然后发送 API 请求
             await encodingApi.profiles.delete(id);
         } catch (error) {
             console.error("Failed to delete profile:", error);
-            // 出错时回滚
             fetchProfiles();
         }
     };
 
     const handleToggleActive = async (profile: EncodeProfile) => {
         try {
-            // 乐观更新：先更新本地状态
             setProfiles(prev => prev.map(p =>
                 p.id === profile.id ? {...p, is_active: !p.is_active} : p
             ));
-            // 然后发送 API 请求
             await encodingApi.profiles.update(profile.id, {...profile, is_active: !profile.is_active});
         } catch (error) {
             console.error("Failed to toggle profile status:", error);
-            // 出错时回滚
             fetchProfiles();
         }
     };
 
+    const handleSave = async () => {
+        if (!editingProfile) return;
+        if (!editingProfile.name || !editingProfile.extension) {
+            alert("Name and Extension are required fields");
+            return;
+        }
+        try {
+            if (editingProfile.id) {
+                setProfiles(prev => prev.map(p =>
+                    p.id === editingProfile.id ? {...p, ...editingProfile} as EncodeProfile : p
+                ));
+                await encodingApi.profiles.update(editingProfile.id, editingProfile);
+            } else {
+                await encodingApi.profiles.create(editingProfile);
+                fetchProfiles();
+            }
+            setIsDialogOpen(false);
+        } catch (error) {
+            console.error("Failed to save profile:", error);
+            fetchProfiles();
+        }
+    };
+
+    const handleCreateNew = async () => {
+        if (!newProfile.name || !newProfile.extension) {
+            alert("Name and Extension are required fields");
+            return;
+        }
+        try {
+            await encodingApi.profiles.create(newProfile);
+            setIsAddModalOpen(false);
+            setNewProfile({is_active: true});
+            fetchProfiles();
+        } catch (error) {
+            console.error("Failed to create profile:", error);
+            fetchProfiles();
+        }
+    };
+
+    const resetFilters = () => {
+        setSearchQuery('');
+        setCodecFilter('-');
+        setResolutionFilter('-');
+    };
+
+    // ffmpeg command preview
+    const ffmpegCommand = useMemo(() => {
+        const ext = newProfile.extension || 'mp4';
+        const codec = newProfile.video_codec || 'libx264';
+        const res = newProfile.resolution || '1920x1080';
+        return `ffmpeg -i input_file \\
+  -c:v ${codec} -crf 23 \\
+  -vf "scale=${res.replace('x', ':')}" \\
+  -c:a aac -b:a 192k \\
+  output.${ext}`;
+    }, [newProfile.extension, newProfile.video_codec, newProfile.resolution]);
 
     return (
-        <div className="space-y-6 p-4 md:p-6">
-            {/* ═══ Header ════════════════════════════════ */}
-            <Card className="overflow-hidden">
-                <CardContent className="p-6">
-                    <div className="flex flex-col gap-4">
-                        {/* 页面标题和操作区域 */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h2 className="text-3xl font-extrabold tracking-tight text-foreground">Encoding Profiles</h2>
-                                <p className="text-sm text-muted-foreground mt-1.5">
-                                    Manage and configure your video encoding presets
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                {selectedRows.length > 0 && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-muted-foreground">
-                                            {selectedRows.length} selected
-                                        </span>
-                                        <Separator orientation="vertical" className="h-6"/>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleBatchActivate}
-                                        >
-                                            <Play className="h-4 w-4 mr-1"/>
-                                            Activate
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleBatchDeactivate}
-                                        >
-                                            <Pause className="h-4 w-4 mr-1"/>
-                                            Deactivate
-                                        </Button>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={handleBatchDelete}
-                                        >
-                                            <Trash className="h-4 w-4 mr-1"/>
-                                            Delete
-                                        </Button>
-                                        <Separator orientation="vertical" className="h-6"/>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setSelectedRows([])}
-                                        >
-                                            Clear
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+        <div className="p-6 space-y-6">
+            {/* ═══ Breadcrumbs ════════════════════════════════ */}
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.transcodingProfiles', 'Transcoding Profiles')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
 
-                        {/* 分隔线 */}
-                        <div className="border-t border-border my-2"/>
+            {/* ═══ Page Header ════════════════════════════════ */}
+            <div className="flex items-end justify-between">
+                <div className="space-y-1">
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                        <Sliders className="h-7 w-7 text-primary" />
+                        {t('admin.transcodingProfiles', 'Transcoding Profiles')}
+                    </h2>
+                    <p className="text-muted-foreground text-sm max-w-2xl">
+                        {t(
+                            'admin.transcodingProfilesDesc',
+                            'Manage global video encoding parameters and resolution presets.'
+                        )}
+                    </p>
+                </div>
+                <div className="flex gap-3">
+                    <Button variant="outline" size="sm">
+                        <Upload className="h-4 w-4 mr-2" />
+                        {t('admin.import', 'Import')}
+                    </Button>
+                    <Button
+                        size="sm"
+                        onClick={() => {
+                            setNewProfile({is_active: true});
+                            setIsAddModalOpen(true);
+                        }}
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t('admin.newProfile', 'New Profile')}
+                    </Button>
+                </div>
+            </div>
 
-                        {/* 搜索和筛选 */}
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 min-w-[120px] max-w-[400px]">
-                                <div className="relative w-full">
-                                    <Search
-                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                    <Input
-                                        placeholder="Search..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Select value={extensionFilter} onValueChange={setExtensionFilter}>
-                                    <SelectTrigger className="w-[130px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4"/>
-                                            <SelectValue placeholder="Extension"/>
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="-" className="justify-center text-center font-medium opacity-70">--- All ---</SelectItem>
-                                        {availableExtensions.map(ext => {
-                                            const getExtensionDisplayName = (e: string) => {
-                                                switch (e.toLowerCase()) {
-                                                    case 'mp4':
-                                                        return 'MP4';
-                                                    case 'webm':
-                                                        return 'WebM';
-                                                    case 'gif':
-                                                        return 'GIF';
-                                                    default:
-                                                        return e.toUpperCase();
-                                                }
-                                            };
-                                            return (
-                                                <SelectItem key={ext} value={ext}>
-                                                    {getExtensionDisplayName(ext)}
-                                                </SelectItem>
-                                            );
-                                        })}
-                                    </SelectContent>
-                                </Select>
-                                <Select value={resolutionFilter} onValueChange={setResolutionFilter}>
-                                    <SelectTrigger className="w-[140px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4"/>
-                                            <SelectValue placeholder="Resolution"/>
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="-" className="justify-center text-center font-medium opacity-70">--- All ---</SelectItem>
-                                        {availableResolutions.map(res => (
-                                            <SelectItem key={res} value={res}>
-                                                {res}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Select value={codecFilter} onValueChange={setCodecFilter}>
-                                    <SelectTrigger className="w-[120px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4"/>
-                                            <SelectValue placeholder="Codec"/>
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="-" className="justify-center text-center font-medium opacity-70">--- All ---</SelectItem>
-                                        {availableCodecs.map(codec => (
-                                            <SelectItem key={codec} value={codec}>
-                                                {codec.toUpperCase()}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                    <SelectTrigger className="w-[120px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
-                                        <div className="flex items-center gap-2">
-                                            <Filter className="h-4 w-4"/>
-                                            <SelectValue placeholder="Status"/>
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="-" className="justify-center text-center font-medium opacity-70">--- All ---</SelectItem>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <div className="flex items-center gap-2 ml-auto lg:ml-0">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => {
-                                            setSearchQuery('');
-                                            setStatusFilter('');
-                                            setCodecFilter('');
-                                            setExtensionFilter('');
-                                            setResolutionFilter('');
-                                        }}
-                                    >
-                                        <RotateCcw className="h-4 w-4 mr-2"/>
-                                        Reset
-                                    </Button>
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => {
-                                        }}
-                                    >
-                                        <Search className="h-4 w-4 mr-2"/>
-                                        Search
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
+            {/* ═══ Filter Bar ════════════════════════════════ */}
+            <Card className="p-0">
+                <CardContent className="p-4 flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 max-w-sm min-w-[200px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t('admin.searchProfiles', 'Search profiles...')}
+                            className="w-full pl-9 pr-4 h-9 bg-muted/40 border-border rounded-lg text-sm focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/60"
+                        />
                     </div>
+
+                    <Select value={codecFilter} onValueChange={setCodecFilter}>
+                        <SelectTrigger className="h-9 px-3 bg-card border-border rounded-lg text-sm text-muted-foreground focus:ring-1 focus:ring-primary/30 w-[160px]">
+                            <SelectValue placeholder={t('admin.allCodecs', 'All Codecs')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="-">{t('admin.allCodecs', 'All Codecs')}</SelectItem>
+                            {availableCodecs.map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={resolutionFilter} onValueChange={setResolutionFilter}>
+                        <SelectTrigger className="h-9 px-3 bg-card border-border rounded-lg text-sm text-muted-foreground focus:ring-1 focus:ring-primary/30 w-[170px]">
+                            <SelectValue placeholder={t('admin.allResolutions', 'All Resolutions')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="-">{t('admin.allResolutions', 'All Resolutions')}</SelectItem>
+                            {availableResolutions.map(r => (
+                                <SelectItem key={r} value={r}>{r}p</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={resetFilters}
+                        className="h-9 px-3 text-muted-foreground"
+                    >
+                        <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                        {t('admin.reset', 'Reset')}
+                    </Button>
                 </CardContent>
             </Card>
 
-            {/* 表格区域 */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Profile Management</CardTitle>
-                            <CardDescription>
-                                {filteredProfiles.length} profile{filteredProfiles.length !== 1 ? 's' : ''} found
-                            </CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-                                setIsDialogOpen(open);
-                                if (!open) setCommandPreview('');
-                            }}>
-                                <DialogTrigger asChild>
-                                    <Button size="sm" onClick={() => setEditingProfile({is_active: true})}>
-                                        <PlusCircle className="h-4 w-4 mr-2"/>
-                                        Add Profile
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-lg">
-                                    <DialogHeader>
-                                        <DialogTitle>{editingProfile?.id ? "Edit Profile" : "Add Profile"}</DialogTitle>
-                                        <DialogDescription>
-                                            {editingProfile?.id ? "Update the profile settings" : "Create a new transcoding profile"}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="name" className="text-right">Name <span
-                                                className="text-destructive">*</span></Label>
-                                            <Input id="name" value={editingProfile?.name || ""}
-                                                   onChange={(e) => setEditingProfile({
-                                                       ...editingProfile,
-                                                       name: e.target.value
-                                                   })} className="col-span-3"/>
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="extension" className="text-right">Extension <span
-                                                className="text-destructive">*</span></Label>
-                                            <Select
-                                                value={editingProfile?.extension || ""}
-                                                onValueChange={(value) => setEditingProfile({
-                                                    ...editingProfile,
-                                                    extension: value
-                                                })}
-                                            >
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select extension"/>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="mp4">MP4</SelectItem>
-                                                    <SelectItem value="webm">WebM</SelectItem>
-                                                    <SelectItem value="gif">GIF</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        {editingProfile?.extension !== 'sprite' && (<>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="res" className="text-right">Resolution</Label>
-                                            <Select
-                                                value={editingProfile?.resolution?.split('x')[1] || editingProfile?.resolution || ""}
-                                                onValueChange={(value) => {
-                                                    const resolutionMap: Record<string, string> = {
-                                                        '240': '426x240',
-                                                        '360': '640x360',
-                                                        '480': '854x480',
-                                                        '720': '1280x720',
-                                                        '1080': '1920x1080',
-                                                        '1440': '2560x1440',
-                                                        '2160': '3840x2160'
-                                                    };
-                                                    const fullResolution = resolutionMap[value] || value;
-                                                    setEditingProfile({...editingProfile, resolution: fullResolution});
-                                                }}
-                                            >
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select resolution"/>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="240">240</SelectItem>
-                                                    <SelectItem value="360">360</SelectItem>
-                                                    <SelectItem value="480">480</SelectItem>
-                                                    <SelectItem value="720">720</SelectItem>
-                                                    <SelectItem value="1080">1080</SelectItem>
-                                                    <SelectItem value="1440">1440</SelectItem>
-                                                    <SelectItem value="2160">2160 (4K)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="vcodec" className="text-right">Video Codec</Label>
-                                            <Select
-                                                value={editingProfile?.video_codec || ""}
-                                                onValueChange={(value) => setEditingProfile({
-                                                    ...editingProfile,
-                                                    video_codec: value
-                                                })}
-                                            >
-                                                <SelectTrigger className="col-span-3">
-                                                    <SelectValue placeholder="Select video codec"/>
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="h264">H.264</SelectItem>
-                                                    <SelectItem value="h265">H.265/HEVC</SelectItem>
-                                                    <SelectItem value="vp9">VP9</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        </>)}
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <div className="col-span-4">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
-                                                    className="w-full flex items-center justify-center gap-1 text-sm text-muted-foreground"
-                                                >
-                                                    {showAdvancedOptions ? <ChevronUp className="h-4 w-4"/> :
-                                                        <ChevronDown className="h-4 w-4"/>}
-                                                    {showAdvancedOptions ? "Hide Advanced Options" : "Show Advanced Options"}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        {showAdvancedOptions && (
-                                            <>
-                                                <div className="grid grid-cols-4 items-center gap-4">
-                                                    <Label htmlFor="vbitrate" className="text-right">Video Bitrate</Label>
-                                                    <Select
-                                                        value={editingProfile?.video_bitrate || ""}
-                                                        onValueChange={(value) => setEditingProfile({
-                                                            ...editingProfile,
-                                                            video_bitrate: value
-                                                        })}
-                                                    >
-                                                        <SelectTrigger className="col-span-3">
-                                                            <SelectValue placeholder="Select video bitrate"/>
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="200k">200k</SelectItem>
-                                                            <SelectItem value="400k">400k</SelectItem>
-                                                            <SelectItem value="800k">800k</SelectItem>
-                                                            <SelectItem value="1500k">1500k</SelectItem>
-                                                            <SelectItem value="3000k">3000k</SelectItem>
-                                                            <SelectItem value="5000k">5000k</SelectItem>
-                                                            <SelectItem value="8000k">8000k</SelectItem>
-                                                            <SelectItem value="12000k">12000k</SelectItem>
-                                                            <SelectItem value="16000k">16000k</SelectItem>
-                                                            <SelectItem value="25000k">25000k</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="grid grid-cols-4 items-center gap-4">
-                                                    <Label htmlFor="acodec" className="text-right">Audio Codec</Label>
-                                                    <Select
-                                                        value={editingProfile?.audio_codec || ""}
-                                                        onValueChange={(value) => setEditingProfile({
-                                                            ...editingProfile,
-                                                            audio_codec: value
-                                                        })}
-                                                    >
-                                                        <SelectTrigger className="col-span-3">
-                                                            <SelectValue placeholder="Select audio codec"/>
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="aac">aac</SelectItem>
-                                                            <SelectItem value="mp3">mp3</SelectItem>
-                                                            <SelectItem value="opus">opus</SelectItem>
-                                                            <SelectItem value="vorbis">vorbis</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="grid grid-cols-4 items-center gap-4">
-                                                    <Label htmlFor="abitrate" className="text-right">Audio Bitrate</Label>
-                                                    <Select
-                                                        value={editingProfile?.audio_bitrate || ""}
-                                                        onValueChange={(value) => setEditingProfile({
-                                                            ...editingProfile,
-                                                            audio_bitrate: value
-                                                        })}
-                                                    >
-                                                        <SelectTrigger className="col-span-3">
-                                                            <SelectValue placeholder="Select audio bitrate"/>
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="64k">64k</SelectItem>
-                                                            <SelectItem value="96k">96k</SelectItem>
-                                                            <SelectItem value="128k">128k</SelectItem>
-                                                            <SelectItem value="192k">192k</SelectItem>
-                                                            <SelectItem value="256k">256k</SelectItem>
-                                                            <SelectItem value="320k">320k</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </>
-                                        )}
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="active" className="text-right">Active</Label>
-                                            <div className="col-span-3 flex items-center">
-                                                <Checkbox
-                                                    id="active"
-                                                    checked={editingProfile?.is_active ?? true}
-                                                    onCheckedChange={(checked) => setEditingProfile({
-                                                        ...editingProfile,
-                                                        is_active: checked === true
-                                                    })}
-                                                />
-                                                <label htmlFor="active" className="ml-2 text-sm font-medium leading-none">
-                                                    Enable this profile
-                                                </label>
-                                            </div>
-                                        </div>
-                                        {/* Command Preview */}
-                                        {editingProfile && (
-                                            <div className="grid grid-cols-4 items-start gap-4">
-                                                <Label className="text-right mt-2">Command Preview</Label>
-                                                <div className="col-span-3">
-                                                    <pre className="bg-muted p-3 rounded-md text-xs font-mono whitespace-pre-wrap break-all max-h-32 overflow-auto">
-                                                        {commandPreview || 'Fill in the fields above to see the command preview'}
-                                                    </pre>
-                                                </div>
-                                            </div>
-                                        )}
+            {/* ═══ Table ════════════════════════════════ */}
+            <Card className="p-0 overflow-hidden">
+                <Table className="w-full text-left">
+                    <TableHeader>
+                        <TableRow className="bg-muted/30 border-b border-border">
+                            <TableHead className="px-6 py-3 w-10">
+                                <Checkbox
+                                    checked={
+                                        filteredProfiles.length > 0 &&
+                                        selectedRows.length === filteredProfiles.length
+                                    }
+                                    onCheckedChange={toggleSelectAll}
+                                    aria-label="Select all"
+                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                                />
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.profileName', 'Profile Name')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.codec', 'Codec')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.resolution', 'Resolution')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.bitrate', 'Bitrate')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.status', 'Status')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                {t('admin.lastModified', 'Last Modified')}
+                            </TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
+                                {t('admin.actions', 'Actions')}
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-border">
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                                    {t('admin.loading', 'Loading profiles...')}
+                                </TableCell>
+                            </TableRow>
+                        ) : paginatedProfiles.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="px-6 py-12 text-center">
+                                    <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                        <Search className="h-10 w-10 mb-3 opacity-30" />
+                                        <p className="text-sm font-medium">
+                                            {t('admin.noProfiles', 'No profiles found')}
+                                        </p>
                                     </div>
-                                    <DialogFooter>
-                                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                                        <Button onClick={handleSave}>Save</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                        <Settings className="h-4 w-4 mr-2"/>
-                                        Options
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuSeparator/>
-                                    <DropdownMenuItem>
-                                        <Download className="h-4 w-4 mr-2"/>
-                                        Export Profiles
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                        <Upload className="h-4 w-4 mr-2"/>
-                                        Import Profiles
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="px-0">
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[50px]">
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            paginatedProfiles.map((p) => (
+                                <TableRow
+                                    key={p.id}
+                                    className={`hover:bg-muted/30 transition-colors ${
+                                        selectedRows.includes(p.id) ? 'bg-muted/30' : ''
+                                    }`}
+                                >
+                                    <TableCell className="px-6 py-3.5">
                                         <Checkbox
-                                            checked={filteredProfiles.length > 0 && selectedRows.length === filteredProfiles.length}
-                                            onCheckedChange={toggleSelectAll}
-                                            aria-label="Select all"
+                                            checked={selectedRows.includes(p.id)}
+                                            onCheckedChange={() => toggleSelectRow(p.id)}
+                                            aria-label={`Select ${p.name}`}
+                                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                                         />
-                                    </TableHead>
-                                    <TableHead
-                                        className="cursor-pointer hover:bg-muted/80"
-                                        onClick={() => handleSort('name')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Name
-                                            <ArrowUpDown className="h-3 w-3"/>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead
-                                        className="cursor-pointer hover:bg-muted/80"
-                                        onClick={() => handleSort('extension')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Extension
-                                            <ArrowUpDown className="h-3 w-3"/>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead
-                                        className="cursor-pointer hover:bg-muted/80"
-                                        onClick={() => handleSort('resolution')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Resolution
-                                            <ArrowUpDown className="h-3 w-3"/>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead
-                                        className="cursor-pointer hover:bg-muted/80"
-                                        onClick={() => handleSort('video_codec')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Video Codec
-                                            <ArrowUpDown className="h-3 w-3"/>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead
-                                        className="cursor-pointer hover:bg-muted/80"
-                                        onClick={() => handleSort('is_active')}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            Status
-                                            <ArrowUpDown className="h-3 w-3"/>
-                                        </div>
-                                    </TableHead>
-                                    <TableHead className="text-right w-[150px]">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow key="loading">
-                                        <TableCell colSpan={7} className="text-center py-8">
-                                            Loading profiles...
-                                        </TableCell>
-                                    </TableRow>
-                                ) : filteredProfiles.length === 0 ? (
-                                    <TableRow key="empty">
-                                        <TableCell colSpan={7} className="text-center py-8">
-                                            <div
-                                                className="flex flex-col items-center justify-center text-muted-foreground">
-                                                <Search className="h-12 w-12 mb-4 opacity-20"/>
-                                                <p className="text-lg font-medium">No profiles found</p>
-                                                <p className="text-sm">Try adjusting your search or filters</p>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredProfiles.map((p) => {
-                                        // 显示完整的扩展名名称
-                                        const getExtensionDisplayName = (ext: string) => {
-                                            switch (ext.toLowerCase()) {
-                                                case 'mp4':
-                                                    return 'MP4';
-                                                case 'webm':
-                                                    return 'WebM';
-                                                case 'gif':
-                                                    return 'GIF';
-                                                default:
-                                                    return ext.toUpperCase();
-                                            }
-                                        };
-                                        return (
-                                            <TableRow
-                                                key={p.id}
-                                                className={selectedRows.includes(p.id) ? 'bg-muted/30' : ''}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm font-semibold text-foreground">
+                                        {p.name}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5">
+                                        <Badge variant="soft-primary">
+                                            {p.video_codec}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5 text-xs font-mono text-muted-foreground">
+                                        {p.resolution}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm text-muted-foreground font-mono">
+                                        {p.video_bitrate || '—'}
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5">
+                                        <Switch
+                                            checked={p.is_active}
+                                            onCheckedChange={() => handleToggleActive(p)}
+                                        />
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5 text-xs text-muted-foreground">
+                                        —
+                                    </TableCell>
+                                    <TableCell className="px-6 py-3.5 text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleEdit(p)}
+                                                title={t('admin.edit', 'Edit')}
+                                                className="text-muted-foreground hover:text-primary"
                                             >
-                                                <TableCell>
-                                                    <Checkbox
-                                                        checked={selectedRows.includes(p.id)}
-                                                        onCheckedChange={() => toggleSelectRow(p.id)}
-                                                        aria-label={`Select ${p.name}`}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="font-medium">{p.name}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">
-                                                        {getExtensionDisplayName(p.extension)}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="font-mono">
-                                                        {p.resolution.split('x')[1] || p.resolution}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span>{p.video_codec}</span>
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {p.video_bitrate}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={p.is_active ? "default" : "secondary"}
-                                                        className="flex items-center gap-1 w-fit"
-                                                    >
-                                                        {p.is_active ? (
-                                                            <CheckCircle className="h-3 w-3"/>
-                                                        ) : (
-                                                            <XCircle className="h-3 w-3"/>
-                                                        )}
-                                                        {p.is_active ? "Active" : "Inactive"}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => handleToggleActive(p)}
-                                                            title={p.is_active ? "Deactivate" : "Activate"}
-                                                            className="h-8 w-8"
-                                                        >
-                                                            {p.is_active ? <Pause className="h-4 w-4"/> :
-                                                                <Play className="h-4 w-4"/>}
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => {
-                                                                setEditingProfile(p);
-                                                                setIsDialogOpen(true);
-                                                            }}
-                                                            className="h-8 w-8"
-                                                        >
-                                                            <Edit className="h-4 w-4"/>
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const response = await encodingApi.profiles.preview(p);
-                                                                    setPreviewCommand(response.command || 'No command available for this profile type');
-                                                                    setPreviewProfile(p);
-                                                                    setPreviewDialogOpen(true);
-                                                                } catch {
-                                                                    setPreviewCommand('Failed to generate command preview');
-                                                                    setPreviewProfile(p);
-                                                                    setPreviewDialogOpen(true);
-                                                                }
-                                                            }}
-                                                            title="View Command"
-                                                            className="h-8 w-8"
-                                                        >
-                                                            <Terminal className="h-4 w-4"/>
-                                                        </Button>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" size="icon-sm" title="More Actions">
-                                                                    <MoreVertical className="h-3 w-3"/>
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                                <DropdownMenuSeparator/>
-                                                                <DropdownMenuItem onClick={() => {
-                                                                    setEditingProfile({...p});
-                                                                    setIsDialogOpen(true);
-                                                                }}>
-                                                                    <Copy className="h-4 w-4 mr-2"/>
-                                                                    Duplicate
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator/>
-                                                                <DropdownMenuItem
-                                                                    className="text-destructive focus:text-destructive"
-                                                                    onClick={() => handleDelete(p.id)}
-                                                                >
-                                                                    <Trash2 className="h-4 w-4 mr-2"/>
-                                                                    Delete
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })
-                                )}
-                            </TableBody>
-                        </Table>
+                                                <Edit className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleDuplicate(p)}
+                                                title={t('admin.duplicate', 'Duplicate')}
+                                                className="text-muted-foreground hover:text-primary"
+                                            >
+                                                <Copy className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                onClick={() => handleDelete(p.id)}
+                                                title={t('admin.delete', 'Delete')}
+                                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+
+                {/* ═══ Pagination ════════════════════════════════ */}
+                <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/20">
+                    <p className="text-xs text-muted-foreground">
+                        {t('admin.showing', 'Showing')}{' '}
+                        {filteredProfiles.length === 0 ? 0 : startIndex + 1}–
+                        {endIndex}{' '}
+                        {t('admin.of', 'of')} {filteredProfiles.length}{' '}
+                        {t('admin.profiles', 'profiles')}
+                    </p>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground"
+                            disabled={safePage <= 1}
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        {Array.from({length: totalPages}, (_, i) => i + 1).slice(0, 5).map(n => (
+                            <Button
+                                key={n}
+                                variant={safePage === n ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setPage(n)}
+                                className="h-8 min-w-8 px-3"
+                            >
+                                {n}
+                            </Button>
+                        ))}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground"
+                            disabled={safePage >= totalPages}
+                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
                     </div>
-                </CardContent>
+                </div>
             </Card>
 
-            {/* Command Preview Dialog */}
-            <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+            {/* ═══ Bulk Action Bar ════════════════════════════════ */}
+            {selectedRows.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
+                    <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl shadow-primary/40 border border-primary-foreground/10">
+                        <span className="text-sm font-bold">
+                            {selectedRows.length} {t('admin.itemsSelected', 'Items Selected')}
+                        </span>
+                        <div className="h-6 w-px bg-primary-foreground/20" />
+                        <div className="flex gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleBulkEnable}
+                                className="flex items-center gap-2 hover:bg-primary-foreground/10 rounded-full text-sm font-semibold text-primary-foreground"
+                            >
+                                <Play className="w-4 h-4" />
+                                {t('admin.enable', 'Enable')}
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleBulkDisable}
+                                className="flex items-center gap-2 hover:bg-primary-foreground/10 rounded-full text-sm font-semibold text-primary-foreground"
+                            >
+                                <Pause className="w-4 h-4" />
+                                {t('admin.disable', 'Disable')}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleBulkDelete}
+                                className="flex items-center gap-2 rounded-full text-sm font-semibold"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                {t('admin.delete', 'Delete')}
+                            </Button>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={clearSelection}
+                            title={t('admin.clear', 'Clear')}
+                            className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
+                        >
+                            <X className="w-5 h-5" />
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* ═══ New Profile Modal ════════════════════════════════ */}
+            <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>FFmpeg Command - {previewProfile?.name}</DialogTitle>
+                        <DialogTitle>
+                            {t('admin.newTranscodingProfile', 'New Transcoding Profile')}
+                        </DialogTitle>
                         <DialogDescription>
-                            The ffmpeg command that will be executed for this profile
+                            {t(
+                                'admin.newTranscodingProfileDesc',
+                                'Define encoding parameters and processing commands.'
+                            )}
                         </DialogDescription>
                     </DialogHeader>
-                    <pre className="bg-muted p-4 rounded-md text-xs font-mono whitespace-pre-wrap break-all max-h-96 overflow-auto">
-                        {previewCommand}
-                    </pre>
+                    <div className="space-y-6 py-2">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="col-span-2 space-y-2">
+                                <Label htmlFor="np-name">
+                                    {t('admin.profileName', 'Profile Name')}
+                                </Label>
+                                <Input
+                                    id="np-name"
+                                    value={newProfile.name || ''}
+                                    onChange={(e) => setNewProfile({...newProfile, name: e.target.value})}
+                                    placeholder="e.g. 1080p Main Performance"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="np-ext">
+                                    {t('admin.outputExtension', 'Output Extension')}
+                                </Label>
+                                <Select
+                                    value={newProfile.extension || 'mp4'}
+                                    onValueChange={(v) => setNewProfile({...newProfile, extension: v})}
+                                >
+                                    <SelectTrigger id="np-ext">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="mp4">.mp4</SelectItem>
+                                        <SelectItem value="mkv">.mkv</SelectItem>
+                                        <SelectItem value="webm">.webm</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="np-res">
+                                    {t('admin.resolution', 'Resolution')}
+                                </Label>
+                                <Input
+                                    id="np-res"
+                                    value={newProfile.resolution || ''}
+                                    onChange={(e) => setNewProfile({...newProfile, resolution: e.target.value})}
+                                    placeholder="1920x1080"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="np-vcodec">
+                                    {t('admin.videoCodec', 'Video Codec')}
+                                </Label>
+                                <Select
+                                    value={newProfile.video_codec || 'libx264'}
+                                    onValueChange={(v) => setNewProfile({...newProfile, video_codec: v})}
+                                >
+                                    <SelectTrigger id="np-vcodec">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="libx264">libx264 (H.264)</SelectItem>
+                                        <SelectItem value="libx265">libx265 (H.265/HEVC)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="np-acodec">
+                                    {t('admin.audioCodec', 'Audio Codec')}
+                                </Label>
+                                <Select
+                                    value={newProfile.audio_codec || 'aac'}
+                                    onValueChange={(v) => setNewProfile({...newProfile, audio_codec: v})}
+                                >
+                                    <SelectTrigger id="np-acodec">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="aac">aac (Advanced Audio Coding)</SelectItem>
+                                        <SelectItem value="flac">flac (Lossless)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-zinc-900 rounded-xl font-mono text-xs text-indigo-300 leading-relaxed">
+                            <span className="text-zinc-500"># Generated FFmpeg Command</span>
+                            <br />
+                            {ffmpegCommand.split('\n').map((line, i) => (
+                                <div key={i}>{line || '\u00A0'}</div>
+                            ))}
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                            {t('admin.cancel', 'Cancel')}
+                        </Button>
+                        <Button onClick={handleCreateNew}>
+                            {t('admin.saveProfile', 'Save Profile')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* ═══ Edit Profile Dialog ════════════════════════════════ */}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {editingProfile?.id
+                                ? t('admin.editProfile', 'Edit Profile')
+                                : t('admin.addProfile', 'Add Profile')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {editingProfile?.id
+                                ? t('admin.editProfileDesc', 'Update the profile settings')
+                                : t('admin.addProfileDesc', 'Create a new transcoding profile')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="ep-name" className="text-right">
+                                {t('admin.name', 'Name')} <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id="ep-name"
+                                value={editingProfile?.name || ''}
+                                onChange={(e) => setEditingProfile({...editingProfile, name: e.target.value})}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="ep-ext" className="text-right">
+                                {t('admin.extension', 'Extension')} <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                                value={editingProfile?.extension || ''}
+                                onValueChange={(v) => setEditingProfile({...editingProfile, extension: v})}
+                            >
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select extension" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="mp4">MP4</SelectItem>
+                                    <SelectItem value="webm">WebM</SelectItem>
+                                    <SelectItem value="mkv">MKV</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="ep-res" className="text-right">
+                                {t('admin.resolution', 'Resolution')}
+                            </Label>
+                            <Input
+                                id="ep-res"
+                                value={editingProfile?.resolution || ''}
+                                onChange={(e) => setEditingProfile({...editingProfile, resolution: e.target.value})}
+                                placeholder="1920x1080"
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="ep-vcodec" className="text-right">
+                                {t('admin.videoCodec', 'Video Codec')}
+                            </Label>
+                            <Select
+                                value={editingProfile?.video_codec || ''}
+                                onValueChange={(v) => setEditingProfile({...editingProfile, video_codec: v})}
+                            >
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select video codec" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="h264">H.264</SelectItem>
+                                    <SelectItem value="h265">H.265/HEVC</SelectItem>
+                                    <SelectItem value="vp9">VP9</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="ep-active" className="text-right">
+                                {t('admin.active', 'Active')}
+                            </Label>
+                            <div className="col-span-3 flex items-center gap-2">
+                                <Switch
+                                    id="ep-active"
+                                    checked={editingProfile?.is_active ?? true}
+                                    onCheckedChange={(checked) => setEditingProfile({
+                                        ...editingProfile,
+                                        is_active: checked === true,
+                                    })}
+                                />
+                                <Label htmlFor="ep-active" className="text-sm font-medium leading-none cursor-pointer">
+                                    {t('admin.enableProfile', 'Enable this profile')}
+                                </Label>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                            {t('admin.cancel', 'Cancel')}
+                        </Button>
+                        <Button onClick={handleSave}>
+                            {t('admin.save', 'Save')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

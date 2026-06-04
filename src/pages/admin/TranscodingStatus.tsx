@@ -8,7 +8,8 @@
  */
 
 import {useEffect, useState, useCallback, useMemo, useRef} from "react";
-import {useLocation, useNavigate} from "@tanstack/react-router";
+import {useLocation, useNavigate, Link} from "@tanstack/react-router";
+import {useTranslation} from "react-i18next";
 import {mediaApi, encodingApi, type EncodeProfile} from "../../lib/api/media";
 import {API_BASE_URL} from "../../lib/request";
 import {useAuth} from "../../hooks/useAuth";
@@ -27,6 +28,7 @@ import {Input} from "../../components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../../components/ui/select";
 import {Checkbox} from "../../components/ui/checkbox";
 import {Separator} from "../../components/ui/separator";
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from "../../components/ui/breadcrumb";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -213,12 +215,10 @@ function TaskRow({
                                 <span
                                     className="text-[10px] tabular-nums font-bold text-slate-600 dark:text-muted-foreground">{task.progress ?? 0}%</span>
                             </div>
-                            <div className="h-2.5 w-full bg-sky-100 dark:bg-sky-950/30 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-sky-600 transition-all duration-500 ease-out animate-pulse"
-                                    style={{width: `${Math.min(Math.max(task.progress ?? 0, 0), 100)}%`}}
-                                />
-                            </div>
+                            <Progress
+                                value={task.progress ?? 0}
+                                className="h-2.5 w-full bg-sky-100 dark:bg-sky-950/30 [&>div]:bg-sky-600 [&>div]:animate-pulse"
+                            />
                         </div>
                     )}
                     {isSuccess && (
@@ -229,13 +229,10 @@ function TaskRow({
                                 <span
                                     className="text-[10px] tabular-nums font-bold text-emerald-600 dark:text-emerald-400">100%</span>
                             </div>
-                            <div
-                                className="h-2.5 w-full bg-emerald-100 dark:bg-emerald-950/30 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-emerald-600"
-                                    style={{width: '100%'}}
-                                />
-                            </div>
+                            <Progress
+                                value={100}
+                                className="h-2.5 w-full bg-emerald-100 dark:bg-emerald-950/30 [&>div]:bg-emerald-600"
+                            />
                         </div>
                     )}
                     {!isProcessing && !isSuccess && (
@@ -245,18 +242,21 @@ function TaskRow({
                                     className="text-[10px] font-bold uppercase tracking-tight">{task.status === 'pending' ? 'Queued' : 'Waiting'}</span>
                                 <span className="text-[10px] tabular-nums font-bold text-slate-600 dark:text-muted-foreground">0%</span>
                             </div>
-                            <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"/>
+                            <Progress
+                                value={0}
+                                className="h-2.5 w-full bg-slate-100 dark:bg-slate-800"
+                            />
                         </div>
                     )}
                 </TableCell>
 
                 {/* STATUS */}
                 <TableCell className="w-[120px]">
-                    <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${badgeStyle[st.color] ?? badgeStyle.slate}`}>
+                    <Badge variant="outline"
+                           className={`gap-1.5 text-xs font-medium whitespace-nowrap ${badgeStyle[st.color] ?? badgeStyle.slate}`}>
                         <StIcon className="w-3 h-3 shrink-0"/>
                         {st.label}
-                    </span>
+                    </Badge>
                 </TableCell>
 
                 {/* HAS FILE */}
@@ -338,11 +338,7 @@ function TaskRow({
                                 <div className="flex-shrink-0">
                                     <div
                                         className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                                        <svg className="w-4 h-4 text-destructive dark:text-red-400" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
+                                        <AlertCircle className="w-4 h-4 text-destructive dark:text-red-400"/>
                                     </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -350,14 +346,14 @@ function TaskRow({
                                         <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
                                             {isFailed ? 'Encoding Failed' : 'Task Skipped'}
                                         </h4>
-                                        <span
-                                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                                                isFailed
-                                                    ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-                                                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                                            }`}>
+                                        <Badge variant="outline"
+                                               className={`text-xs font-medium ${
+                                                   isFailed
+                                                       ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800'
+                                                       : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800'
+                                               }`}>
                                             {task.status}
-                                        </span>
+                                        </Badge>
                                     </div>
                                     <div className="bg-gray-900 dark:bg-black rounded-lg p-3 overflow-auto max-h-40">
                                         <pre
@@ -368,12 +364,8 @@ function TaskRow({
                                     {profileName(task) === 'preview' && (
                                         <div
                                             className="mt-3 flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                            <svg
-                                                className="w-4 h-4 text-info dark:text-blue-400 flex-shrink-0 mt-0.5"
-                                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
+                                            <AlertCircle
+                                                className="w-4 h-4 text-info dark:text-blue-400 shrink-0 mt-0.5"/>
                                             <p className="text-xs text-blue-700 dark:text-blue-300">
                                                 Preview generation failed. This may be due to invalid input file or
                                                 missing dependencies.
@@ -393,6 +385,7 @@ function TaskRow({
 // ─── Main Page ───────────────────────────────────────
 
 export default function TranscodingStatus() {
+    const {t} = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
     const urlMediaId = new URLSearchParams(location.search).get("media_id");
@@ -894,6 +887,21 @@ const filteredTasks = useMemo(() => {
 
     return (
         <div className="space-y-6 p-4 md:p-6">
+            {/* ═══ Breadcrumbs ════════════════════════════════ */}
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.transcodingStatus', 'Transcoding Status')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
             {/* ═══ Header ════════════════════════════════ */}
             <Card className="overflow-hidden">
                 <CardContent className="p-6">
@@ -920,18 +928,18 @@ const filteredTasks = useMemo(() => {
                                            className="gap-1.5 text-[11px] font-bold px-3 py-1 bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 border border-sky-200 dark:border-sky-800">
                                         <Film className="w-3 h-3"/>
                                         MEDIA ID: #{urlMediaId}
-                                        <button onClick={clearMediaFilter}
-                                                className="ml-1 hover:bg-sky-200 dark:hover:bg-sky-900 rounded-full p-0.5 transition-colors"
+                                        <Button variant="ghost" size="icon-sm"
+                                                onClick={clearMediaFilter}
                                                 title="Clear filter">
                                             <XCircle className="w-3 h-3"/>
-                                        </button>
+                                        </Button>
                                     </Badge>
                                 )}
                             </div>
                         </div>
 
                         {/* 分隔线 */}
-                        <div className="border-t border-border my-2"/>
+                        <Separator className="my-2"/>
 
                         {/* 搜索和筛选 */}
                         <div className="flex flex-col lg:flex-row gap-4 items-center">
@@ -943,7 +951,7 @@ const filteredTasks = useMemo(() => {
                                         placeholder="Search tasks by media ID, profile, or status..."
                                         value={pendingSearchQuery}
                                         onChange={(e) => setPendingSearchQuery(e.target.value)}
-                                        className="pl-10 h-8 rounded-btn-sm w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
+                                        className="pl-10 h-8 rounded-md w-full focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0"
                                     />
                                 </div>
                             </div>
@@ -953,7 +961,7 @@ const filteredTasks = useMemo(() => {
                                     onValueChange={(val) => setPendingProfileFilter(val === 'all' ? '' : val)}
                                 >
                                     <SelectTrigger
-                                        className="w-[140px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
+                                        className="w-[140px] h-8 rounded-md focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
                                         <div className="flex items-center gap-2">
                                             <Filter className="h-4 w-4"/>
                                             <SelectValue placeholder="Profile"/>
@@ -977,7 +985,7 @@ const filteredTasks = useMemo(() => {
                                     onValueChange={(val) => setPendingChunkFilter(val === 'all' ? '' : val)}
                                 >
                                     <SelectTrigger
-                                        className="w-[140px] h-8 rounded-btn-sm focus:ring-1 focus:ring-ring focus:ring-offset-0">
+                                        className="w-[140px] h-8 rounded-md focus:ring-1 focus:ring-ring focus:ring-offset-0">
                                         <div className="flex items-center gap-2">
                                             <Filter className="h-4 w-4"/>
                                             <SelectValue placeholder="Chunk"/>

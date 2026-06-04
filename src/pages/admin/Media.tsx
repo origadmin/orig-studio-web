@@ -3,9 +3,11 @@
  * 管理端 - 媒体管理页面
  */
 
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Link} from '@tanstack/react-router';
 import {useLocation, useNavigate} from '@tanstack/react-router';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
     Play,
     Trash2,
@@ -24,15 +26,36 @@ import {
     AlertCircle,
     ChevronLeft,
     ChevronRight,
+    TrendingUp,
 } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
     DialogDescription,
 } from "@/components/ui/dialog";
-import {mediaApi, encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
+import {Button} from "@/components/ui/button";
+import {Card, CardContent} from "@/components/ui/card";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+} from "@/components/ui/table";
+import {Badge} from "@/components/ui/badge";
+import {Input} from "@/components/ui/input";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem,
+} from "@/components/ui/select";
+import {encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
 import {API_BASE_URL} from '@/lib/request';
 import {useAdminMediaList, useDeleteMedia} from '@/hooks/queries';
 import {UploadComponent} from '@/components/upload/UploadComponent';
@@ -137,23 +160,6 @@ export default function MediaPage() {
         }
     };
 
-    const encStatusLabel = (status?: string) => {
-        switch (status) {
-            case "success":
-                return t('admin.complete');
-            case "processing":
-                return t('admin.processing');
-            case "pending":
-                return t('admin.queued');
-            case "partial":
-                return t('admin.partialComplete');
-            case "failed":
-                return t('admin.failed');
-            default:
-                return status || "--";
-        }
-    };
-
     // Helper: resolve preview image URL
     const resolvePreview = (path?: string) => {
         if (!path) return "";
@@ -169,71 +175,92 @@ export default function MediaPage() {
 
     // Pagination
     const totalPages = Math.ceil(total / searchParams.page_size);
-    const startItem = (searchParams.page - 1) * searchParams.page_size + 1;
+    const startItem = total > 0 ? (searchParams.page - 1) * searchParams.page_size + 1 : 0;
     const endItem = Math.min(searchParams.page * searchParams.page_size, total);
 
-    // Status badge helper
-    const statusBadge = (state?: string) => {
-        switch (state) {
-            case 'active':
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{t('admin.publishedStatus', 'Published')}
-                    </span>
-                );
-            case 'draft':
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{t('admin.draftStatus', 'Draft')}
-                    </span>
-                );
-            case 'deleted':
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.deletedStatus', 'Deleted')}
-                    </span>
-                );
-            default:
-                return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{state || '—'}
-                    </span>
-                );
+    // Unified status badge — mirrors the prototype's single Status column.
+    // Priority: encoding failures → processing → success/published → draft → deleted → fallback
+    const unifiedStatusBadge = (media: Media) => {
+        const enc = media.encoding_status;
+        const st = media.state;
+
+        if (enc === 'failed') {
+            return (
+                <Badge variant="soft-danger">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.failedStatus', 'Failed')}
+                </Badge>
+            );
         }
+        if (enc === 'processing') {
+            return (
+                <Badge variant="soft-warning">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>{t('admin.processing', 'Processing')}
+                </Badge>
+            );
+        }
+        if (enc === 'success' || st === 'active') {
+            return (
+                <Badge variant="soft-success">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{t('admin.publishedStatus', 'Published')}
+                </Badge>
+            );
+        }
+        if (st === 'draft' || enc === 'pending') {
+            return (
+                <Badge variant="soft-neutral">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{t('admin.draftStatus', 'Draft')}
+                </Badge>
+            );
+        }
+        if (st === 'deleted') {
+            return (
+                <Badge variant="soft-danger">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.deletedStatus', 'Deleted')}
+                </Badge>
+            );
+        }
+        if (enc === 'partial') {
+            return (
+                <Badge variant="soft-warning">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{t('admin.partialComplete', 'Partial')}
+                </Badge>
+            );
+        }
+        return <span className="text-xs text-slate-400">--</span>;
     };
 
-    // Encoding status badge helper
+    // Encoding status badge helper (used in the variant details dialog header)
     const encBadge = (status?: string) => {
         switch (status) {
             case 'success':
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{encStatusLabel(status)}
-                    </span>
+                    <Badge variant="soft-success">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{t('admin.complete', 'Complete')}
+                    </Badge>
                 );
             case 'processing':
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>{encStatusLabel(status)}
-                    </span>
+                    <Badge variant="soft-warning">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>{t('admin.processing', 'Processing')}
+                    </Badge>
                 );
             case 'pending':
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>{encStatusLabel(status)}
-                    </span>
+                    <Badge variant="soft-info">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>{t('admin.queued', 'Queued')}
+                    </Badge>
                 );
             case 'failed':
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{encStatusLabel(status)}
-                    </span>
+                    <Badge variant="soft-danger">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.failed', 'Failed')}
+                    </Badge>
                 );
             case 'partial':
                 return (
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{encStatusLabel(status)}
-                    </span>
+                    <Badge variant="soft-warning">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{t('admin.partialComplete', 'Partial')}
+                    </Badge>
                 );
             default:
                 return <span className="text-xs text-slate-400">--</span>;
@@ -244,18 +271,31 @@ export default function MediaPage() {
     const typeBadge = (type?: string) => {
         switch (type) {
             case 'video':
-                return <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold uppercase">Video</span>;
+                return <Badge variant="soft-primary" className="rounded text-[10px] font-bold uppercase">Video</Badge>;
             case 'image':
-                return <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[10px] font-bold uppercase">Image</span>;
+                return <Badge variant="soft-success" className="rounded text-[10px] font-bold uppercase">Image</Badge>;
             case 'audio':
-                return <span className="px-2 py-0.5 bg-sky-50 text-sky-700 rounded text-[10px] font-bold uppercase">Audio</span>;
+                return <Badge variant="soft-info" className="rounded text-[10px] font-bold uppercase">Audio</Badge>;
             default:
-                return <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">{type || 'Unknown'}</span>;
+                return <Badge variant="soft-neutral" className="rounded text-[10px] font-bold uppercase">{type || 'Unknown'}</Badge>;
         }
     };
 
     return (
         <div className="p-8">
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.mediaManagement', 'Media Library')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             {/* Page Title Area */}
             <div className="flex items-center justify-between mb-6">
                 <div>
@@ -263,77 +303,85 @@ export default function MediaPage() {
                     <p className="text-sm text-slate-500 mt-1">{t('admin.mediaManagementDesc', 'Manage video, audio, and image assets across the network.')}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
+                    <Button
                         onClick={() => setUploadDialogOpen(true)}
                     >
                         <Plus className="w-4 h-4"/>
                         {t('admin.uploadMedia', 'Upload')}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {/* Total Assets */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalAssets', 'Total Assets')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{totalAssets}</h3>
-                            <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
-                                +12% vs last month
-                            </p>
-                        </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <Film className="w-5 h-5"/>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Active Transcodes */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{activeTranscodes}</h3>
-                            <p className="text-xs font-semibold text-slate-400 mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
-                        </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <Cpu className="w-5 h-5"/>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Storage Used */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.storageUsed', 'Storage Used')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">4.2TB</h3>
-                            <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                                <div className="h-full bg-indigo-600 w-[84%]"></div>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalAssets', 'Total Assets')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{totalAssets}</h3>
+                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3"/>
+                                    {t('admin.assetsGrowth', '+12% vs last month')}
+                                </p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <Film className="w-5 h-5"/>
                             </div>
                         </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <HardDrive className="w-5 h-5"/>
+                    </CardContent>
+                </Card>
+
+                {/* Active Transcodes */}
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{activeTranscodes}</h3>
+                                <p className="text-xs font-semibold text-slate-400 mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <Cpu className="w-5 h-5"/>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
+
+                {/* Storage Used */}
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.storageUsed', 'Storage Used')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">4.2TB</h3>
+                                <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                                    <div className="h-full bg-indigo-600 w-[84%]"></div>
+                                </div>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <HardDrive className="w-5 h-5"/>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Failed Tasks */}
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.failedTasks', 'Failed Tasks')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
-                            <p className="text-xs font-semibold text-red-600 mt-2 hover:underline cursor-pointer">{t('admin.viewErrorLogs', 'View error logs')}</p>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.failedTasks', 'Failed Tasks')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
+                                <p className="text-xs font-semibold text-red-600 mt-2 hover:underline cursor-pointer">{t('admin.viewErrorLogs', 'View error logs')}</p>
+                            </div>
+                            <div className="w-11 h-11 bg-red-50 text-red-600 rounded-xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
+                                <AlertCircle className="w-5 h-5"/>
+                            </div>
                         </div>
-                        <div className="w-11 h-11 bg-red-50 text-red-600 rounded-xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
-                            <AlertCircle className="w-5 h-5"/>
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Filters */}
@@ -341,36 +389,44 @@ export default function MediaPage() {
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-[240px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
-                        <input
-                            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                        <Input
+                            className="pl-9"
                             type="text"
                             placeholder={t('admin.searchAssets', 'Search assets...')}
                             value={searchParams.keyword}
                             onChange={(e) => setSearchParams({...searchParams, keyword: e.target.value})}
                         />
                     </div>
-                    <select
-                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                    <Select
                         value={searchParams.state || 'all'}
-                        onChange={(e) => setSearchParams({...searchParams, state: e.target.value === 'all' ? '' : e.target.value, page: 1})}
+                        onValueChange={(value) => setSearchParams({...searchParams, state: value === 'all' ? '' : value, page: 1})}
                     >
-                        <option value="all">{t('admin.allStatus', 'Status: All')}</option>
-                        <option value="active">{t('admin.publishedStatus', 'Published')}</option>
-                        <option value="draft">{t('admin.draftStatus', 'Draft')}</option>
-                        <option value="deleted">{t('admin.deletedStatus', 'Deleted')}</option>
-                    </select>
-                    <select
-                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
+                        <SelectTrigger className="w-[160px]">
+                            <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">{t('admin.allStatus', 'Status: All')}</SelectItem>
+                            <SelectItem value="active">{t('admin.publishedStatus', 'Published')}</SelectItem>
+                            <SelectItem value="draft">{t('admin.draftStatus', 'Draft')}</SelectItem>
+                            <SelectItem value="deleted">{t('admin.deletedStatus', 'Deleted')}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select
                         value="all"
-                        onChange={() => {}}
+                        onValueChange={() => {}}
                     >
-                        <option value="all">{t('admin.allTypes', 'Type: All')}</option>
-                        <option value="video">Video</option>
-                        <option value="image">Image</option>
-                        <option value="audio">Audio</option>
-                    </select>
-                    <button
-                        className="inline-flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors"
+                        <SelectTrigger className="w-[160px]">
+                            <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">{t('admin.allTypes', 'Type: All')}</SelectItem>
+                            <SelectItem value="video">Video</SelectItem>
+                            <SelectItem value="image">Image</SelectItem>
+                            <SelectItem value="audio">Audio</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button
+                        variant="outline"
                         onClick={() => {
                             setSearchParams({keyword: '', state: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
                             loadMedia();
@@ -378,7 +434,7 @@ export default function MediaPage() {
                     >
                         <RotateCcw className="w-3.5 h-3.5"/>
                         {t('admin.reset', 'Reset')}
-                    </button>
+                    </Button>
                 </div>
                 <div className="text-xs text-slate-400 font-medium">
                     {t('admin.showingAssets', `Showing ${startItem} - ${endItem} of ${total} assets`)}
@@ -386,187 +442,186 @@ export default function MediaPage() {
             </div>
 
             {/* Data Table */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.thumbnail', 'Thumbnail')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.assetName', 'Asset Name')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.type', 'Type')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.size', 'Size')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.views', 'Views')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status', 'Status')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.transcoding', 'Transcoding')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.date', 'Date')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+                <Table className="text-left">
+                    <TableHeader>
+                        <TableRow className="bg-slate-50 border-b border-slate-200">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.thumbnail', 'Thumbnail')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.assetName', 'Asset Name')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.type', 'Type')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.size', 'Size')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.views', 'Views')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status', 'Status')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.date', 'Date')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-slate-50">
                         {loading ? (
-                            <tr>
-                                <td colSpan={9} className="px-6 py-16 text-center">
+                            <TableRow>
+                                <TableCell colSpan={8} className="px-6 py-16 text-center">
                                     <Loader2 className="w-6 h-6 text-slate-300 animate-spin mx-auto"/>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ) : mediaList.length === 0 ? (
-                            <tr>
-                                <td colSpan={9} className="px-6 py-16 text-center">
+                            <TableRow>
+                                <TableCell colSpan={8} className="px-6 py-16 text-center">
                                     <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Film className="w-8 h-8 text-slate-300"/>
                                     </div>
                                     <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noMediaFound', 'No media found')}</h3>
                                     <p className="text-sm text-slate-500 max-w-sm mx-auto">{t('admin.uploadFirstMedia', 'Upload your first media asset to get started.')}</p>
-                                    <button
-                                        className="mt-4 inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700"
+                                    <Button
+                                        className="mt-4"
                                         onClick={() => setUploadDialogOpen(true)}
                                     >
                                         <Plus className="w-4 h-4"/>
                                         {t('admin.uploadMedia', 'Upload')}
-                                    </button>
-                                </td>
-                            </tr>
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
                         ) : (
-                            mediaList.map((media) => (
-                                <tr key={media.id} className={`hover:bg-slate-50/50 transition-colors ${media.encoding_status === 'failed' ? 'bg-red-50/30' : ''}`}>
-                                    {/* Thumbnail */}
-                                    <td className="px-6 py-3.5">
-                                        <div className="w-16 aspect-video rounded-md bg-slate-100 overflow-hidden relative border border-slate-200">
-                                            {media.thumbnail ? (
-                                                <img
-                                                    alt="Preview"
-                                                    className={`w-full h-full object-cover ${media.encoding_status === 'failed' ? 'grayscale opacity-50' : ''}`}
-                                                    src={media.thumbnail.startsWith('http') ? media.thumbnail : `${API_BASE_URL}${media.thumbnail.startsWith('/') ? '' : '/'}${media.thumbnail}`}
-                                                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    {media.type === 'video' ? <Video className="w-5 h-5 text-slate-300"/> :
-                                                     media.type === 'audio' ? <Music className="w-5 h-5 text-slate-300"/> :
-                                                     <ImageIcon className="w-5 h-5 text-slate-300"/>}
-                                                </div>
-                                            )}
-                                            {media.type === 'video' && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
-                                                    <Play className="w-5 h-5"/>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
-
-                                    {/* Asset Name */}
-                                    <td className="px-6 py-3.5">
-                                        <div className="text-sm font-semibold text-slate-800">{media.title || t('admin.unnamedMedia')}</div>
-                                        <div className="text-xs text-slate-400">{media.duration ? formatDuration(media.duration) : ''}</div>
-                                    </td>
-
-                                    {/* Type */}
-                                    <td className="px-6 py-3.5 text-sm text-slate-700">
-                                        {typeBadge(media.type)}
-                                    </td>
-
-                                    {/* Size */}
-                                    <td className="px-6 py-3.5 text-xs font-mono text-slate-500">
-                                        {media.size ? formatFileSize(parseInt(media.size)) : '-'}
-                                    </td>
-
-                                    {/* Views */}
-                                    <td className="px-6 py-3.5 text-xs font-mono text-slate-500">
-                                        {formatViews(media.view_count)}
-                                    </td>
-
-                                    {/* Status */}
-                                    <td className="px-6 py-3.5">
-                                        {statusBadge(media.state)}
-                                    </td>
-
-                                    {/* Transcoding */}
-                                    <td className="px-6 py-3.5">
-                                        {media.encoding_status ? (
-                                            <div className="flex items-center gap-1.5">
-                                                {encBadge(media.encoding_status)}
-                                                <button
-                                                    className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition-colors"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleShowVariants(media);
-                                                    }}
-                                                    title={t('admin.viewTranscodingDetails')}
-                                                >
-                                                    <ExternalLink className="w-3 h-3"/>
-                                                </button>
+                            mediaList.map((media) => {
+                                const isFailed = media.encoding_status === 'failed';
+                                return (
+                                    <TableRow
+                                        key={media.id}
+                                        className={`${isFailed ? 'bg-red-50/30' : ''}`}
+                                    >
+                                        {/* Thumbnail */}
+                                        <TableCell className="px-6 py-3.5">
+                                            <div className="w-16 aspect-video rounded-md bg-slate-100 overflow-hidden relative border border-slate-200">
+                                                {media.thumbnail ? (
+                                                    <img
+                                                        alt="Preview"
+                                                        className={`w-full h-full object-cover ${isFailed ? 'grayscale opacity-50' : ''}`}
+                                                        src={media.thumbnail.startsWith('http') ? media.thumbnail : `${API_BASE_URL}${media.thumbnail.startsWith('/') ? '' : '/'}${media.thumbnail}`}
+                                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        {media.type === 'video' ? <Video className="w-5 h-5 text-slate-300"/> :
+                                                         media.type === 'audio' ? <Music className="w-5 h-5 text-slate-300"/> :
+                                                         <ImageIcon className="w-5 h-5 text-slate-300"/>}
+                                                    </div>
+                                                )}
+                                                {media.type === 'video' && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 text-white">
+                                                        <Play className="w-5 h-5"/>
+                                                    </div>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <span className="text-xs text-slate-400">--</span>
-                                        )}
-                                    </td>
+                                        </TableCell>
 
-                                    {/* Date */}
-                                    <td className="px-6 py-3.5 text-xs text-slate-400">
-                                        {formatDateTime(media.create_time)}
-                                    </td>
+                                        {/* Asset Name */}
+                                        <TableCell className="px-6 py-3.5">
+                                            <div className="text-sm font-semibold text-slate-800">{media.title || t('admin.unnamedMedia')}</div>
+                                            <div className="text-xs text-slate-400">{media.duration ? formatDuration(media.duration) : ''}</div>
+                                        </TableCell>
 
-                                    {/* Actions */}
-                                    <td className="px-6 py-3.5 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <button
-                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                                onClick={() => handleEditClick(media)}
-                                            >
-                                                <Edit3 className="w-4 h-4"/>
-                                            </button>
-                                            <button
-                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                onClick={() => handleDeleteClick(media)}
-                                            >
-                                                <Trash2 className="w-4 h-4"/>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        {/* Type */}
+                                        <TableCell className="px-6 py-3.5 text-sm text-slate-700">
+                                            {typeBadge(media.type)}
+                                        </TableCell>
+
+                                        {/* Size */}
+                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-slate-500">
+                                            {media.size ? formatFileSize(parseInt(media.size)) : '-'}
+                                        </TableCell>
+
+                                        {/* Views */}
+                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-slate-500">
+                                            {formatViews(media.view_count)}
+                                        </TableCell>
+
+                                        {/* Status (unified: encoding + state) */}
+                                        <TableCell className="px-6 py-3.5">
+                                            {unifiedStatusBadge(media)}
+                                        </TableCell>
+
+                                        {/* Date */}
+                                        <TableCell className="px-6 py-3.5 text-xs text-slate-400">
+                                            {formatDateTime(media.create_time)}
+                                        </TableCell>
+
+                                        {/* Actions — prototype: edit for non-failed, delete for failed */}
+                                        <TableCell className="px-6 py-3.5 text-right">
+                                            {isFailed ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                                                    onClick={() => handleDeleteClick(media)}
+                                                    title={t('admin.delete', 'Delete')}
+                                                >
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                                                    onClick={() => handleEditClick(media)}
+                                                    title={t('admin.edit', 'Edit')}
+                                                >
+                                                    <Edit3 className="w-4 h-4"/>
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
 
                 {/* Pagination */}
                 {total > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
                         <p className="text-xs text-slate-500">{t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}</p>
                         <div className="flex items-center gap-1">
-                            <button
-                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                            <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="text-slate-400"
                                 onClick={() => setSearchParams({...searchParams, page: searchParams.page - 1})}
                                 disabled={searchParams.page <= 1}
                             >
                                 <ChevronLeft className="w-4 h-4"/>
-                            </button>
-                            <button className="h-8 px-3 rounded-lg bg-indigo-600 text-white text-sm font-medium shadow-sm">{searchParams.page}</button>
+                            </Button>
+                            <Button size="sm" className="shadow-sm">{searchParams.page}</Button>
                             {searchParams.page < totalPages && (
-                                <button
-                                    className="h-8 w-8 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-slate-600"
                                     onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
                                 >
                                     {searchParams.page + 1}
-                                </button>
+                                </Button>
                             )}
                             {totalPages > 2 && searchParams.page < totalPages - 1 && (
-                                <button className="h-8 w-8 rounded-lg text-sm text-slate-600">...</button>
+                                <Button variant="ghost" size="sm" className="text-slate-600">...</Button>
                             )}
                             {totalPages > 2 && searchParams.page < totalPages - 1 && (
-                                <button
-                                    className="h-8 w-8 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-slate-600"
                                     onClick={() => setSearchParams({...searchParams, page: totalPages})}
                                 >
                                     {totalPages}
-                                </button>
+                                </Button>
                             )}
-                            <button
-                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50 disabled:opacity-50"
+                            <Button
+                                variant="outline"
+                                size="icon-sm"
+                                className="text-slate-400"
                                 onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
                                 disabled={searchParams.page >= totalPages}
                             >
                                 <ChevronRight className="w-4 h-4"/>
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
@@ -574,10 +629,10 @@ export default function MediaPage() {
 
             {/* Upload Modal */}
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-                <DialogContent className="sm:max-w-4xl rounded-2xl shadow-2xl p-0 overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-800">{t('admin.uploadMediaFiles', 'Upload Assets')}</h3>
-                    </div>
+                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.uploadMediaFiles', 'Upload Assets')}</DialogTitle>
+                    </DialogHeader>
                     <div className="p-6">
                         <UploadComponent
                             onSuccess={() => {
@@ -593,6 +648,10 @@ export default function MediaPage() {
             {/* Delete Modal */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent className="sm:max-w-sm rounded-2xl shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="sr-only">
+                        <DialogTitle>{t('admin.confirmDelete', 'Delete Asset?')}</DialogTitle>
+                        <DialogDescription>{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</DialogDescription>
+                    </DialogHeader>
                     <div className="p-6 text-center">
                         <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertCircle className="w-7 h-7"/>
@@ -600,21 +659,23 @@ export default function MediaPage() {
                         <h3 className="text-lg font-bold text-slate-800">{t('admin.confirmDelete', 'Delete Asset?')}</h3>
                         <p className="text-sm text-slate-500 mt-2 mb-6">{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</p>
                         <div className="flex gap-3">
-                            <button
-                                className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-200"
+                            <Button
+                                variant="secondary"
+                                className="flex-1"
                                 onClick={() => setDeleteDialogOpen(false)}
                                 disabled={deleteMutation.isPending}
                             >
                                 {t('admin.cancel', 'Cancel')}
-                            </button>
-                            <button
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                className="flex-1"
                                 onClick={handleConfirmDelete}
                                 disabled={deleteMutation.isPending}
                             >
                                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
                                 {t('admin.confirmDeleteBtn', 'Delete')}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>
@@ -623,12 +684,12 @@ export default function MediaPage() {
             {/* Transcoding Detail Dialog */}
             <Dialog open={variantDetailOpen} onOpenChange={setVariantDetailOpen}>
                 <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden max-h-[80vh] overflow-y-auto">
-                    <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
                             {t('admin.transcodingOverview', 'Transcoding Overview')}
                             {variantData?.encoding_status && encBadge(variantData.encoding_status)}
-                        </h3>
-                    </div>
+                        </DialogTitle>
+                    </DialogHeader>
                     <div className="p-6 space-y-4">
                         {variantData && (
                             <>
@@ -684,8 +745,10 @@ export default function MediaPage() {
                                         <p className="text-sm font-medium flex items-center gap-2">
                                             {t('admin.variantTasks', 'Variant Tasks')}
                                             {variantData.video_failed_count > 0 && (
-                                                <button
-                                                    className="h-6 text-[10px] ml-auto inline-flex items-center gap-1 px-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50"
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-6 text-[10px] ml-auto"
                                                     disabled={retryingAllId === variantData.media_id}
                                                     onClick={() => handleRetryAllFailed(variantData.media_id)}
                                                 >
@@ -695,7 +758,7 @@ export default function MediaPage() {
                                                         <RotateCcw className="w-3 h-3"/>
                                                     )}
                                                     {t('admin.retryAllFailed', 'Retry All Failed')}
-                                                </button>
+                                                </Button>
                                             )}
                                         </p>
                                         {variantData.variants.map((v) => (

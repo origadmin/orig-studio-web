@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Link} from '@tanstack/react-router';
+import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
     Plus,
     Search,
-    Edit3,
-    Trash2,
     Tv,
     Users,
     CheckCircle,
@@ -12,16 +12,26 @@ import {
     ChevronLeft,
     ChevronRight,
     RotateCcw,
-    X,
+    TrendingUp,
+    MoreHorizontal,
 } from 'lucide-react';
 import {adminApi, Channel} from '@/lib/api/admin';
 import {usePagination} from '@/hooks/usePagination';
-import {formatDateTime} from '@/lib/format';
+import {formatNumber as fmtNumber} from '@/lib/format';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent} from '@/components/ui/card';
+import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
+import {Badge} from '@/components/ui/badge';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from '@/components/ui/select';
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from '@/components/ui/dialog';
+import {Textarea} from '@/components/ui/textarea';
 
 const Channels: React.FC = () => {
     const {t} = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [verificationFilter, setVerificationFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [channels, setChannels] = useState<Channel[]>([]);
     const [loading, setLoading] = useState(true);
@@ -126,112 +136,175 @@ const Channels: React.FC = () => {
         setShowDeleteDialog(true);
     };
 
+    const [actionMenuFor, setActionMenuFor] = useState<Channel | null>(null);
+
     const filteredChannels = channels.filter(channel => {
-        const matchesSearch = channel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            channel.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || channel.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const matchesSearch =
+            searchTerm === '' ||
+            channel.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (channel.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const isVerified = channel.is_verified === true || channel.status === 'verified';
+        const matchesVerification =
+            verificationFilter === 'all' ||
+            (verificationFilter === 'verified' && isVerified) ||
+            (verificationFilter === 'not_verified' && !isVerified);
+        return matchesSearch && matchesVerification;
     });
 
     const totalSubscribers = channels.reduce((sum, c) => sum + (c.subscriber_count || 0), 0);
-    const verifiedCount = channels.filter(c => c.status === 'verified').length;
+    const verifiedCount = channels.filter(c => c.is_verified === true || c.status === 'verified').length;
     const pendingCount = channels.filter(c => c.status === 'pending').length;
+    const verifiedRatio = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
 
-    const getStatusBadge = (status: string) => {
-        const config: Record<string, {bg: string; text: string; dot: string; label: string}> = {
-            verified: {bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: t('common.verified')},
-            active: {bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500', label: t('admin.normal')},
-            pending: {bg: 'bg-amber-50', text: 'text-amber-700', dot: 'bg-amber-500', label: t('admin.pending')},
-            banned: {bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: t('admin.banned')},
+    const getStatusBadge = (status: string, isVerified?: boolean) => {
+        if (isVerified) {
+            return (
+                <Badge variant="soft-success" className="gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
+                    {t('common.verified')}
+                </Badge>
+            );
+        }
+        const config: Record<string, {variant: 'soft-success' | 'soft-warning' | 'soft-danger' | 'soft-info' | 'soft-neutral' | 'soft-primary'; dot: string; label: string}> = {
+            verified: {variant: 'soft-success', dot: 'bg-emerald-500', label: t('common.verified')},
+            active: {variant: 'soft-success', dot: 'bg-emerald-500', label: t('admin.normal')},
+            pending: {variant: 'soft-warning', dot: 'bg-amber-500', label: t('admin.pending')},
+            banned: {variant: 'soft-danger', dot: 'bg-red-500', label: t('admin.banned')},
         };
         const c = config[status] || config.active;
         return (
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${c.bg} ${c.text}`}>
+            <Badge variant={c.variant} className="gap-1.5">
                 <span className={`w-1.5 h-1.5 rounded-full ${c.dot}${status === 'pending' ? ' animate-pulse' : ''}`}/>
                 {c.label}
-            </span>
+            </Badge>
         );
     };
 
     const formatNumber = (num: number | undefined | null) => {
         if (num === undefined || num === null) return '0';
-        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-        if (num >= 10000) return (num / 10000).toFixed(1) + t('common.wan');
-        return num.toLocaleString();
+        return fmtNumber(num);
+    };
+
+    const getCategoryLabel = (channel: Channel): string => {
+        const map: Record<string, string> = {
+            tech: 'Tech',
+            cooking: 'Cooking',
+            music: 'Music',
+            gaming: 'Gaming',
+        };
+        if (channel.tags && channel.tags.length > 0) {
+            const tag = channel.tags[0].toLowerCase();
+            if (map[tag]) return map[tag];
+        }
+        return '-';
     };
 
     const handleReset = () => {
         setSearchTerm('');
-        setStatusFilter('all');
+        setVerificationFilter('all');
         setCategoryFilter('all');
     };
 
-    const startItem = (page - 1) * pageSize + 1;
+    const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1;
     const endItem = Math.min(page * pageSize, total);
 
     return (
         <div className="p-8">
+            <Breadcrumb className="mb-4">
+                <BreadcrumbList>
+                    <BreadcrumbItem>
+                        <BreadcrumbLink asChild>
+                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                        </BreadcrumbLink>
+                    </BreadcrumbItem>
+                    <BreadcrumbSeparator/>
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{t('admin.channels')}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.channels')}</h2>
-                    <p className="text-sm text-slate-500 mt-1">{t('admin.manageChannels')}</p>
+                    <p className="text-sm text-slate-500 mt-1">
+                        {t('admin.manageChannels') || 'Manage content creator channels, subscribers, and verification status across the platform.'}
+                    </p>
                 </div>
-                <button
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
-                    onClick={openCreateDialog}
-                >
+                <Button onClick={openCreateDialog}>
                     <Plus className="w-4 h-4"/>
-                    {t('admin.newChannel')}
-                </button>
+                    {t('admin.newChannel') || 'Create New Channel'}
+                </Button>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.channelTotal')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{channels.length}</h3>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.channelTotal') || 'Total Channels'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{total || channels.length}</h3>
+                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3"/>
+                                    +12% {t('admin.vsLastMonth') || 'vs last month'}
+                                </p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <Tv className="w-5 h-5"/>
+                            </div>
                         </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <Tv className="w-5 h-5"/>
+                    </CardContent>
+                </Card>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalSubscribers') || 'Subscribers'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(totalSubscribers)}</h3>
+                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3"/>
+                                    +4.2% {t('admin.growth') || 'growth'}
+                                </p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <Users className="w-5 h-5"/>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalSubscribers')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(totalSubscribers)}</h3>
+                    </CardContent>
+                </Card>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.verifiedChannels') || 'Verified'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{verifiedCount}</h3>
+                                <p className="text-xs font-semibold text-slate-500 mt-2 flex items-center gap-1">
+                                    {verifiedRatio}% {t('admin.ofTotalChannels') || 'of total channels'}
+                                </p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <CheckCircle className="w-5 h-5"/>
+                            </div>
                         </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <Users className="w-5 h-5"/>
+                    </CardContent>
+                </Card>
+                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.pending')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{pendingCount}</h3>
+                                <p className="text-xs font-semibold text-red-500 mt-2 flex items-center gap-1">
+                                    {t('admin.requiresAttention') || 'Requires attention'}
+                                </p>
+                            </div>
+                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <Clock className="w-5 h-5"/>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.verifiedChannels')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{verifiedCount}</h3>
-                        </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <CheckCircle className="w-5 h-5"/>
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.pending')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{pendingCount}</h3>
-                        </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                            <Clock className="w-5 h-5"/>
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Filters Section */}
@@ -239,408 +312,413 @@ const Channels: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
-                        <input
-                            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                            placeholder={t('admin.search') || t('admin.channels') + '...'}
+                        <Input
+                            className="pl-9"
+                            placeholder={t('admin.searchChannels') || 'Search channels...'}
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <select
-                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
-                        value={categoryFilter}
-                        onChange={(e) => setCategoryFilter(e.target.value)}
-                    >
-                        <option value="all">{t('admin.category')}: {t('admin.allStatus')}</option>
-                        <option value="tech">Tech</option>
-                        <option value="cooking">Cooking</option>
-                        <option value="music">Music</option>
-                        <option value="gaming">Gaming</option>
-                    </select>
-                    <select
-                        className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer"
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                        <option value="all">{t('admin.status')}: {t('admin.allStatus')}</option>
-                        <option value="verified">{t('common.verified')}</option>
-                        <option value="active">{t('admin.normal')}</option>
-                        <option value="pending">{t('admin.pending')}</option>
-                        <option value="banned">{t('admin.banned')}</option>
-                    </select>
-                    <button
-                        className="inline-flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors"
-                        onClick={handleReset}
-                    >
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={`${t('admin.category')}: ${t('admin.allStatus')}`}/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">{t('admin.category')}: {t('admin.allStatus')}</SelectItem>
+                            <SelectItem value="tech">Tech</SelectItem>
+                            <SelectItem value="cooking">Cooking</SelectItem>
+                            <SelectItem value="music">Music</SelectItem>
+                            <SelectItem value="gaming">Gaming</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={`${t('admin.verification')}: ${t('admin.allStatus')}`}/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">{t('admin.verification')}: {t('admin.allStatus')}</SelectItem>
+                            <SelectItem value="verified">{t('common.verified')}</SelectItem>
+                            <SelectItem value="not_verified">{t('admin.notVerified') || 'Not Verified'}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={handleReset}>
                         <RotateCcw className="w-3.5 h-3.5"/>
                         {t('admin.reset')}
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* Main Table */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.channel')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.owner')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.subscriberCount')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.videoCount')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.category')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.createdAt')}</th>
-                            <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
+            <Card className="overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.channel')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.ownerId') || 'Owner ID'}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.subscriberCount')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.videoCount')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.category')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.actions')}</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {loading ? (
-                            <tr>
-                                <td colSpan={8} className="px-6 py-12 text-center">
+                            <TableRow>
+                                <TableCell colSpan={7} className="px-6 py-12 text-center">
                                     <div className="animate-pulse text-slate-400">{t('admin.loadingChannels')}</div>
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ) : error ? (
-                            <tr>
-                                <td colSpan={8} className="px-6 py-12 text-center">
+                            <TableRow>
+                                <TableCell colSpan={7} className="px-6 py-12 text-center">
                                     <div className="text-red-500">{error}</div>
-                                    <button
-                                        className="mt-2 text-sm text-indigo-600 hover:text-indigo-700"
+                                    <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="mt-2 text-indigo-600"
                                         onClick={() => window.location.reload()}
                                     >
                                         {t('common.retry')}
-                                    </button>
-                                </td>
-                            </tr>
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
                         ) : filteredChannels.length === 0 ? (
-                            <tr>
-                                <td colSpan={8} className="px-6 py-12 text-center text-slate-400">
+                            <TableRow>
+                                <TableCell colSpan={7} className="px-6 py-12 text-center text-slate-400">
                                     {t('admin.noChannelsFound')}
-                                </td>
-                            </tr>
+                                </TableCell>
+                            </TableRow>
                         ) : (
-                            filteredChannels.map((channel) => (
-                                <tr
-                                    key={channel.id}
-                                    className={`hover:bg-slate-50/50 transition-colors${channel.status === 'banned' ? ' bg-slate-50/30' : ''}`}
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className={`flex items-center gap-3${channel.status === 'banned' ? ' opacity-60' : ''}`}>
-                                            <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
-                                                {channel.name[0]}
+                            filteredChannels.map((channel) => {
+                                const isBanned = channel.status === 'banned';
+                                const isVerified = channel.is_verified === true || channel.status === 'verified';
+                                return (
+                                    <TableRow
+                                        key={channel.id}
+                                        className={isBanned ? 'bg-slate-50/30' : ''}
+                                    >
+                                        <TableCell className="px-6 py-4">
+                                            <div className={`flex items-center gap-3${isBanned ? ' opacity-60' : ''}`}>
+                                                {channel.avatar ? (
+                                                    <img
+                                                        alt={channel.name}
+                                                        className={`h-10 w-10 rounded-lg object-cover${isBanned ? ' grayscale' : ''}`}
+                                                        src={channel.avatar}
+                                                    />
+                                                ) : (
+                                                    <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                                                        {channel.name?.[0] || '?'}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <p className={`text-sm font-semibold text-slate-800${isBanned ? ' line-through' : ''}`}>
+                                                        {channel.name}
+                                                    </p>
+                                                    <p className={`text-xs font-mono ${isBanned ? 'text-red-500' : 'text-slate-400'}`}>
+                                                        {isBanned ? t('admin.suspended') || 'Suspended' : `@${channel.short_token}`}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className={`text-sm font-semibold text-slate-800${channel.status === 'banned' ? ' line-through' : ''}`}>
-                                                    {channel.name}
-                                                </p>
-                                                <p className="text-xs text-slate-400 font-mono">@{channel.short_token}</p>
+                                        </TableCell>
+                                        <TableCell className={`px-6 py-4 text-sm font-mono ${isBanned ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            {channel.user_id}
+                                        </TableCell>
+                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-slate-400' : 'text-slate-700'}`}>
+                                            {formatNumber(channel.subscriber_count)}
+                                        </TableCell>
+                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-slate-400' : 'text-slate-700'}`}>
+                                            {channel.media_count || 0}
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4">
+                                            <Badge variant="soft-neutral">
+                                                {getCategoryLabel(channel)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4">{getStatusBadge(channel.status ?? 'active', isVerified)}</TableCell>
+                                        <TableCell className="px-6 py-4">
+                                            <div className="relative">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    title={t('admin.actions')}
+                                                    onClick={() =>
+                                                        setActionMenuFor(
+                                                            actionMenuFor?.id === channel.id ? null : channel,
+                                                        )
+                                                    }
+                                                >
+                                                    <MoreHorizontal className="w-4 h-4"/>
+                                                </Button>
+                                                {actionMenuFor?.id === channel.id && (
+                                                    <div
+                                                        className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1"
+                                                        onMouseLeave={() => setActionMenuFor(null)}
+                                                    >
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="w-full justify-start px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                                                            onClick={() => {
+                                                                setActionMenuFor(null);
+                                                                openEditDialog(channel);
+                                                            }}
+                                                        >
+                                                            {t('admin.edit')}
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="w-full justify-start px-3 py-1.5 text-red-600 hover:bg-red-50"
+                                                            onClick={() => {
+                                                                setActionMenuFor(null);
+                                                                openDeleteDialog(channel);
+                                                            }}
+                                                        >
+                                                            {t('admin.delete')}
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm font-mono text-slate-500">{channel.user_id}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-700 tabular-nums">{formatNumber(channel.subscriber_count)}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-700 tabular-nums">{channel.media_count || 0}</td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex px-2 py-0.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600">-</span>
-                                    </td>
-                                    <td className="px-6 py-4">{getStatusBadge(channel.status ?? 'active')}</td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">{formatDateTime(channel.create_time)}</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex justify-end gap-1">
-                                            <button
-                                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                onClick={() => openEditDialog(channel)}
-                                                title={t('admin.edit')}
-                                            >
-                                                <Edit3 className="w-4 h-4"/>
-                                            </button>
-                                            <button
-                                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                onClick={() => openDeleteDialog(channel)}
-                                                title={t('admin.delete')}
-                                            >
-                                                <Trash2 className="w-4 h-4"/>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
                         )}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
 
                 {/* Pagination */}
-                {total > pageSize && (
+                {total > 0 && (
                     <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                         <p className="text-xs text-slate-500">
-                            Showing {startItem} to {endItem} of {total} channels
+                            {t('admin.showing') || 'Showing'} {startItem} {t('admin.to') || 'to'} {endItem} {t('admin.of') || 'of'} {total} {t('admin.channels') || 'channels'}
                         </p>
                         <div className="flex items-center gap-1">
-                            <button
-                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 disabled={page <= 1}
                                 onClick={() => setPage(page - 1)}
                             >
                                 <ChevronLeft className="w-4 h-4"/>
-                            </button>
-                            {Array.from({length: Math.min(totalPages, 5)}, (_, i) => {
+                            </Button>
+                            {Array.from({length: Math.min(totalPages, 3)}, (_, i) => {
                                 let pageNum: number;
-                                if (totalPages <= 5) {
+                                if (totalPages <= 3) {
                                     pageNum = i + 1;
-                                } else if (page <= 3) {
+                                } else if (page <= 2) {
                                     pageNum = i + 1;
-                                } else if (page >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
+                                } else if (page >= totalPages - 1) {
+                                    pageNum = totalPages - 2 + i;
                                 } else {
-                                    pageNum = page - 2 + i;
+                                    pageNum = page - 1 + i;
                                 }
                                 return (
-                                    <button
+                                    <Button
                                         key={pageNum}
-                                        className={`h-8 px-3 rounded-lg text-sm font-medium ${pageNum === page ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                                        variant={pageNum === page ? 'default' : 'outline'}
+                                        size="sm"
                                         onClick={() => setPage(pageNum)}
                                     >
                                         {pageNum}
-                                    </button>
+                                    </Button>
                                 );
                             })}
-                            {totalPages > 5 && page < totalPages - 2 && (
+                            {totalPages > 3 && page < totalPages - 1 && (
                                 <span className="text-slate-300 mx-1">...</span>
                             )}
-                            {totalPages > 5 && page < totalPages - 2 && (
-                                <button
-                                    className="h-8 w-8 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
+                            {totalPages > 3 && page < totalPages - 1 && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     onClick={() => setPage(totalPages)}
                                 >
                                     {totalPages}
-                                </button>
+                                </Button>
                             )}
-                            <button
-                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50"
+                            <Button
+                                variant="outline"
+                                size="icon"
                                 disabled={page >= totalPages}
                                 onClick={() => setPage(page + 1)}
                             >
                                 <ChevronRight className="w-4 h-4"/>
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 )}
-            </div>
+            </Card>
 
             {/* Create Channel Modal */}
-            {showCreateDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowCreateDialog(false)}/>
-                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.newChannel')}</h3>
-                            <button
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
-                                onClick={() => setShowCreateDialog(false)}
-                            >
-                                <X className="w-5 h-5"/>
-                            </button>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.newChannel') || 'Create New Channel'}</DialogTitle>
+                        <DialogDescription>{t('admin.createChannel') || 'Create Channel'}</DialogDescription>
+                    </DialogHeader>
+                    <div className="p-6 space-y-4">
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.channelName') || 'Channel Name'}</Label>
+                            <Input
+                                placeholder={t('admin.enterChannelTitle') || 'Enter channel title'}
+                                type="text"
+                            />
                         </div>
-                        <div className="p-6 space-y-4">
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.handle') || 'Handle (@token)'}</Label>
+                            <Input
+                                placeholder="@unique_handle"
+                                type="text"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.name')} *</label>
-                                <input
-                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelName')}
-                                    type="text"
-                                    value={formData.name || ''}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                />
+                                <Label>{t('admin.category')}</Label>
+                                <Select>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Tech"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="tech">Tech</SelectItem>
+                                        <SelectItem value="cooking">Cooking</SelectItem>
+                                        <SelectItem value="music">Music</SelectItem>
+                                        <SelectItem value="gaming">Gaming</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.shortToken')} *</label>
-                                <input
-                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelShortToken')}
-                                    type="text"
-                                    value={formData.short_token || ''}
-                                    onChange={(e) => setFormData({...formData, short_token: e.target.value})}
-                                    maxLength={12}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700">{t('admin.category')}</label>
-                                    <select
-                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
-                                        value={formData.category_id || ''}
-                                        onChange={(e) => setFormData({...formData, category_id: e.target.value ? Number(e.target.value) : undefined})}
-                                    >
-                                        <option value="">-</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700">{t('admin.status')}</label>
-                                    <select
-                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
-                                        value={formData.status || 'active'}
-                                        onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                    >
-                                        <option value="active">{t('admin.active')}</option>
-                                        <option value="verified">{t('admin.verified')}</option>
-                                        <option value="pending">{t('admin.pending')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.description')}</label>
-                                <textarea
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelDescription')}
-                                    rows={3}
-                                    value={formData.description || ''}
-                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                />
+                                <Label>{t('admin.status')}</Label>
+                                <Select value={formData.status || 'active'} onValueChange={(value) => setFormData({...formData, status: value})}>
+                                    <SelectTrigger>
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">{t('admin.active')}</SelectItem>
+                                        <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                                        <SelectItem value="draft">{t('admin.draft') || 'Draft'}</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                            <button
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
-                                onClick={() => setShowCreateDialog(false)}
-                            >
-                                {t('admin.cancel')}
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700"
-                                onClick={handleCreate}
-                            >
-                                {t('admin.create')}
-                            </button>
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.description')}</Label>
+                            <Textarea
+                                placeholder={t('admin.describeChannel') || 'Describe the channel...'}
+                                rows={3}
+                            />
                         </div>
                     </div>
-                </div>
-            )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                            {t('admin.cancel')}
+                        </Button>
+                        <Button onClick={handleCreate}>
+                            {t('admin.createChannel') || 'Create Channel'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Edit Channel Modal */}
-            {showEditDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditDialog(false)}/>
-                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.editChannel')}</h3>
-                            <button
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
-                                onClick={() => setShowEditDialog(false)}
-                            >
-                                <X className="w-5 h-5"/>
-                            </button>
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.editChannel')}</DialogTitle>
+                        <DialogDescription>{t('admin.editChannel')}</DialogDescription>
+                    </DialogHeader>
+                    <div className="p-6 space-y-4">
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.name')} *</Label>
+                            <Input
+                                placeholder={t('admin.enterChannelName')}
+                                type="text"
+                                value={formData.name || ''}
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            />
                         </div>
-                        <div className="p-6 space-y-4">
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.shortToken')}</Label>
+                            <Input
+                                placeholder={t('admin.enterChannelShortToken')}
+                                type="text"
+                                value={formData.short_token || ''}
+                                onChange={(e) => setFormData({...formData, short_token: e.target.value})}
+                                maxLength={12}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.name')} *</label>
-                                <input
-                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelName')}
-                                    type="text"
-                                    value={formData.name || ''}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                />
+                                <Label>{t('admin.category')}</Label>
+                                <Select>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Tech"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="tech">Tech</SelectItem>
+                                        <SelectItem value="cooking">Cooking</SelectItem>
+                                        <SelectItem value="music">Music</SelectItem>
+                                        <SelectItem value="gaming">Gaming</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.shortToken')}</label>
-                                <input
-                                    className="w-full px-4 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelShortToken')}
-                                    type="text"
-                                    value={formData.short_token || ''}
-                                    onChange={(e) => setFormData({...formData, short_token: e.target.value})}
-                                    maxLength={12}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700">{t('admin.category')}</label>
-                                    <select
-                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
-                                        value={formData.category_id || ''}
-                                        onChange={(e) => setFormData({...formData, category_id: e.target.value ? Number(e.target.value) : undefined})}
-                                    >
-                                        <option value="">-</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700">{t('admin.status')}</label>
-                                    <select
-                                        className="w-full px-3 h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-600 outline-none"
-                                        value={formData.status || 'active'}
-                                        onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                    >
-                                        <option value="active">{t('admin.active')}</option>
-                                        <option value="verified">{t('admin.verified')}</option>
-                                        <option value="pending">{t('admin.pending')}</option>
-                                        <option value="banned">{t('admin.banned')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700">{t('admin.description')}</label>
-                                <textarea
-                                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
-                                    placeholder={t('admin.enterChannelDescription')}
-                                    rows={3}
-                                    value={formData.description || ''}
-                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                />
+                                <Label>{t('admin.status')}</Label>
+                                <Select value={formData.status || 'active'} onValueChange={(value) => setFormData({...formData, status: value})}>
+                                    <SelectTrigger>
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="active">{t('admin.active')}</SelectItem>
+                                        <SelectItem value="verified">{t('admin.verified')}</SelectItem>
+                                        <SelectItem value="pending">{t('admin.pending')}</SelectItem>
+                                        <SelectItem value="banned">{t('admin.banned')}</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
-                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                            <button
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
-                                onClick={() => setShowEditDialog(false)}
-                            >
-                                {t('admin.cancel')}
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700"
-                                onClick={handleUpdate}
-                            >
-                                {t('admin.save')}
-                            </button>
+                        <div className="space-y-1.5">
+                            <Label>{t('admin.description')}</Label>
+                            <Textarea
+                                placeholder={t('admin.enterChannelDescription')}
+                                rows={3}
+                                value={formData.description || ''}
+                                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                            />
                         </div>
                     </div>
-                </div>
-            )}
+                    <DialogFooter>
+                        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
+                            {t('admin.delete')}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                            {t('admin.cancel')}
+                        </Button>
+                        <Button onClick={handleUpdate}>
+                            {t('admin.save')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Delete Channel Modal */}
-            {showDeleteDialog && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowDeleteDialog(false)}/>
-                    <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-                        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-slate-800">{t('admin.deleteChannel')}</h3>
-                            <button
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"
-                                onClick={() => setShowDeleteDialog(false)}
-                            >
-                                <X className="w-5 h-5"/>
-                            </button>
-                        </div>
-                        <div className="p-6">
-                            <p className="text-sm text-slate-600">{t('admin.deleteChannelConfirm')}</p>
-                        </div>
-                        <div className="px-6 py-4 bg-slate-50 flex justify-end gap-3">
-                            <button
-                                className="px-4 py-2 border border-slate-200 rounded-lg text-sm text-slate-600 hover:bg-slate-50"
-                                onClick={() => setShowDeleteDialog(false)}
-                            >
-                                {t('admin.cancel')}
-                            </button>
-                            <button
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700"
-                                onClick={handleDelete}
-                            >
-                                {t('admin.delete')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.deleteChannel')}</DialogTitle>
+                        <DialogDescription>{t('admin.deleteChannelConfirm')}</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                            {t('admin.cancel')}
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            {t('admin.delete')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

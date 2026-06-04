@@ -214,6 +214,25 @@ const mockRoutes: [RegExp, MockHandler][] = [
         };
     }],
 
+    // Auth — mock token refresh
+    [/\/auth\/refresh$/, () => {
+        return {
+            access_token: 'mock_access_token_' + uid(),
+            refresh_token: 'mock_refresh_token_' + uid(),
+            token_type: 'Bearer',
+            expires_in: 86400,
+            user: {
+                id: '1',
+                username: 'admin',
+                nickname: 'Admin',
+                email: 'admin@example.com',
+                role: 'admin',
+                is_superuser: true,
+                is_staff: true,
+            },
+        };
+    }],
+
     // Auth — mock signup
     [/\/auth\/signup$/, (_url, method, body) => {
         const username = (body as any)?.username || 'newuser';
@@ -278,8 +297,14 @@ const mockRoutes: [RegExp, MockHandler][] = [
         media_growth: 12.5, user_growth: 8.3, views_growth: 15.7, revenue_growth: 22.1,
     })],
 
-    // Media
+    // Media (admin)
     [/\/admin\/media(\?|$)/, (_url, _m, _b, fullUrl) => {
+        const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
+        return paginate(Array.from({length: 47}, (_, i) => genMedia(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
+    }],
+
+    // Media (public)
+    [/\/medias(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 47}, (_, i) => genMedia(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
@@ -401,10 +426,16 @@ export async function mockFetch<T>(url: string, method: string, body?: any): Pro
     if (!isMockMode()) return null;
 
     for (const [pattern, handler] of mockRoutes) {
-        if (pattern.test(url)) {
+        // 同时匹配带前缀和不带前缀的 URL
+        const urlWithoutPrefix = url.replace(/^\/api\/v1/, '');
+        const matches = pattern.test(url) || pattern.test(urlWithoutPrefix);
+        
+        if (matches) {
             await delay();
             const result = handler(url, method, body, url);
-            // Mutations (POST/PUT/DELETE) return the "created/updated" item or void
+            // mock 结果在 fetchApi 中直接返回，不经过 axios 响应拦截器
+            // 而 axios 拦截器会自动解包 {code, data} 格式
+            // 所以这里直接返回原始数据，与拦截器解包后的结果一致
             if (method !== 'GET' && method !== 'HEAD') {
                 return (body ? {...result, ...body} : result) as T;
             }
@@ -412,6 +443,13 @@ export async function mockFetch<T>(url: string, method: string, body?: any): Pro
         }
     }
 
-    // No matching route — return null to let real request proceed
-    return null;
+    // No matching route — in mock mode, return empty data instead of letting
+    // the request hit the real API (which would fail and trigger auth error loops)
+    console.warn(`[mock] No mock route for ${method} ${url}, returning empty fallback`);
+    if (method === 'GET') {
+        // Return sensible defaults for GET requests
+        return {items: [], total: 0, page: 1, page_size: 20} as T;
+    }
+    // For mutations, return a generic success response
+    return {id: 'mock', success: true} as T;
 }
