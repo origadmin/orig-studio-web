@@ -243,7 +243,7 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.channelTotal') || 'Total Channels'}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.channelTotal') || 'Total Channels'}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{total || channels.length}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
@@ -260,7 +260,7 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalSubscribers') || 'Subscribers'}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalSubscribers') || 'Subscribers'}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(totalSubscribers)}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
@@ -277,7 +277,7 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.verifiedChannels') || 'Verified'}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.verifiedChannels') || 'Verified'}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{verifiedCount}</h3>
                                 <p className="text-xs font-semibold text-slate-500 mt-2 flex items-center gap-1">
                                     {verifiedRatio}% {t('admin.ofTotalChannels') || 'of total channels'}
@@ -293,7 +293,7 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.pending')}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.pending')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{pendingCount}</h3>
                                 <p className="text-xs font-semibold text-red-500 mt-2 flex items-center gap-1">
                                     {t('admin.requiresAttention') || 'Requires attention'}

@@ -129,15 +129,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                 </Link>
             </div>
 
-            {/* New Asset Button */}
-            {!collapsed && (
-                <div className="p-4 border-b border-sidebar-border">
-                    <button className="w-full bg-primary text-primary-foreground font-semibold text-sm py-2 px-4 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98]">
-                        <Plus size={18}/>
-                        New Asset
-                    </button>
-                </div>
-            )}
+
 
             {/* Navigation */}
             <nav className="flex-1 py-4">

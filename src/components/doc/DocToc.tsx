@@ -2,9 +2,20 @@
  * DocToc - Right-side Table of Contents for the Doc Layout.
  * Reads headings from DocTocContext and highlights the active one.
  * Only visible on xl+ screens. Hidden on article pages with no headings.
+ *
+ * Migrated to compose the shadcn NavigationMenu (vertical) primitive for
+ * anchor links, keeping the existing public behaviour.
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
+import { cn } from '@/lib/utils';
 import { useDocTocContext } from '@/contexts/DocTocContext';
 
 const DocToc: React.FC = () => {
@@ -27,26 +38,30 @@ const DocToc: React.FC = () => {
       <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
         {t('doc.tocTitle')}
       </h4>
-      <nav aria-label="Table of Contents">
-        <ul className="space-y-1">
+      <NavigationMenu orientation="vertical" className="max-w-full w-full justify-start">
+        <NavigationMenuList className="flex-col items-stretch space-x-0 space-y-1">
           {headings.map((h) => (
-            <li key={h.id}>
-              <button
-                onClick={() => handleClick(h.id)}
-                className={`block w-full text-left text-sm py-0.5 transition-colors ${
-                  h.level === 3 ? 'pl-3' : ''
-                } ${
+            <NavigationMenuItem key={h.id}>
+              <NavigationMenuLink
+                asChild
+                className={cn(
+                  navigationMenuTriggerStyle(),
+                  'w-full justify-start text-left text-sm font-normal',
+                  h.level === 3 && 'pl-6',
                   activeId === h.id
                     ? 'text-primary font-medium'
                     : 'text-muted-foreground hover:text-foreground'
-                }`}
+                )}
+                onClick={() => handleClick(h.id)}
               >
-                {h.text}
-              </button>
-            </li>
+                <button type="button" className="w-full text-left">
+                  {h.text}
+                </button>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
           ))}
-        </ul>
-      </nav>
+        </NavigationMenuList>
+      </NavigationMenu>
     </aside>
   );
 };

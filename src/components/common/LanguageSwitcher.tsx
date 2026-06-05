@@ -6,12 +6,14 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
 import {Globe, Check} from 'lucide-react';
+import {Button} from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {cn} from '@/lib/utils';
 
 interface LanguageOption {
     code: string;
@@ -47,11 +49,18 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger
-                className={`inline-flex items-center justify-center rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 ${variant === 'compact' ? 'w-8 h-8' : 'w-10 h-10'} hover:bg-accent ${buttonClassName || ''}`}
-                aria-label={currentLang.nativeLabel}
-            >
-                <Globe size={variant === 'compact' ? 16 : 18} className="text-brand"/>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size={variant === 'compact' ? 'icon' : 'icon'}
+                    className={cn(
+                        variant === 'compact' ? 'h-8 w-8' : 'h-10 w-10',
+                        buttonClassName,
+                    )}
+                    aria-label={currentLang.nativeLabel}
+                >
+                    <Globe className={cn(variant === 'compact' ? 'h-4 w-4' : 'h-5 w-5', 'text-primary')}/>
+                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={className}>
                 {LANGUAGES.map((lang) => (
@@ -65,7 +74,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                             <span className="text-xs text-muted-foreground">{lang.label}</span>
                         </span>
                         {currentLanguage === lang.code && (
-                            <Check size={16} className="text-brand"/>
+                            <Check className="h-4 w-4 text-primary"/>
                         )}
                     </DropdownMenuItem>
                 ))}

@@ -1,14 +1,5 @@
-import {Spinner} from "@/components/ui/spinner"
 import {createFileRoute, redirect} from '@tanstack/react-router';
-import {lazy, Suspense} from 'react';
-
-const Page = lazy(() => import('@/pages/auth/SignIn/index'));
-
-const PageLoader = () => (
-    <div className="flex items-center justify-center min-h-[60vh] bg-background text-foreground">
-        <Spinner/>
-    </div>
-);
+import Page from '@/pages/auth/SignIn/index';
 
 /**
  * Sign-in route.
@@ -26,5 +17,5 @@ export const Route = createFileRoute('/auth/signin')({
             throw redirect({to: '/'});
         }
     },
-    component: () => <Suspense fallback={<PageLoader/>}><Page/></Suspense>,
+    component: Page,
 });

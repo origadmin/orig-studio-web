@@ -2,38 +2,43 @@
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  */
 
-import React, { ReactNode } from 'react';
+import * as React from "react";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {cn} from "@/lib/utils";
 
+/**
+ * Card — thin wrapper around the shadcn Card that preserves the legacy
+ * `title` + `footer` API used throughout the app. The shadcn Card is the
+ * single source of truth; the wrapper just makes adoption drop-in.
+ */
 interface CardProps {
-  title?: string;
-  children: ReactNode;
-  className?: string;
-  footer?: ReactNode;
+    title?: string;
+    children: React.ReactNode;
+    className?: string;
+    footer?: React.ReactNode;
 }
 
-export const Card: React.FC<CardProps> = ({
-  title,
-  children,
-  className = '',
-  footer,
+export const OrigCard: React.FC<CardProps> = ({
+    title,
+    children,
+    className,
+    footer,
 }) => {
-  return (
-    <div className={`bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 ${className}`}>
-      {title && (
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {title}
-          </h3>
-        </div>
-      )}
-      <div className="p-6">
-        {children}
-      </div>
-      {footer && (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 rounded-b-lg">
-          {footer}
-        </div>
-      )}
-    </div>
-  );
+    return (
+        <Card className={cn("bg-white", className)}>
+            {title && (
+                <CardHeader className="border-b border-slate-100">
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
+            )}
+            <CardContent className="p-6">{children}</CardContent>
+            {footer && (
+                <CardFooter className="border-t border-slate-100 bg-slate-50/50 rounded-b-xl">
+                    {footer}
+                </CardFooter>
+            )}
+        </Card>
+    );
 };
+
+export {OrigCard as Card};

@@ -1,23 +1,44 @@
 /*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
+ * Design: Stitch media_library — Upload zone
+ *   - border-2 border-dashed border-slate-200 rounded-xl
+ *   - hover:border-indigo-400 transition-colors
+ *   - w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full icon bubble
  */
 
 import React, {useCallback, useState} from 'react';
+import {UploadCloud} from 'lucide-react';
+import {cn} from '@/lib/utils';
 import {useUpload} from '@/hooks/useUpload';
 
 export interface UploadZoneProps {
     onFilesAdded?: (files: File[]) => void;
     accept?: string;
     maxSize?: number; // bytes
+    className?: string;
 }
 
 export const UploadZone: React.FC<UploadZoneProps> = ({
                                                           onFilesAdded,
                                                           accept = 'video/*,image/*',
-                                                          maxSize = 500 * 1024 * 1024
+                                                          maxSize = 500 * 1024 * 1024,
+                                                          className,
                                                       }) => {
     const [isDragActive, setIsDragActive] = useState(false);
     const {addTask} = useUpload();
+
+    const handleFiles = useCallback((files: File[]) => {
+        if (files.length === 0) return;
+        files.forEach(file => {
+            if (file.size <= maxSize) {
+                addTask(file);
+            } else {
+                // surface oversized files instead of alert() per design system
+                console.warn(`File ${file.name} exceeds max size ${maxSize / (1024 * 1024)}MB`);
+            }
+        });
+        onFilesAdded?.(files);
+    }, [addTask, maxSize, onFilesAdded]);
 
     const handleDragEnter = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -35,64 +56,55 @@ export const UploadZone: React.FC<UploadZoneProps> = ({
         e.preventDefault();
         e.stopPropagation();
         setIsDragActive(false);
-
-        const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) {
-            files.forEach(file => {
-                if (file.size <= maxSize) {
-                    addTask(file);
-                } else {
-                    alert(`File ${file.name} is too large (max ${maxSize / (1024 * 1024)}MB)`);
-                }
-            });
-            if (onFilesAdded) onFilesAdded(files);
-        }
-    }, [addTask, maxSize, onFilesAdded]);
+        handleFiles(Array.from(e.dataTransfer.files));
+    }, [handleFiles]);
 
     const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (files.length > 0) {
-            files.forEach(file => {
-                if (file.size <= maxSize) {
-                    addTask(file);
-                } else {
-                    alert(`File ${file.name} is too large (max ${maxSize / (1024 * 1024)}MB)`);
-                }
-            });
-            if (onFilesAdded) onFilesAdded(files);
-        }
-    }, [addTask, maxSize, onFilesAdded]);
+        handleFiles(Array.from(e.target.files || []));
+    }, [handleFiles]);
 
     return (
         <div
+            role="button"
+            tabIndex={0}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-10 flex flex-col items-center justify-center transition-colors cursor-pointer ${
-                isDragActive ? 'border-blue-500 bg-blue-50' : 'border-input hover:border-gray-400'
-            }`}
-            onClick={() => document.getElementById('file-input')?.click()}
+            onClick={() => document.getElementById('upload-zone-input')?.click()}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    document.getElementById('upload-zone-input')?.click();
+                }
+            }}
+            className={cn(
+                'group border-2 border-dashed border-slate-200 rounded-xl p-8 text-center',
+                'hover:border-indigo-400 transition-colors cursor-pointer outline-none',
+                'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                isDragActive && 'border-indigo-400 bg-indigo-50/40',
+                className,
+            )}
         >
             <input
-                id="file-input"
+                id="upload-zone-input"
                 type="file"
                 multiple
                 accept={accept}
                 onChange={handleFileInput}
                 className="hidden"
             />
-            <div className="text-4xl mb-4 text-muted-foreground">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                          d="7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
+            <div
+                className={cn(
+                    'w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full',
+                    'flex items-center justify-center mx-auto mb-3',
+                    'group-hover:scale-110 transition-transform',
+                )}
+            >
+                <UploadCloud className="w-6 h-6"/>
             </div>
-            <p className="text-lg font-medium text-gray-600">
-                Drag & drop files here or click to browse
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm font-semibold text-slate-800">Click or drag to upload</p>
+            <p className="text-xs text-slate-400 mt-1">
                 Supports videos and images up to {maxSize / (1024 * 1024)}MB
             </p>
         </div>

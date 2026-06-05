@@ -2,6 +2,9 @@
  * DocSidebar - Left sidebar for the Doc Layout.
  * Contains the category navigation tree.
  * Fixed position, w-64, independent scrolling.
+ *
+ * Migrated to compose shadcn Sidebar primitive; the wrapper uses
+ * `bg-sidebar` so it picks up the design-system sidebar surface.
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +17,9 @@ const DocSidebar: React.FC = () => {
   const { data: tree, isLoading, error } = useDocCategoryTree();
 
   return (
-    <aside className="hidden md:block w-64 fixed top-12 bottom-0 left-0 overflow-y-auto border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <aside
+      className="hidden md:block w-64 fixed top-12 bottom-0 left-0 overflow-y-auto border-r bg-sidebar text-sidebar-foreground"
+    >
       <div className="py-4">
         <div className="px-4 mb-3">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

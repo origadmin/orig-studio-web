@@ -440,7 +440,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 onClick={() => setOwnerTab(tab.key)}
                                 className={`flex items-center gap-1.5 px-3 py-2.5 font-medium text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                                     ownerTab === tab.key
-                                        ? 'border-brand text-brand'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                             >
@@ -463,7 +463,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 onClick={() => setVisitorTab(tab.id)}
                                 className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                                     visitorTab === tab.id
-                                        ? 'border-brand text-brand'
+                                        ? 'border-primary text-primary'
                                         : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                             >
@@ -675,7 +675,7 @@ const ProfileAboutTab: React.FC<{profile: any}> = ({profile}) => {
             {profile.website && (
                 <div className="flex items-center gap-2 text-sm">
                     <LinkIcon size={16} className="text-muted-foreground"/>
-                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
+                    <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                         {profile.website}
                     </a>
                 </div>

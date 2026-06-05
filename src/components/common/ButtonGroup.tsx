@@ -2,25 +2,30 @@
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  */
 
-import React, { ReactNode } from 'react';
+import * as React from "react";
+import {ButtonGroup as ShadcnButtonGroup} from "@/components/ui/button-group";
 
+/**
+ * ButtonGroup — re-exports the shadcn primitive.
+ * Preserves the legacy `orientation` prop ("horizontal" | "vertical").
+ *
+ * @deprecated Prefer the shadcn primitive directly via
+ * `import {ButtonGroup} from "@/components/ui/button-group"`.
+ */
 interface ButtonGroupProps {
-  children: ReactNode;
-  className?: string;
-  orientation?: 'horizontal' | 'vertical';
+    children: React.ReactNode;
+    className?: string;
+    orientation?: "horizontal" | "vertical";
 }
 
 export const ButtonGroup: React.FC<ButtonGroupProps> = ({
-  children,
-  className = '',
-  orientation = 'horizontal',
+    children,
+    className,
+    orientation = "horizontal",
 }) => {
-  const baseClasses = 'flex gap-2';
-  const orientationClasses = orientation === 'horizontal' ? 'flex-row' : 'flex-col';
-  
-  return (
-    <div className={`${baseClasses} ${orientationClasses} ${className}`}>
-      {children}
-    </div>
-  );
+    return (
+        <ShadcnButtonGroup orientation={orientation} className={className}>
+            {children}
+        </ShadcnButtonGroup>
+    );
 };

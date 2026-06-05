@@ -12,10 +12,13 @@ import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Badge} from '@/components/ui/badge';
 import {Separator} from '@/components/ui/separator';
+import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete} from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {toast} from 'sonner';
 import type {Media} from '@/lib/api/media';
@@ -82,26 +85,44 @@ const STATE_BADGE_VARIANT_MAP: Record<string, HeaderBadgeConfig['variant']> = {
 /**
  * Map Media to HeaderBadgeConfig[]
  */
+const TYPE_LABEL_MAP: Record<string, string> = {
+    video: '视频',
+    audio: '音频',
+    image: '图片',
+    document: '文档',
+};
+
+const STATE_LABEL_MAP: Record<string, string> = {
+    active: '已发布',
+    draft: '草稿',
+    deleted: '已删除',
+    pending: '待审核',
+};
+
 function mapMediaToHeaderBadges(media: Media, t: (key: string) => string): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
-    // Type Badge
-    badges.push({
-        type: 'media-type',
-        variant: 'outline',
-        label: media.type,
-        ariaLabel: `媒体类型: ${media.type}`,
-    });
+    // Type Badge — only show if type is meaningful
+    const typeLabel = TYPE_LABEL_MAP[media.type] || media.type;
+    if (typeLabel) {
+        badges.push({
+            type: 'media-type',
+            variant: 'outline',
+            label: typeLabel,
+            ariaLabel: `媒体类型: ${typeLabel}`,
+        });
+    }
 
-    // State Badge
-    const stateVariant = STATE_BADGE_VARIANT_MAP[media.state] || 'outline' as const;
-    const stateLabel = media.state;
-    badges.push({
-        type: 'state',
-        variant: stateVariant,
-        label: stateLabel,
-        ariaLabel: `状态: ${stateLabel}`,
-    });
+    // State Badge — only show if state is meaningful
+    const stateLabel = STATE_LABEL_MAP[media.state] || media.state;
+    if (stateLabel) {
+        badges.push({
+            type: 'state',
+            variant: STATE_BADGE_VARIANT_MAP[media.state] || 'outline' as const,
+            label: stateLabel,
+            ariaLabel: `状态: ${stateLabel}`,
+        });
+    }
 
     // Featured Badge (conditional)
     if (media.featured) {
@@ -166,13 +187,14 @@ export default function MediaEditPage() {
     const [stats, setStats] = useState<MediaStats | null>(null);
     const [tasks, setTasks] = useState<EncodingTask[]>([]);
     const [profiles, setProfiles] = useState<Map<number, EncodeProfile>>(new Map());
-    const [activeTab, setActiveTab] = useState<'metadata' | 'publish' | 'encoding' | 'stats'>('metadata');
+    const [activeTab, setActiveTab] = useState<string>('metadata');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [thumbnailError, setThumbnailError] = useState(false);
     const [regenThumbnailConfirmOpen, setRegenThumbnailConfirmOpen] = useState(false);
     const [regenSpriteConfirmOpen, setRegenSpriteConfirmOpen] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
+    const [tagInput, setTagInput] = useState('');
 
     // Save state management
     const {saveState, isSaving, setSaving, setSuccess, setError} = useSaveState();
@@ -395,24 +417,6 @@ export default function MediaEditPage() {
         return parts.join('，');
     }, [taskSummary, tasks.length]);
 
-    const reviewStatusBadge = (status: string | undefined): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" => {
-        switch (status) {
-            case 'approved': return 'success';
-            case 'pending': return 'warning';
-            case 'rejected': return 'destructive';
-            default: return 'secondary';
-        }
-    };
-
-    const reviewStatusLabel = (status: string | undefined) => {
-        switch (status) {
-            case 'approved': return '已通过';
-            case 'pending': return '待审核';
-            case 'rejected': return '已拒绝';
-            default: return '未审核';
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -467,254 +471,308 @@ export default function MediaEditPage() {
                 encodingStatus={encodingConfig}
             />
 
-            <div className="max-w-7xl mx-auto px-6 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="flex gap-1 border-b">
-                            {(['metadata', 'publish', 'encoding', 'stats'] as const).map(tab => (
-                                <button key={tab}
-                                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                                            activeTab === tab
-                                                ? 'border-primary text-primary'
-                                                : 'border-transparent text-muted-foreground hover:text-foreground'
-                                        }`}
-                                        onClick={() => setActiveTab(tab)}>
-                                    {{metadata: '元数据', publish: '发布设置', encoding: '编码任务', stats: '统计信息'}[tab]}
-                                </button>
-                            ))}
-                        </div>
+            <div className="max-w-[1440px] mx-auto px-6 py-6">
+                <div className="mb-6">
+                    <Label htmlFor="media-title" className="text-xs text-muted-foreground block mb-2 uppercase font-bold tracking-wider">标题</Label>
+                    <Input id="media-title" value={form.title}
+                           onChange={e => setForm({...form, title: e.target.value})}
+                           className="text-3xl font-bold h-auto py-1"
+                           placeholder="输入媒体标题..."/>
+                </div>
 
-                        {activeTab === 'metadata' && (
-                            <div className="space-y-6 bg-card rounded-lg border p-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="title">标题</Label>
-                                    <Input id="title" value={form.title}
-                                           onChange={e => setForm({...form, title: e.target.value})}/>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* LEFT COLUMN (8/12) */}
+                    <div className="col-span-12 lg:col-span-8 space-y-8">
+                        {/* Hero Card */}
+                        <Card className="bg-card">
+                            <CardContent className="p-6">
+                                <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center max-w-2xl mx-auto group cursor-pointer hover:border-primary transition-colors">
+                                    {media.thumbnail && !thumbnailError ? (
+                                        <img src={resolveMediaUrl(media.thumbnail)} alt={media.title}
+                                             className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                                             onError={() => setThumbnailError(true)}/>
+                                    ) : null}
+                                    <div className="relative z-10 flex flex-col items-center gap-3 text-foreground">
+                                        <Upload className="w-10 h-10"/>
+                                        <p className="font-semibold">拖拽或点击更换缩略图</p>
+                                        <p className="text-xs text-muted-foreground uppercase tracking-widest">推荐: 1920x1080 (16:9)</p>
+                                    </div>
+                                    <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2">
+                                        <Edit className="w-4 h-4"/>更换
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="description">描述</Label>
+                                <div className="mt-6">
+                                    <Label htmlFor="description" className="text-xs text-muted-foreground block mb-2 uppercase font-bold tracking-wider">描述</Label>
                                     <textarea id="description"
-                                              className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                              className="w-full bg-card border border-border rounded-lg p-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none min-h-[80px]"
                                               value={form.description}
                                               onChange={e => setForm({...form, description: e.target.value})}
-                                              placeholder={t('mediaEdit.descriptionPlaceholder')}/>
+                                              placeholder="添加关于这个媒体文件的详细描述..."/>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="tags">标签 (逗号分隔)</Label>
-                                    <Input id="tags" value={form.tags}
-                                           onChange={e => setForm({...form, tags: e.target.value})}
-                                           placeholder={t('mediaEdit.tagsPlaceholder')}/>
-                                    {form.tags && (
-                                        <div className="flex flex-wrap gap-1 mt-2">
-                                            {form.tags.split(',').map((tag, i) => tag.trim() && (
-                                                <Badge key={i} variant="secondary" className="text-xs">{tag.trim()}</Badge>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>媒体类型</Label>
-                                        <Input value={media.type || ''} disabled className="bg-muted"/>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>时长</Label>
-                                        <Input value={media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : 'N/A'} disabled className="bg-muted"/>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>分辨率</Label>
-                                        <Input value={media.width && media.height ? `${media.width}x${media.height}` : 'N/A'} disabled className="bg-muted"/>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>文件大小</Label>
-                                        <Input value={media.size || 'N/A'} disabled className="bg-muted"/>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>文件URL</Label>
-                                    <Input value={media.url || ''} disabled className="bg-muted text-xs"/>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>MD5</Label>
-                                    <Input value={media.md5sum || 'N/A'} disabled className="bg-muted font-mono text-xs"/>
-                                </div>
-                            </div>
-                        )}
+                            </CardContent>
+                        </Card>
 
-                        {activeTab === 'publish' && (
-                            <div className="space-y-6 bg-card rounded-lg border p-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label>状态</Label>
-                                        <Select value={form.state} onValueChange={val => setForm({...form, state: val})}>
-                                            <SelectTrigger><SelectValue/></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="draft">草稿</SelectItem>
-                                                <SelectItem value="active">已发布</SelectItem>
-                                                <SelectItem value="deleted">已删除</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>隐私级别</Label>
-                                        <Select value={String(form.privacy)} onValueChange={val => setForm({...form, privacy: Number(val)})}>
-                                            <SelectTrigger><SelectValue/></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="1">公开</SelectItem>
-                                                <SelectItem value="3">未列出</SelectItem>
-                                                <SelectItem value="2">私密</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>分类</Label>
-                                    <Select value={form.category_id !== '' && form.category_id !== undefined ? String(form.category_id) : '_none_'} onValueChange={val => setForm({...form, category_id: val === '_none_' ? '' : val})}>
-                                        <SelectTrigger><SelectValue placeholder={t('mediaEdit.selectCategory')}/></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="_none_">无分类</SelectItem>
-                                            {(Array.isArray(categoriesData?.items) ? categoriesData.items : Array.isArray(categoriesData) ? categoriesData : []).map((cat: any) => (
-                                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                                    {cat.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Separator/>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" id="featured" checked={form.featured}
-                                               onChange={e => setForm({...form, featured: e.target.checked})}
-                                               className="h-4 w-4 rounded border-input text-primary focus:ring-primary"/>
-                                        <div>
-                                            <Label htmlFor="featured" className="cursor-pointer">{t('mediaEdit.featuredContent')}</Label>
-                                            <p className="text-xs text-muted-foreground">{t('mediaEdit.featuredDesc')}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" id="listable" checked={form.listable}
-                                               onChange={e => setForm({...form, listable: e.target.checked})}
-                                               className="h-4 w-4 rounded border-input text-primary focus:ring-primary"/>
-                                        <div>
-                                            <Label htmlFor="listable" className="cursor-pointer">允许列表展示</Label>
-                                            <p className="text-xs text-muted-foreground">在视频列表中公开展示</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" id="enable_comments" checked={form.enable_comments}
-                                               onChange={e => setForm({...form, enable_comments: e.target.checked})}
-                                               className="h-4 w-4 rounded border-input text-primary focus:ring-primary"/>
-                                        <div>
-                                            <Label htmlFor="enable_comments" className="cursor-pointer">允许评论</Label>
-                                            <p className="text-xs text-muted-foreground">用户可以发表评论</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <input type="checkbox" id="allow_download" checked={form.allow_download}
-                                               onChange={e => setForm({...form, allow_download: e.target.checked})}
-                                               className="h-4 w-4 rounded border-input text-primary focus:ring-primary"/>
-                                        <div>
-                                            <Label htmlFor="allow_download" className="cursor-pointer">允许下载</Label>
-                                            <p className="text-xs text-muted-foreground">用户可以下载原始文件</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                {media.reported_times !== undefined && media.reported_times > 0 && (
-                                    <>
-                                        <Separator/>
-                                        <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 text-destructive">
-                                            <AlertTriangle className="w-4 h-4"/>
-                                            <span className="text-sm font-medium">该媒体已被举报 {media.reported_times} 次</span>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
+                        {/* Tabs Navigation */}
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-4">
+                            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0 h-auto gap-2 flex flex-wrap">
+                                {['metadata', 'publishing', 'encoding', 'subtitles', 'stats'].map(tab => (
+                                    <TabsTrigger
+                                        key={tab}
+                                        value={tab}
+                                        className="px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-none"
+                                    >
+                                        {{metadata: '元数据', publishing: '发布设置', encoding: '编码任务', subtitles: '字幕', stats: '统计信息'}[tab]}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
 
-                        {activeTab === 'encoding' && (
-                            <div className="space-y-4 bg-card rounded-lg border p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="font-medium">编码任务</h3>
-                                        {taskSummaryText && (
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                共 {tasks.length} 个任务: {taskSummaryText}
-                                            </p>
-                                        )}
-                                    </div>
-                                    {media.type === 'video' && (
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => setRegenThumbnailConfirmOpen(true)}
-                                                    disabled={isRegenerating}
-                                                    title={t('mediaEdit.regenerateThumbnailTitle')}>
-                                                <Image className="w-3 h-3 mr-1"/>{t('mediaEdit.regenerateThumbnail')}
-                                            </Button>
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => setRegenSpriteConfirmOpen(true)}
-                                                    disabled={isRegenerating}
-                                                    title={t('mediaEdit.regenerateSpriteTitle')}>
-                                                <Film className="w-3 h-3 mr-1"/>{t('mediaEdit.regenerateSprite')}
-                                            </Button>
+                            {/* Tab Content: Metadata */}
+                            <TabsContent value="metadata" className="bg-card rounded-lg border p-6 space-y-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-bold">语言</Label>
+                                            <Select defaultValue="en">
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="选择语言"/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="en">English (United States)</SelectItem>
+                                                    <SelectItem value="zh">简体中文</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </div>
-                                    )}
+
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-bold">内容分级</Label>
+                                            <Select defaultValue="general">
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="选择内容分级"/>
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="general">G - 普通观众</SelectItem>
+                                                    <SelectItem value="pg">PG - 家长指引</SelectItem>
+                                                    <SelectItem value="pg13">PG-13</SelectItem>
+                                                    <SelectItem value="r">R - 限制级</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-bold">缩略图时间</Label>
+                                            <Input value="00:00:12.500" className="bg-card"/>
+                                        </div>
+
+                                        <div className="space-y-3 pt-4">
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-1">资源链接</h4>
+                                            <div className="grid grid-cols-1 gap-2">
+                                                <button className="flex items-center justify-between px-3 py-2 bg-card border border-border rounded-lg text-xs hover:bg-card/80 group">
+                                                    <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-primary"/>HLS Manifest</span>
+                                                    <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
+                                                </button>
+                                                <button className="flex items-center justify-between px-3 py-2 bg-card border border-border rounded-lg text-xs hover:bg-card/80 group">
+                                                    <span className="flex items-center gap-2"><Video className="w-4 h-4 text-secondary"/>Sprite Map</span>
+                                                    <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <div className="space-y-1.5">
+                                            <Label className="text-xs font-bold">标签</Label>
+                                            <div className="flex flex-wrap gap-2 p-3 bg-card border border-border rounded-lg min-h-[120px] content-start">
+                                                {form.tags.split(',').map((tag, i) => tag.trim() && (
+                                                    <Badge key={i} variant="secondary" className="text-xs px-2 py-1 gap-1">
+                                                        {tag.trim()}
+                                                        <button className="hover:text-destructive ml-0.5"
+                                                                onClick={() => {
+                                                                    const tags = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+                                                                    tags.splice(i, 1);
+                                                                    setForm({...form, tags: tags.join(', ')});
+                                                                }}>×</button>
+                                                    </Badge>
+                                                ))}
+                                                <input
+                                                    value={tagInput}
+                                                    onChange={e => setTagInput(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter' && tagInput.trim()) {
+                                                            e.preventDefault();
+                                                            const current = form.tags ? form.tags.split(',').map(s => s.trim()).filter(Boolean) : [];
+                                                            const newTag = tagInput.trim().replace(/,/g, '');
+                                                            if (newTag && !current.includes(newTag)) {
+                                                                setForm({...form, tags: [...current, newTag].join(', ')});
+                                                            }
+                                                            setTagInput('');
+                                                        }
+                                                    }}
+                                                    placeholder="输入后按回车添加..."
+                                                    className="bg-transparent border-none focus-visible:ring-0 text-xs min-w-[120px] flex-1 outline-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-1">技术规格</h4>
+                                            <div className="space-y-2 text-xs">
+                                                <div className="flex justify-between"><span className="text-muted-foreground">格式</span><span className="font-bold">{media.type?.toUpperCase() || 'VIDEO'}</span></div>
+                                                <div className="flex justify-between"><span className="text-muted-foreground">分辨率</span><span className="font-bold">{media.width && media.height ? `${media.width}x${media.height}` : 'N/A'}</span></div>
+                                                <div className="flex justify-between"><span className="text-muted-foreground">时长</span><span className="font-bold">{media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : 'N/A'}</span></div>
+                                                <div className="flex justify-between"><span className="text-muted-foreground">大小</span><span className="font-bold">{media.size || 'N/A'}</span></div>
+                                                <div className="mt-4 bg-muted px-2 py-1.5 rounded border border-border/30 flex items-center justify-between">
+                                                    <span className="text-[11px] font-mono text-primary truncate">MD5: {media.md5sum || 'N/A'}</span>
+                                                    <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                {tasks.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground py-8 text-center">暂无编码任务</p>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {tasks.map(task => (
-                                            <div key={task.id} className="p-3 rounded-md border space-y-2">
-                                                <div className="flex items-center justify-between">
+                            </TabsContent>
+
+                            {/* Tab Content: Publishing */}
+                            <TabsContent value="publishing" className="bg-card rounded-lg border p-6">
+                                <div className="mb-8">
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">隐私级别</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {[
+                                            {value: '1', label: '公开', icon: 'public', desc: '所有人可见'},
+                                            {value: '2', label: '私密', icon: 'lock', desc: '只有你可以查看'},
+                                            {value: '3', label: '未列出', icon: 'visibility_off', desc: '任何有链接的人可查看'},
+                                        ].map(option => (
+                                            <label key={option.value} className="cursor-pointer group relative">
+                                                <input type="radio" name="privacy" checked={String(form.privacy) === option.value}
+                                                       onChange={() => setForm({...form, privacy: Number(option.value)})}
+                                                       className="peer hidden"/>
+                                                <div className="h-full p-4 rounded-lg border border-border bg-card flex flex-col gap-1.5 transition-all peer-checked:border-primary peer-checked:bg-primary/10">
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="p-2 bg-primary/10 rounded-md">
+                                                            {option.icon === 'public' && <Eye className="w-5 h-5 text-primary"/>}
+                                                            {option.icon === 'lock' && <ShieldCheck className="w-5 h-5 text-muted-foreground"/>}
+                                                            {option.icon === 'visibility_off' && <XCircle className="w-5 h-5 text-muted-foreground"/>}
+                                                        </div>
+                                                        <div className="w-4 h-4 rounded-full border-2 border-border flex items-center justify-center peer-checked:border-primary">
+                                                            <div className={`w-2 h-2 rounded-full bg-primary ${String(form.privacy) === option.value ? 'opacity-100' : 'opacity-0'}`}/>
+                                                        </div>
+                                                    </div>
+                                                    <p className="font-bold text-sm">{option.label}</p>
+                                                    <p className="text-xs text-muted-foreground">{option.desc}</p>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-6 border-t border-border/30">
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">配置开关</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
+                                            <div><p className="text-sm font-bold">精选内容</p><p className="text-xs text-muted-foreground">在英雄滑块中展示</p></div>
+                                            <input type="checkbox" checked={form.featured}
+                                                   onChange={e => setForm({...form, featured: e.target.checked})}
+                                                   className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
+                                            <div><p className="text-sm font-bold">允许评论</p><p className="text-xs text-muted-foreground">用户可以发表评论</p></div>
+                                            <input type="checkbox" checked={form.enable_comments}
+                                                   onChange={e => setForm({...form, enable_comments: e.target.checked})}
+                                                   className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
+                                            <div><p className="text-sm font-bold">允许列表展示</p><p className="text-xs text-muted-foreground">在视频列表中展示</p></div>
+                                            <input type="checkbox" checked={form.listable}
+                                                   onChange={e => setForm({...form, listable: e.target.checked})}
+                                                   className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
+                                            <div><p className="text-sm font-bold">允许下载</p><p className="text-xs text-muted-foreground">启用离线查看</p></div>
+                                            <input type="checkbox" checked={form.allow_download}
+                                                   onChange={e => setForm({...form, allow_download: e.target.checked})}
+                                                   className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            {/* Tab Content: Encoding */}
+                            <TabsContent value="encoding" className="bg-card rounded-lg border p-6">
+                                <div className="flex items-center gap-2 mb-6 overflow-x-auto">
+                                    <Button variant="default" size="sm" className="rounded-full text-xs font-bold">全部 ({tasks.length})</Button>
+                                    {taskSummary.pending > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold">排队中 ({taskSummary.pending})</Button>}
+                                    {taskSummary.processing > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-primary bg-primary/20">转码中 ({taskSummary.processing})</Button>}
+                                    {taskSummary.success > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-success bg-success/20">完成 ({taskSummary.success})</Button>}
+                                </div>
+
+                                <div className="space-y-4 mb-8">
+                                    {tasks.length === 0 ? (
+                                        <p className="text-sm text-muted-foreground py-8 text-center">暂无编码任务</p>
+                                    ) : (
+                                        tasks.map(task => (
+                                            <div key={task.id} className="p-4 bg-muted rounded-lg border border-border relative overflow-hidden">
+                                                <div className="flex justify-between items-start mb-3 relative z-10">
                                                     <div className="flex items-center gap-3">
-                                                        <Badge variant={encodingStatusBadge(task.status)} className="text-[10px] px-1.5 py-0 h-4 shrink-0">
+                                                        <Badge variant={encodingStatusBadge(task.status)} className="text-xs">
                                                             {encodingStatusLabel(task.status)}
                                                         </Badge>
                                                         <div>
-                                                            <p className="text-sm font-medium">{getProfileName(task.profile_id)}</p>
-                                                            {getProfileInfo(task.profile_id) && (
-                                                                <p className="text-xs text-muted-foreground">{getProfileInfo(task.profile_id)}</p>
-                                                            )}
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="font-bold text-sm">{getProfileName(task.profile_id)}</p>
+                                                                <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-mono rounded uppercase">
+                                                                    {getProfileInfo(task.profile_id).split(' / ')[1] || 'CODEC'}
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground">创建: {formatDateTime(task.create_time)}</p>
                                                         </div>
-                                                        {task.chunk && (
-                                                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">分段</Badge>
-                                                        )}
                                                     </div>
                                                     {task.status === 'failed' && (
-                                                        <Button variant="outline" size="sm"
-                                                                onClick={() => handleRetryTask(task.id)}>
+                                                        <Button variant="outline" size="sm" onClick={() => handleRetryTask(task.id)}>
                                                             <RefreshCw className="w-3 h-3 mr-1"/>重试
                                                         </Button>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                                    {task.create_time && (
-                                                        <span>创建: {formatDateTime(task.create_time)}</span>
-                                                    )}
-                                                    {task.update_time && task.update_time !== task.create_time && (
-                                                        <span>更新: {formatDateTime(task.update_time)}</span>
-                                                    )}
-                                                </div>
-                                                {task.status === 'failed' && task.error_message && (
-                                                    <div className="flex items-start gap-2 p-2 rounded bg-destructive/10 text-destructive text-xs">
-                                                        <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5"/>
-                                                        <span className="break-all">{task.error_message}</span>
-                                                    </div>
-                                                )}
-                                                {task.status === 'success' && task.output_path && (
-                                                    <div className="text-xs text-muted-foreground truncate" title={task.output_path}>
-                                                        输出: {task.output_path}
-                                                    </div>
-                                                )}
                                             </div>
-                                        ))}
+                                        ))
+                                    )}
+                                </div>
+
+                                <div className="border-t border-border/30 pt-6">
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">媒体变体</h3>
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader className="text-muted-foreground border-b border-border/20 uppercase tracking-tighter">
+                                                <TableRow>
+                                                    <TableHead className="pb-2 font-bold">变体</TableHead>
+                                                    <TableHead className="pb-2 font-bold">分辨率</TableHead>
+                                                    <TableHead className="pb-2 font-bold">编码</TableHead>
+                                                    <TableHead className="pb-2 font-bold">大小</TableHead>
+                                                    <TableHead className="pb-2 font-bold">操作</TableHead>
+                                                    <TableHead className="pb-2 font-bold">状态</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody className="divide-y divide-border/10">
+                                                {/* Demo rows */}
+                                                <TableRow>
+                                                    <TableCell className="py-3 font-mono">MASTER_4K</TableCell>
+                                                    <TableCell className="py-3">3840x2160</TableCell>
+                                                    <TableCell className="py-3">H.265</TableCell>
+                                                    <TableCell className="py-3">{media.size || 'N/A'}</TableCell>
+                                                    <TableCell className="py-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <Button variant="ghost" size="icon" className="w-6 h-6"><Eye className="w-4 h-4"/></Button>
+                                                            <Button variant="ghost" size="icon" className="w-6 h-6"><Copy className="w-4 h-4"/></Button>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-3">
+                                                        <CheckCircle className="w-5 h-5 text-success"/>
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Regenerate Thumbnail Confirmation */}
                                 <DeleteConfirmDialog
@@ -737,143 +795,269 @@ export default function MediaEditPage() {
                                     confirmLabel={t('mediaEdit.confirmRegenerate')}
                                     description={t('mediaEdit.confirmRegenerateSpriteDesc')}
                                 />
-                            </div>
-                        )}
+                            </TabsContent>
 
-                        {activeTab === 'stats' && stats && (
-                            <div className="space-y-4 bg-card rounded-lg border p-6">
-                                <h3 className="font-medium">统计信息</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    <div className="p-4 rounded-md border">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Eye className="w-4 h-4"/><span className="text-xs">播放量</span>
+                            {/* Tab Content: Subtitles */}
+                            <TabsContent value="subtitles" className="bg-card rounded-lg border p-6 space-y-8">
+                                {/* Add Subtitle Form — top section */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">添加字幕</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                                        <div className="space-y-1">
+                                            <Label className="text-[11px] font-bold uppercase">语言</Label>
+                                            <Input placeholder="例如 zh-CN"/>
                                         </div>
-                                        <p className="text-2xl font-bold mt-1">{stats.view_count.toLocaleString()}</p>
-                                    </div>
-                                    <div className="p-4 rounded-md border">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <ThumbsUp className="w-4 h-4"/><span className="text-xs">点赞</span>
+                                        <div className="space-y-1">
+                                            <Label className="text-[11px] font-bold uppercase">标签</Label>
+                                            <Input placeholder="简体中文"/>
                                         </div>
-                                        <p className="text-2xl font-bold mt-1">{stats.like_count.toLocaleString()}</p>
-                                    </div>
-                                    <div className="p-4 rounded-md border">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <MessageSquare className="w-4 h-4"/><span className="text-xs">评论</span>
+                                        <div className="space-y-1 lg:col-span-2">
+                                            <Label className="text-[11px] font-bold uppercase">文件 (VTT/SRT)</Label>
+                                            <div className="flex gap-2">
+                                                <Input type="file" className="flex-1 bg-card border border-border rounded-lg p-2 text-sm text-[11px]"/>
+                                                <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold shrink-0">
+                                                    上传
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <p className="text-2xl font-bold mt-1">{stats.comment_count.toLocaleString()}</p>
-                                    </div>
-                                    <div className="p-4 rounded-md border">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Download className="w-4 h-4"/><span className="text-xs">收藏</span>
-                                        </div>
-                                        <p className="text-2xl font-bold mt-1">{stats.favorite_count.toLocaleString()}</p>
-                                    </div>
-                                    <div className="p-4 rounded-md border">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <AlertTriangle className="w-4 h-4"/><span className="text-xs">踩</span>
-                                        </div>
-                                        <p className="text-2xl font-bold mt-1">{stats.dislike_count.toLocaleString()}</p>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+
+                                <Separator />
+
+                                {/* Current Subtitles Table — bottom section, full width */}
+                                <div>
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">当前字幕</h3>
+                                    <Table>
+                                        <TableHeader className="text-muted-foreground border-b border-border/20 uppercase">
+                                            <TableRow>
+                                                <TableHead className="pb-2 font-bold">语言</TableHead>
+                                                <TableHead className="pb-2 font-bold">标签</TableHead>
+                                                <TableHead className="pb-2 font-bold">链接</TableHead>
+                                                <TableHead className="pb-2 font-bold w-[80px]">操作</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody className="divide-y divide-border/10">
+                                            <TableRow>
+                                                <TableCell className="py-3">
+                                                    <span className="px-2 py-0.5 bg-card border border-border rounded text-[10px] font-bold">
+                                                        中文
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="py-3">简体中文 (强制)</TableCell>
+                                                <TableCell className="py-3 font-mono text-primary text-[11px] truncate max-w-[200px]">/sub/zh.vtt</TableCell>
+                                                <TableCell className="py-3">
+                                                    <div className="flex items-center gap-3 text-muted-foreground">
+                                                        <Edit className="w-4 h-4 hover:text-primary cursor-pointer"/>
+                                                        <XCircle className="w-4 h-4 hover:text-destructive cursor-pointer"/>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            </TabsContent>
+
+                            {/* Tab Content: Stats */}
+                            <TabsContent value="stats" className="bg-card rounded-lg border p-6">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-6">性能指标</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <Eye className="text-primary text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{(stats?.view_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">播放量</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <ThumbsUp className="text-success text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{(stats?.like_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">点赞</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <XCircle className="text-destructive text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{(stats?.dislike_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">踩</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <MessageSquare className="text-secondary text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{(stats?.comment_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">评论</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <Star className="text-amber-400 text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{(stats?.favorite_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">收藏</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <Share2 className="text-primary-container text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">0</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">分享</p>
+                                    </div>
+                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
+                                        <Download className="text-foreground text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">0</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">下载</p>
+                                    </div>
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="bg-card rounded-lg border p-4">
-                            <h3 className="font-medium mb-3">预览</h3>
-                            {media.thumbnail && !thumbnailError ? (
-                                <img src={resolveMediaUrl(media.thumbnail)} alt={media.title}
-                                     className="w-full aspect-video object-cover rounded-md"
-                                     onError={() => setThumbnailError(true)}/>
-                            ) : (
-                                <div className="w-full aspect-video bg-muted rounded-md flex items-center justify-center">
-                                    <Play className="w-8 h-8 text-muted-foreground"/>
+                    {/* RIGHT COLUMN (4/12) */}
+                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
+                        {/* Card 1: Identity */}
+                        <Card className="bg-card">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Identity</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="pb-3 border-b border-border/10">
+                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">Resource ID</Label>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{media.id}</code>
+                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
+                                <div className="pb-3 border-b border-border/10">
+                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">UUID</Label>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">550e8400-e29b-41d4-a716-446655440000</code>
+                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                                    </div>
+                                </div>
+                                <div className="pb-3">
+                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">Short Token</Label>
+                                    <div className="flex items-center gap-2">
+                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{media.short_token || 'N/A'}</code>
+                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                                    </div>
+                                </div>
+                                <div className="pt-2 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/20 mt-2">
+                                    <p>Created: <span className="font-mono text-foreground">{formatDateTime(media.create_time)}</span></p>
+                                    <p>Updated: <span className="font-mono text-foreground">{formatDateTime(media.update_time)}</span></p>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                        <div className="bg-card rounded-lg border p-4 space-y-3">
-                            <h3 className="font-medium">基本信息</h3>
-                            <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-                                <span className="text-muted-foreground">ID</span>
-                                <span className="font-mono text-xs text-right break-all">{media.id}</span>
-                                <span className="text-muted-foreground">Short Token</span>
-                                <span className="font-mono text-xs text-right break-all">{media.short_token || 'N/A'}</span>
-                                <span className="text-muted-foreground">创建时间</span>
-                                <span className="text-xs text-right whitespace-nowrap">{formatDateTime(media.create_time)}</span>
-                                <span className="text-muted-foreground">更新时间</span>
-                                <span className="text-xs text-right whitespace-nowrap">{formatDateTime(media.update_time)}</span>
-                                <span className="text-muted-foreground">编码状态</span>
-                                <div className="flex justify-end">
-                                    <Badge variant={encodingStatusBadge(media.encoding_status)} className="text-[10px] px-1.5 py-0 h-4">
-                                        {encodingStatusLabel(media.encoding_status)}
+                        {/* Card 2: State & Status */}
+                        <Card className="bg-card">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">State & Status</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">Lifecycle</span>
+                                        <Badge variant="outline" className="justify-center border-success text-success bg-success/10">
+                                            {media.state === 'active' ? 'ACTIVE' : (media.state?.toUpperCase() || 'DRAFT')}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">Review</span>
+                                        <Badge variant="outline" className="justify-center border-secondary text-secondary bg-secondary/10">
+                                            {media.review_status ? media.review_status.toUpperCase() : 'PENDING'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">Encoding</span>
+                                        <Badge variant="outline" className="justify-center border-primary text-primary bg-primary/10">
+                                            {media.encoding_status ? media.encoding_status.toUpperCase() : 'PROCESSING'}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">Sprites</span>
+                                        <Badge variant="outline" className="justify-center">
+                                            IDLE
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Card 3: Ownership */}
+                        <Card className="bg-card">
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ownership</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-primary/20 flex items-center justify-center">
+                                        <span className="text-primary font-bold text-sm">U</span>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-sm">User</p>
+                                        <p className="text-[10px] text-muted-foreground">Content Creator</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3 pt-3 border-t border-border/30">
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-muted-foreground">Channel</span>
+                                        <span className="font-bold">Default</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xs">
+                                        <span className="text-muted-foreground">Category</span>
+                                        <Badge variant="outline" className="text-[10px] font-bold">{media.category_id || 'General'}</Badge>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Card 4: Workflow - Review */}
+                        <Card className="bg-card">
+                            <CardHeader className="pb-2">
+                                <div className="flex justify-between items-center">
+                                    <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Workflow</CardTitle>
+                                    <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-[9px] font-bold uppercase">
+                                        Awaiting Review
                                     </Badge>
                                 </div>
-                                <span className="text-muted-foreground">审核状态</span>
-                                <div className="flex justify-end">
-                                    <Badge variant={reviewStatusBadge(media.review_status)} className="text-[10px] px-1.5 py-0 h-4">
-                                        {reviewStatusLabel(media.review_status)}
-                                    </Badge>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                <textarea className="w-full bg-muted border border-border rounded-lg p-2 text-xs min-h-[50px] resize-none" placeholder="Review notes..."></textarea>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button className="py-2 bg-green-600 text-white rounded-lg font-bold text-[11px] hover:bg-green-700">
+                                        Approve
+                                    </Button>
+                                    <Button className="py-2 bg-red-600 text-white rounded-lg font-bold text-[11px] hover:bg-red-700">
+                                        Reject
+                                    </Button>
                                 </div>
-                            </div>
-                        </div>
+                                <Button variant="outline" className="w-full py-1.5 font-bold text-[10px]">
+                                    Request Changes
+                                </Button>
+                            </CardContent>
+                        </Card>
 
-                        <div className="bg-card rounded-lg border p-4 space-y-3">
-                            <h3 className="font-medium">快捷操作</h3>
-                            <div className="space-y-2">
-                                {media.state !== 'active' && (
-                                    <Button variant="outline" size="sm" className="w-full justify-start"
-                                            onClick={async () => {
-                                                try {
-                                                    await updateMutation.mutateAsync({id, data: {state: 'active'}});
-                                                    toast.success('已发布');
-                                                } catch (err: any) {
-                                                    toast.error(`操作失败: ${err?.message || '未知错误'}`);
-                                                }
-                                            }}>
-                                        <CheckCircle className="w-4 h-4 mr-2"/>发布
+                        {/* Card 5: Save & Danger */}
+                        <Card className="bg-card">
+                            <CardContent className="pt-4">
+                                <div className="flex flex-col gap-3">
+                                    <Button className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-bold text-sm shadow-lg flex items-center justify-center gap-2"
+                                            onClick={handleSave}
+                                            disabled={isSaving}>
+                                        {isSaving ? <Spinner size="sm"/> : null}
+                                        <span>{isSaving ? '保存中...' : 'Save All Changes'}</span>
                                     </Button>
-                                )}
-                                {media.state === 'active' && (
-                                    <Button variant="outline" size="sm" className="w-full justify-start"
-                                            onClick={async () => {
-                                                try {
-                                                    await updateMutation.mutateAsync({id, data: {state: 'draft'}});
-                                                    toast.success('已转为草稿');
-                                                } catch (err: any) {
-                                                    toast.error(`操作失败: ${err?.message || '未知错误'}`);
-                                                }
-                                            }}>
-                                        <Clock className="w-4 h-4 mr-2"/>转为草稿
-                                    </Button>
-                                )}
-                                <Button variant="outline" size="sm" className="w-full justify-start"
-                                        onClick={async () => {
-                                            try {
-                                                await updateMutation.mutateAsync({id, data: {featured: !media.featured}});
-                                                toast.success(media.featured ? t('mediaEdit.unfeatured') : t('mediaEdit.setFeatured'));
-                                            } catch (err: any) {
-                                                toast.error(`操作失败: ${err?.message || '未知错误'}`);
-                                            }
-                                        }}>
-                                    {media.featured ? <XCircle className="w-4 h-4 mr-2"/> : <CheckCircle className="w-4 h-4 mr-2"/>}
-                                    {media.featured ? t('mediaEdit.unfeature') : t('mediaEdit.setFeature')}
-                                </Button>
-                                <Button variant="outline" size="sm" className="w-full justify-start"
-                                        onClick={async () => {
-                                            try {
-                                                await updateMutation.mutateAsync({id, data: {listable: !media.listable}});
-                                                toast.success(media.listable ? '已从列表隐藏' : '已上线展示');
-                                            } catch (err: any) {
-                                                toast.error(`操作失败: ${err?.message || '未知错误'}`);
-                                            }
-                                        }}>
-                                    {media.listable ? <XCircle className="w-4 h-4 mr-2"/> : <Eye className="w-4 h-4 mr-2"/>}
-                                    {media.listable ? '从列表隐藏' : '上线展示'}
-                                </Button>
-                            </div>
-                        </div>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        <Button variant="outline" className="w-full py-2 font-bold text-xs"
+                                                onClick={() => setRegenThumbnailConfirmOpen(true)}
+                                                disabled={isRegenerating}>
+                                            Regenerate Thumbnail
+                                        </Button>
+                                        <Button variant="outline" className="w-full py-2 font-bold text-xs"
+                                                onClick={() => setRegenSpriteConfirmOpen(true)}
+                                                disabled={isRegenerating}>
+                                            Regenerate Sprites
+                                        </Button>
+                                    </div>
+                                    <div className="pt-3 border-t border-border/30 mt-2">
+                                        <Button variant="destructive" className="w-full py-2 bg-red-600/10 text-red-600 border border-red-600/30 hover:bg-red-600 hover:text-white flex items-center justify-center gap-2"
+                                                onClick={() => setDeleteDialogOpen(true)}>
+                                            <Delete className="w-4 h-4"/> Delete Media Asset
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>

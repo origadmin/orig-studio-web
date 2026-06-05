@@ -1,10 +1,16 @@
 /**
  * DocNavTree - Renders the category navigation tree for the DocSidebar.
  * Uses DocNavTreeNode recursively.
+ *
+ * Migrated to compose the shadcn SidebarMenu primitives (SidebarMenu,
+ * SidebarMenuItem) for layout consistency with the new Sidebar primitive.
  */
 import React from 'react';
 import { useLocation } from '@tanstack/react-router';
 import type { CategoryTreeNode } from '@/lib/utils/categoryTree';
+import {
+  SidebarMenu,
+} from '@/components/ui/sidebar';
 import DocNavTreeNode from './DocNavTreeNode';
 
 interface DocNavTreeProps {
@@ -29,7 +35,7 @@ const DocNavTree: React.FC<DocNavTreeProps> = ({ tree }) => {
 
   return (
     <nav role="tree" aria-label="Documentation navigation">
-      <ul className="space-y-0.5">
+      <SidebarMenu>
         {tree.map((node) => (
           <DocNavTreeNode
             key={node.id}
@@ -37,7 +43,7 @@ const DocNavTree: React.FC<DocNavTreeProps> = ({ tree }) => {
             currentSlug={currentSlug}
           />
         ))}
-      </ul>
+      </SidebarMenu>
     </nav>
   );
 };

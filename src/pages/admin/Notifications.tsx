@@ -260,7 +260,7 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatSent', 'Sent')}
                                     </p>
                                     <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
@@ -280,7 +280,7 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatDelivered', 'Delivered')}
                                     </p>
                                     <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
@@ -300,7 +300,7 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatOpened', 'Opened')}
                                     </p>
                                     <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
@@ -323,7 +323,7 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatClicked', 'Clicked')}
                                     </p>
                                     <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">

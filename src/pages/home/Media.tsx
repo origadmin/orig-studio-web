@@ -130,8 +130,8 @@ export default function MediaPage() {
                         {mediaList.map((media) => (
                             <Link
                                 key={media.id}
-                                to="/v/$id"
-                                params={{id: media.id}}
+                                to="/watch"
+                                search={{v: media.short_token}}
                                 className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition group"
                             >
                                 <div className="relative aspect-video bg-gray-100">

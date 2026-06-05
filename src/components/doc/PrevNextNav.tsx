@@ -1,11 +1,19 @@
 /**
  * PrevNextNav - Previous/Next article navigation at the bottom of article pages.
  * Shows links to the previous and next articles in the same category.
+ *
+ * Migrated to compose the shadcn Pagination primitive (PaginationPrevious +
+ * PaginationNext) for consistent styling. Public prop signature preserved.
+ *
+ * Note: shadcn's PaginationPrevious/Next render their own chevron and
+ * "Previous"/"Next" label, which act as the "Previous Article" / "Next Article"
+ * label the previous implementation rendered manually. We forward the article
+ * title as the children node so the design system primitives are still the
+ * source of truth for the icon and label colour.
  */
 import React from 'react';
-import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pagination, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 
 interface PrevNextNavProps {
   prev?: { slug: string; title: string } | null;
@@ -18,38 +26,33 @@ const PrevNextNav: React.FC<PrevNextNavProps> = ({ prev, next }) => {
   if (!prev && !next) return null;
 
   return (
-    <nav className="flex items-center justify-between gap-4 pt-8 mt-8 border-t border-gray-200 dark:border-gray-800">
-      {prev ? (
-        <Link
-          to="/articles/$slug"
-          params={{ slug: prev.slug }}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1"
-        >
-          <ChevronLeft size={16} className="shrink-0" />
-          <div className="min-w-0">
-            <div className="text-xs text-muted-foreground">{t('doc.previousArticle')}</div>
-            <div className="truncate">{prev.title}</div>
-          </div>
-        </Link>
-      ) : (
-        <div className="flex-1" />
-      )}
+    <nav
+      aria-label={t('doc.tocTitle') /* generic landmark label */}
+      className="pt-8 mt-8 border-t"
+    >
+      <Pagination className="justify-between gap-4 w-full">
+        {prev ? (
+          <PaginationPrevious
+            href={`/articles/${prev.slug}`}
+            className="text-sm font-normal min-w-0 flex-1 justify-start"
+          >
+            <span className="truncate max-w-[200px]">{prev.title}</span>
+          </PaginationPrevious>
+        ) : (
+          <span className="flex-1" />
+        )}
 
-      {next ? (
-        <Link
-          to="/articles/$slug"
-          params={{ slug: next.slug }}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0 flex-1 justify-end text-right"
-        >
-          <div className="min-w-0">
-            <div className="text-xs text-muted-foreground">{t('doc.nextArticle')}</div>
-            <div className="truncate">{next.title}</div>
-          </div>
-          <ChevronRight size={16} className="shrink-0" />
-        </Link>
-      ) : (
-        <div className="flex-1" />
-      )}
+        {next ? (
+          <PaginationNext
+            href={`/articles/${next.slug}`}
+            className="text-sm font-normal min-w-0 flex-1 justify-end"
+          >
+            <span className="truncate max-w-[200px]">{next.title}</span>
+          </PaginationNext>
+        ) : (
+          <span className="flex-1" />
+        )}
+      </Pagination>
     </nav>
   );
 };

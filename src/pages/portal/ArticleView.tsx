@@ -57,32 +57,32 @@ export default function ArticleViewPage() {
         if (!slug) return;
         setLoading(true);
         setError(null);
-        articleApi.getBySlug(slug)
-            .then(data => {
-                const articleData = data;
+        articleApi.get(slug)
+            .then((data) => {
+                const articleData = data as Article;
                 setArticle(articleData);
                 if (articleData.media_id && articleData.media?.short_token) {
                     publicMediaApi.get(articleData.media.short_token)
-                        .then(mediaRes => {
-                            const mediaData = mediaRes;
+                        .then((mediaRes) => {
+                            const mediaData = mediaRes as Media;
                             setMedia(mediaData);
                         })
-                        .catch(err => {
+                        .catch((err) => {
                             console.error('Error loading media:', err);
                         });
                 }
                 if (articleData.user_id) {
                     userApi.get(String(articleData.user_id))
-                        .then(authorData => {
-                            const authorRes = authorData;
+                        .then((authorData) => {
+                            const authorRes = authorData as AuthorUser;
                             setAuthor(authorRes);
                         })
-                        .catch(err => {
+                        .catch((err) => {
                             console.error('Error loading author:', err);
                         });
                 }
             })
-            .catch(err => {
+            .catch((err: unknown) => {
                 setError('Article not found');
                 console.error('Error loading article:', err);
             })

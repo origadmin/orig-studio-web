@@ -1,6 +1,7 @@
 import React from 'react';
 import {Bell, Check, ExternalLink, Mail, MessageSquare, AtSign, Heart, UserPlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
@@ -8,6 +9,7 @@ import {useNotificationState} from '@/contexts/NotificationContext';
 import {useAuth} from '@/hooks/useAuth';
 import {useTranslation} from 'react-i18next';
 import {formatDate} from '@/lib/format';
+import {cn} from '@/lib/utils';
 
 const actionIcons: Record<string, React.ReactNode> = {
     system: <MessageSquare className="w-4 h-4"/>,
@@ -37,25 +39,28 @@ const NotificationBadge: React.FC = () => {
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 p-0 rounded-full hover:bg-accent">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-accent">
                     <Bell className="h-[18px] w-[18px]"/>
                     {unreadCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 min-h-[16px] min-w-[16px] px-1 rounded-full bg-red-500 text-white text-[10px] font-medium flex items-center justify-center">
+                        <Badge
+                            variant="soft-danger"
+                            className="absolute -top-0.5 -right-0.5 min-h-[16px] min-w-[16px] px-1 rounded-full text-[10px] font-medium"
+                        >
                             {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
+                        </Badge>
                     )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-96 p-0 rounded-xl shadow-lg border dark:border-gray-700" sideOffset={8}>
+            <PopoverContent align="end" className="w-96 p-0 rounded-xl shadow-lg border" sideOffset={8}>
                 <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-t-xl">
                     <div className="flex items-center gap-2">
                         <Bell className="w-4 h-4 text-muted-foreground"/>
                         <span className="font-semibold text-sm">{t('notifications.title')}</span>
                     </div>
                     {unreadCount > 0 && (
-                        <span className="text-xs font-medium bg-red-500 text-white px-2 py-0.5 rounded-full">
+                        <Badge variant="soft-danger" className="text-xs font-medium">
                             {unreadCount}
-                        </span>
+                        </Badge>
                     )}
                 </div>
                 <Separator/>
@@ -70,9 +75,12 @@ const NotificationBadge: React.FC = () => {
                             {recentNotifications.map(notification => (
                                 <div
                                     key={notification.id}
-                                    className={`px-4 py-3 flex items-start gap-3 transition-colors hover:bg-accent/50 ${!notification.read ? 'bg-blue-50/50 dark:bg-blue-950/30' : ''}`}
+                                    className={cn(
+                                        'px-4 py-3 flex items-start gap-3 transition-colors hover:bg-accent/50',
+                                        !notification.read && 'bg-blue-50/50 dark:bg-blue-950/30',
+                                    )}
                                 >
-                                    <div className={`mt-0.5 p-1.5 rounded-lg flex-shrink-0 ${actionColors[notification.action] || actionColors.system}`}>
+                                    <div className={cn('mt-0.5 p-1.5 rounded-lg flex-shrink-0', actionColors[notification.action] || actionColors.system)}>
                                         {actionIcons[notification.action] || actionIcons.system}
                                     </div>
                                     <div className="flex-1 min-w-0 space-y-1">
@@ -80,7 +88,10 @@ const NotificationBadge: React.FC = () => {
                                             {!notification.read && (
                                                 <span className="h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0"/>
                                             )}
-                                            <p className={`text-sm leading-tight ${notification.read ? 'text-muted-foreground' : 'font-medium text-foreground'}`}>
+                                            <p className={cn(
+                                                'text-sm leading-tight',
+                                                notification.read ? 'text-muted-foreground' : 'font-medium text-foreground',
+                                            )}>
                                                 {notification.title}
                                             </p>
                                         </div>

@@ -21,7 +21,7 @@ const VideoCard = ({video}: { video: MediaItem }) => {
 
     return (
         <div
-            className="group cursor-pointer rounded-[2rem] bg-card border border-border hover:border-brand-muted transition-all overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 duration-500 ease-out">
+            className="group cursor-pointer rounded-[2rem] bg-card border border-border hover:border-primary/20 transition-all overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 duration-500 ease-out">
             <Link to="/watch" search={{v: video.short_token}} className="block relative aspect-video overflow-hidden">
                 <img
                     src={getImageUrl(video.thumbnail, 'thumbnail')}
@@ -47,7 +47,7 @@ const VideoCard = ({video}: { video: MediaItem }) => {
 
                 {/* Play Icon Overlay */}
                 <div
-                    className="absolute inset-0 bg-brand/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <div
                         className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 text-white shadow-xl transform scale-75 group-hover:scale-100 transition-transform duration-500">
                         <Play size={28} className="fill-current ml-1"/>
@@ -69,7 +69,7 @@ const VideoCard = ({video}: { video: MediaItem }) => {
 
                 <div className="flex items-center space-x-4 border-t border-border pt-4">
                     <div
-                        className="w-10 h-10 rounded-2xl bg-brand-muted overflow-hidden ring-2 ring-card shadow-sm shrink-0 border border-brand-muted group-hover:rotate-6 transition-transform">
+                        className="w-10 h-10 rounded-2xl bg-primary/20 overflow-hidden ring-2 ring-card shadow-sm shrink-0 border border-primary/20 group-hover:rotate-6 transition-transform">
                         <img
                             src={getImageUrl(authorAvatar, 'avatar')}
                             alt={authorName}

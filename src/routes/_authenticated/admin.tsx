@@ -1,5 +1,6 @@
 import {createFileRoute, redirect} from '@tanstack/react-router';
 import AdminLayout from '@/layout/AdminLayout';
+import {FeatureFlagsProvider} from '@/contexts/FeatureFlagsContext';
 
 /**
  * Admin layout route.
@@ -16,5 +17,9 @@ export const Route = createFileRoute('/_authenticated/admin')({
             throw redirect({to: '/'});
         }
     },
-    component: AdminLayout,
+    component: () => (
+        <FeatureFlagsProvider>
+            <AdminLayout/>
+        </FeatureFlagsProvider>
+    ),
 });

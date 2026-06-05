@@ -67,7 +67,7 @@ export function ThemeSwitcher() {
                 onClick={() => setColorMode(option.value)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors ${
                   colorMode === option.value
-                    ? 'bg-brand text-brand-foreground'
+                    ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted'
                 }`}
               >
@@ -85,7 +85,7 @@ export function ThemeSwitcher() {
           onClick={() => setActiveCategory('all')}
           className={`px-3 py-1 text-sm rounded-full transition-colors ${
             activeCategory === 'all'
-              ? 'bg-brand text-brand-foreground'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-muted hover:bg-muted/80'
           }`}
         >
@@ -97,7 +97,7 @@ export function ThemeSwitcher() {
             onClick={() => setActiveCategory(cat)}
             className={`px-3 py-1 text-sm rounded-full transition-colors ${
               activeCategory === cat
-                ? 'bg-brand text-brand-foreground'
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-muted hover:bg-muted/80'
             }`}
           >
@@ -130,15 +130,7 @@ export function ThemeSwitcher() {
   );
 }
 
-const PRIMARY_SCALE_LEVELS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
 
-const PALETTE_COLORS = [
-  { key: 'accent', label: 'Accent' },
-  { key: 'success', label: 'Success' },
-  { key: 'warning', label: 'Warning' },
-  { key: 'info', label: 'Info' },
-  { key: 'destructive', label: 'Error' },
-] as const;
 
 function ThemeCard({
   theme,
@@ -152,19 +144,32 @@ function ThemeCard({
   onSelect: () => void;
 }) {
   const preview = theme.preview as Record<string, string>;
-  const hasPrimaryScale = preview['primary-50'] != null;
+
+  // Use CSS variables for accurate theme color representation
+  const gradient1 = preview['primary-900'] || preview.primary || 'hsl(var(--primary))';
+  const gradient2 = preview.primary || 'hsl(var(--primary))';
+  const gradient3 = preview.accent || 'hsl(var(--info))';
+
+  // Get swatch colors (5 distinct component colors)
+  const swatch1 = preview['primary-900'] || preview.primary || 'hsl(var(--primary))';
+  const swatch2 = preview['primary-700'] || preview['primary-600'] || preview.primary || 'hsl(var(--primary))';
+  const swatch3 = preview['primary-500'] || preview.primary || 'hsl(var(--primary))';
+  const swatch4 = preview['primary-300'] || preview.accent || 'hsl(var(--info))';
+  const swatch5 = preview['primary-100'] || preview.accent || 'hsl(var(--muted))';
 
   return (
     <button
       onClick={onSelect}
       disabled={isSwitching}
       className={`relative flex flex-col rounded-xl border-2 p-3 text-left transition-all hover:shadow-md ${
-        isActive ? 'border-brand shadow-sm' : 'border-border hover:border-brand/30'
+        isActive
+          ? 'border-primary ring-4 ring-primary/10 shadow-sm'
+          : 'border-border hover:border-primary/30'
       } ${isSwitching ? 'opacity-70 cursor-wait' : ''}`}
     >
       {isActive && (
-        <div className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center">
-          <Check className="w-3 h-3 text-brand-foreground" />
+        <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+          <Check className="w-3 h-3 text-primary-foreground" />
         </div>
       )}
 
@@ -182,30 +187,42 @@ function ThemeCard({
         />
       ) : (
         <div className="mb-3">
-          {hasPrimaryScale ? (
-            <div className="flex h-7 rounded-md overflow-hidden mb-2">
-              {PRIMARY_SCALE_LEVELS.map((level, i) => (
-                <div
-                  key={level}
-                  className={`flex-1 ${level === 600 ? 'ring-1 ring-inset ring-white/40' : ''} ${i === 0 ? 'rounded-l-md' : ''} ${i === PRIMARY_SCALE_LEVELS.length - 1 ? 'rounded-r-md' : ''}`}
-                  style={{ backgroundColor: preview[`primary-${level}`] || '#888' }}
-                />
-              ))}
-            </div>
-          ) : (
+          {/* Gradient bar */}
+          <div className="h-7 rounded-lg overflow-hidden mb-2">
             <div
-              className="h-7 rounded-md mb-2"
-              style={{ backgroundColor: preview.primary || '#888' }}
+              className="w-full h-full"
+              style={{
+                background: `linear-gradient(to right, ${gradient1}, ${gradient2}, ${gradient3})`,
+              }}
             />
-          )}
+          </div>
+          {/* Key swatches - no selection highlight */}
           <div className="flex gap-1">
-            {PALETTE_COLORS.map(({ key }) => (
-              <div
-                key={key}
-                className="flex-1 h-5 rounded-sm"
-                style={{ backgroundColor: preview[key] || '#888' }}
-              />
-            ))}
+            <div
+              key="swatch1"
+              className="flex-1 h-4 rounded-sm"
+              style={{ backgroundColor: swatch1 }}
+            />
+            <div
+              key="swatch2"
+              className="flex-1 h-4 rounded-sm"
+              style={{ backgroundColor: swatch2 }}
+            />
+            <div
+              key="swatch3"
+              className="flex-1 h-4 rounded-sm"
+              style={{ backgroundColor: swatch3 }}
+            />
+            <div
+              key="swatch4"
+              className="flex-1 h-4 rounded-sm"
+              style={{ backgroundColor: swatch4 }}
+            />
+            <div
+              key="swatch5"
+              className="flex-1 h-4 rounded-sm"
+              style={{ backgroundColor: swatch5 }}
+            />
           </div>
         </div>
       )}

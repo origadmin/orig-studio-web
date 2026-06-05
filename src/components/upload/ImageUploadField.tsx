@@ -3,6 +3,7 @@ import {Upload, X, Image as ImageIcon} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
+import {cn} from '@/lib/utils';
 import {mediaApi} from '@/lib/api/media';
 import {useTranslation} from 'react-i18next';
 
@@ -19,6 +20,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [showUrlInput, setShowUrlInput] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const handleFileSelect = async (file: File) => {
         if (!file.type.startsWith('image/')) return;
@@ -51,6 +53,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
 
     const handleDrop = (e: React.DragEvent) => {
         e.preventDefault();
+        setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             handleFileSelect(e.dataTransfer.files[0]);
         }
@@ -58,10 +61,11 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
 
     return (
         <div className="grid gap-2">
-            {label && <Label>{label}</Label>}
+            {label && <Label className="text-xs font-semibold text-slate-700">{label}</Label>}
             <div className="space-y-2">
                 {value && (
-                    <div className="relative w-full h-32 rounded-lg overflow-hidden border border-border bg-muted">
+                    <div
+                        className="relative w-full h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group">
                         <img src={value} alt="" className="w-full h-full object-cover"/>
                         <Button
                             variant="ghost"
@@ -76,17 +80,34 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
 
                 {uploading && (
                     <div className="w-full">
-                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-primary transition-all duration-300"
+                                className="h-full bg-indigo-600 transition-all duration-300"
                                 style={{width: `${progress}%`}}
                             />
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">{progress}%</p>
+                        <p className="text-xs text-slate-500 mt-1 font-mono">{progress}%</p>
                     </div>
                 )}
 
-                <div className="flex items-center gap-2">
+                {/* Compact drop zone — matches Stitch tokens */}
+                <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    className={cn(
+                        'group border-2 border-dashed border-slate-200 rounded-lg p-4',
+                        'text-center transition-colors cursor-pointer',
+                        'hover:border-indigo-400',
+                        isDragging && 'border-indigo-400 bg-indigo-50/40',
+                    )}
+                    role="button"
+                    tabIndex={0}
+                >
                     <input
                         ref={fileInputRef}
                         type="file"
@@ -94,6 +115,22 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                         onChange={handleInputChange}
                         className="hidden"
                     />
+                    <div
+                        className={cn(
+                            'w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full',
+                            'flex items-center justify-center mx-auto mb-2',
+                            'group-hover:scale-110 transition-transform',
+                        )}
+                    >
+                        <ImageIcon className="w-5 h-5"/>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-800">
+                        {t('admin.uploadImage')}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, WEBP up to 10MB</p>
+                </div>
+
+                <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         size="sm"

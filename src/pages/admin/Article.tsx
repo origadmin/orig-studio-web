@@ -160,7 +160,7 @@ export default function ArticlePage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                     {t('admin.totalArticles')}
                                 </p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
@@ -183,7 +183,7 @@ export default function ArticlePage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                     {t('admin.totalViews')}
                                 </p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
@@ -206,7 +206,7 @@ export default function ArticlePage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                     {t('admin.avgReadTime')}
                                 </p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
@@ -228,7 +228,7 @@ export default function ArticlePage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                     {t('admin.publishRate')}
                                 </p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">

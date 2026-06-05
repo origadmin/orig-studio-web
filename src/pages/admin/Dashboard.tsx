@@ -277,25 +277,27 @@ const Dashboard = () => {
                             {t('admin.usersByRole', 'User Role Distribution')}
                         </CardTitle>
                         <div className="flex items-center justify-center h-48">
-                            <div className="relative w-40 h-40 rounded-full overflow-hidden flex items-center justify-center">
-                                <div
-                                    className="absolute inset-0 bg-primary/20"
-                                    style={{
-                                        clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.cos(-Math.PI / 2 + 2 * Math.PI * ((stats.users_by_role?.admin || 0) / usersTotal))}% ${50 - 50 * Math.sin(-Math.PI / 2 + 2 * Math.PI * ((stats.users_by_role?.admin || 0) / usersTotal))}%, ${50 + 50 * Math.cos(-Math.PI / 2 + 2 * Math.PI * (((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal))}% ${50 - 50 * Math.sin(-Math.PI / 2 + 2 * Math.PI * (((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal))}%, 100% 50%)`
-                                    }}
-                                ></div>
-                                <div
-                                    className="absolute inset-0 bg-info/40"
-                                    style={{
-                                        clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos(-Math.PI / 2 + 2 * Math.PI * (((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal))}% ${50 - 50 * Math.sin(-Math.PI / 2 + 2 * Math.PI * (((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal))}%, 100% 100%, 0% 100%)`
-                                    }}
-                                ></div>
-                                <div className="absolute inset-0 bg-success/30" style={{clipPath: `polygon(50% 50%, 0% 100%, 0% 0%, 50% 0%)`}}></div>
-                                <div className="w-32 h-32 bg-card rounded-full z-10 flex flex-col items-center justify-center">
-                                    <Users className="w-6 h-6 text-primary"/>
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">Users</span>
+                            {usersTotal > 0 ? (
+                                <div className="relative w-40 h-40 rounded-full overflow-hidden flex items-center justify-center"
+                                     style={{
+                                         background: `conic-gradient(
+                                             hsl(var(--primary)) 0deg ${(stats.users_by_role?.admin || 0) / usersTotal * 360}deg,
+                                             hsl(var(--info-foreground)) ${(stats.users_by_role?.admin || 0) / usersTotal * 360}deg ${((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal * 360}deg,
+                                             hsl(var(--success)) ${((stats.users_by_role?.admin || 0) + (stats.users_by_role?.editor || 0)) / usersTotal * 360}deg 360deg
+                                         )`,
+                                     }}
+                                >
+                                    <div className="w-32 h-32 bg-card rounded-full z-10 flex flex-col items-center justify-center">
+                                        <Users className="w-6 h-6 text-primary"/>
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">Users</span>
+                                    </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center text-muted-foreground">
+                                    <Users className="w-12 h-12 mb-2 opacity-30"/>
+                                    <span className="text-sm">暂无数据</span>
+                                </div>
+                            )}
                         </div>
                         <div className="mt-6 flex flex-wrap gap-2">
                             <div className="bg-muted px-2.5 py-1.5 rounded-lg flex items-center gap-2 border border-border">

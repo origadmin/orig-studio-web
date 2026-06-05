@@ -190,7 +190,7 @@ const SearchPage = () => {
                     <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
                     <Link to="/">
                         <button
-                            className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-btn text-xs font-black hover:bg-primary/90 transition-all mx-auto">
+                            className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-xs font-black hover:bg-primary/90 transition-all mx-auto">
                             <span>{t('common.backToHome')}</span>
                         </button>
                     </Link>
@@ -208,7 +208,7 @@ const SearchPage = () => {
                     {searchQuery && (
                         <Link to="/">
                             <button
-                                className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-btn text-xs font-black hover:bg-primary/90 transition-all mx-auto">
+                                className="flex items-center space-x-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-lg text-xs font-black hover:bg-primary/90 transition-all mx-auto">
                                 <span>{t('common.backToHome')}</span>
                             </button>
                         </Link>
@@ -293,7 +293,7 @@ const SearchPage = () => {
                                 <button
                                     onClick={() => setPage(p => Math.max(1, p - 1))}
                                     disabled={page === 1}
-                                    className="px-4 py-2 rounded-btn bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {t('common.previous')}
                                 </button>
@@ -303,7 +303,7 @@ const SearchPage = () => {
                                         <button
                                             key={pageNum}
                                             onClick={() => setPage(pageNum)}
-                                            className={`px-4 py-2 rounded-btn ${
+                                            className={`px-4 py-2 rounded-lg ${
                                                 page === pageNum
                                                     ? 'bg-primary text-primary-foreground'
                                                     : 'bg-muted text-foreground hover:bg-muted/80'
@@ -316,7 +316,7 @@ const SearchPage = () => {
                                 <button
                                     onClick={() => setPage(p => p + 1)}
                                     disabled={page >= Math.ceil(totalResults / pageSize)}
-                                    className="px-4 py-2 rounded-btn bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {t('common.next')}
                                 </button>

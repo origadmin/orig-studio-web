@@ -24,6 +24,17 @@ import {
     CloudSun,
     PlusCircle,
     XCircle,
+    Download,
+    Trash2,
+    Sun,
+    Moon,
+    Monitor,
+    FileText,
+    Video,
+    Music2,
+    Film,
+    ShieldAlert,
+    BookOpen,
 } from 'lucide-react';
 import {settingsApi, type GroupedSettings} from '@/lib/api/system';
 import {api} from '@/lib/request';
@@ -32,12 +43,14 @@ import {Button} from '@/components/ui/button';
 import {Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter} from '@/components/ui/card';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
 import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from '@/components/ui/select';
 import {Switch} from '@/components/ui/switch';
 import {Badge} from '@/components/ui/badge';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
 import {Separator} from '@/components/ui/separator';
+import {Progress} from '@/components/ui/progress';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {Link} from '@tanstack/react-router';
 
@@ -344,6 +357,15 @@ const Settings: React.FC = () => {
         });
     };
 
+    const handleSetPrimaryUrl = (index: number) => {
+        setFormData(prev => {
+            const url = prev.base_urls[index];
+            const newUrls = prev.base_urls.filter((_, i) => i !== index);
+            newUrls.unshift(url);
+            return {...prev, base_urls: newUrls};
+        });
+    };
+
     const handleEmailTest = async () => {
         if (!emailTestTo) return;
         try {
@@ -542,246 +564,210 @@ const Settings: React.FC = () => {
 
                 {/* Content Area */}
                 <div className="space-y-6 mt-6">
-                    {/* Tab: General */}
+
+                    {/* ===== Tab: General ===== */}
                     <TabsContent value="general">
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                <Card className="lg:col-span-2">
+                        <div className="grid grid-cols-12 gap-8">
+                            {/* Left Column (8/12) */}
+                            <div className="col-span-12 lg:col-span-8 space-y-8">
+                                {/* Application Identity */}
+                                <Card>
                                     <CardHeader>
-                                        <CardTitle>Base URL Configuration</CardTitle>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <SettingsIcon className="w-5 h-5 text-indigo-600"/>
+                                            Application Identity
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">API ENDPOINTS</Label>
-                                            <div className="space-y-2">
-                                                {formData.base_urls.map((url, index) => (
-                                                    <div key={index} className="flex gap-2 items-center">
-                                                        <Input
-                                                            className="flex-1 font-mono"
-                                                            type="text"
-                                                            value={url}
-                                                            onChange={(e) => handleBaseUrlChange(index, e.target.value)}
-                                                            placeholder="https://api.example.com/v3"
-                                                        />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon-sm"
-                                                            onClick={() => handleRemoveBaseUrl(index)}
-                                                            disabled={formData.base_urls.length <= 1}
-                                                            className="text-slate-400 hover:text-red-500"
-                                                        >
-                                                            <XCircle className="w-4 h-4"/>
-                                                        </Button>
-                                                    </div>
-                                                ))}
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={handleAddBaseUrl}
-                                                    className="w-full border-dashed"
-                                                >
-                                                    <Plus className="w-3.5 h-3.5 mr-1"/>
-                                                    Add Endpoint
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CDN DELIVERY ENDPOINT</Label>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    className="flex-1 font-mono"
-                                                    type="text"
-                                                    value={formData.primary_url}
-                                                    onChange={(e) => handleInputChange('primary_url', e.target.value)}
-                                                    placeholder="https://cdn.example.net/edge"
-                                                />
-                                                <Button variant="ghost" size="icon-sm">
-                                                    <Link2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ENCODING WORKER POOL</Label>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    className="flex-1 font-mono"
-                                                    type="text"
-                                                    value={formData.s3_endpoint}
-                                                    onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
-                                                    placeholder="https://transcode-cluster.aws.internal"
-                                                />
-                                                <Button variant="ghost" size="icon-sm">
-                                                    <Link2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle className="text-center">Instance Health</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-4">
-                                            <CheckCircle className="w-6 h-6 text-emerald-500"/>
-                                            <div>
-                                                <p className="text-sm font-semibold text-emerald-700">Production Ready</p>
-                                                <p className="text-xs text-slate-500">Uptime: 99.98% (42 days)</p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-6 space-y-4">
-                                            <div className="space-y-1.5">
-                                                <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                                    <span>Latency</span>
-                                                    <span className="text-slate-700 font-mono">14ms</span>
-                                                </div>
-                                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="w-[15%] h-full bg-indigo-600"/>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <div className="flex justify-between text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                                    <span>Error Rate</span>
-                                                    <span className="text-slate-700 font-mono">0.002%</span>
-                                                </div>
-                                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="w-[2%] h-full bg-emerald-500"/>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Site Info */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Site Information</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE NAME</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Application Name</Label>
                                             <Input
                                                 value={formData.site_name}
                                                 onChange={(e) => handleInputChange('site_name', e.target.value)}
-                                                placeholder="Enter site name"
+                                                placeholder="Enter application name"
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SITE DESCRIPTION</Label>
-                                            <Input
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">System Description</Label>
+                                            <Textarea
                                                 value={formData.site_description}
                                                 onChange={(e) => handleInputChange('site_description', e.target.value)}
-                                                placeholder="Enter site description"
+                                                placeholder="Enter system description"
+                                                rows={3}
                                             />
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
 
-                            {/* Appearance */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Appearance</CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                                {/* Base URLs */}
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Link2 className="w-5 h-5 text-indigo-600"/>
+                                            Base URLs
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {formData.base_urls.map((url, index) => (
+                                            <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
+                                                index === 0
+                                                    ? 'bg-slate-50 border-slate-200'
+                                                    : 'bg-white border-slate-100'
+                                            }`}>
+                                                <div className="flex items-center gap-3">
+                                                    {index === 0 ? (
+                                                        <Badge className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Primary</Badge>
+                                                    ) : null}
+                                                    <span className={`font-mono text-sm ${index === 0 ? 'text-slate-800' : 'text-slate-800 opacity-60'}`}>
+                                                        {url || 'https://...'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    {index !== 0 && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline px-2 h-auto py-1"
+                                                            onClick={() => handleSetPrimaryUrl(index)}
+                                                        >
+                                                            Set as Primary
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        onClick={() => handleRemoveBaseUrl(index)}
+                                                        disabled={formData.base_urls.length <= 1}
+                                                        className="text-slate-400 hover:text-red-500"
+                                                    >
+                                                        <Trash2 className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            variant="outline"
+                                            className="w-full border-dashed"
+                                            onClick={handleAddBaseUrl}
+                                        >
+                                            <Plus className="w-4 h-4"/>
+                                            Add New URL
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Maintenance Mode */}
+                                <Card>
+                                    <CardContent className="py-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-red-50 rounded-lg">
+                                                    <AlertTriangle className="w-5 h-5 text-red-500"/>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-slate-800">Maintenance Mode</p>
+                                                    <p className="text-xs text-slate-500">Disable public access for all system portals and APIs.</p>
+                                                </div>
+                                            </div>
+                                            <Switch
+                                                checked={formData.allow_upload === 'false'}
+                                                onCheckedChange={(checked) => handleInputChange('allow_upload', String(!checked))}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* System Appearance (NOT a card) */}
+                                <div className="space-y-6">
+                                    <h3 className="text-lg font-semibold text-slate-800">System Appearance</h3>
                                     <ThemeSwitcher/>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
+
+                            {/* Right Column (4/12) */}
+                            <div className="col-span-12 lg:col-span-4 space-y-8">
+                                {/* API Consumption */}
+                                <Card>
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="flex items-center justify-between text-base">
+                                            API Consumption
+                                            <span className="font-mono text-indigo-600 text-sm">75.2%</span>
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-5">
+                                        <Progress value={75.2} className="h-3"/>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Cycle</p>
+                                                <p className="font-mono text-sm text-slate-800">3.8M / 5M</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Resets In</p>
+                                                <p className="font-mono text-sm text-slate-800">12d 4h</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="outline" className="w-full text-[13px]">
+                                            Upgrade Quota
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* System Snapshot (dark bg) */}
+                                <Card className="bg-slate-900 border-slate-700">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-base text-white">System Snapshot</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                                            <span className="text-xs text-slate-400">Runtime</span>
+                                            <span className="font-mono text-xs text-emerald-400">{systemInfo?.goVersion || 'Go 1.22.3'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                                            <span className="text-xs text-slate-400">Database</span>
+                                            <span className="font-mono text-xs text-slate-200">{systemInfo?.database || 'PostgreSQL 16.2'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
+                                            <span className="text-xs text-slate-400">Cache</span>
+                                            <span className="font-mono text-xs text-slate-200">Redis 7.2 Cloud</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-2">
+                                            <span className="text-xs text-slate-400">Build Date</span>
+                                            <span className="font-mono text-xs text-slate-200">2024-05-18.02a</span>
+                                        </div>
+                                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] mt-2">
+                                            <Download className="w-4 h-4"/>
+                                            Export Config JSON
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Security Alert (red bg) */}
+                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-4">
+                                    <ShieldAlert className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"/>
+                                    <div>
+                                        <p className="text-sm font-semibold text-red-700">Unprotected API Endpoint</p>
+                                        <p className="text-xs text-red-600 mt-1 leading-relaxed">External webhook receiver <code className="font-mono bg-red-100 px-1 rounded">/v1/hooks/stripe</code> has no signature verification enabled.</p>
+                                        <Button variant="link" className="mt-2 p-0 h-auto text-xs font-bold text-slate-800 hover:underline">
+                                            Fix Vulnerability
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </TabsContent>
 
-                    {/* Tab: Storage */}
+                    {/* ===== Tab: Storage ===== */}
                     <TabsContent value="storage">
-                        <div className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle>S3 Cloud Storage Configuration</CardTitle>
-                                        <Badge variant="soft-primary">
-                                            Active Provider: {formData.storage_type === 's3' ? 'AWS' : formData.storage_type === 'hybrid' ? 'Hybrid' : 'Local'}
-                                        </Badge>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-4">
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ACCESS KEY ID</Label>
-                                                <Input
-                                                    className="font-mono"
-                                                    type="password"
-                                                    value={formData.s3_access_key}
-                                                    onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
-                                                    placeholder="AKIA****************"
-                                                />
-                                            </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SECRET ACCESS KEY</Label>
-                                                <Input
-                                                    className="font-mono"
-                                                    type="password"
-                                                    value={formData.s3_secret_key}
-                                                    onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
-                                                    placeholder="********************************"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">REGION</Label>
-                                                <Select
-                                                    value={formData.s3_region}
-                                                    onValueChange={(value) => handleInputChange('s3_region', value)}
-                                                >
-                                                    <SelectTrigger className="font-mono">
-                                                        <SelectValue placeholder="Select region"/>
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="us-east-1">us-east-1</SelectItem>
-                                                        <SelectItem value="eu-west-1">eu-west-1</SelectItem>
-                                                        <SelectItem value="ap-southeast-2">ap-southeast-2</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">BUCKET NAME</Label>
-                                                <Input
-                                                    className="font-mono"
-                                                    type="text"
-                                                    value={formData.s3_bucket}
-                                                    onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
-                                                    placeholder="origstudio-assets-production-v3"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <Button variant="link" className="mt-6 p-0 h-auto font-semibold text-sm">
-                                        <CloudLightning className="w-4 h-4"/>Test Connection
-                                    </Button>
-                                </CardContent>
-                            </Card>
-
-                            {/* Local Storage Config */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Local Storage</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-12 gap-8">
+                            {/* Left Column (8/12) */}
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Primary Storage Engine</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE BASE PATH</Label>
-                                            <Input
-                                                className="font-mono"
-                                                type="text"
-                                                value={formData.storage_base_path}
-                                                onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
-                                                placeholder="/var/media"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">STORAGE TYPE</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Storage Type</Label>
                                             <Select
                                                 value={formData.storage_type}
                                                 onValueChange={(value) => handleInputChange('storage_type', value)}
@@ -790,73 +776,190 @@ const Settings: React.FC = () => {
                                                     <SelectValue placeholder="Select storage type"/>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="local">Local</SelectItem>
-                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</SelectItem>
+                                                    <SelectItem value="local">Local File System</SelectItem>
+                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>Amazon S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</SelectItem>
                                                     <SelectItem value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ' (Not Available)' : ''}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                    </div>
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
-                                            <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
-                                                {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
-                                            </code>
-                                        ))}
-                                    </div>
-                                </CardContent>
-                            </Card>
+
+                                        {/* S3 Configuration (conditional) */}
+                                        {showS3Config && (
+                                            <div className="p-6 border border-slate-200 rounded-xl bg-slate-50">
+                                                <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-4">S3 Configuration</h4>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Endpoint</Label>
+                                                        <Input
+                                                            className="font-mono"
+                                                            value={formData.s3_endpoint}
+                                                            onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
+                                                            placeholder="https://s3.amazonaws.com"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Region</Label>
+                                                        <Input
+                                                            className="font-mono"
+                                                            value={formData.s3_region}
+                                                            onChange={(e) => handleInputChange('s3_region', e.target.value)}
+                                                            placeholder="us-east-1"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5 col-span-2">
+                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Bucket Name</Label>
+                                                        <Input
+                                                            className="font-mono"
+                                                            value={formData.s3_bucket}
+                                                            onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
+                                                            placeholder="origstudio-assets-production"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Access Key</Label>
+                                                        <Input
+                                                            className="font-mono"
+                                                            type="password"
+                                                            value={formData.s3_access_key}
+                                                            onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
+                                                            placeholder="AKIA****************"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Secret Key</Label>
+                                                        <Input
+                                                            className="font-mono"
+                                                            type="password"
+                                                            value={formData.s3_secret_key}
+                                                            onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
+                                                            placeholder="********************************"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Local Storage Path */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Storage Base Path</Label>
+                                            <Input
+                                                className="font-mono"
+                                                value={formData.storage_base_path}
+                                                onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
+                                                placeholder="/var/media"
+                                            />
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
+                                                <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
+                                                    {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
+                                                </code>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Right Column (4/12) */}
+                            <div className="col-span-12 lg:col-span-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Usage Breakdown</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div>
+                                            <div className="flex justify-between mb-1">
+                                                <span className="text-xs text-slate-500">Hot Storage</span>
+                                                <span className="text-xs font-mono text-slate-700">8.4 TB</span>
+                                            </div>
+                                            <Progress value={82} className="h-2"/>
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between mb-1">
+                                                <span className="text-xs text-slate-500">Archival</span>
+                                                <span className="text-xs font-mono text-slate-700">112 TB</span>
+                                            </div>
+                                            <Progress value={45} className="h-2"/>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
                     </TabsContent>
 
-                    {/* Tab: Media */}
+                    {/* ===== Tab: Media ===== */}
                     <TabsContent value="media">
-                        <div className="space-y-6">
-                            <Card className="max-w-3xl">
-                                <CardHeader>
-                                    <CardTitle>Media Upload & Processing Limits</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-8">
-                                    <div>
-                                        <div className="flex justify-between mb-2">
-                                            <Label className="text-sm font-medium text-slate-700">Maximum Upload Size</Label>
-                                            <span className="text-sm font-mono text-indigo-600 font-bold">{uploadSizeGB.toFixed(1)} GB</span>
+                        <div className="max-w-4xl space-y-6">
+                            {/* Auto-Transcode Toggle */}
+                            <Card>
+                                <CardContent className="py-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="text-sm font-semibold text-slate-800">Auto-Transcode on Upload</p>
+                                            <p className="text-xs text-slate-500 mt-0.5">Automatically process all video assets to multi-bitrate HLS.</p>
                                         </div>
-                                        <input
-                                            className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                                            max="100"
-                                            min="1"
-                                            type="range"
-                                            value={uploadSizeGB * 20}
-                                            onChange={(e) => setUploadSizeGB(Number(e.target.value) / 20)}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">CONCURRENT TRANSCODES</Label>
-                                            <Input
-                                                className="font-mono"
-                                                type="number"
-                                                value={formData.max_upload_size_video}
-                                                onChange={(e) => handleInputChange('max_upload_size_video', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">RETAIN TEMP FILES (HOURS)</Label>
-                                            <Input
-                                                className="font-mono"
-                                                type="number"
-                                                value={formData.max_video_duration}
-                                                onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
                                         <Switch
                                             checked={formData.auto_transcode === 'true'}
                                             onCheckedChange={(checked) => handleInputChange('auto_transcode', String(checked))}
                                         />
-                                        <Label className="text-sm text-slate-700 font-medium">Automatically apply forensic watermarking to internal screener previews</Label>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Transcoding Engine */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Transcoding Engine</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Method</Label>
+                                                <Select
+                                                    value={formData.transcode_method}
+                                                    onValueChange={(value) => handleInputChange('transcode_method', value)}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select method"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="ffmpeg">Software (FFmpeg x264)</SelectItem>
+                                                        <SelectItem value="nvenc">Nvidia NVENC (GPU Accelerated)</SelectItem>
+                                                        <SelectItem value="quicksync">Intel QuickSync</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Output Format</Label>
+                                                <Select
+                                                    value={formData.homepage_layout}
+                                                    onValueChange={(value) => handleInputChange('homepage_layout', value)}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select format"/>
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="hls">HLS (.m3u8)</SelectItem>
+                                                        <SelectItem value="dash">DASH (.mpd)</SelectItem>
+                                                        <SelectItem value="mp4">MP4 Progressive</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                            <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Allowed Formats</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {formData.allowed_video_formats.split(',').map(fmt => (
+                                                    <span key={fmt} className="px-2 py-1 bg-white border border-slate-200 text-slate-700 text-[11px] rounded font-mono">
+                                                        .{fmt.trim()}
+                                                    </span>
+                                                ))}
+                                                <Button variant="outline" className="px-2 py-1 h-auto border-dashed text-[11px] font-mono text-indigo-600">
+                                                    + Add
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -869,7 +972,7 @@ const Settings: React.FC = () => {
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE VIDEO (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Upload Size Video (MB)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -878,7 +981,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MAX UPLOAD SIZE IMAGE (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Upload Size Image (MB)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -887,17 +990,19 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED VIDEO FORMATS</Label>
-                                            <Input
-                                                value={formData.allowed_video_formats}
-                                                onChange={(e) => handleInputChange('allowed_video_formats', e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">ALLOWED IMAGE FORMATS</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Allowed Image Formats</Label>
                                             <Input
                                                 value={formData.allowed_image_formats}
                                                 onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Video Duration (min)</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.max_video_duration}
+                                                onChange={(e) => handleInputChange('max_video_duration', e.target.value)}
                                             />
                                         </div>
                                     </div>
@@ -912,7 +1017,7 @@ const Settings: React.FC = () => {
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL QUALITY</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Thumbnail Quality</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -921,7 +1026,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">THUMBNAIL RESOLUTION</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Thumbnail Resolution</Label>
                                             <Input
                                                 value={formData.thumbnail_resolution}
                                                 onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
@@ -929,7 +1034,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE FRAME INTERVAL</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sprite Frame Interval</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -938,7 +1043,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SPRITE COLUMNS</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sprite Columns</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -952,146 +1057,190 @@ const Settings: React.FC = () => {
                         </div>
                     </TabsContent>
 
-                    {/* Tab: Email */}
+                    {/* ===== Tab: Email ===== */}
                     <TabsContent value="email">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>SMTP Configuration</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">HOST</Label>
-                                        <Input
-                                            className="font-mono"
-                                            type="text"
-                                            value={formData.smtp_host}
-                                            onChange={(e) => handleInputChange('smtp_host', e.target.value)}
-                                            placeholder="smtp.postmarkapp.com"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PORT</Label>
-                                        <Input
-                                            className="font-mono"
-                                            type="text"
-                                            value={formData.smtp_port}
-                                            onChange={(e) => handleInputChange('smtp_port', e.target.value)}
-                                            placeholder="587"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">USERNAME</Label>
-                                        <Input
-                                            value={formData.smtp_user}
-                                            onChange={(e) => handleInputChange('smtp_user', e.target.value)}
-                                            placeholder="noreply@example.com"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">PASSWORD</Label>
-                                        <Input
-                                            type="password"
-                                            value={formData.smtp_password}
-                                            onChange={(e) => handleInputChange('smtp_password', e.target.value)}
-                                            placeholder="••••••••"
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">SENDER NAME</Label>
-                                        <Input
-                                            value={formData.smtp_sender_name}
-                                            onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                        <Switch
-                                            checked={formData.smtp_use_tls === 'true'}
-                                            onCheckedChange={(checked) => handleInputChange('smtp_use_tls', String(checked))}
-                                        />
-                                        <Label className="text-sm text-slate-700 font-medium">Use TLS</Label>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>SMTP Diagnostics</CardTitle>
-                                    <CardDescription>Send a test email to verify your outgoing mail server configuration.</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex flex-col gap-4">
-                                    <Input
-                                        placeholder="recipient@example.com"
-                                        type="email"
-                                        value={emailTestTo}
-                                        onChange={(e) => setEmailTestTo(e.target.value)}
-                                    />
-                                    <Button
-                                        className="w-full"
-                                        onClick={handleEmailTest}
-                                        disabled={emailTestSending || !emailTestTo}
-                                    >
-                                        {emailTestSending ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <Send className="w-4 h-4"/>
-                                        )}
-                                        Run SMTP Test
-                                    </Button>
-                                    {emailStatus.configured && (
-                                        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
-                                            <CheckCircle className="w-4 h-4 text-emerald-500"/>
-                                            <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
+                        <div className="grid grid-cols-12 gap-8">
+                            {/* Left Column (8/12) */}
+                            <div className="col-span-12 lg:col-span-8">
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle>SMTP Configuration</CardTitle>
+                                            {emailStatus.configured && (
+                                                <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
+                                                    Connected
+                                                </Badge>
+                                            )}
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Host</Label>
+                                                <Input
+                                                    className="font-mono"
+                                                    type="text"
+                                                    value={formData.smtp_host}
+                                                    onChange={(e) => handleInputChange('smtp_host', e.target.value)}
+                                                    placeholder="smtp.origstudio.io"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Port</Label>
+                                                <Input
+                                                    className="font-mono"
+                                                    type="text"
+                                                    value={formData.smtp_port}
+                                                    onChange={(e) => handleInputChange('smtp_port', e.target.value)}
+                                                    placeholder="587"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 col-span-2">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Username</Label>
+                                                <Input
+                                                    value={formData.smtp_user}
+                                                    onChange={(e) => handleInputChange('smtp_user', e.target.value)}
+                                                    placeholder="noreply@example.com"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 col-span-2">
+                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Password</Label>
+                                                <Input
+                                                    type="password"
+                                                    value={formData.smtp_password}
+                                                    onChange={(e) => handleInputChange('smtp_password', e.target.value)}
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sender Name</Label>
+                                            <Input
+                                                value={formData.smtp_sender_name}
+                                                onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                            <Switch
+                                                checked={formData.smtp_use_tls === 'true'}
+                                                onCheckedChange={(checked) => handleInputChange('smtp_use_tls', String(checked))}
+                                            />
+                                            <Label className="text-sm text-slate-700 font-medium">Use TLS</Label>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Right Column (4/12) */}
+                            <div className="col-span-12 lg:col-span-4">
+                                <Card className="border-2 border-dashed border-slate-300">
+                                    <CardHeader>
+                                        <CardTitle className="text-base">Send Test Email</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <Input
+                                            placeholder="Recipient Address"
+                                            type="email"
+                                            value={emailTestTo}
+                                            onChange={(e) => setEmailTestTo(e.target.value)}
+                                        />
+                                        <Button
+                                            className="w-full"
+                                            onClick={handleEmailTest}
+                                            disabled={emailTestSending || !emailTestTo}
+                                        >
+                                            {emailTestSending ? (
+                                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                            ) : (
+                                                <Send className="w-4 h-4"/>
+                                            )}
+                                            Send Test
+                                        </Button>
+                                        {emailStatus.configured && (
+                                            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
+                                                <CheckCircle className="w-4 h-4 text-emerald-500"/>
+                                                <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </div>
                         </div>
                     </TabsContent>
 
-                    {/* Tab: Security */}
+                    {/* ===== Tab: Security ===== */}
                     <TabsContent value="security">
                         <div className="space-y-6">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>API Rate Limiting</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">Standard Users</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Non-admin API tokens</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Input
-                                                className="w-24 text-center font-mono"
-                                                type="text"
-                                                value={formData.api_rate_limit}
-                                                onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
+                            {/* 2-column grid of toggle cards */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Allow Public Registration */}
+                                <Card>
+                                    <CardContent className="py-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Allow Public Registration</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">Allow new users to sign up without invitation.</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.allow_registration === 'true'}
+                                                onCheckedChange={(checked) => handleInputChange('allow_registration', String(checked))}
                                             />
-                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">External Integrations</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Public webhooks</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Input
-                                                className="w-24 text-center font-mono"
-                                                type="text"
-                                                value="5000"
-                                                readOnly
+                                    </CardContent>
+                                </Card>
+
+                                {/* Enforce 2FA */}
+                                <Card>
+                                    <CardContent className="py-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Enforce 2FA</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">Mandatory two-factor auth for all administrators.</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.require_email_verification === 'true'}
+                                                onCheckedChange={(checked) => handleInputChange('require_email_verification', String(checked))}
                                             />
-                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">req/min</span>
                                         </div>
-                                    </div>
-                                    <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4 mt-4">
-                                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
-                                        <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                    </CardContent>
+                                </Card>
+
+                                {/* API Rate Limiting */}
+                                <Card>
+                                    <CardContent className="py-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">API Rate Limiting</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">Limit requests to {formData.api_rate_limit}/min per IP address.</p>
+                                            </div>
+                                            <Switch
+                                                checked={parseInt(formData.api_rate_limit) > 0}
+                                                onCheckedChange={(checked) => handleInputChange('api_rate_limit', checked ? '60' : '0')}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Session Expiry */}
+                                <Card>
+                                    <CardContent className="py-5">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Session Expiry</p>
+                                                <p className="text-xs text-slate-500 mt-0.5">Auto-logout after 24 hours of inactivity.</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.auto_approve === 'true'}
+                                                onCheckedChange={(checked) => {
+                                                    handleInputChange('auto_approve', String(checked));
+                                                    handleInputChange('require_review', String(!checked));
+                                                }}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
 
                             {/* Auth Settings */}
                             <Card>
@@ -1099,16 +1248,6 @@ const Settings: React.FC = () => {
                                     <CardTitle>Authentication</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">Allow Registration</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Enable new user sign-up</p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.allow_registration === 'true'}
-                                            onCheckedChange={(checked) => handleInputChange('allow_registration', String(checked))}
-                                        />
-                                    </div>
                                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                                         <div>
                                             <p className="text-sm font-semibold text-slate-800">Require Email Verification</p>
@@ -1121,7 +1260,7 @@ const Settings: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">MIN PASSWORD LENGTH</Label>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Min Password Length</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1130,163 +1269,263 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">AUTO APPROVE</Label>
-                                            <div className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg border border-slate-200">
-                                                <Switch
-                                                    checked={formData.auto_approve === 'true'}
-                                                    onCheckedChange={(checked) => {
-                                                        handleInputChange('auto_approve', String(checked));
-                                                        handleInputChange('require_review', String(!checked));
-                                                    }}
-                                                />
-                                                <span className="text-sm text-slate-700">Auto-approve content</span>
-                                            </div>
+                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">API Rate Limit (req/min)</Label>
+                                            <Input
+                                                className="font-mono"
+                                                type="number"
+                                                value={formData.api_rate_limit}
+                                                onChange={(e) => handleInputChange('api_rate_limit', e.target.value)}
+                                            />
                                         </div>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4">
+                                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
+                                        <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
                                     </div>
                                 </CardContent>
                             </Card>
                         </div>
                     </TabsContent>
 
-                    {/* Tab: Modules */}
+                    {/* ===== Tab: Modules ===== */}
                     <TabsContent value="modules">
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-base font-semibold text-slate-800">Homepage Layout (2x3 Grid)</h3>
-                                <Button variant="outline" size="sm" className="text-xs font-bold uppercase tracking-widest">
-                                    <Plus className="w-3 h-3"/>Custom Grid
-                                </Button>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                                        <BarChart3 className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                        <p className="text-sm font-semibold text-slate-700">Real-time Analytics</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                                        <Play className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                        <p className="text-sm font-semibold text-slate-700">Video Player Health</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                                        <ShieldCheck className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                        <p className="text-sm font-semibold text-slate-700">Audit Stream</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                                        <Server className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                        <p className="text-sm font-semibold text-slate-700">Storage Nodes</p>
-                                    </CardContent>
-                                </Card>
-                                <Card className="aspect-[4/3] flex flex-col items-center justify-center gap-4 cursor-grab hover:border-indigo-400 hover:shadow-sm transition-all group">
-                                    <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                                        <CloudSun className="w-12 h-12 text-slate-300 group-hover:text-indigo-600 transition-colors"/>
-                                        <p className="text-sm font-semibold text-slate-700">S3 Object Monitor</p>
-                                    </CardContent>
-                                </Card>
-                                <div className="p-6 aspect-[4/3] rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:bg-white hover:border-indigo-300 transition-all cursor-pointer group">
-                                    <PlusCircle className="w-6 h-6 text-slate-400 group-hover:text-indigo-600"/>
-                                    <p className="text-sm font-semibold text-slate-400 group-hover:text-indigo-600">Add Module</p>
+                        <div className="grid grid-cols-12 gap-8">
+                            {/* Left Column (4/12) */}
+                            <div className="col-span-12 lg:col-span-4 space-y-4">
+                                <h3 className="text-sm font-semibold text-slate-800 mb-2">Core Modules</h3>
+                                <div className={`p-4 border-2 rounded-xl flex justify-between items-center ${
+                                    formData.module_articles ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                }`}>
+                                    <div className="flex items-center gap-3">
+                                        <FileText className="w-5 h-5 text-indigo-600"/>
+                                        <span className="text-sm font-semibold text-slate-800">Articles</span>
+                                    </div>
+                                    <Badge variant={formData.module_articles ? 'soft-success' : 'soft-neutral'}>
+                                        {formData.module_articles ? 'Active' : 'Disabled'}
+                                    </Badge>
+                                </div>
+                                <div className={`p-4 border-2 rounded-xl flex justify-between items-center ${
+                                    formData.module_videos ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                }`}>
+                                    <div className="flex items-center gap-3">
+                                        <Video className="w-5 h-5 text-indigo-600"/>
+                                        <span className="text-sm font-semibold text-slate-800">Video Management</span>
+                                    </div>
+                                    <Badge variant={formData.module_videos ? 'soft-success' : 'soft-neutral'}>
+                                        {formData.module_videos ? 'Active' : 'Disabled'}
+                                    </Badge>
+                                </div>
+                                <div className={`p-4 border rounded-xl flex justify-between items-center ${
+                                    formData.module_music ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                } ${!formData.module_music ? 'opacity-50 grayscale' : ''}`}>
+                                    <div className="flex items-center gap-3">
+                                        <Music2 className="w-5 h-5 text-indigo-600"/>
+                                        <span className="text-sm font-semibold text-slate-800">Audio Streaming</span>
+                                    </div>
+                                    <Badge variant={formData.module_music ? 'soft-success' : 'soft-neutral'}>
+                                        {formData.module_music ? 'Active' : 'Disabled'}
+                                    </Badge>
                                 </div>
                             </div>
 
-                            {/* Content Modules Toggle */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Content Modules</CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">Articles Module</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.module_articles}
-                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_articles: checked}))}
-                                        />
+                            {/* Right Column (8/12) */}
+                            <div className="col-span-12 lg:col-span-8">
+                                <h3 className="text-sm font-semibold text-slate-800 mb-6">Homepage Layout Selection</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div
+                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            formData.homepage_layout === 'auto'
+                                                ? 'border-indigo-600 bg-indigo-50/30'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                        }`}
+                                        onClick={() => handleInputChange('homepage_layout', 'auto')}
+                                    >
+                                        <LayoutGrid className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'auto' ? 'text-indigo-600' : 'text-slate-400'}`}/>
+                                        <p className="text-sm font-semibold text-slate-800">Mixed Mode</p>
+                                        <p className="text-[11px] text-slate-500 mt-1">Recommended for general content delivery.</p>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">Videos Module</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.module_videos}
-                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_videos: checked}))}
-                                        />
+                                    <div
+                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            formData.homepage_layout === 'video'
+                                                ? 'border-indigo-600 bg-indigo-50/30'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                        }`}
+                                        onClick={() => handleInputChange('homepage_layout', 'video')}
+                                    >
+                                        <Film className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'video' ? 'text-indigo-600' : 'text-slate-400'}`}/>
+                                        <p className="text-sm font-semibold text-slate-800">Video Focus</p>
+                                        <p className="text-[11px] text-slate-500 mt-1">Cinema-style portal with hero slider.</p>
                                     </div>
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                        <div>
-                                            <p className="text-sm font-semibold text-slate-800">Music Module</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
-                                        </div>
-                                        <Switch
-                                            checked={formData.module_music}
-                                            onCheckedChange={(checked) => setFormData(prev => ({...prev, module_music: checked}))}
-                                        />
+                                    <div
+                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                            formData.homepage_layout === 'editorial'
+                                                ? 'border-indigo-600 bg-indigo-50/30'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                        }`}
+                                        onClick={() => handleInputChange('homepage_layout', 'editorial')}
+                                    >
+                                        <BookOpen className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'editorial' ? 'text-indigo-600' : 'text-slate-400'}`}/>
+                                        <p className="text-sm font-semibold text-slate-800">Editorial</p>
+                                        <p className="text-[11px] text-slate-500 mt-1">Clean typography for long-form reading.</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </TabsContent>
+                                </div>
 
-                    {/* Tab: System */}
-                    <TabsContent value="system">
-                        <div className="space-y-8">
-                            {/* Resource Stats */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <Card>
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPU USAGE</span>
-                                            <span className="text-sm font-mono font-bold text-indigo-600">{systemInfo?.cpuUsage || '64%'}</span>
+                                {/* Content Modules Toggle */}
+                                <Card className="mt-8">
+                                    <CardHeader>
+                                        <CardTitle>Content Modules</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Articles Module</p>
+                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.module_articles}
+                                                onCheckedChange={(checked) => setFormData(prev => ({...prev, module_articles: checked}))}
+                                            />
                                         </div>
-                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="w-[64%] h-full bg-indigo-600 rounded-full"/>
+                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Videos Module</p>
+                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.module_videos}
+                                                onCheckedChange={(checked) => setFormData(prev => ({...prev, module_videos: checked}))}
+                                            />
                                         </div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">MEMORY</span>
-                                            <span className="text-sm font-mono font-bold text-emerald-600">{systemInfo?.memoryUsage?.toFixed(0) || '42'}%</span>
-                                        </div>
-                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-emerald-500 rounded-full" style={{width: `${systemInfo?.memoryUsage || 42}%`}}/>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">DISK I/O</span>
-                                            <span className="text-sm font-mono font-bold text-amber-600">88%</span>
-                                        </div>
-                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="w-[88%] h-full bg-amber-500 rounded-full"/>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                                <Card>
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NETWORK</span>
-                                            <span className="text-sm font-mono font-bold text-slate-700">12%</span>
-                                        </div>
-                                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="w-[12%] h-full bg-slate-600 rounded-full"/>
+                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                            <div>
+                                                <p className="text-sm font-semibold text-slate-800">Music Module</p>
+                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
+                                            </div>
+                                            <Switch
+                                                checked={formData.module_music}
+                                                onCheckedChange={(checked) => setFormData(prev => ({...prev, module_music: checked}))}
+                                            />
                                         </div>
                                     </CardContent>
                                 </Card>
                             </div>
+                        </div>
+                    </TabsContent>
 
-                            {/* Process Table */}
+                    {/* ===== Tab: System ===== */}
+                    <TabsContent value="system">
+                        <div className="space-y-8">
+                            {/* 4 Stat Cards Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Memory Usage</p>
+                                        <div className="flex items-end justify-between mb-4">
+                                            <h4 className="text-2xl font-bold text-slate-800">
+                                                {systemInfo?.usedMemory ? parseFloat(systemInfo.usedMemory).toFixed(1) : '4.2'}
+                                                <span className="text-base text-slate-400 ml-1 font-normal">GB</span>
+                                            </h4>
+                                            <span className="text-emerald-600 text-xs font-mono">+12%</span>
+                                        </div>
+                                        <Progress value={systemInfo?.memoryUsage || 42} className="h-2"/>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">CPU Load</p>
+                                        <div className="flex items-end justify-between mb-4">
+                                            <h4 className="text-2xl font-bold text-slate-800">
+                                                {systemInfo?.cpuUsage ? parseInt(systemInfo.cpuUsage) : '18'}
+                                                <span className="text-base text-slate-400 ml-1 font-normal">%</span>
+                                            </h4>
+                                            <span className="text-slate-500 text-xs font-mono">-2%</span>
+                                        </div>
+                                        <Progress value={systemInfo?.cpuUsage ? parseInt(systemInfo.cpuUsage) : 18} className="h-2"/>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Active GoRoutines</p>
+                                        <div className="flex items-end justify-between mb-4">
+                                            <h4 className="text-2xl font-bold text-slate-800">
+                                                {systemInfo?.numGoroutine?.toLocaleString() || '1,402'}
+                                            </h4>
+                                            <span className="text-red-500 text-xs font-mono">+84</span>
+                                        </div>
+                                        <Progress value={65} className="h-2"/>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Disk I/O</p>
+                                        <div className="flex items-end justify-between mb-4">
+                                            <h4 className="text-2xl font-bold text-slate-800">
+                                                240
+                                                <span className="text-base text-slate-400 ml-1 font-normal">MB/s</span>
+                                            </h4>
+                                            <span className="text-emerald-600 text-xs font-mono">Steady</span>
+                                        </div>
+                                        <Progress value={32} className="h-2"/>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Server Information (3-column grid) */}
+                            {systemInfo && (
+                                <Card className="overflow-hidden">
+                                    <CardHeader className="border-b border-slate-100">
+                                        <CardTitle>Server Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0">
+                                        <div className="grid grid-cols-1 md:grid-cols-3">
+                                            <div className="p-6 border-r border-slate-100 space-y-4">
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">OrigStudio Core</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.version || 'v2.4.1-enterprise'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">Go Runtime</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.goVersion || 'go1.22.3'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">OS Architecture</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.os || 'linux/amd64'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="p-6 border-r border-slate-100 space-y-4">
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">System Uptime</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.uptime || '14d 2h 11m'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">Total Memory</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.totalMemory || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">CPUs</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.numCPU || '-'}</span>
+                                                </div>
+                                            </div>
+                                            <div className="p-6 space-y-4">
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">Goroutines</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.numGoroutine || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">Database</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.database || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-xs text-slate-500">Used Memory</span>
+                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.usedMemory || '-'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Active System Processes */}
                             <Card className="overflow-hidden">
                                 <CardHeader className="border-b border-slate-100">
                                     <CardTitle>Active System Processes</CardTitle>
@@ -1352,34 +1591,6 @@ const Settings: React.FC = () => {
                                     </Table>
                                 </CardContent>
                             </Card>
-
-                            {/* Server Info */}
-                            {systemInfo && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Server Information</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {[
-                                                {label: 'Version', value: systemInfo.version || '-'},
-                                                {label: 'Go Version', value: systemInfo.goVersion || '-'},
-                                                {label: 'Database', value: systemInfo.database || '-'},
-                                                {label: 'OS', value: systemInfo.os || '-'},
-                                                {label: 'Uptime', value: systemInfo.uptime || '-'},
-                                                {label: 'CPUs', value: String(systemInfo.numCPU ?? '-')},
-                                                {label: 'Goroutines', value: String(systemInfo.numGoroutine ?? '-')},
-                                                {label: 'Total Memory', value: systemInfo.totalMemory || '-'},
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
-                                                    <span className="text-sm font-medium text-slate-700 font-mono">{item.value}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
                         </div>
                     </TabsContent>
                 </div>

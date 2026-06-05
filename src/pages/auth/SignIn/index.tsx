@@ -1,5 +1,5 @@
 // SignIn page - uses shadcn/ui components
-import {useState} from "react";
+import {useState, memo} from "react";
 import {useNavigate, useSearch, Link} from "@tanstack/react-router";
 import {useTranslation} from 'react-i18next';
 import {api, setAuth} from "@/lib/request";
@@ -25,7 +25,7 @@ interface AuthResponse {
     };
 }
 
-export default function SignInPage() {
+const SignInPage = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -106,6 +106,7 @@ export default function SignInPage() {
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     placeholder={t('auth.signIn.usernamePlaceholder')}
+                                    autoComplete="username"
                                     required
                                 />
                             </div>
@@ -117,6 +118,7 @@ export default function SignInPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder={t('auth.signIn.passwordPlaceholder')}
+                                    autoComplete="current-password"
                                     required
                                 />
                             </div>
@@ -135,4 +137,6 @@ export default function SignInPage() {
             </div>
         </div>
     );
-}
+};
+
+export default memo(SignInPage);

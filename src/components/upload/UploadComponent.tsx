@@ -1,9 +1,10 @@
 import React, {useState, useRef, useCallback} from 'react';
 import {
     Upload, X, File, Video, CheckCircle,
-    AlertCircle,
+    AlertCircle, FileVideo,
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {cn} from '@/lib/utils';
 import {mediaApi} from '@/lib/api/media';
 import {formatFileSize} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -61,7 +62,7 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                     updateFile(fileItem.id, {progress: percent});
                 });
                 updateFile(fileItem.id, {status: 'success', progress: 100});
-                if (onSuccess) onSuccess();
+                onSuccess?.();
             } catch (err) {
                 const msg = err instanceof Error ? err.message : 'Upload failed';
                 updateFile(fileItem.id, {status: 'error', error: msg});
@@ -75,7 +76,7 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
             onSuccess: (taskId) => {
                 updateFile(taskId, {status: 'success', progress: 100, completedAt: Date.now()});
                 activeTasksRef.current.delete(taskId);
-                if (onSuccess) onSuccess();
+                onSuccess?.();
             },
             onError: (taskId, error) => {
                 updateFile(taskId, {status: 'error', error});
@@ -147,8 +148,11 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
             case 'error':
                 return <AlertCircle className="w-5 h-5 text-destructive"/>;
             case 'uploading':
-                return <div
-                    className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"/>;
+            case 'initiating':
+            case 'completing':
+                return (
+                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+                );
             default:
                 return null;
         }
@@ -156,10 +160,15 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
 
     return (
         <div className="w-full space-y-6">
+            {/* Drop zone — Stitch media_library pattern */}
             <div
-                className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
-                    isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-input'
-                }`}
+                className={cn(
+                    'group border-2 border-dashed border-slate-200 rounded-xl p-8',
+                    'text-center transition-colors cursor-pointer',
+                    'hover:border-indigo-400 outline-none',
+                    'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                    isDragging && 'border-indigo-400 bg-indigo-50/40',
+                )}
                 onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragging(true);
@@ -167,6 +176,14 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        fileInputRef.current?.click();
+                    }
+                }}
             >
                 <input
                     ref={fileInputRef}
@@ -178,56 +195,71 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                     }}
                     className="hidden"
                 />
-                <Upload className="w-10 h-10 text-info mx-auto mb-3"/>
-                <p className="text-sm font-medium text-gray-700">{t('upload.dropzoneTitle')}</p>
-                <p className="text-xs text-muted-foreground mt-1">{t('upload.supportedFormats')}</p>
+                <div
+                    className={cn(
+                        'w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full',
+                        'flex items-center justify-center mx-auto mb-3',
+                        'group-hover:scale-110 transition-transform',
+                    )}
+                >
+                    <Upload className="w-6 h-6"/>
+                </div>
+                <p className="text-sm font-semibold text-slate-800">{t('upload.dropzoneTitle')}</p>
+                <p className="text-xs text-slate-400 mt-1">{t('upload.supportedFormats')}</p>
             </div>
 
+            {/* File list — Stitch list rows */}
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider sticky top-0 bg-white/95 backdrop-blur py-2 z-10">
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 sticky top-0 bg-white/95 backdrop-blur py-2 z-10">
                     {t('upload.selectedFiles', {count: files.length})}
                 </h3>
                 {files.map((fileItem) => (
                     <div
                         key={fileItem.id}
                         onClick={() => setSelectedFileId(fileItem.id)}
-                        className={`flex items-center gap-4 p-3 rounded-xl transition-all border cursor-pointer ${
+                        className={cn(
+                            'flex items-center gap-4 p-3 rounded-xl transition-all border cursor-pointer',
                             selectedFileId === fileItem.id
-                                ? 'border-blue-500 bg-blue-50 shadow-sm'
-                                : 'border-transparent bg-white hover:bg-gray-50'
-                        }`}
+                                ? 'border-indigo-500 bg-indigo-50/40 shadow-sm'
+                                : 'border-slate-100 bg-white hover:bg-slate-50',
+                        )}
                     >
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
                             {fileItem.preview ? (
                                 <img src={fileItem.preview} alt="" className="w-full h-full object-cover"/>
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                     {fileItem.file.type.startsWith('video/') ?
-                                        <Video className="w-6 h-6 text-info"/> :
+                                        <Video className="w-6 h-6 text-primary"/> :
                                         <File className="w-6 h-6 text-muted-foreground"/>}
                                 </div>
                             )}
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start">
-                                <p className="font-medium text-sm text-gray-900 truncate">{fileItem.file.name}</p>
+                                <p className="font-medium text-sm text-slate-800 truncate">{fileItem.file.name}</p>
                                 <span
-                                    className="text-[10px] text-muted-foreground">{formatFileSize(fileItem.file.size)}</span>
+                                    className="text-[10px] text-slate-400 font-mono">{formatFileSize(fileItem.file.size)}</span>
                             </div>
 
                             {['uploading', 'initiating', 'completing'].includes(fileItem.status) ? (
                                 <div className="mt-1.5 space-y-1">
-                                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-600 transition-all"
+                                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-indigo-600 transition-all"
                                              style={{width: `${fileItem.progress}%`}}/>
                                     </div>
-                                    <div className="flex justify-between text-[10px] text-gray-500">
+                                    <div className="flex justify-between text-[10px] text-slate-500">
                                         <span>{fileItem.status === 'completing' ? 'merging...' : `${fileItem.progress}%`}</span>
-                                        {fileItem.speed && <span>{formatFileSize(fileItem.speed)}/s</span>}
+                                        {fileItem.speed && <span className="font-mono">{formatFileSize(fileItem.speed)}/s</span>}
                                     </div>
                                 </div>
                             ) : (
-                                <p className={`text-[10px] mt-1 ${fileItem.status === 'success' ? 'text-success' : fileItem.status === 'error' ? 'text-destructive' : 'text-muted-foreground'}`}>
+                                <p className={cn(
+                                    'text-[10px] mt-1 font-semibold uppercase tracking-wider',
+                                    fileItem.status === 'success' && 'text-success',
+                                    fileItem.status === 'error' && 'text-destructive',
+                                    !['success', 'error'].includes(fileItem.status) && 'text-muted-foreground',
+                                )}>
                                     {t(`upload.status${fileItem.status.charAt(0).toUpperCase()}${fileItem.status.slice(1)}`)}
                                 </p>
                             )}
@@ -236,8 +268,8 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                             {getStatusIcon(fileItem.status)}
                             <Button
                                 variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                size="icon-sm"
+                                className="text-slate-400 hover:text-destructive"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     removeFile(fileItem.id);
@@ -249,12 +281,15 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                     </div>
                 ))}
                 {files.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground text-sm">No files selected</div>
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                        <FileVideo className="w-8 h-8 mx-auto mb-2 opacity-40"/>
+                        No files selected
+                    </div>
                 )}
             </div>
 
             {onCancel && (
-                <div className="flex justify-end pt-2 border-t">
+                <div className="flex justify-end pt-2 border-t border-slate-100">
                     <Button variant="ghost" className="text-muted-foreground" onClick={onCancel}>
                         {t('common.cancel')}
                     </Button>

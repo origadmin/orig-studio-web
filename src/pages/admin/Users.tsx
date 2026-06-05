@@ -227,7 +227,7 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalUsers') || 'Total Users'}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalUsers') || 'Total Users'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{total}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
@@ -241,7 +241,7 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.activeUsers') || 'Active'}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeUsers') || 'Active'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => getUserStatusLabel(u.status) === 'active').length}</h3>
               </div>
               <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
@@ -255,7 +255,7 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.admins') || 'Admins'}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.admins') || 'Admins'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => u.role === 'admin').length}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
@@ -269,7 +269,7 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.editors') || 'Editors'}</p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.editors') || 'Editors'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => u.role === 'editor').length}</h3>
               </div>
               <div className="w-11 h-11 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">

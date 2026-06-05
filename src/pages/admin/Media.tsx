@@ -319,7 +319,7 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.totalAssets', 'Total Assets')}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalAssets', 'Total Assets')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{totalAssets}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
@@ -338,7 +338,7 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{activeTranscodes}</h3>
                                 <p className="text-xs font-semibold text-slate-400 mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
                             </div>
@@ -354,7 +354,7 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.storageUsed', 'Storage Used')}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', 'Storage Used')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">4.2TB</h3>
                                 <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
                                     <div className="h-full bg-indigo-600 w-[84%]"></div>
@@ -372,7 +372,7 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('admin.failedTasks', 'Failed Tasks')}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', 'Failed Tasks')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
                                 <p className="text-xs font-semibold text-red-600 mt-2 hover:underline cursor-pointer">{t('admin.viewErrorLogs', 'View error logs')}</p>
                             </div>

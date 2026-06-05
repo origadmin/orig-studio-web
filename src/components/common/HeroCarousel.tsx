@@ -298,8 +298,8 @@ export const HeroCarouselSkeleton: React.FC = () => (
                     <Skeleton className="h-4 w-16"/>
                 </div>
                 <div className="flex gap-3">
-                    <Skeleton className="h-10 w-28 rounded-btn"/>
-                    <Skeleton className="h-10 w-28 rounded-btn"/>
+                    <Skeleton className="h-10 w-28 rounded-lg"/>
+                    <Skeleton className="h-10 w-28 rounded-lg"/>
                 </div>
             </div>
         </div>

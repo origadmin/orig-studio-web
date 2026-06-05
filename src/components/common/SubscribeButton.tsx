@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Button} from '@/components/ui/button';
 import {UserPlus, UserCheck, Loader2, ChevronDown, Bell, BellOff, AlertTriangle} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
@@ -28,10 +28,12 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                                                              initialSubscriberCount = 0,
                                                              className = '',
                                                              size = 'default',
-                                                             variant = 'default'
+                                                             // variant prop is accepted for API stability; visual style is
+                                                             // determined by the subscribed/unsubscribed state below.
+                                                             variant: _variant = 'default'
                                                          }) => {
     const {t} = useTranslation();
-    const {isAuthenticated, user} = useAuth();
+    const {isAuthenticated} = useAuth();
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [subscriberCount, setSubscriberCount] = useState(initialSubscriberCount);
     const [loading, setLoading] = useState(false);
@@ -41,7 +43,6 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
     const [showNotificationMenu, setShowNotificationMenu] = useState(false);
     const [notificationPref, setNotificationPref] = useState<NotificationPreference>('all');
     const [prefLoading, setPrefLoading] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -65,14 +66,6 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
             }
         };
         fetchStatus();
-
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setShowNotificationMenu(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [channelId, isAuthenticated]);
 
     const handleSubscribe = async () => {
@@ -155,14 +148,11 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
         );
     }
 
-    const buttonVariant = isSubscribed ? 'outline' : 'default';
-    const buttonClass = isSubscribed
-        ? 'border-input dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-        : 'bg-red-600 hover:bg-red-700 text-white';
+    const buttonVariant: 'default' | 'outline' = isSubscribed ? 'outline' : 'default';
 
     return (
         <>
-            <div className="relative inline-flex" ref={menuRef}>
+            <div className="relative inline-flex">
                 <Button
                     onClick={handleSubscribe}
                     disabled={loading || initialLoading}

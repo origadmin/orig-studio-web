@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
+import {Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle} from '@/components/ui/empty';
 import {useTranslation} from 'react-i18next';
 
 interface ErrorPageProps {
@@ -13,13 +14,13 @@ interface ErrorPageProps {
 }
 
 const ErrorPage: React.FC<ErrorPageProps> = ({
-                                                 statusCode,
-                                                 title,
-                                                 message,
-                                                 showBackButton = true,
-                                                 backButtonText,
-                                                 backButtonPath = '/',
-                                             }) => {
+    statusCode,
+    title,
+    message,
+    showBackButton = true,
+    backButtonText,
+    backButtonPath = '/',
+}) => {
     const {t} = useTranslation();
 
     const defaultTitle = statusCode === 404 ? t('error.404Title') : t('error.genericTitle');
@@ -28,20 +29,26 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 text-center">
-            {statusCode && (
-                <div className="text-9xl font-bold text-emerald-600 mb-6">{statusCode}</div>
-            )}
-            <h1 className="text-3xl font-bold mb-4">{title || defaultTitle}</h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl">
-                {message || defaultMessage}
-            </p>
-            {showBackButton && (
-                <Link to={backButtonPath}>
-                    <Button size="lg" className="px-6 py-3">
-                        {backButtonText || defaultBackButtonText}
-                    </Button>
-                </Link>
-            )}
+            <Empty>
+                <EmptyHeader>
+                    {statusCode && (
+                        <EmptyMedia variant="icon">
+                            <span className="text-2xl font-bold text-destructive">{statusCode}</span>
+                        </EmptyMedia>
+                    )}
+                    <EmptyTitle>{title || defaultTitle}</EmptyTitle>
+                    <EmptyDescription>{message || defaultMessage}</EmptyDescription>
+                </EmptyHeader>
+                {showBackButton && (
+                    <EmptyContent>
+                        <Button asChild size="lg" className="px-6">
+                            <Link to={backButtonPath}>
+                                {backButtonText || defaultBackButtonText}
+                            </Link>
+                        </Button>
+                    </EmptyContent>
+                )}
+            </Empty>
         </div>
     );
 };

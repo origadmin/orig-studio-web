@@ -85,7 +85,7 @@ const FooterSection = ({title, links}: {
 
 const SocialIcon = ({icon}: any) => (
     <button
-        className="w-9 h-9 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-info hover:border-brand-muted hover:bg-brand-muted transition-all shadow-sm hover:shadow-md active:scale-95">
+        className="w-9 h-9 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:text-info hover:border-primary/30 hover:bg-primary/5 transition-all shadow-sm hover:shadow-md active:scale-95">
         {icon}
     </button>
 );

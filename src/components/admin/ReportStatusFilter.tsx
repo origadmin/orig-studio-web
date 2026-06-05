@@ -25,7 +25,7 @@ export const ReportStatusFilter: React.FC<ReportStatusFilterProps> = React.memo(
 
     return (
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[160px] h-8 rounded-btn-sm focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
+        <SelectTrigger className="w-[160px] h-8 rounded-md focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4" />
             {value === 'all' ? (

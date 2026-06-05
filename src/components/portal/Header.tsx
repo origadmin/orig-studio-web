@@ -178,7 +178,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                 to={link.to}
                                 className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
                                     isActive(link.to)
-                                        ? 'bg-brand/10 dark:bg-brand/20 text-brand dark:text-brand font-medium'
+                                        ? 'bg-primary/10 dark:bg-primary/20 text-primary font-medium'
                                         : 'text-muted-foreground hover:bg-accent'
                                 }`}
                             >
@@ -224,10 +224,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                                 to={link.to}
                                                 onClick={() => setMoreMenuOpen(false)}
                                                 className={`block px-4 py-2 text-sm transition-colors ${
-                                                    isActive(link.to)
-                                                        ? 'bg-brand/10 dark:bg-brand/20 text-brand dark:text-brand font-medium'
-                                                        : 'text-muted-foreground hover:bg-accent'
-                                                }`}
+                                    isActive(link.to)
+                                        ? 'bg-primary/10 dark:bg-primary/20 text-primary font-medium'
+                                        : 'text-muted-foreground hover:bg-accent'
+                                }`}
                                             >
                                                 {link.label}
                                             </Link>
@@ -251,7 +251,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={t('header.searchPlaceholder')}
-                            className="w-full bg-muted border-0 rounded-full pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-brand focus:bg-background transition-all outline-none"
+                            className="w-full bg-muted border-0 rounded-full pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:bg-background transition-all outline-none"
                         />
                     </div>
                 </form>
@@ -310,8 +310,8 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                         />
                                     ) : (
                                         <div
-                                            className="w-8 h-8 bg-brand/10 dark:bg-brand/20 rounded-full flex items-center justify-center">
-                                            <User size={16} className="text-brand dark:text-brand"/>
+                                            className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center">
+                                            <User size={16} className="text-primary"/>
                                         </div>
                                     )}
                                 </button>
@@ -363,7 +363,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                             <Link
                                                 to="/admin"
                                                 onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand dark:text-brand hover:bg-brand/10 dark:hover:bg-brand/20"
+                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-primary hover:bg-primary/10 dark:hover:bg-primary/20"
                                             >
                                                 <Shield size={16}/> {t('nav.admin')}
                                             </Link>
@@ -388,7 +388,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                     ) : (
                         <Link
                             to="/auth/signin"
-                            className="flex items-center gap-2 h-10 px-4 bg-brand text-primary-foreground text-sm font-medium rounded-full hover:bg-brand/90 transition-colors"
+                            className="flex items-center gap-2 h-10 px-4 bg-primary text-primary-foreground text-sm font-medium rounded-full hover:bg-primary/90 transition-colors"
                         >
                             <LogIn size={16}/>
                             {t('nav.login')}

@@ -1,11 +1,22 @@
 /**
  * Breadcrumb - Breadcrumb navigation for article pages.
  * Shows: Home > Category > Article Title
+ *
+ * Now composes the shadcn Breadcrumb primitive (BreadcrumbList, BreadcrumbItem,
+ * BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator) for consistent styling.
  */
 import React from 'react';
 import { Link } from '@tanstack/react-router';
-import { ChevronRight, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import {
+  Breadcrumb as BreadcrumbRoot,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 
 interface BreadcrumbItem {
   label: string;
@@ -21,28 +32,40 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
   const { t } = useTranslation();
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
-      <Link to="/" className="flex items-center gap-1 hover:text-foreground transition-colors">
-        <Home size={14} />
-        <span className="hidden sm:inline">{t('nav.home')}</span>
-      </Link>
-      {items.map((item, index) => (
-        <React.Fragment key={index}>
-          <ChevronRight size={14} className="shrink-0" />
-          {item.to ? (
-            <Link
-              to={item.to}
-              params={item.params}
-              className="hover:text-foreground transition-colors truncate max-w-[200px]"
-            >
-              {item.label}
+    <BreadcrumbRoot className="mb-4">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link to="/" className="flex items-center gap-1">
+              <Home size={14} />
+              <span className="hidden sm:inline">{t('nav.home')}</span>
             </Link>
-          ) : (
-            <span className="text-foreground truncate max-w-[200px]">{item.label}</span>
-          )}
-        </React.Fragment>
-      ))}
-    </nav>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        {items.map((item, index) => (
+          <React.Fragment key={index}>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {item.to ? (
+                <BreadcrumbLink asChild>
+                  <Link
+                    to={item.to}
+                    params={item.params}
+                    className="truncate max-w-[200px]"
+                  >
+                    {item.label}
+                  </Link>
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage className="truncate max-w-[200px]">
+                  {item.label}
+                </BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </React.Fragment>
+        ))}
+      </BreadcrumbList>
+    </BreadcrumbRoot>
   );
 };
 
