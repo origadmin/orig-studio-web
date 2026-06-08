@@ -226,8 +226,8 @@ const Channels: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.channels')}</h2>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.channels')}</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.manageChannels') || 'Manage content creator channels, subscribers, and verification status across the platform.'}
                     </p>
                 </div>
@@ -243,8 +243,8 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.channelTotal') || 'Total Channels'}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{total || channels.length}</h3>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.channelTotal') || 'Total Channels'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{total || channels.length}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
                                     +12% {t('admin.vsLastMonth') || 'vs last month'}
@@ -260,8 +260,8 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalSubscribers') || 'Subscribers'}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{formatNumber(totalSubscribers)}</h3>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalSubscribers') || 'Subscribers'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{formatNumber(totalSubscribers)}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
                                     +4.2% {t('admin.growth') || 'growth'}
@@ -277,9 +277,9 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.verifiedChannels') || 'Verified'}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{verifiedCount}</h3>
-                                <p className="text-xs font-semibold text-slate-500 mt-2 flex items-center gap-1">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.verifiedChannels') || 'Verified'}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{verifiedCount}</h3>
+                                <p className="text-xs font-semibold text-muted-foreground mt-2 flex items-center gap-1">
                                     {verifiedRatio}% {t('admin.ofTotalChannels') || 'of total channels'}
                                 </p>
                             </div>
@@ -293,8 +293,8 @@ const Channels: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.pending')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{pendingCount}</h3>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.pending')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{pendingCount}</h3>
                                 <p className="text-xs font-semibold text-red-500 mt-2 flex items-center gap-1">
                                     {t('admin.requiresAttention') || 'Requires attention'}
                                 </p>
@@ -311,7 +311,7 @@ const Channels: React.FC = () => {
             <div className="mb-6">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
                             className="pl-9"
                             placeholder={t('admin.searchChannels') || 'Search channels...'}
@@ -354,20 +354,20 @@ const Channels: React.FC = () => {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.channel')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.ownerId') || 'Owner ID'}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.subscriberCount')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.videoCount')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.category')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.actions')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.channel')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.ownerId') || 'Owner ID'}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.subscriberCount')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.videoCount')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.category')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.status')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="px-6 py-12 text-center">
-                                    <div className="animate-pulse text-slate-400">{t('admin.loadingChannels')}</div>
+                                    <div className="animate-pulse text-muted-foreground">{t('admin.loadingChannels')}</div>
                                 </TableCell>
                             </TableRow>
                         ) : error ? (
@@ -386,7 +386,7 @@ const Channels: React.FC = () => {
                             </TableRow>
                         ) : filteredChannels.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                                <TableCell colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                                     {t('admin.noChannelsFound')}
                                 </TableCell>
                             </TableRow>
@@ -397,7 +397,7 @@ const Channels: React.FC = () => {
                                 return (
                                     <TableRow
                                         key={channel.id}
-                                        className={isBanned ? 'bg-slate-50/30' : ''}
+                                        className={isBanned ? 'bg-muted/30' : ''}
                                     >
                                         <TableCell className="px-6 py-4">
                                             <div className={`flex items-center gap-3${isBanned ? ' opacity-60' : ''}`}>
@@ -413,22 +413,22 @@ const Channels: React.FC = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <p className={`text-sm font-semibold text-slate-800${isBanned ? ' line-through' : ''}`}>
+                                                    <p className={`text-sm font-semibold text-foreground${isBanned ? ' line-through' : ''}`}>
                                                         {channel.name}
                                                     </p>
-                                                    <p className={`text-xs font-mono ${isBanned ? 'text-red-500' : 'text-slate-400'}`}>
+                                                    <p className={`text-xs font-mono ${isBanned ? 'text-red-500' : 'text-muted-foreground'}`}>
                                                         {isBanned ? t('admin.suspended') || 'Suspended' : `@${channel.short_token}`}
                                                     </p>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className={`px-6 py-4 text-sm font-mono ${isBanned ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        <TableCell className={`px-6 py-4 text-sm font-mono ${isBanned ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                                             {channel.user_id}
                                         </TableCell>
-                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-slate-400' : 'text-slate-700'}`}>
+                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-muted-foreground' : 'text-card-foreground'}`}>
                                             {formatNumber(channel.subscriber_count)}
                                         </TableCell>
-                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-slate-400' : 'text-slate-700'}`}>
+                                        <TableCell className={`px-6 py-4 text-sm tabular-nums ${isBanned ? 'text-muted-foreground' : 'text-card-foreground'}`}>
                                             {channel.media_count || 0}
                                         </TableCell>
                                         <TableCell className="px-6 py-4">
@@ -453,18 +453,18 @@ const Channels: React.FC = () => {
                                                 </Button>
                                                 {actionMenuFor?.id === channel.id && (
                                                     <div
-                                                        className="absolute right-0 mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg z-10 py-1"
-                                                        onMouseLeave={() => setActionMenuFor(null)}
+                                                    className="absolute right-0 mt-1 w-36 bg-card border border-border rounded-lg shadow-lg z-10 py-1"
+                                                    onMouseLeave={() => setActionMenuFor(null)}
+                                                >
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="w-full justify-start px-3 py-1.5 text-card-foreground hover:bg-muted"
+                                                        onClick={() => {
+                                                            setActionMenuFor(null);
+                                                            openEditDialog(channel);
+                                                        }}
                                                     >
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="w-full justify-start px-3 py-1.5 text-slate-700 hover:bg-slate-50"
-                                                            onClick={() => {
-                                                                setActionMenuFor(null);
-                                                                openEditDialog(channel);
-                                                            }}
-                                                        >
                                                             {t('admin.edit')}
                                                         </Button>
                                                         <Button
@@ -491,8 +491,8 @@ const Channels: React.FC = () => {
 
                 {/* Pagination */}
                 {total > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-xs text-slate-500">
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
                             {t('admin.showing') || 'Showing'} {startItem} {t('admin.to') || 'to'} {endItem} {t('admin.of') || 'of'} {total} {t('admin.channels') || 'channels'}
                         </p>
                         <div className="flex items-center gap-1">

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+﻿import React, {useState, useEffect} from 'react';
 import {
     Bell,
     Send,
@@ -221,11 +221,11 @@ const AdminNotifications: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-3">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
                         <Bell className="h-7 w-7 text-indigo-600"/>
                         {t('admin.notifications', 'Notification Management')}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.notificationsDesc', 'Configure, broadcast, and audit system-wide alerts.')}
                     </p>
                 </div>
@@ -260,10 +260,10 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatSent', 'Sent')}
                                     </p>
-                                    <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                    <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                         {stats.sent.toLocaleString()}
                                     </h3>
                                     <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
@@ -280,10 +280,10 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatDelivered', 'Delivered')}
                                     </p>
-                                    <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                    <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                         {stats.delivered.toLocaleString()}
                                     </h3>
                                     <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
@@ -300,13 +300,13 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatOpened', 'Opened')}
                                     </p>
-                                    <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                    <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                         {stats.opened.toLocaleString()}
                                     </h3>
-                                    <div className="mt-2 w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="mt-2 w-24 h-1.5 bg-muted rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-indigo-600"
                                             style={{width: `${total > 0 ? (stats.opened / total) * 100 : 0}%`}}
@@ -323,10 +323,10 @@ const AdminNotifications: React.FC = () => {
                         <CardContent className="p-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">
                                         {t('admin.notificationsStatClicked', 'Clicked')}
                                     </p>
-                                    <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                    <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                         {stats.clicked.toLocaleString()}
                                     </h3>
                                     <p className="text-xs font-semibold text-indigo-600 mt-2 flex items-center gap-1">
@@ -353,12 +353,12 @@ const AdminNotifications: React.FC = () => {
                                 <div className="col-span-12 lg:col-span-7 space-y-6">
                                     <Card>
                                         <CardContent className="p-8">
-                                            <h3 className="text-lg font-semibold text-slate-800 mb-6">
+                                            <h3 className="text-lg font-semibold text-foreground mb-6">
                                                 {t('admin.notificationsCompose', 'Compose Broadcast')}
                                             </h3>
                                             <div className="space-y-5">
                                                 <div>
-                                                    <Label className="block text-sm font-medium text-slate-700 mb-2">
+                                                    <Label className="block text-sm font-medium text-card-foreground mb-2">
                                                         {t('admin.notificationsFieldTitle', 'NOTIFICATION TITLE')}
                                                     </Label>
                                                     <Input
@@ -369,7 +369,7 @@ const AdminNotifications: React.FC = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <Label className="block text-sm font-medium text-slate-700 mb-2">
+                                                    <Label className="block text-sm font-medium text-card-foreground mb-2">
                                                         {t('admin.notificationsFieldBody', 'BODY MESSAGE')}
                                                     </Label>
                                                     <Textarea
@@ -380,7 +380,7 @@ const AdminNotifications: React.FC = () => {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <Label className="block text-sm font-medium text-slate-700 mb-2">
+                                                    <Label className="block text-sm font-medium text-card-foreground mb-2">
                                                         {t('admin.notificationsFieldAudience', 'TARGET AUDIENCE')}
                                                     </Label>
                                                     <div className="flex flex-wrap gap-2">
@@ -439,7 +439,7 @@ const AdminNotifications: React.FC = () => {
                                                                     placeholder="Search users..."
                                                                 />
                                                                 {loadingUsers ? (
-                                                                    <div className="text-center py-2 text-sm text-slate-400">
+                                                                    <div className="text-center py-2 text-sm text-muted-foreground">
                                                                         <Loader2 className="w-4 h-4 animate-spin inline"/>
                                                                     </div>
                                                                 ) : (
@@ -449,14 +449,14 @@ const AdminNotifications: React.FC = () => {
                                                                             .map(user => (
                                                                                 <Label
                                                                                     key={user.id}
-                                                                                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-slate-50 cursor-pointer"
+                                                                                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
                                                                                 >
                                                                                     <Checkbox
                                                                                         checked={selectedUserIds.includes(user.id)}
                                                                                         onCheckedChange={() => toggleUser(user.id)}
                                                                                     />
-                                                                                    <span className="text-sm text-slate-700">{user.nickname || user.username}</span>
-                                                                                    <span className="text-xs text-slate-400">{user.email}</span>
+                                                                                    <span className="text-sm text-card-foreground">{user.nickname || user.username}</span>
+                                                                                    <span className="text-xs text-muted-foreground">{user.email}</span>
                                                                                 </Label>
                                                                             ))}
                                                                     </div>
@@ -473,8 +473,8 @@ const AdminNotifications: React.FC = () => {
                                                         </Card>
                                                     )}
                                                 </div>
-                                                <div className="pt-5 border-t border-slate-100">
-                                                    <Label className="block text-sm font-medium text-slate-700 mb-3">
+                                                <div className="pt-5 border-t border-border">
+                                                    <Label className="block text-sm font-medium text-card-foreground mb-3">
                                                         {t('admin.notificationsFieldChannels', 'DELIVERY CHANNELS')}
                                                     </Label>
                                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -487,7 +487,7 @@ const AdminNotifications: React.FC = () => {
                                                                         channels: {...f.channels, [channel]: !!checked},
                                                                     }))}
                                                                 />
-                                                                <span className="text-sm text-slate-600 group-hover:text-indigo-600 transition-colors">
+                                                                <span className="text-sm text-muted-foreground group-hover:text-indigo-600 transition-colors">
                                                                     {channelLabels[channel]}
                                                                 </span>
                                                             </Label>
@@ -532,7 +532,7 @@ const AdminNotifications: React.FC = () => {
                                                     </div>
                                                 </div>
                                                 {/* Notification Preview Card */}
-                                                <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl">
+                                                <div className="bg-card/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl">
                                                     <div className="flex items-center gap-2 mb-2">
                                                         <div className="w-5 h-5 bg-indigo-600 rounded flex items-center justify-center">
                                                             <Bell className="text-white w-3 h-3"/>
@@ -551,7 +551,7 @@ const AdminNotifications: React.FC = () => {
                                         </div>
                                         <div className="mt-2 w-24 h-1 bg-neutral-700 mx-auto rounded-full"/>
                                     </div>
-                                    <p className="mt-4 text-xs font-mono text-slate-400">
+                                    <p className="mt-4 text-xs font-mono text-muted-foreground">
                                         {t('admin.notificationsPreviewLabel', 'Live Mobile Channel Preview')}
                                     </p>
                                 </div>
@@ -562,8 +562,8 @@ const AdminNotifications: React.FC = () => {
                         <TabsContent value="history">
                             <section className="space-y-6">
                                 <Card className="overflow-hidden">
-                                    <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                        <h3 className="text-base font-semibold text-slate-800">
+                                    <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted">
+                                        <h3 className="text-base font-semibold text-foreground">
                                             {t('admin.notificationsHistory', 'Recent History')}
                                         </h3>
                                         <div className="flex gap-2">
@@ -606,13 +606,13 @@ const AdminNotifications: React.FC = () => {
                                                 <TableRow>
                                                     <TableCell colSpan={7} className="py-16">
                                                         <div className="flex flex-col items-center justify-center text-center">
-                                                            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                                                <Inbox className="w-8 h-8 text-slate-300"/>
-                                                            </div>
-                                                            <h3 className="text-base font-semibold text-slate-700 mb-1">
+                                                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                                                                <Inbox className="w-8 h-8 text-muted-foreground"/>
+                                                              </div>
+                                                              <h3 className="text-base font-semibold text-card-foreground mb-1">
                                                                 {t('admin.notificationsEmpty', 'No notifications yet')}
-                                                            </h3>
-                                                            <p className="text-sm text-slate-500 max-w-sm">
+                                                              </h3>
+                                                              <p className="text-sm text-muted-foreground max-w-sm">
                                                                 {t('admin.notificationsEmptyDesc', 'Broadcasts you send will appear here with full delivery details.')}
                                                             </p>
                                                         </div>
@@ -629,12 +629,12 @@ const AdminNotifications: React.FC = () => {
                                                             {/* Subject */}
                                                             <TableCell>
                                                                 <div className="flex items-center gap-2">
-                                                                    <Bell className="w-4 h-4 text-slate-400 shrink-0"/>
+                                                                    <Bell className="w-4 h-4 text-muted-foreground shrink-0"/>
                                                                     <div className="min-w-0">
-                                                                        <div className="text-sm font-semibold text-slate-800 truncate max-w-xs">
+                                                                        <div className="text-sm font-semibold text-foreground truncate max-w-xs">
                                                                             {notification.title}
                                                                         </div>
-                                                                        <div className="text-xs font-mono text-slate-400">
+                                                                        <div className="text-xs font-mono text-muted-foreground">
                                                                             ID: NT-{notification.id}
                                                                         </div>
                                                                     </div>
@@ -642,7 +642,7 @@ const AdminNotifications: React.FC = () => {
                                                             </TableCell>
                                                             {/* Type */}
                                                             <TableCell>
-                                                                <Badge variant="soft-neutral" className="uppercase text-[10px] font-bold border border-slate-200">
+                                                                <Badge variant="soft-neutral" className="uppercase text-[10px] font-bold border border-border">
                                                                     {typeLabels[notification.action] || (notification.action || 'SYSTEM').toUpperCase()}
                                                                 </Badge>
                                                             </TableCell>
@@ -672,12 +672,12 @@ const AdminNotifications: React.FC = () => {
                                                                 )}
                                                             </TableCell>
                                                             {/* Recipients */}
-                                                            <TableCell className="text-sm text-slate-700 tabular-nums font-mono">
+                                                            <TableCell className="text-sm text-card-foreground tabular-nums font-mono">
                                                                 {notification.user_id && notification.user_id !== 'all' ? '1' : 'ALL'}
                                                             </TableCell>
                                                             {/* Sent At */}
                                                             <TableCell>
-                                                                <div className="text-sm text-slate-700">
+                                                                <div className="text-sm text-card-foreground">
                                                                     {formatDateTime(notification.create_time)}
                                                                 </div>
                                                             </TableCell>
@@ -688,7 +688,7 @@ const AdminNotifications: React.FC = () => {
                                                                     size="icon-sm"
                                                                     onClick={() => handleDelete(notification.id)}
                                                                     title={t('common.delete', 'Delete')}
-                                                                    className="text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                                    className="text-muted-foreground hover:text-red-500 hover:bg-red-50"
                                                                 >
                                                                     <Trash2 className="w-4 h-4"/>
                                                                 </Button>
@@ -715,23 +715,23 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-slate-800">Email SMTP</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">Email SMTP</h3>
                                                     <Switch
                                                         checked={config.emailEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, emailEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-slate-500 mt-2 mb-6 leading-relaxed">
+                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
                                                     Master switch for transactional and broadcast emails via SendGrid API.
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">Rate Limit (per min)</span>
+                                                        <span className="text-muted-foreground">Rate Limit (per min)</span>
                                                         <Badge variant="soft-primary" className="font-mono text-xs">500</Badge>
                                                     </div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">Sender Identity</span>
-                                                        <span className="font-mono text-xs text-slate-500">noreply@origstudio.io</span>
+                                                        <span className="text-muted-foreground">Sender Identity</span>
+                                                        <span className="font-mono text-xs text-muted-foreground">noreply@origstudio.io</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -746,23 +746,23 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-slate-800">Firebase Push</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">Firebase Push</h3>
                                                     <Switch
                                                         checked={config.pushEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, pushEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-slate-500 mt-2 mb-6 leading-relaxed">
+                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
                                                     Manage FCM tokens and delivery for iOS/Android native apps.
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">Badge Count Sync</span>
+                                                        <span className="text-muted-foreground">Badge Count Sync</span>
                                                         <span className="text-xs font-semibold text-emerald-600">ENABLED</span>
                                                     </div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">TTL (Hours)</span>
-                                                        <span className="font-mono text-xs text-slate-500">48h</span>
+                                                        <span className="text-muted-foreground">TTL (Hours)</span>
+                                                        <span className="font-mono text-xs text-muted-foreground">48h</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -777,19 +777,19 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-slate-800">Webhooks</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">Webhooks</h3>
                                                     <Switch
                                                         checked={config.webhookEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, webhookEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-slate-500 mt-2 mb-6 leading-relaxed">
+                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
                                                     Outbound HTTP calls to services like Slack or Microsoft Teams.
                                                 </p>
-                                                <div className="space-y-3 border-t border-slate-50 pt-4">
+                                                <div className="space-y-3 border-t border-muted pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">Active Endpoints</span>
-                                                        <span className="font-mono text-xs text-slate-500">12</span>
+                                                        <span className="text-muted-foreground">Active Endpoints</span>
+                                                        <span className="font-mono text-xs text-muted-foreground">12</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -804,18 +804,18 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-slate-800">Twilio SMS</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">Twilio SMS</h3>
                                                     <Switch
                                                         checked={config.smsEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, smsEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-slate-500 mt-2 mb-6 leading-relaxed">
+                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
                                                     Critical alert delivery via SMS. Global emergency coverage.
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-slate-600">Current Balance</span>
+                                                        <span className="text-muted-foreground">Current Balance</span>
                                                         <span className="font-mono text-xs text-emerald-600 font-bold">$412.00</span>
                                                     </div>
                                                 </div>
@@ -823,7 +823,7 @@ const AdminNotifications: React.FC = () => {
                                         </CardContent>
                                     </Card>
                                 </div>
-                                <div className="flex justify-end pt-6 border-t border-slate-200 max-w-5xl">
+                                <div className="flex justify-end pt-6 border-t border-border max-w-5xl">
                                     <Button>
                                         {t('admin.notificationsSaveSettings', 'Save Global Settings')}
                                     </Button>

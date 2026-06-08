@@ -226,7 +226,7 @@ export default function MediaPage() {
                 </Badge>
             );
         }
-        return <span className="text-xs text-slate-400">--</span>;
+        return <span className="text-xs text-muted-foreground">--</span>;
     };
 
     // Encoding status badge helper (used in the variant details dialog header)
@@ -263,7 +263,7 @@ export default function MediaPage() {
                     </Badge>
                 );
             default:
-                return <span className="text-xs text-slate-400">--</span>;
+                return <span className="text-xs text-muted-foreground">--</span>;
         }
     };
 
@@ -299,8 +299,8 @@ export default function MediaPage() {
             {/* Page Title Area */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.mediaManagement', 'Media Library')}</h2>
-                    <p className="text-sm text-slate-500 mt-1">{t('admin.mediaManagementDesc', 'Manage video, audio, and image assets across the network.')}</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.mediaManagement', 'Media Library')}</h2>
+                    <p className="text-sm text-muted-foreground mt-1">{t('admin.mediaManagementDesc', 'Manage video, audio, and image assets across the network.')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
@@ -319,8 +319,8 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalAssets', 'Total Assets')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{totalAssets}</h3>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalAssets', 'Total Assets')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{totalAssets}</h3>
                                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                                     <TrendingUp className="w-3 h-3"/>
                                     {t('admin.assetsGrowth', '+12% vs last month')}
@@ -338,9 +338,9 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{activeTranscodes}</h3>
-                                <p className="text-xs font-semibold text-slate-400 mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{activeTranscodes}</h3>
+                                <p className="text-xs font-semibold text-muted-foreground mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Cpu className="w-5 h-5"/>
@@ -354,9 +354,9 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', 'Storage Used')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">4.2TB</h3>
-                                <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', 'Storage Used')}</p>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">4.2TB</h3>
+                                <div className="w-32 h-1.5 bg-muted rounded-full mt-3 overflow-hidden">
                                     <div className="h-full bg-indigo-600 w-[84%]"></div>
                                 </div>
                             </div>
@@ -372,7 +372,7 @@ export default function MediaPage() {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', 'Failed Tasks')}</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', 'Failed Tasks')}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
                                 <p className="text-xs font-semibold text-red-600 mt-2 hover:underline cursor-pointer">{t('admin.viewErrorLogs', 'View error logs')}</p>
                             </div>
@@ -388,7 +388,7 @@ export default function MediaPage() {
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-[240px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
                             className="pl-9"
                             type="text"
@@ -436,24 +436,24 @@ export default function MediaPage() {
                         {t('admin.reset', 'Reset')}
                     </Button>
                 </div>
-                <div className="text-xs text-slate-400 font-medium">
+                <div className="text-xs text-muted-foreground font-medium">
                     {t('admin.showingAssets', `Showing ${startItem} - ${endItem} of ${total} assets`)}
                 </div>
             </div>
 
             {/* Data Table */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="bg-card rounded-lg border border-border shadow-sm">
                 <Table className="text-left">
                     <TableHeader>
-                        <TableRow className="bg-slate-50 border-b border-slate-200">
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.thumbnail', 'Thumbnail')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.assetName', 'Asset Name')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.type', 'Type')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.size', 'Size')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.views', 'Views')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status', 'Status')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.date', 'Date')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions', 'Actions')}</TableHead>
+                        <TableRow className="bg-muted border-b border-border">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.thumbnail', 'Thumbnail')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.assetName', 'Asset Name')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.type', 'Type')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.size', 'Size')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.views', 'Views')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.status', 'Status')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.date', 'Date')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">{t('admin.actions', 'Actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-slate-50">
@@ -466,11 +466,11 @@ export default function MediaPage() {
                         ) : mediaList.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="px-6 py-16 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Film className="w-8 h-8 text-slate-300"/>
                                     </div>
-                                    <h3 className="text-base font-semibold text-slate-700 mb-1">{t('admin.noMediaFound', 'No media found')}</h3>
-                                    <p className="text-sm text-slate-500 max-w-sm mx-auto">{t('admin.uploadFirstMedia', 'Upload your first media asset to get started.')}</p>
+                                    <h3 className="text-base font-semibold text-card-foreground mb-1">{t('admin.noMediaFound', 'No media found')}</h3>
+                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('admin.uploadFirstMedia', 'Upload your first media asset to get started.')}</p>
                                     <Button
                                         className="mt-4"
                                         onClick={() => setUploadDialogOpen(true)}
@@ -490,7 +490,7 @@ export default function MediaPage() {
                                     >
                                         {/* Thumbnail */}
                                         <TableCell className="px-6 py-3.5">
-                                            <div className="w-16 aspect-video rounded-md bg-slate-100 overflow-hidden relative border border-slate-200">
+                                            <div className="w-16 aspect-video rounded-md bg-muted overflow-hidden relative border border-border">
                                                 {media.thumbnail ? (
                                                     <img
                                                         alt="Preview"
@@ -515,22 +515,22 @@ export default function MediaPage() {
 
                                         {/* Asset Name */}
                                         <TableCell className="px-6 py-3.5">
-                                            <div className="text-sm font-semibold text-slate-800">{media.title || t('admin.unnamedMedia')}</div>
-                                            <div className="text-xs text-slate-400">{media.duration ? formatDuration(media.duration) : ''}</div>
+                                            <div className="text-sm font-semibold text-foreground">{media.title || t('admin.unnamedMedia')}</div>
+                                            <div className="text-xs text-muted-foreground">{media.duration ? formatDuration(media.duration) : ''}</div>
                                         </TableCell>
 
                                         {/* Type */}
-                                        <TableCell className="px-6 py-3.5 text-sm text-slate-700">
+                                        <TableCell className="px-6 py-3.5 text-sm text-card-foreground">
                                             {typeBadge(media.type)}
                                         </TableCell>
 
                                         {/* Size */}
-                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-slate-500">
+                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-muted-foreground">
                                             {media.size ? formatFileSize(parseInt(media.size)) : '-'}
                                         </TableCell>
 
                                         {/* Views */}
-                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-slate-500">
+                                        <TableCell className="px-6 py-3.5 text-xs font-mono text-muted-foreground">
                                             {formatViews(media.view_count)}
                                         </TableCell>
 
@@ -540,7 +540,7 @@ export default function MediaPage() {
                                         </TableCell>
 
                                         {/* Date */}
-                                        <TableCell className="px-6 py-3.5 text-xs text-slate-400">
+                                        <TableCell className="px-6 py-3.5 text-xs text-muted-foreground">
                                             {formatDateTime(media.create_time)}
                                         </TableCell>
 
@@ -560,7 +560,7 @@ export default function MediaPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
-                                                    className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                                                    className="text-muted-foreground hover:text-indigo-600 hover:bg-muted"
                                                     onClick={() => handleEditClick(media)}
                                                     title={t('admin.edit', 'Edit')}
                                                 >
@@ -577,13 +577,13 @@ export default function MediaPage() {
 
                 {/* Pagination */}
                 {total > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
-                        <p className="text-xs text-slate-500">{t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}</p>
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-card">
+                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}</p>
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="text-slate-400"
+                                className="text-muted-foreground"
                                 onClick={() => setSearchParams({...searchParams, page: searchParams.page - 1})}
                                 disabled={searchParams.page <= 1}
                             >
@@ -594,20 +594,20 @@ export default function MediaPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-slate-600"
+                                    className="text-muted-foreground"
                                     onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
                                 >
                                     {searchParams.page + 1}
                                 </Button>
                             )}
                             {totalPages > 2 && searchParams.page < totalPages - 1 && (
-                                <Button variant="ghost" size="sm" className="text-slate-600">...</Button>
+                                <Button variant="ghost" size="sm" className="text-muted-foreground">...</Button>
                             )}
                             {totalPages > 2 && searchParams.page < totalPages - 1 && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-slate-600"
+                                    className="text-muted-foreground"
                                     onClick={() => setSearchParams({...searchParams, page: totalPages})}
                                 >
                                     {totalPages}
@@ -616,7 +616,7 @@ export default function MediaPage() {
                             <Button
                                 variant="outline"
                                 size="icon-sm"
-                                className="text-slate-400"
+                                className="text-muted-foreground"
                                 onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
                                 disabled={searchParams.page >= totalPages}
                             >
@@ -656,8 +656,8 @@ export default function MediaPage() {
                         <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertCircle className="w-7 h-7"/>
                         </div>
-                        <h3 className="text-lg font-bold text-slate-800">{t('admin.confirmDelete', 'Delete Asset?')}</h3>
-                        <p className="text-sm text-slate-500 mt-2 mb-6">{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</p>
+                        <h3 className="text-lg font-bold text-foreground">{t('admin.confirmDelete', 'Delete Asset?')}</h3>
+                        <p className="text-sm text-muted-foreground mt-2 mb-6">{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</p>
                         <div className="flex gap-3">
                             <Button
                                 variant="secondary"
@@ -697,38 +697,38 @@ export default function MediaPage() {
                                 <div className="grid grid-cols-5 gap-2 text-center">
                                     <div className="rounded-lg bg-yellow-50 p-3">
                                         <p className="text-lg font-bold text-yellow-600">{variantData.video_pending_count ?? 0}</p>
-                                        <p className="text-[11px] text-slate-500">{t('admin.queued', 'Queued')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.queued', 'Queued')}</p>
                                     </div>
                                     <div className="rounded-lg bg-blue-50 p-3">
                                         <p className="text-lg font-bold text-blue-600">{variantData.video_processing_count ?? 0}</p>
-                                        <p className="text-[11px] text-slate-500">{t('admin.transcoding', 'Transcoding')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.transcoding', 'Transcoding')}</p>
                                     </div>
                                     <div className="rounded-lg bg-green-50 p-3">
                                         <p className="text-lg font-bold text-emerald-600">{variantData.video_success_count}</p>
-                                        <p className="text-[11px] text-slate-500">{t('admin.success', 'Success')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.success', 'Success')}</p>
                                     </div>
                                     <div className="rounded-lg bg-red-50 p-3">
                                         <p className="text-lg font-bold text-red-600">{variantData.video_failed_count}</p>
-                                        <p className="text-[11px] text-slate-500">{t('admin.failed', 'Failed')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.failed', 'Failed')}</p>
                                     </div>
-                                    <div className="rounded-lg bg-slate-100 p-3">
-                                        <p className="text-lg font-bold text-slate-700">{variantData.video_total_count}</p>
-                                        <p className="text-[11px] text-slate-500">{t('admin.total', 'Total')}</p>
+                                    <div className="rounded-lg bg-muted p-3">
+                                        <p className="text-lg font-bold text-card-foreground">{variantData.video_total_count}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.total', 'Total')}</p>
                                     </div>
                                 </div>
 
                                 {/* HLS / Preview paths */}
                                 {(variantData.hls_file || variantData.preview_file) && (
-                                    <div className="text-xs space-y-1 bg-slate-50 rounded-md p-3 border border-slate-100">
+                                    <div className="text-xs space-y-1 bg-muted rounded-md p-3 border border-border">
                                         {variantData.hls_file && (
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-medium text-slate-500">HLS:</span>
+                                                <span className="font-medium text-muted-foreground">HLS:</span>
                                                 <code className="text-green-700">{variantData.hls_file}</code>
                                             </div>
                                         )}
                                         {variantData.preview_file && (
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-medium text-slate-500">Preview:</span>
+                                                <span className="font-medium text-muted-foreground">Preview:</span>
                                                 <img
                                                     src={resolvePreview(variantData.preview_file)}
                                                     alt="preview"
@@ -767,13 +767,13 @@ export default function MediaPage() {
                                                 className={`flex items-center justify-between rounded-md px-3 py-2 text-xs ${
                                                     v.status === "failed" ? "bg-red-50" :
                                                     v.status === "success" ? "bg-green-50" :
-                                                    "bg-slate-50"
+                                                    "bg-muted"
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2 min-w-0">
                                                     <span className="font-mono font-medium truncate">{v.profile_name}</span>
                                                     {v.resolution && (
-                                                        <span className="text-slate-400 hidden sm:inline">{v.resolution}</span>
+                                                        <span className="text-muted-foreground hidden sm:inline">{v.resolution}</span>
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -791,7 +791,7 @@ export default function MediaPage() {
                                 )}
 
                                 {/* Link to full task list */}
-                                <div className="pt-2 border-t border-slate-100">
+                                <div className="pt-2 border-t border-border">
                                     <a
                                         href={`/admin/transcoding/status?media_id=${variantData.media_id}`}
                                         target="_blank"

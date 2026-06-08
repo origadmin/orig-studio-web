@@ -62,11 +62,11 @@ export default function DRMPage() {
                         <p className="text-muted-foreground text-sm mt-1">{t('admin.drmManagementDesc', 'Configure digital rights policies, encryption keys, and license issuance rules.')}</p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline" className="rounded-xl">
+                        <Button variant="outline" className="rounded-lg">
                             <Download className="w-4 h-4"/>
                             {t('admin.exportLogs', 'Export Logs')}
                         </Button>
-                        <Button className="rounded-xl">
+                        <Button className="rounded-lg">
                             <ShieldPlus className="w-4 h-4"/>
                             {t('admin.createPolicy', 'Create Policy')}
                         </Button>
@@ -592,7 +592,7 @@ const LicensesTab: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* License Traffic Chart */}
             <div className="lg:col-span-1 space-y-6">
-                <Card className="rounded-xl p-4">
+                <Card className="rounded-lg p-4">
                     <h4 className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-4">{t('admin.licenseTraffic', 'License Traffic')}</h4>
                     <div className="h-32 flex items-end gap-1 px-2">
                         <div className="w-full bg-primary/20 h-[30%] rounded-t-sm"/>

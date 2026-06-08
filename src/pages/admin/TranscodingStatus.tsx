@@ -128,7 +128,7 @@ const badgeStyle: Record<string, string> = {
     amber: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-800",
     emerald: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800",
     rose: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-800",
-    slate: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700",
+    slate: "bg-muted text-card-foreground border-border dark:bg-slate-800 dark:text-muted-foreground dark:border-slate-700",
 };
 
 // ─── Task Row Component ──────────────────────────────
@@ -165,7 +165,7 @@ function TaskRow({
         <>
             <TableRow
                 key={`task-${task.id}`}
-                className={`group hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${isSelected ? 'bg-muted/30' : ''}`}
+                className={`group hover:bg-muted/80 dark:hover:bg-slate-800/50 transition-colors ${isSelected ? 'bg-muted/30' : ''}`}
                 style={{height: '64px'}}>
                 <TableCell className="w-[50px]">
                     <Checkbox
@@ -177,7 +177,7 @@ function TaskRow({
                 {/* ENCODING */}
                 <TableCell className="max-w-[320px]">
                     <a href={mediaLink(task.media_id)}
-                       className="group/media flex items-center gap-3 text-sm font-medium text-slate-900 dark:text-slate-100 hover:text-info dark:hover:text-blue-400 transition-all duration-200">
+                       className="group/media flex items-center gap-3 text-sm font-medium text-foreground dark:text-slate-100 hover:text-info dark:hover:text-blue-400 transition-all duration-200">
                         <span
                             className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-50 to-slate-100 dark:from-blue-950/30 dark:to-slate-800 flex items-center justify-center shrink-0 group-hover/media:from-blue-100 group-hover/media:to-blue-50 dark:group-hover/media:from-blue-900/30 dark:group-hover/media:to-blue-950/50 transition-all duration-200 shadow-sm overflow-hidden">
                             {thumbSrc ? (
@@ -189,7 +189,7 @@ function TaskRow({
                             )}
                         </span>
                         <div className="flex-1 min-w-0">
-                            {task.media_title && <span className="block truncate font-medium text-slate-900 dark:text-slate-100" title={task.media_title}>{task.media_title}</span>}
+                            {task.media_title && <span className="block truncate font-medium text-foreground dark:text-slate-100" title={task.media_title}>{task.media_title}</span>}
                             <span className="block font-mono text-[11px] leading-tight text-muted-foreground" title={task.media_id}>{task.media_id}</span>
                         </div>
                         <ExternalLink
@@ -213,7 +213,7 @@ function TaskRow({
                                 <span
                                     className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-tight">Processing</span>
                                 <span
-                                    className="text-[10px] tabular-nums font-bold text-slate-600 dark:text-muted-foreground">{task.progress ?? 0}%</span>
+                                    className="text-[10px] tabular-nums font-bold text-muted-foreground dark:text-muted-foreground">{task.progress ?? 0}%</span>
                             </div>
                             <Progress
                                 value={task.progress ?? 0}
@@ -240,11 +240,11 @@ function TaskRow({
                             <div className="flex items-center justify-between">
                                 <span
                                     className="text-[10px] font-bold uppercase tracking-tight">{task.status === 'pending' ? 'Queued' : 'Waiting'}</span>
-                                <span className="text-[10px] tabular-nums font-bold text-slate-600 dark:text-muted-foreground">0%</span>
+                                <span className="text-[10px] tabular-nums font-bold text-muted-foreground dark:text-muted-foreground">0%</span>
                             </div>
                             <Progress
                                 value={0}
-                                className="h-2.5 w-full bg-slate-100 dark:bg-slate-800"
+                                className="h-2.5 w-full bg-muted dark:bg-slate-800"
                             />
                         </div>
                     )}
@@ -266,7 +266,7 @@ function TaskRow({
                             Yes
                         </Badge>
                     ) : (
-                        <Badge variant="outline" className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-300 border-slate-200">
+                        <Badge variant="outline" className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-muted text-foreground dark:bg-slate-900/30 dark:text-slate-300 border-border">
                             No
                         </Badge>
                     )}
@@ -332,7 +332,7 @@ function TaskRow({
             {showError && (isSkipped || isFailed) && task.error_message && (
                 <TableRow key={`error-${task.id}`}>
                     <TableCell colSpan={9}
-                               className="bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
+                               className="bg-muted dark:bg-gray-900/50 border-t border-border dark:border-gray-800">
                         <div className="p-4">
                             <div className="flex items-start gap-3">
                                 <div className="flex-shrink-0">
@@ -343,7 +343,7 @@ function TaskRow({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-start gap-2 mb-2">
-                                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">
+                                        <h4 className="text-sm font-semibold text-foreground dark:text-gray-100 mt-0.5">
                                             {isFailed ? 'Encoding Failed' : 'Task Skipped'}
                                         </h4>
                                         <Badge variant="outline"
@@ -877,7 +877,7 @@ const filteredTasks = useMemo(() => {
                 <Skeleton className="h-7 w-48"/>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {[1, 2, 3, 4].map(i => (
-                        <Skeleton key={i} className="h-24 w-full rounded-xl"/>
+                        <Skeleton key={i} className="h-24 w-full rounded-lg"/>
                     ))}
                 </div>
                 <Card><CardContent className="pt-4"><Skeleton className="h-48 w-full"/></CardContent></Card>
@@ -1067,7 +1067,7 @@ const filteredTasks = useMemo(() => {
                                         <p className="text-[10px] text-muted-foreground font-medium">{card.desc}</p>
                                     </div>
                                     <div
-                                        className={`p-2.5 rounded-xl bg-${card.color}-50 dark:bg-${card.color}-950/30 text-${card.color}-500 dark:text-${card.color}-400`}>
+                                        className={`p-2.5 rounded-lg bg-${card.color}-50 dark:bg-${card.color}-950/30 text-${card.color}-500 dark:text-${card.color}-400`}>
                                         <card.icon className="h-6 w-6"/>
                                     </div>
                                 </div>

@@ -209,8 +209,8 @@ export default function UsersPage() {
       {/* 页面标题区 */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-800">{t('admin.users') || 'Users Management'}</h2>
-          <p className="text-sm text-slate-500 mt-1">{t('admin.manageUsers') || 'Manage user accounts, roles, permissions, and account status across the network.'}</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.users') || 'Users Management'}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{t('admin.manageUsers') || 'Manage user accounts, roles, permissions, and account status across the network.'}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={openCreateDialog}>
@@ -227,8 +227,8 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalUsers') || 'Total Users'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{total}</h3>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalUsers') || 'Total Users'}</p>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{total}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5"/>
@@ -241,8 +241,8 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeUsers') || 'Active'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => getUserStatusLabel(u.status) === 'active').length}</h3>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeUsers') || 'Active'}</p>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => getUserStatusLabel(u.status) === 'active').length}</h3>
               </div>
               <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                 <UserCheck className="w-5 h-5"/>
@@ -255,8 +255,8 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.admins') || 'Admins'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => u.role === 'admin').length}</h3>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.admins') || 'Admins'}</p>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'admin').length}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5"/>
@@ -269,10 +269,10 @@ export default function UsersPage() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest min-h-[2.5rem]">{t('admin.editors') || 'Editors'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{users.filter(u => u.role === 'editor').length}</h3>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.editors') || 'Editors'}</p>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'editor').length}</h3>
               </div>
-              <div className="w-11 h-11 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-muted text-muted-foreground rounded-xl flex items-center justify-center">
                 <Edit3 className="w-5 h-5"/>
               </div>
             </div>
@@ -284,7 +284,7 @@ export default function UsersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex flex-wrap items-center gap-3 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
             <Input
               className="pl-9 h-10"
               placeholder={t('admin.search') || 'Search by name, email or ID...'}
@@ -322,16 +322,16 @@ export default function UsersPage() {
       </div>
 
       {/* Table Area */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
         <Table className="text-left">
           <TableHeader>
-            <TableRow className="bg-slate-50 border-b border-slate-200">
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.user') || 'User'}</TableHead>
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.email') || 'Email'}</TableHead>
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.role') || 'Role'}</TableHead>
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.status') || 'Status'}</TableHead>
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">{t('admin.joined') || 'Joined Date'}</TableHead>
-              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">{t('admin.actions') || 'Actions'}</TableHead>
+            <TableRow className="bg-muted border-b border-border">
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.user') || 'User'}</TableHead>
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.email') || 'Email'}</TableHead>
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.role') || 'Role'}</TableHead>
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.status') || 'Status'}</TableHead>
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.joined') || 'Joined Date'}</TableHead>
+              <TableHead className="px-6 py-4 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">{t('admin.actions') || 'Actions'}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="divide-y divide-slate-100">
@@ -347,7 +347,7 @@ export default function UsersPage() {
                   <div className="flex items-center gap-3">
                     <img
                       alt={user.nickname || user.username}
-                      className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                      className="w-10 h-10 rounded-full object-cover border border-border"
                       src={user.avatar ? getFullUrl(user.avatar) : undefined}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -361,12 +361,12 @@ export default function UsersPage() {
                       {(user.nickname || user.username || '?').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{user.nickname || user.username}</p>
-                      <p className="text-xs text-slate-400">@{user.username}</p>
+                      <p className="text-sm font-semibold text-foreground">{user.nickname || user.username}</p>
+                      <p className="text-xs text-muted-foreground">@{user.username}</p>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="px-6 py-4 text-sm text-slate-600 font-mono">{user.email}</TableCell>
+                <TableCell className="px-6 py-4 text-sm text-muted-foreground font-mono">{user.email}</TableCell>
                 <TableCell className="px-6 py-4">
                   {user.role === 'admin' ? (
                     <Badge variant="soft-primary">{t('admin.admin') || 'Admin'}</Badge>
@@ -389,7 +389,7 @@ export default function UsersPage() {
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="px-6 py-4 text-sm text-slate-500">{formatDateTime(user.create_time)}</TableCell>
+                <TableCell className="px-6 py-4 text-sm text-muted-foreground">{formatDateTime(user.create_time)}</TableCell>
                 <TableCell className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-1">
                     <Button
@@ -411,7 +411,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      className="text-muted-foreground hover:text-red-600 hover:bg-red-50"
                       title={t('admin.delete') || 'Delete'}
                       onClick={() => openDeleteDialog(user)}
                     >
@@ -422,7 +422,7 @@ export default function UsersPage() {
               </TableRow>
             )) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-sm text-slate-500">
+                <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
                   {t('admin.noUsersFound') || 'No users found'}
                 </TableCell>
               </TableRow>
@@ -430,9 +430,9 @@ export default function UsersPage() {
           </TableBody>
         </Table>
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
-          <p className="text-xs text-slate-500">
-            {t('admin.showing') || 'Showing'} <span className="font-semibold text-slate-700">{startItem} to {endItem}</span> {t('admin.of') || 'of'} <span className="font-semibold text-slate-700">{total.toLocaleString()}</span> {t('admin.users') || 'users'}
+        <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-card">
+          <p className="text-xs text-muted-foreground">
+            {t('admin.showing') || 'Showing'} <span className="font-semibold text-card-foreground">{startItem} to {endItem}</span> {t('admin.of') || 'of'} <span className="font-semibold text-card-foreground">{total.toLocaleString()}</span> {t('admin.users') || 'users'}
           </p>
           <div className="flex items-center gap-1">
             <Button
@@ -503,7 +503,7 @@ export default function UsersPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label>{t('admin.password') || 'Password'} <span className="text-slate-400 text-xs">({t('admin.optional') || 'Optional'})</span></Label>
+              <Label>{t('admin.password') || 'Password'} <span className="text-muted-foreground text-xs">({t('admin.optional') || 'Optional'})</span></Label>
               <Input
                 placeholder={t('admin.passwordPlaceholder') || 'Min 6 characters, leave blank for auto-generated'}
                 type="password"

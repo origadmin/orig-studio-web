@@ -29,12 +29,12 @@ const badgeVariants = cva(
                 info:
                     "border-transparent bg-info text-info-foreground hover:bg-info/80",
                 outline: "text-foreground",
-                "soft-success": "border-transparent bg-emerald-50 text-emerald-700",
-                "soft-warning": "border-transparent bg-amber-50 text-amber-700",
-                "soft-danger": "border-transparent bg-red-50 text-red-700",
-                "soft-info": "border-transparent bg-sky-50 text-sky-700",
-                "soft-neutral": "border-transparent bg-slate-100 text-slate-600",
-                "soft-primary": "border-transparent bg-indigo-50 text-indigo-700",
+                "soft-success": "border-transparent bg-success/10 text-success",
+                "soft-warning": "border-transparent bg-warning/10 text-warning",
+                "soft-danger": "border-transparent bg-destructive/10 text-destructive",
+                "soft-info": "border-transparent bg-info/10 text-info",
+                "soft-neutral": "border-transparent bg-muted text-muted-foreground",
+                "soft-primary": "border-transparent bg-primary/10 text-primary",
             },
         },
         defaultVariants: {

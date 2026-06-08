@@ -456,27 +456,27 @@ const Settings: React.FC = () => {
             <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse"/>
-                        <div className="h-4 w-64 bg-slate-100 rounded animate-pulse mt-2"/>
+                        <div className="h-8 w-48 bg-muted rounded animate-pulse"/>
+                        <div className="h-4 w-64 bg-muted rounded animate-pulse mt-2"/>
                     </div>
                     <div className="flex gap-3">
-                        <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse"/>
-                        <div className="h-9 w-28 bg-slate-100 rounded-lg animate-pulse"/>
+                        <div className="h-9 w-24 bg-muted rounded-lg animate-pulse"/>
+                        <div className="h-9 w-28 bg-muted rounded-lg animate-pulse"/>
                     </div>
                 </div>
-                <div className="h-12 bg-slate-100 rounded-t-xl animate-pulse mb-6"/>
+                <div className="h-12 bg-muted rounded-t-xl animate-pulse mb-6"/>
                 <div className="space-y-6">
                     {[1, 2].map(i => (
                         <Card key={i} className="animate-pulse">
                             <CardHeader>
-                                <div className="h-5 w-40 bg-slate-100 rounded"/>
+                                <div className="h-5 w-40 bg-muted rounded"/>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {[1, 2, 3, 4].map(j => (
                                         <div key={j} className="space-y-2">
-                                            <div className="h-3 w-20 bg-slate-100 rounded"/>
-                                            <div className="h-9 bg-slate-50 rounded-lg"/>
+                                            <div className="h-3 w-20 bg-muted rounded"/>
+                                            <div className="h-9 bg-muted rounded-lg"/>
                                         </div>
                                     ))}
                                 </div>
@@ -492,7 +492,7 @@ const Settings: React.FC = () => {
         <div className="p-8">
             {/* Message Toast */}
             {message && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg ${
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${
                     message.type === 'success'
                         ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                         : 'bg-red-50 border-red-200 text-red-800'
@@ -524,8 +524,8 @@ const Settings: React.FC = () => {
             {/* Page Title & Actions */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">System Settings</h2>
-                    <p className="text-sm text-slate-500 mt-1">Configure core system parameters and integrations.</p>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">System Settings</h2>
+                    <p className="text-sm text-muted-foreground mt-1">Configure core system parameters and integrations.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
@@ -550,12 +550,12 @@ const Settings: React.FC = () => {
 
             {/* Secondary Navigation (Tabs) */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-white p-0 h-auto">
+                <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-card p-0 h-auto">
                     {tabs.map(tab => (
                         <TabsTrigger
                             key={tab.id}
                             value={tab.id}
-                            className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:shadow-none rounded-none font-medium text-slate-500 border-b-2 border-transparent hover:text-slate-700 hover:border-slate-300 transition-colors"
+                            className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none font-medium text-muted-foreground border-b-2 border-transparent hover:text-card-foreground hover:border-border transition-colors"
                         >
                             {tab.label}
                         </TabsTrigger>
@@ -574,13 +574,13 @@ const Settings: React.FC = () => {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <SettingsIcon className="w-5 h-5 text-indigo-600"/>
+                                            <SettingsIcon className="w-5 h-5 text-primary"/>
                                             Application Identity
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Application Name</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Application Name</Label>
                                             <Input
                                                 value={formData.site_name}
                                                 onChange={(e) => handleInputChange('site_name', e.target.value)}
@@ -588,7 +588,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">System Description</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">System Description</Label>
                                             <Textarea
                                                 value={formData.site_description}
                                                 onChange={(e) => handleInputChange('site_description', e.target.value)}
@@ -603,7 +603,7 @@ const Settings: React.FC = () => {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
-                                            <Link2 className="w-5 h-5 text-indigo-600"/>
+                                            <Link2 className="w-5 h-5 text-primary"/>
                                             Base URLs
                                         </CardTitle>
                                     </CardHeader>
@@ -611,14 +611,14 @@ const Settings: React.FC = () => {
                                         {formData.base_urls.map((url, index) => (
                                             <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
                                                 index === 0
-                                                    ? 'bg-slate-50 border-slate-200'
-                                                    : 'bg-white border-slate-100'
+                                                    ? 'bg-muted border-border'
+                                                    : 'bg-card border-border'
                                             }`}>
                                                 <div className="flex items-center gap-3">
                                                     {index === 0 ? (
-                                                        <Badge className="bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Primary</Badge>
+                                                        <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Primary</Badge>
                                                     ) : null}
-                                                    <span className={`font-mono text-sm ${index === 0 ? 'text-slate-800' : 'text-slate-800 opacity-60'}`}>
+                                                    <span className={`font-mono text-sm ${index === 0 ? 'text-foreground' : 'text-foreground opacity-60'}`}>
                                                         {url || 'https://...'}
                                                     </span>
                                                 </div>
@@ -627,7 +627,7 @@ const Settings: React.FC = () => {
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline px-2 h-auto py-1"
+                                                            className="text-[11px] font-bold text-primary hover:text-primary/80 hover:underline px-2 h-auto py-1"
                                                             onClick={() => handleSetPrimaryUrl(index)}
                                                         >
                                                             Set as Primary
@@ -638,7 +638,7 @@ const Settings: React.FC = () => {
                                                         size="icon-sm"
                                                         onClick={() => handleRemoveBaseUrl(index)}
                                                         disabled={formData.base_urls.length <= 1}
-                                                        className="text-slate-400 hover:text-red-500"
+                                                        className="text-muted-foreground hover:text-red-500"
                                                     >
                                                         <Trash2 className="w-4 h-4"/>
                                                     </Button>
@@ -661,12 +661,12 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-6">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-red-50 rounded-lg">
-                                                    <AlertTriangle className="w-5 h-5 text-red-500"/>
+                                                <div className="p-2 bg-destructive/10 rounded-lg">
+                                                    <AlertTriangle className="w-5 h-5 text-destructive"/>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-semibold text-slate-800">Maintenance Mode</p>
-                                                    <p className="text-xs text-slate-500">Disable public access for all system portals and APIs.</p>
+                                                    <p className="text-sm font-semibold text-foreground">Maintenance Mode</p>
+                                                    <p className="text-xs text-muted-foreground">Disable public access for all system portals and APIs.</p>
                                                 </div>
                                             </div>
                                             <Switch
@@ -679,7 +679,7 @@ const Settings: React.FC = () => {
 
                                 {/* System Appearance (NOT a card) */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-slate-800">System Appearance</h3>
+                                    <h3 className="text-lg font-semibold text-foreground">System Appearance</h3>
                                     <ThemeSwitcher/>
                                 </div>
                             </div>
@@ -691,19 +691,19 @@ const Settings: React.FC = () => {
                                     <CardHeader className="pb-2">
                                         <CardTitle className="flex items-center justify-between text-base">
                                             API Consumption
-                                            <span className="font-mono text-indigo-600 text-sm">75.2%</span>
+                                            <span className="font-mono text-primary text-sm">75.2%</span>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-5">
                                         <Progress value={75.2} className="h-3"/>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Cycle</p>
-                                                <p className="font-mono text-sm text-slate-800">3.8M / 5M</p>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Current Cycle</p>
+                                                <p className="font-mono text-sm text-foreground">3.8M / 5M</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Resets In</p>
-                                                <p className="font-mono text-sm text-slate-800">12d 4h</p>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Resets In</p>
+                                                <p className="font-mono text-sm text-foreground">12d 4h</p>
                                             </div>
                                         </div>
                                         <Button variant="outline" className="w-full text-[13px]">
@@ -712,42 +712,42 @@ const Settings: React.FC = () => {
                                     </CardContent>
                                 </Card>
 
-                                {/* System Snapshot (dark bg) */}
-                                <Card className="bg-slate-900 border-slate-700">
+                                {/* System Snapshot */}
+                                <Card>
                                     <CardHeader className="pb-2">
-                                        <CardTitle className="text-base text-white">System Snapshot</CardTitle>
+                                        <CardTitle className="text-base">System Snapshot</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
-                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                                            <span className="text-xs text-slate-400">Runtime</span>
-                                            <span className="font-mono text-xs text-emerald-400">{systemInfo?.goVersion || 'Go 1.22.3'}</span>
+                                        <div className="flex justify-between items-center py-2 border-b border-border">
+                                            <span className="text-xs text-muted-foreground">Runtime</span>
+                                            <span className="font-mono text-xs text-success">{systemInfo?.goVersion || 'Go 1.22.3'}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                                            <span className="text-xs text-slate-400">Database</span>
-                                            <span className="font-mono text-xs text-slate-200">{systemInfo?.database || 'PostgreSQL 16.2'}</span>
+                                        <div className="flex justify-between items-center py-2 border-b border-border">
+                                            <span className="text-xs text-muted-foreground">Database</span>
+                                            <span className="font-mono text-xs text-card-foreground">{systemInfo?.database || 'PostgreSQL 16.2'}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-2 border-b border-slate-700">
-                                            <span className="text-xs text-slate-400">Cache</span>
-                                            <span className="font-mono text-xs text-slate-200">Redis 7.2 Cloud</span>
+                                        <div className="flex justify-between items-center py-2 border-b border-border">
+                                            <span className="text-xs text-muted-foreground">Cache</span>
+                                            <span className="font-mono text-xs text-card-foreground">Redis 7.2 Cloud</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2">
-                                            <span className="text-xs text-slate-400">Build Date</span>
-                                            <span className="font-mono text-xs text-slate-200">2024-05-18.02a</span>
+                                            <span className="text-xs text-muted-foreground">Build Date</span>
+                                            <span className="font-mono text-xs text-card-foreground">2024-05-18.02a</span>
                                         </div>
-                                        <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] mt-2">
+                                        <Button className="w-full text-[13px] mt-2">
                                             <Download className="w-4 h-4"/>
                                             Export Config JSON
                                         </Button>
                                     </CardContent>
                                 </Card>
 
-                                {/* Security Alert (red bg) */}
-                                <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-4">
-                                    <ShieldAlert className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0"/>
+                                {/* Security Alert */}
+                                <div className="bg-destructive/8 border border-destructive/20 rounded-lg p-4 flex items-start gap-4">
+                                    <ShieldAlert className="w-5 h-5 text-destructive/70 mt-0.5 flex-shrink-0"/>
                                     <div>
-                                        <p className="text-sm font-semibold text-red-700">Unprotected API Endpoint</p>
-                                        <p className="text-xs text-red-600 mt-1 leading-relaxed">External webhook receiver <code className="font-mono bg-red-100 px-1 rounded">/v1/hooks/stripe</code> has no signature verification enabled.</p>
-                                        <Button variant="link" className="mt-2 p-0 h-auto text-xs font-bold text-slate-800 hover:underline">
+                                        <p className="text-sm font-semibold text-destructive/80">Unprotected API Endpoint</p>
+                                        <p className="text-xs text-destructive/70 mt-1 leading-relaxed">External webhook receiver <code className="font-mono bg-destructive/15 px-1 rounded">/v1/hooks/stripe</code> has no signature verification enabled.</p>
+                                        <Button variant="link" className="mt-2 p-0 h-auto text-xs font-bold text-foreground hover:underline">
                                             Fix Vulnerability
                                         </Button>
                                     </div>
@@ -767,7 +767,7 @@ const Settings: React.FC = () => {
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Storage Type</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Storage Type</Label>
                                             <Select
                                                 value={formData.storage_type}
                                                 onValueChange={(value) => handleInputChange('storage_type', value)}
@@ -785,11 +785,11 @@ const Settings: React.FC = () => {
 
                                         {/* S3 Configuration (conditional) */}
                                         {showS3Config && (
-                                            <div className="p-6 border border-slate-200 rounded-xl bg-slate-50">
-                                                <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-4">S3 Configuration</h4>
+                                            <div className="p-6 border border-border rounded-lg bg-muted">
+                                                <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-4">S3 Configuration</h4>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Endpoint</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Endpoint</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_endpoint}
@@ -798,7 +798,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Region</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Region</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_region}
@@ -807,7 +807,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5 col-span-2">
-                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Bucket Name</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Bucket Name</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_bucket}
@@ -816,7 +816,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Access Key</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Access Key</Label>
                                                         <Input
                                                             className="font-mono"
                                                             type="password"
@@ -826,7 +826,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Secret Key</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Secret Key</Label>
                                                         <Input
                                                             className="font-mono"
                                                             type="password"
@@ -841,7 +841,7 @@ const Settings: React.FC = () => {
 
                                         {/* Local Storage Path */}
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Storage Base Path</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Storage Base Path</Label>
                                             <Input
                                                 className="font-mono"
                                                 value={formData.storage_base_path}
@@ -851,7 +851,7 @@ const Settings: React.FC = () => {
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {['originals/', 'temp/', 'thumbnails/', 'hls/', 'previews/', 'sprites/'].map(dir => (
-                                                <code key={dir} className="px-2 py-1 text-xs rounded bg-slate-50 border border-slate-200 font-mono text-slate-500">
+                                                <code key={dir} className="px-2 py-1 text-xs rounded bg-muted border border-border font-mono text-muted-foreground">
                                                     {formData.storage_base_path ? `${formData.storage_base_path}/${dir}` : dir}
                                                 </code>
                                             ))}
@@ -869,15 +869,15 @@ const Settings: React.FC = () => {
                                     <CardContent className="space-y-4">
                                         <div>
                                             <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-slate-500">Hot Storage</span>
-                                                <span className="text-xs font-mono text-slate-700">8.4 TB</span>
+                                                <span className="text-xs text-muted-foreground">Hot Storage</span>
+                                                <span className="text-xs font-mono text-card-foreground">8.4 TB</span>
                                             </div>
                                             <Progress value={82} className="h-2"/>
                                         </div>
                                         <div>
                                             <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-slate-500">Archival</span>
-                                                <span className="text-xs font-mono text-slate-700">112 TB</span>
+                                                <span className="text-xs text-muted-foreground">Archival</span>
+                                                <span className="text-xs font-mono text-card-foreground">112 TB</span>
                                             </div>
                                             <Progress value={45} className="h-2"/>
                                         </div>
@@ -895,8 +895,8 @@ const Settings: React.FC = () => {
                                 <CardContent className="py-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-semibold text-slate-800">Auto-Transcode on Upload</p>
-                                            <p className="text-xs text-slate-500 mt-0.5">Automatically process all video assets to multi-bitrate HLS.</p>
+                                            <p className="text-sm font-semibold text-foreground">Auto-Transcode on Upload</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">Automatically process all video assets to multi-bitrate HLS.</p>
                                         </div>
                                         <Switch
                                             checked={formData.auto_transcode === 'true'}
@@ -915,7 +915,7 @@ const Settings: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Method</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Method</Label>
                                                 <Select
                                                     value={formData.transcode_method}
                                                     onValueChange={(value) => handleInputChange('transcode_method', value)}
@@ -931,7 +931,7 @@ const Settings: React.FC = () => {
                                                 </Select>
                                             </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Output Format</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Output Format</Label>
                                                 <Select
                                                     value={formData.homepage_layout}
                                                     onValueChange={(value) => handleInputChange('homepage_layout', value)}
@@ -947,15 +947,15 @@ const Settings: React.FC = () => {
                                                 </Select>
                                             </div>
                                         </div>
-                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                            <h4 className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-3">Allowed Formats</h4>
+                                        <div className="bg-muted p-4 rounded-lg border border-border">
+                                            <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-3">Allowed Formats</h4>
                                             <div className="flex flex-wrap gap-2">
                                                 {formData.allowed_video_formats.split(',').map(fmt => (
-                                                    <span key={fmt} className="px-2 py-1 bg-white border border-slate-200 text-slate-700 text-[11px] rounded font-mono">
+                                                    <span key={fmt} className="px-2 py-1 bg-card border border-border text-card-foreground text-[11px] rounded font-mono">
                                                         .{fmt.trim()}
                                                     </span>
                                                 ))}
-                                                <Button variant="outline" className="px-2 py-1 h-auto border-dashed text-[11px] font-mono text-indigo-600">
+                                                <Button variant="outline" className="px-2 py-1 h-auto border-dashed text-[11px] font-mono text-primary">
                                                     + Add
                                                 </Button>
                                             </div>
@@ -972,7 +972,7 @@ const Settings: React.FC = () => {
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Upload Size Video (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Upload Size Video (MB)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -981,7 +981,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Upload Size Image (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Upload Size Image (MB)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -990,14 +990,14 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Allowed Image Formats</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Allowed Image Formats</Label>
                                             <Input
                                                 value={formData.allowed_image_formats}
                                                 onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Max Video Duration (min)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Video Duration (min)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1017,7 +1017,7 @@ const Settings: React.FC = () => {
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Thumbnail Quality</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Thumbnail Quality</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1026,7 +1026,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Thumbnail Resolution</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Thumbnail Resolution</Label>
                                             <Input
                                                 value={formData.thumbnail_resolution}
                                                 onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
@@ -1034,7 +1034,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sprite Frame Interval</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sprite Frame Interval</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1043,7 +1043,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sprite Columns</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sprite Columns</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1077,7 +1077,7 @@ const Settings: React.FC = () => {
                                     <CardContent className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Host</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Host</Label>
                                                 <Input
                                                     className="font-mono"
                                                     type="text"
@@ -1087,7 +1087,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Port</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Port</Label>
                                                 <Input
                                                     className="font-mono"
                                                     type="text"
@@ -1097,7 +1097,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5 col-span-2">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Username</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Username</Label>
                                                 <Input
                                                     value={formData.smtp_user}
                                                     onChange={(e) => handleInputChange('smtp_user', e.target.value)}
@@ -1105,7 +1105,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5 col-span-2">
-                                                <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Password</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Password</Label>
                                                 <Input
                                                     type="password"
                                                     value={formData.smtp_password}
@@ -1115,18 +1115,18 @@ const Settings: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Sender Name</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sender Name</Label>
                                             <Input
                                                 value={formData.smtp_sender_name}
                                                 onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
                                             />
                                         </div>
-                                        <div className="flex items-center gap-3 p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                        <div className="flex items-center gap-3 p-4 rounded-lg bg-muted border border-border">
                                             <Switch
                                                 checked={formData.smtp_use_tls === 'true'}
                                                 onCheckedChange={(checked) => handleInputChange('smtp_use_tls', String(checked))}
                                             />
-                                            <Label className="text-sm text-slate-700 font-medium">Use TLS</Label>
+                                            <Label className="text-sm text-card-foreground font-medium">Use TLS</Label>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1134,7 +1134,7 @@ const Settings: React.FC = () => {
 
                             {/* Right Column (4/12) */}
                             <div className="col-span-12 lg:col-span-4">
-                                <Card className="border-2 border-dashed border-slate-300">
+                                <Card className="border-2 border-dashed border-border">
                                     <CardHeader>
                                         <CardTitle className="text-base">Send Test Email</CardTitle>
                                     </CardHeader>
@@ -1179,8 +1179,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Allow Public Registration</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">Allow new users to sign up without invitation.</p>
+                                                <p className="text-sm font-semibold text-foreground">Allow Public Registration</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Allow new users to sign up without invitation.</p>
                                             </div>
                                             <Switch
                                                 checked={formData.allow_registration === 'true'}
@@ -1195,8 +1195,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Enforce 2FA</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">Mandatory two-factor auth for all administrators.</p>
+                                                <p className="text-sm font-semibold text-foreground">Enforce 2FA</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Mandatory two-factor auth for all administrators.</p>
                                             </div>
                                             <Switch
                                                 checked={formData.require_email_verification === 'true'}
@@ -1211,8 +1211,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">API Rate Limiting</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">Limit requests to {formData.api_rate_limit}/min per IP address.</p>
+                                                <p className="text-sm font-semibold text-foreground">API Rate Limiting</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Limit requests to {formData.api_rate_limit}/min per IP address.</p>
                                             </div>
                                             <Switch
                                                 checked={parseInt(formData.api_rate_limit) > 0}
@@ -1227,8 +1227,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Session Expiry</p>
-                                                <p className="text-xs text-slate-500 mt-0.5">Auto-logout after 24 hours of inactivity.</p>
+                                                <p className="text-sm font-semibold text-foreground">Session Expiry</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Auto-logout after 24 hours of inactivity.</p>
                                             </div>
                                             <Switch
                                                 checked={formData.auto_approve === 'true'}
@@ -1248,10 +1248,10 @@ const Settings: React.FC = () => {
                                     <CardTitle>Authentication</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                         <div>
-                                            <p className="text-sm font-semibold text-slate-800">Require Email Verification</p>
-                                            <p className="text-[10px] text-slate-400 font-mono uppercase">Verify email before access</p>
+                                            <p className="text-sm font-semibold text-foreground">Require Email Verification</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono uppercase">Verify email before access</p>
                                         </div>
                                         <Switch
                                             checked={formData.require_email_verification === 'true'}
@@ -1260,7 +1260,7 @@ const Settings: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">Min Password Length</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Min Password Length</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1269,7 +1269,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-slate-700 uppercase tracking-wider">API Rate Limit (req/min)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">API Rate Limit (req/min)</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1278,9 +1278,9 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                     </div>
-                                    <div className="p-4 rounded-lg bg-red-50 border border-red-100 flex gap-4">
-                                        <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0"/>
-                                        <p className="text-xs text-red-700 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
+                                    <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex gap-4">
+                                        <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0"/>
+                                        <p className="text-xs text-destructive/80 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1292,35 +1292,35 @@ const Settings: React.FC = () => {
                         <div className="grid grid-cols-12 gap-8">
                             {/* Left Column (4/12) */}
                             <div className="col-span-12 lg:col-span-4 space-y-4">
-                                <h3 className="text-sm font-semibold text-slate-800 mb-2">Core Modules</h3>
-                                <div className={`p-4 border-2 rounded-xl flex justify-between items-center ${
-                                    formData.module_articles ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                <h3 className="text-sm font-semibold text-foreground mb-2">Core Modules</h3>
+                                <div className={`p-4 border-2 rounded-lg flex justify-between items-center ${
+                                    formData.module_articles ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'
                                 }`}>
                                     <div className="flex items-center gap-3">
-                                        <FileText className="w-5 h-5 text-indigo-600"/>
-                                        <span className="text-sm font-semibold text-slate-800">Articles</span>
+                                        <FileText className="w-5 h-5 text-primary"/>
+                                        <span className="text-sm font-semibold text-foreground">Articles</span>
                                     </div>
                                     <Badge variant={formData.module_articles ? 'soft-success' : 'soft-neutral'}>
                                         {formData.module_articles ? 'Active' : 'Disabled'}
                                     </Badge>
                                 </div>
-                                <div className={`p-4 border-2 rounded-xl flex justify-between items-center ${
-                                    formData.module_videos ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                <div className={`p-4 border-2 rounded-lg flex justify-between items-center ${
+                                    formData.module_videos ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'
                                 }`}>
                                     <div className="flex items-center gap-3">
-                                        <Video className="w-5 h-5 text-indigo-600"/>
-                                        <span className="text-sm font-semibold text-slate-800">Video Management</span>
+                                        <Video className="w-5 h-5 text-primary"/>
+                                        <span className="text-sm font-semibold text-foreground">Video Management</span>
                                     </div>
                                     <Badge variant={formData.module_videos ? 'soft-success' : 'soft-neutral'}>
                                         {formData.module_videos ? 'Active' : 'Disabled'}
                                     </Badge>
                                 </div>
-                                <div className={`p-4 border rounded-xl flex justify-between items-center ${
-                                    formData.module_music ? 'border-indigo-400 bg-indigo-50/30' : 'border-slate-200 bg-white'
+                                <div className={`p-4 border rounded-lg flex justify-between items-center ${
+                                    formData.module_music ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'
                                 } ${!formData.module_music ? 'opacity-50 grayscale' : ''}`}>
                                     <div className="flex items-center gap-3">
-                                        <Music2 className="w-5 h-5 text-indigo-600"/>
-                                        <span className="text-sm font-semibold text-slate-800">Audio Streaming</span>
+                                        <Music2 className="w-5 h-5 text-primary"/>
+                                        <span className="text-sm font-semibold text-foreground">Audio Streaming</span>
                                     </div>
                                     <Badge variant={formData.module_music ? 'soft-success' : 'soft-neutral'}>
                                         {formData.module_music ? 'Active' : 'Disabled'}
@@ -1330,43 +1330,43 @@ const Settings: React.FC = () => {
 
                             {/* Right Column (8/12) */}
                             <div className="col-span-12 lg:col-span-8">
-                                <h3 className="text-sm font-semibold text-slate-800 mb-6">Homepage Layout Selection</h3>
+                                <h3 className="text-sm font-semibold text-foreground mb-6">Homepage Layout Selection</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     <div
-                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                             formData.homepage_layout === 'auto'
-                                                ? 'border-indigo-600 bg-indigo-50/30'
-                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border bg-card hover:border-border'
                                         }`}
                                         onClick={() => handleInputChange('homepage_layout', 'auto')}
                                     >
-                                        <LayoutGrid className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'auto' ? 'text-indigo-600' : 'text-slate-400'}`}/>
-                                        <p className="text-sm font-semibold text-slate-800">Mixed Mode</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Recommended for general content delivery.</p>
+                                        <LayoutGrid className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'auto' ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                        <p className="text-sm font-semibold text-foreground">Mixed Mode</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">Recommended for general content delivery.</p>
                                     </div>
                                     <div
-                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                             formData.homepage_layout === 'video'
-                                                ? 'border-indigo-600 bg-indigo-50/30'
-                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border bg-card hover:border-border'
                                         }`}
                                         onClick={() => handleInputChange('homepage_layout', 'video')}
                                     >
-                                        <Film className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'video' ? 'text-indigo-600' : 'text-slate-400'}`}/>
-                                        <p className="text-sm font-semibold text-slate-800">Video Focus</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Cinema-style portal with hero slider.</p>
+                                        <Film className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'video' ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                        <p className="text-sm font-semibold text-foreground">Video Focus</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">Cinema-style portal with hero slider.</p>
                                     </div>
                                     <div
-                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                             formData.homepage_layout === 'editorial'
-                                                ? 'border-indigo-600 bg-indigo-50/30'
-                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-border bg-card hover:border-border'
                                         }`}
                                         onClick={() => handleInputChange('homepage_layout', 'editorial')}
                                     >
-                                        <BookOpen className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'editorial' ? 'text-indigo-600' : 'text-slate-400'}`}/>
-                                        <p className="text-sm font-semibold text-slate-800">Editorial</p>
-                                        <p className="text-[11px] text-slate-500 mt-1">Clean typography for long-form reading.</p>
+                                        <BookOpen className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'editorial' ? 'text-primary' : 'text-muted-foreground'}`}/>
+                                        <p className="text-sm font-semibold text-foreground">Editorial</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">Clean typography for long-form reading.</p>
                                     </div>
                                 </div>
 
@@ -1376,30 +1376,30 @@ const Settings: React.FC = () => {
                                         <CardTitle>Content Modules</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Articles Module</p>
-                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Blog & article system</p>
+                                                <p className="text-sm font-semibold text-foreground">Articles Module</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Blog & article system</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_articles}
                                                 onCheckedChange={(checked) => setFormData(prev => ({...prev, module_articles: checked}))}
                                             />
                                         </div>
-                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Videos Module</p>
-                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Video streaming system</p>
+                                                <p className="text-sm font-semibold text-foreground">Videos Module</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Video streaming system</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_videos}
                                                 onCheckedChange={(checked) => setFormData(prev => ({...prev, module_videos: checked}))}
                                             />
                                         </div>
-                                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-800">Music Module</p>
-                                                <p className="text-[10px] text-slate-400 font-mono uppercase">Audio streaming system</p>
+                                                <p className="text-sm font-semibold text-foreground">Music Module</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Audio streaming system</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_music}
@@ -1419,11 +1419,11 @@ const Settings: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <Card>
                                     <CardContent className="p-6">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Memory Usage</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Memory Usage</p>
                                         <div className="flex items-end justify-between mb-4">
-                                            <h4 className="text-2xl font-bold text-slate-800">
+                                            <h4 className="text-2xl font-bold text-foreground">
                                                 {systemInfo?.usedMemory ? parseFloat(systemInfo.usedMemory).toFixed(1) : '4.2'}
-                                                <span className="text-base text-slate-400 ml-1 font-normal">GB</span>
+                                                <span className="text-base text-muted-foreground ml-1 font-normal">GB</span>
                                             </h4>
                                             <span className="text-emerald-600 text-xs font-mono">+12%</span>
                                         </div>
@@ -1432,22 +1432,22 @@ const Settings: React.FC = () => {
                                 </Card>
                                 <Card>
                                     <CardContent className="p-6">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">CPU Load</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">CPU Load</p>
                                         <div className="flex items-end justify-between mb-4">
-                                            <h4 className="text-2xl font-bold text-slate-800">
+                                            <h4 className="text-2xl font-bold text-foreground">
                                                 {systemInfo?.cpuUsage ? parseInt(systemInfo.cpuUsage) : '18'}
-                                                <span className="text-base text-slate-400 ml-1 font-normal">%</span>
+                                                <span className="text-base text-muted-foreground ml-1 font-normal">%</span>
                                             </h4>
-                                            <span className="text-slate-500 text-xs font-mono">-2%</span>
+                                            <span className="text-muted-foreground text-xs font-mono">-2%</span>
                                         </div>
                                         <Progress value={systemInfo?.cpuUsage ? parseInt(systemInfo.cpuUsage) : 18} className="h-2"/>
                                     </CardContent>
                                 </Card>
                                 <Card>
                                     <CardContent className="p-6">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Active GoRoutines</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Active GoRoutines</p>
                                         <div className="flex items-end justify-between mb-4">
-                                            <h4 className="text-2xl font-bold text-slate-800">
+                                            <h4 className="text-2xl font-bold text-foreground">
                                                 {systemInfo?.numGoroutine?.toLocaleString() || '1,402'}
                                             </h4>
                                             <span className="text-red-500 text-xs font-mono">+84</span>
@@ -1457,11 +1457,11 @@ const Settings: React.FC = () => {
                                 </Card>
                                 <Card>
                                     <CardContent className="p-6">
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Disk I/O</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Disk I/O</p>
                                         <div className="flex items-end justify-between mb-4">
-                                            <h4 className="text-2xl font-bold text-slate-800">
+                                            <h4 className="text-2xl font-bold text-foreground">
                                                 240
-                                                <span className="text-base text-slate-400 ml-1 font-normal">MB/s</span>
+                                                <span className="text-base text-muted-foreground ml-1 font-normal">MB/s</span>
                                             </h4>
                                             <span className="text-emerald-600 text-xs font-mono">Steady</span>
                                         </div>
@@ -1473,51 +1473,51 @@ const Settings: React.FC = () => {
                             {/* Server Information (3-column grid) */}
                             {systemInfo && (
                                 <Card className="overflow-hidden">
-                                    <CardHeader className="border-b border-slate-100">
+                                    <CardHeader className="border-b border-border">
                                         <CardTitle>Server Information</CardTitle>
                                     </CardHeader>
                                     <CardContent className="p-0">
                                         <div className="grid grid-cols-1 md:grid-cols-3">
-                                            <div className="p-6 border-r border-slate-100 space-y-4">
+                                            <div className="p-6 border-r border-border space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">OrigStudio Core</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.version || 'v2.4.1-enterprise'}</span>
+                                                    <span className="text-xs text-muted-foreground">OrigStudio Core</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.version || 'v2.4.1-enterprise'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">Go Runtime</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.goVersion || 'go1.22.3'}</span>
+                                                    <span className="text-xs text-muted-foreground">Go Runtime</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.goVersion || 'go1.22.3'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">OS Architecture</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.os || 'linux/amd64'}</span>
+                                                    <span className="text-xs text-muted-foreground">OS Architecture</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.os || 'linux/amd64'}</span>
                                                 </div>
                                             </div>
-                                            <div className="p-6 border-r border-slate-100 space-y-4">
+                                            <div className="p-6 border-r border-border space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">System Uptime</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.uptime || '14d 2h 11m'}</span>
+                                                    <span className="text-xs text-muted-foreground">System Uptime</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.uptime || '14d 2h 11m'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">Total Memory</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.totalMemory || '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">Total Memory</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.totalMemory || '-'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">CPUs</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.numCPU || '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">CPUs</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.numCPU || '-'}</span>
                                                 </div>
                                             </div>
                                             <div className="p-6 space-y-4">
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">Goroutines</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.numGoroutine || '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">Goroutines</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.numGoroutine || '-'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">Database</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.database || '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">Database</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.database || '-'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-xs text-slate-500">Used Memory</span>
-                                                    <span className="font-mono text-xs text-slate-800">{systemInfo.usedMemory || '-'}</span>
+                                                    <span className="text-xs text-muted-foreground">Used Memory</span>
+                                                    <span className="font-mono text-xs text-foreground">{systemInfo.usedMemory || '-'}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1527,62 +1527,62 @@ const Settings: React.FC = () => {
 
                             {/* Active System Processes */}
                             <Card className="overflow-hidden">
-                                <CardHeader className="border-b border-slate-100">
+                                <CardHeader className="border-b border-border">
                                     <CardTitle>Active System Processes</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">PROCESS ID</TableHead>
-                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">SERVICE</TableHead>
-                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">STATUS</TableHead>
-                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">MEMORY</TableHead>
-                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right"></TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">PROCESS ID</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">SERVICE</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">STATUS</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">MEMORY</TableHead>
+                                                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right"></TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             <TableRow>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">81920</TableCell>
-                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Media-Worker-A1</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">81920</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-card-foreground">Media-Worker-A1</TableCell>
                                                 <TableCell className="px-6 py-4">
                                                     <Badge variant="soft-success">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>RUNNING
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">1,024 MB</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">1,024 MB</TableCell>
                                                 <TableCell className="px-6 py-4 text-right">
-                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-red-600 hover:bg-red-50">
                                                         <XCircle className="w-4 h-4"/>
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
                                             <TableRow>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">44211</TableCell>
-                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Distribution-Edge-UK</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">44211</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-card-foreground">Distribution-Edge-UK</TableCell>
                                                 <TableCell className="px-6 py-4">
                                                     <Badge variant="soft-success">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>RUNNING
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">512 MB</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">512 MB</TableCell>
                                                 <TableCell className="px-6 py-4 text-right">
-                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-red-600 hover:bg-red-50">
                                                         <XCircle className="w-4 h-4"/>
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
                                             <TableRow>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">09212</TableCell>
-                                                <TableCell className="px-6 py-4 text-sm font-semibold text-slate-700">Ingest-Proxy-Service</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">09212</TableCell>
+                                                <TableCell className="px-6 py-4 text-sm font-semibold text-card-foreground">Ingest-Proxy-Service</TableCell>
                                                 <TableCell className="px-6 py-4">
                                                     <Badge variant="soft-neutral">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>IDLE
                                                     </Badge>
                                                 </TableCell>
-                                                <TableCell className="px-6 py-4 font-mono text-xs text-slate-500">256 MB</TableCell>
+                                                <TableCell className="px-6 py-4 font-mono text-xs text-muted-foreground">256 MB</TableCell>
                                                 <TableCell className="px-6 py-4 text-right">
-                                                    <Button variant="ghost" size="icon-sm" className="text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-red-600 hover:bg-red-50">
                                                         <XCircle className="w-4 h-4"/>
                                                     </Button>
                                                 </TableCell>

@@ -9,7 +9,7 @@ import {cn} from "@/lib/utils"
  * and a trailing actions slot. Used in list cards, table rows, and so on.
  */
 const itemVariants = cva(
-    "flex items-center gap-3 rounded-lg border bg-card p-3 text-card-foreground transition-colors hover:bg-slate-50",
+    "flex items-center gap-3 rounded-lg border bg-card p-3 text-card-foreground transition-colors hover:bg-accent",
     {
         variants: {
             variant: {
@@ -46,7 +46,7 @@ const ItemMedia = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivE
         <div
             ref={ref}
             className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500",
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground",
                 className,
             )}
             {...props}
@@ -64,14 +64,14 @@ ItemContent.displayName = "ItemContent"
 
 const ItemTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
     ({className, ...props}, ref) => (
-        <h4 ref={ref} className={cn("text-sm font-medium leading-tight text-slate-800", className)} {...props}/>
+        <h4 ref={ref} className={cn("text-sm font-medium leading-tight text-foreground", className)} {...props}/>
     ),
 )
 ItemTitle.displayName = "ItemTitle"
 
 const ItemDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
     ({className, ...props}, ref) => (
-        <p ref={ref} className={cn("text-xs text-slate-500 line-clamp-2", className)} {...props}/>
+        <p ref={ref} className={cn("text-xs text-muted-foreground line-clamp-2", className)} {...props}/>
     ),
 )
 ItemDescription.displayName = "ItemDescription"

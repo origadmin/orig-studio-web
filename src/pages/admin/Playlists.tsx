@@ -196,11 +196,11 @@ const Playlists: React.FC = () => {
                         <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
                             <Music2 className="w-4 h-4"/>
                         </div>
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">
                             {t('admin.playlistsManagement', 'Playlists Management')}
                         </h2>
                     </div>
-                    <p className="text-sm text-slate-500 mt-2 ml-[42px]">
+                    <p className="text-sm text-muted-foreground mt-2 ml-[42px]">
                         {t('admin.playlistsDesc', 'Organize and distribute your media assets across global edge nodes.')}
                     </p>
                 </div>
@@ -218,10 +218,10 @@ const Playlists: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.totalPlaylists', 'Total Playlists')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                     {formatNumber(totalPlaylists)}
                                 </h3>
                             </div>
@@ -235,10 +235,10 @@ const Playlists: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.publicPlaylists', 'Public')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                     {formatNumber(publicCount)}
                                 </h3>
                             </div>
@@ -252,10 +252,10 @@ const Playlists: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.totalItems', 'Total Items')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                     {formatNumber(totalItems)}
                                 </h3>
                             </div>
@@ -269,10 +269,10 @@ const Playlists: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.totalViews', 'Total Views')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                                     {formatViews(totalViews)}
                                 </h3>
                             </div>
@@ -287,7 +287,7 @@ const Playlists: React.FC = () => {
             {/* Search + Filter Toolbar */}
             <div className="flex flex-wrap items-center gap-3 mb-6">
                 <div className="relative flex-1 min-w-[240px] max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                     <Input
                         className="pl-9 pr-4"
                         type="text"
@@ -313,7 +313,7 @@ const Playlists: React.FC = () => {
             </div>
 
             {/* Data Table */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
                 <Table className="text-left">
                     <TableHeader>
                         <TableRow>
@@ -359,13 +359,13 @@ const Playlists: React.FC = () => {
                         ) : filteredPlaylists.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={7} className="px-6 py-16 text-center">
-                                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Music2 className="w-8 h-8 text-slate-300"/>
                                     </div>
-                                    <h3 className="text-base font-semibold text-slate-700 mb-1">
+                                    <h3 className="text-base font-semibold text-card-foreground mb-1">
                                         {t('admin.noPlaylistsYet', 'No playlists yet')}
                                     </h3>
-                                    <p className="text-sm text-slate-500 max-w-sm mx-auto">
+                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                                         {t('admin.createFirstPlaylist', 'Create your first playlist to organize media content.')}
                                     </p>
                                     <Button className="mt-4" onClick={() => setShowCreateDialog(true)}>
@@ -378,10 +378,10 @@ const Playlists: React.FC = () => {
                             filteredPlaylists.map((playlist) => {
                                 const thumbnail = getThumbnail(playlist);
                                 return (
-                                    <TableRow key={playlist.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <TableRow key={playlist.id} className="hover:bg-muted/50 transition-colors">
                                         <TableCell className="px-6 py-3.5 max-w-xs">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-indigo-50 border border-slate-200 flex items-center justify-center shrink-0">
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-indigo-50 border border-border flex items-center justify-center shrink-0">
                                                     {thumbnail ? (
                                                         <img
                                                             alt={playlist.title}
@@ -393,11 +393,11 @@ const Playlists: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="text-sm font-semibold text-slate-800 truncate">
+                                                    <div className="text-sm font-semibold text-foreground truncate">
                                                         {playlist.title}
                                                     </div>
                                                     {playlist.description && (
-                                                        <div className="text-xs text-slate-400 truncate">
+                                                        <div className="text-xs text-muted-foreground truncate">
                                                             {playlist.description}
                                                         </div>
                                                     )}
@@ -409,12 +409,12 @@ const Playlists: React.FC = () => {
                                                 <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-[10px] border border-indigo-200">
                                                     {playlist.user_id?.substring(0, 2).toUpperCase() || 'U'}
                                                 </div>
-                                                <span className="text-xs font-mono text-slate-500 truncate max-w-[120px]">
+                                                <span className="text-xs font-mono text-muted-foreground truncate max-w-[120px]">
                                                     {playlist.user_id}
                                                 </span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-6 py-3.5 text-sm text-slate-700 tabular-nums">
+                                        <TableCell className="px-6 py-3.5 text-sm text-card-foreground tabular-nums">
                                             {getItemCount(playlist)}
                                         </TableCell>
                                         <TableCell className="px-6 py-3.5">
@@ -430,10 +430,10 @@ const Playlists: React.FC = () => {
                                                 </Badge>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-6 py-3.5 text-sm text-slate-700 tabular-nums">
+                                        <TableCell className="px-6 py-3.5 text-sm text-card-foreground tabular-nums">
                                             {formatViews(getViewCount(playlist))}
                                         </TableCell>
-                                        <TableCell className="px-6 py-3.5 text-sm text-slate-500">
+                                        <TableCell className="px-6 py-3.5 text-sm text-muted-foreground">
                                             {formatDateTime(playlist.update_time || playlist.create_time)}
                                         </TableCell>
                                         <TableCell className="px-6 py-3.5 text-right">
@@ -441,7 +441,7 @@ const Playlists: React.FC = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
-                                                    className="text-slate-400 hover:text-indigo-600"
+                                                    className="text-muted-foreground hover:text-indigo-600"
                                                     onClick={() => {
                                                         setEditTarget(playlist);
                                                         setEditTitle(playlist.title);
@@ -454,7 +454,7 @@ const Playlists: React.FC = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
-                                                    className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                    className="text-muted-foreground hover:text-red-600 hover:bg-red-50"
                                                     onClick={() => setDeleteTarget(playlist)}
                                                 >
                                                     <Trash2 className="w-4 h-4"/>
@@ -469,8 +469,8 @@ const Playlists: React.FC = () => {
                 </Table>
                 {/* Pagination — embedded in table container */}
                 {total > 0 && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                        <p className="text-xs text-slate-500">
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                        <p className="text-xs text-muted-foreground">
                             {t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}
                         </p>
                         <div className="flex items-center gap-1">

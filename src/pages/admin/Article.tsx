@@ -108,21 +108,21 @@ export default function ArticlePage() {
             case 'draft':
                 return (
                     <Badge variant="soft-neutral" className="gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
                         {t('admin.draft')}
                     </Badge>
                 );
             case 'archived':
                 return (
                     <Badge variant="soft-neutral" className="gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
                         {t('admin.archived')}
                     </Badge>
                 );
             default:
                 return (
                     <Badge variant="soft-neutral" className="gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
                         {state}
                     </Badge>
                 );

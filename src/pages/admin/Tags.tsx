@@ -196,11 +196,11 @@ const Tags: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <TagsIcon className="w-6 h-6 text-indigo-600"/>
                         {t('admin.tagManagement', 'Tag Management')}
                     </h2>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.manageTags', 'Organize global metadata taxonomies and color schemes.')}
                     </p>
                 </div>
@@ -216,10 +216,10 @@ const Tags: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.tagTotal', 'Total Tags')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{totalTags}</h3>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{totalTags}</h3>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <TagsIcon className="w-5 h-5"/>
@@ -231,10 +231,10 @@ const Tags: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.activeTags', 'Active Filters')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{activeTags}</h3>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{activeTags}</h3>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Filter className="w-5 h-5"/>
@@ -246,10 +246,10 @@ const Tags: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.unusedTags', 'Unused Tags')}
                                 </p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">{unusedTags}</h3>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{unusedTags}</h3>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Archive className="w-5 h-5"/>
@@ -261,7 +261,7 @@ const Tags: React.FC = () => {
                     <CardContent className="p-6">
                         <div className="flex items-start justify-between">
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                     {t('admin.colorAlerts', 'Color Alerts')}
                                 </p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{colorAlerts}</h3>
@@ -277,7 +277,7 @@ const Tags: React.FC = () => {
             {/* Filter Bar */}
             <div className="mb-6 flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10"/>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10"/>
                     <Input
                         className="pl-9"
                         placeholder={t('admin.searchTags', 'Search tags, metadata, or colors...')}
@@ -309,23 +309,23 @@ const Tags: React.FC = () => {
             <Card className="overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-50">
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        <TableRow className="bg-muted">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t('admin.id', 'ID')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t('admin.tagName', 'Name')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t('admin.slug', 'Slug')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t('admin.mediaCount', 'Media Count')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                                 {t('admin.created', 'Date Created')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
                                 {t('admin.actions', 'Actions')}
                             </TableHead>
                         </TableRow>
@@ -334,7 +334,7 @@ const Tags: React.FC = () => {
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="px-6 py-12 text-center">
-                                    <div className="animate-pulse text-slate-400">{t('admin.loadingTags', 'Loading tags...')}</div>
+                                    <div className="animate-pulse text-muted-foreground">{t('admin.loadingTags', 'Loading tags...')}</div>
                                 </TableCell>
                             </TableRow>
                         ) : error ? (
@@ -353,15 +353,15 @@ const Tags: React.FC = () => {
                             </TableRow>
                         ) : tags.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                                <TableCell colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                                     {t('admin.noTagsFound', 'No tags found')}
                                 </TableCell>
                             </TableRow>
                         ) : (
                             tags.map((tag) => (
                                 <TableRow key={tag.id} className="group">
-                                    <TableCell className="px-6 py-3.5 text-xs font-mono text-slate-500">{tag.id}</TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm font-semibold text-slate-800">
+                                    <TableCell className="px-6 py-3.5 text-xs font-mono text-muted-foreground">{tag.id}</TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm font-semibold text-foreground">
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className="w-2 h-2 rounded-full shrink-0"
@@ -371,16 +371,16 @@ const Tags: React.FC = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 py-3.5">
-                                        <code className="bg-slate-100 px-1.5 py-0.5 rounded text-xs font-mono text-slate-600">{tag.slug}</code>
+                                        <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-muted-foreground">{tag.slug}</code>
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm text-slate-700">{tag.count || 0}</TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm text-slate-500">{formatDateTime(tag.create_time)}</TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm text-card-foreground">{tag.count || 0}</TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm text-muted-foreground">{formatDateTime(tag.create_time)}</TableCell>
                                     <TableCell className="px-6 py-3.5 text-right">
                                         <div className="flex justify-end gap-1">
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
-                                                className="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                                className="text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50"
                                                 onClick={() => openEditDialog(tag)}
                                                 title={t('admin.edit', 'Edit')}
                                             >
@@ -389,7 +389,7 @@ const Tags: React.FC = () => {
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
-                                                className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                                                className="text-muted-foreground hover:text-red-600 hover:bg-red-50"
                                                 onClick={() => openDeleteDialog(tag)}
                                                 title={t('admin.delete', 'Delete')}
                                             >
@@ -405,8 +405,8 @@ const Tags: React.FC = () => {
 
                 {/* Pagination */}
                 {total > searchParams.page_size && (
-                    <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
-                        <p className="text-xs text-slate-500">
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/30">
+                        <p className="text-xs text-muted-foreground">
                             {t('admin.showingRange', 'Showing {{from}} to {{to}} of {{total}} tags')
                                 .replace('{{from}}', String(startItem))
                                 .replace('{{to}}', String(endItem))
@@ -475,70 +475,70 @@ const Tags: React.FC = () => {
                                 {t('admin.slugLabel', 'Slug Identifier')}
                             </Label>
                             <Input
-                                className="text-xs font-mono text-slate-600"
-                                type="text"
-                                placeholder={t('admin.autoGeneratedFromName', 'Auto-generated from name')}
-                                value={formData.slug || ''}
-                                onChange={(e) => {
-                                    setSlugManuallyEdited(true);
-                                    setFormData({...formData, slug: e.target.value});
-                                }}
-                            />
+                                    className="text-xs font-mono text-muted-foreground"
+                                    type="text"
+                                    placeholder={t('admin.autoGeneratedFromName', 'Auto-generated from name')}
+                                    value={formData.slug || ''}
+                                    onChange={(e) => {
+                                        setSlugManuallyEdited(true);
+                                        setFormData({...formData, slug: e.target.value});
+                                    }}
+                                />
+                            </div>
+                            <div className="space-y-3">
+                                <Label>{t('admin.color', 'Color')}</Label>
+                                <TagColorPicker
+                                    value={formData.color || ''}
+                                    onChange={(color: string) => setFormData({...formData, color})}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label>{t('admin.description', 'Description')}</Label>
+                                <Textarea
+                                    placeholder={t('admin.enterTagDescription', 'Enter tag description')}
+                                    rows={3}
+                                    value={formData.description || ''}
+                                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                                />
+                            </div>
                         </div>
-                        <div className="space-y-3">
-                            <Label>{t('admin.color', 'Color')}</Label>
-                            <TagColorPicker
-                                value={formData.color || ''}
-                                onChange={(color: string) => setFormData({...formData, color})}
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>{t('admin.description', 'Description')}</Label>
-                            <Textarea
-                                placeholder={t('admin.enterTagDescription', 'Enter tag description')}
-                                rows={3}
-                                value={formData.description || ''}
-                                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                            {t('admin.cancel', 'Cancel')}
-                        </Button>
-                        <Button onClick={handleCreate}>
-                            {t('admin.create', 'Create')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                                {t('admin.cancel', 'Cancel')}
+                            </Button>
+                            <Button onClick={handleCreate}>
+                                {t('admin.create', 'Create')}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Edit Tag Dialog */}
-            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editTag', 'Edit Tag')}</DialogTitle>
-                        <DialogDescription>{t('admin.editTagDescription', 'Modify the tag details.')}</DialogDescription>
-                    </DialogHeader>
-                    <div className="p-6 space-y-4">
-                        <div className="space-y-1.5">
-                            <Label>{t('admin.tagName', 'Tag Name')} *</Label>
-                            <Input
-                                type="text"
-                                value={formData.title || ''}
-                                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label>
-                                {t('admin.slugLabel', 'Slug Identifier')}
-                            </Label>
-                            <Input
-                                className="text-xs font-mono text-slate-600"
-                                type="text"
-                                value={formData.slug || ''}
-                                onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                            />
+                {/* Edit Tag Dialog */}
+                <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>{t('admin.editTag', 'Edit Tag')}</DialogTitle>
+                            <DialogDescription>{t('admin.editTagDescription', 'Modify the tag details.')}</DialogDescription>
+                        </DialogHeader>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-1.5">
+                                <Label>{t('admin.tagName', 'Tag Name')} *</Label>
+                                <Input
+                                    type="text"
+                                    value={formData.title || ''}
+                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label>
+                                    {t('admin.slugLabel', 'Slug Identifier')}
+                                </Label>
+                                <Input
+                                    className="text-xs font-mono text-muted-foreground"
+                                    type="text"
+                                    value={formData.slug || ''}
+                                    onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                                />
                         </div>
                         <div className="space-y-3">
                             <Label>{t('admin.color', 'Color')}</Label>

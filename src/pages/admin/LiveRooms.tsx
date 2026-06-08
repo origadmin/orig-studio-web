@@ -669,7 +669,7 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Create Dialog ─────────────────────────────────── */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-xl shadow-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>
                             {t('admin.createLiveRoom', 'Create Live Room')}
@@ -717,7 +717,7 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Edit Dialog ───────────────────────────────────── */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-xl shadow-2xl overflow-hidden">
+                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>
                             {t('admin.editLiveRoom', 'Edit Live Room')}
@@ -765,7 +765,7 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Delete Dialog ─────────────────────────────────── */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-xl shadow-2xl overflow-hidden">
+                <AlertDialogContent className="p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
                     <DialogHeader>
                         <AlertDialogTitle className="text-lg font-semibold text-foreground">
                             {t('admin.confirmDelete', 'Confirm Delete')}

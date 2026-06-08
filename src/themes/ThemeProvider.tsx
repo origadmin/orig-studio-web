@@ -58,14 +58,19 @@ export function ThemeProvider({
 
     async function init() {
       try {
-        // Clean up stale default theme CSS cache from localStorage
-        try {
-          localStorage.removeItem(`${storageKey}-theme-css-default`);
-        } catch {
-          // localStorage unavailable
-        }
-        const staleDefaultStyle = document.getElementById('theme-css-default');
-        if (staleDefaultStyle) staleDefaultStyle.remove();
+          // Clear ALL stale theme CSS caches from localStorage
+          // Must match STORAGE_KEYS.themeCss in index.ts: `origstudio-theme-css-${id}`
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key?.startsWith('origstudio-theme-css-')) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+          // Also remove stale injected style tags
+          document.querySelectorAll('style[data-theme-id]').forEach((el) => el.remove());
 
         // 1. Load registry
         const registry = await themeLoader.loadRegistry();

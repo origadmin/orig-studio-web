@@ -711,7 +711,7 @@ export default function TranscodingProfiles() {
                             </div>
                         </div>
 
-                        <div className="p-4 bg-zinc-900 rounded-xl font-mono text-xs text-indigo-300 leading-relaxed">
+                        <div className="p-4 bg-zinc-900 rounded-lg font-mono text-xs text-indigo-300 leading-relaxed">
                             <span className="text-zinc-500"># Generated FFmpeg Command</span>
                             <br />
                             {ffmpegCommand.split('\n').map((line, i) => (

@@ -217,7 +217,7 @@ const ChannelsTab: React.FC = () => {
             </div>
 
             {/* Channels Table */}
-            <Card className="rounded-xl overflow-hidden p-0">
+            <Card className="rounded-lg overflow-hidden p-0">
                 {/* Table Header Bar */}
                 <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-secondary/30">
                     <div className="flex gap-4 items-center">
@@ -492,7 +492,7 @@ const TasksTab: React.FC = () => {
     };
 
     return (
-        <Card className="rounded-xl overflow-hidden p-0">
+        <Card className="rounded-lg overflow-hidden p-0">
             <Table className="text-left border-collapse">
                 <TableHeader className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-secondary/20">
                     <TableRow className="border-b border-border hover:bg-transparent">
@@ -612,7 +612,7 @@ const LogsTab: React.FC = () => {
     };
 
     return (
-        <Card className="rounded-xl overflow-hidden p-0">
+        <Card className="rounded-lg overflow-hidden p-0">
             <Table className="text-left border-collapse">
                 <TableHeader className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-secondary/20">
                     <TableRow className="border-b border-border hover:bg-transparent">

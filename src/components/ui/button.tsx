@@ -7,11 +7,11 @@ import {cn} from "@/lib/utils"
 /**
  * Button — aligned to the Stitch design system.
  * Variants kept intentionally minimal; status colors live in <Badge>.
- *   primary   → bg-indigo-600
- *   outline   → border-slate-200, hover bg-slate-50
- *   ghost     → hover bg-slate-100
- *   destructive → bg-red-600
- *   link      → indigo-600 underline
+ *   default   → bg-primary
+ *   outline   → border-input
+ *   ghost     → hover:bg-accent
+ *   destructive → bg-destructive
+ *   link      → text-primary underline
  */
 const buttonVariants = cva(
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -301,10 +301,10 @@ const Categories: React.FC = () => {
             <FolderTree className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-800">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
               {t('admin.categoriesManagement') || t('admin.categories') || 'Categories Management'}
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {t('admin.manageCategoriesDesc') ||
                 'Manage hierarchical content categories with parent-child relationships.'}
             </p>
@@ -324,10 +324,10 @@ const Categories: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   {t('admin.totalCategories') || 'Total Categories'}
                 </p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.total}
                 </h3>
               </div>
@@ -341,10 +341,10 @@ const Categories: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   {t('admin.active') || 'Active'}
                 </p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.active}
                 </h3>
                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
@@ -362,10 +362,10 @@ const Categories: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   {t('admin.maxDepth') || 'Max Depth'}
                 </p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {maxDepth + 1}
                 </h3>
               </div>
@@ -379,10 +379,10 @@ const Categories: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                   {t('admin.totalMedia') || 'Total Media'}
                 </p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-slate-800 mt-1">
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.subCategories}
                 </h3>
               </div>
@@ -398,7 +398,7 @@ const Categories: React.FC = () => {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               className="pl-9"
               placeholder={t('admin.searchCategories') || 'Search categories...'}
@@ -431,25 +431,25 @@ const Categories: React.FC = () => {
         <Card className="overflow-hidden">
           <Table className="w-full text-left">
             <TableHeader>
-              <TableRow className="bg-slate-50 border-b border-slate-200">
-                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 w-1/3">
+              <TableRow className="bg-muted border-b border-border">
+                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-1/3">
                   {t('admin.name') || 'Name'}
                 </TableHead>
-                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {t('admin.slug') || 'Slug'}
                 </TableHead>
-                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {t('admin.mediaCount') || 'Media Count'}
                 </TableHead>
-                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {t('admin.status') || 'Active'}
                 </TableHead>
-                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 text-right">
+                <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
                   {t('admin.actions') || 'Actions'}
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-slate-50">
+            <TableBody className="divide-y divide-border">
               {loading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-12 text-center">
@@ -458,14 +458,14 @@ const Categories: React.FC = () => {
                 </TableRow>
               ) : visibleNodes.length > 0 ? (
                 visibleNodes.map((node) => (
-                  <TableRow key={node.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <TableCell className="px-6 py-3.5 text-sm text-slate-700" style={getIndentStyle(node.depth)}>
+                  <TableRow key={node.id} className="hover:bg-muted/50 transition-colors group">
+                    <TableCell className="px-6 py-3.5 text-sm text-card-foreground" style={getIndentStyle(node.depth)}>
                       <div className="flex items-center gap-2">
                         {node.hasChildren ? (
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            className={`text-slate-400 hover:text-slate-600 transition-transform ${
+                            className={`text-muted-foreground hover:text-muted-foreground transition-transform ${
                               expandedIds.has(node.id) ? 'rotate-90' : ''
                             }`}
                             onClick={() => toggleExpand(node.id)}
@@ -478,14 +478,14 @@ const Categories: React.FC = () => {
                         {getDepthIcon(node.depth, node.hasChildren)}
                         <span
                           className={
-                            node.depth === 0 ? 'font-semibold text-slate-900' : 'text-slate-700'
+                            node.depth === 0 ? 'font-semibold text-foreground' : 'text-card-foreground'
                           }
                         >
                           {node.name}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="px-6 py-3.5 font-mono text-xs text-slate-500">/{node.slug}</TableCell>
+                    <TableCell className="px-6 py-3.5 font-mono text-xs text-muted-foreground">/{node.slug}</TableCell>
                     <TableCell className="px-6 py-3.5">
                       <Badge
                         variant={
@@ -510,7 +510,7 @@ const Categories: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                          className="text-muted-foreground hover:text-indigo-600 hover:bg-muted"
                           title={t('admin.addChild') || 'Add Child'}
                           onClick={() => openAddChildDialog(node)}
                         >
@@ -519,7 +519,7 @@ const Categories: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                          className="text-muted-foreground hover:text-indigo-600 hover:bg-muted"
                           title={t('admin.edit') || 'Edit'}
                           onClick={() => openEditDialog(node)}
                         >
@@ -528,7 +528,7 @@ const Categories: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                          className="text-muted-foreground hover:text-red-600 hover:bg-red-50"
                           title={t('admin.delete') || 'Delete'}
                           onClick={() => openDeleteDialog(node)}
                         >
@@ -537,7 +537,7 @@ const Categories: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          className="text-slate-400 hover:text-indigo-600 hover:bg-slate-100"
+                          className="text-muted-foreground hover:text-indigo-600 hover:bg-muted"
                           title={t('admin.view') || 'View'}
                           onClick={() => handleView(node)}
                         >
@@ -549,7 +549,7 @@ const Categories: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-sm text-slate-500">
+                  <TableCell colSpan={5} className="text-center py-8 text-sm text-muted-foreground">
                     {t('admin.noCategoriesFound') || 'No categories found'}
                   </TableCell>
                 </TableRow>
@@ -557,8 +557,8 @@ const Categories: React.FC = () => {
             </TableBody>
           </Table>
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <p className="text-xs text-slate-500">
+          <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
               {t('admin.showing') || 'Showing'} {startItem} {t('admin.to') || 'to'} {endItem}{' '}
               {t('admin.of') || 'of'} {totalCount} {t('admin.categories') || 'categories'}
             </p>
@@ -569,10 +569,10 @@ const Categories: React.FC = () => {
               <Button variant="default" size="icon-sm" className="font-medium">
                 1
               </Button>
-              <Button variant="ghost" size="icon-sm" className="text-slate-600">
+              <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
                 2
               </Button>
-              <Button variant="ghost" size="icon-sm" className="text-slate-600">
+              <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
                 3
               </Button>
               <Button variant="outline" size="icon-sm">
@@ -605,7 +605,7 @@ const Categories: React.FC = () => {
           </DialogHeader>
           <div className="p-6 space-y-4">
             <div>
-              <Label className="text-slate-700 block mb-1">
+              <Label className="text-card-foreground block mb-1">
                 {t('admin.categoryName') || t('admin.name') || 'Category Name'}
               </Label>
               <Input
@@ -616,14 +616,14 @@ const Categories: React.FC = () => {
               />
             </div>
             <div>
-              <Label className="text-slate-700 block mb-1">
+              <Label className="text-card-foreground block mb-1">
                 {t('admin.parentCategory') || t('admin.parent') || 'Parent Category'}
               </Label>
               {dialogMode === 'addChild' && currentCategory ? (
                 <Input
                   value={currentCategory.name}
                   disabled
-                  className="bg-slate-100 cursor-not-allowed"
+                  className="bg-muted cursor-not-allowed"
                 />
               ) : (
                 <Select
@@ -655,11 +655,11 @@ const Categories: React.FC = () => {
               )}
             </div>
             <div>
-              <Label className="text-slate-700 block mb-1">
+              <Label className="text-card-foreground block mb-1">
                 {t('admin.slug') || 'Slug'}
               </Label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 bg-slate-100 text-slate-500 font-mono text-xs">
+                <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-border bg-muted text-muted-foreground font-mono text-xs">
                   /doc/
                 </span>
                 <Input
@@ -671,12 +671,12 @@ const Categories: React.FC = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
               <div>
-                <span className="block text-sm font-medium text-slate-700">
+                <span className="block text-sm font-medium text-card-foreground">
                   {t('admin.activeStatus') || 'Active Status'}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted-foreground">
                   {t('admin.visibleInNav') || 'Visible in portal navigation'}
                 </span>
               </div>

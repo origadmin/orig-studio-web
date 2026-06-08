@@ -20,8 +20,10 @@ import {
     FileText,
     Bell,
     Shield,
+    Key,
     CreditCard,
     Megaphone,
+    Target,
     Tv2,
     Plus,
     Zap,
@@ -76,7 +78,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 ...(featureFlags.drm ? [{id: "drm", icon: Shield, label: t('admin.drm', 'DRM Management'), path: "/admin/drm"}] : []),
                 {id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"},
-                {id: "permissions", icon: Shield, label: t('admin.permissions', 'Permissions'), path: "/admin/permissions"},
+                {id: "permissions", icon: Key, label: t('admin.permissions', 'Permissions'), path: "/admin/permissions"},
             ],
         },
         {
@@ -84,7 +86,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', 'Payment'), path: "/admin/payment"}] : []),
                 ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', 'Promotion'), path: "/admin/promotion"}] : []),
-                ...(featureFlags.ads ? [{id: "ads", icon: Megaphone, label: t('admin.ads', 'Ads'), path: "/admin/ads"}] : []),
+                ...(featureFlags.ads ? [{id: "ads", icon: Target, label: t('admin.ads', 'Ads'), path: "/admin/ads"}] : []),
             ],
         },
         {
@@ -117,13 +119,15 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             {/* Logo */}
             <div className={`flex items-center border-b border-sidebar-border ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary rounded flex items-center justify-center flex-shrink-0">
-                        <Shield size={20} className="text-primary-foreground"/>
-                    </div>
+                    <img
+                        src="/logo.svg"
+                        alt="OrigStudio"
+                        className="h-10 w-10 flex-shrink-0"
+                    />
                     {!collapsed && (
                         <div>
                             <div className="font-black text-[20px] leading-tight text-sidebar-foreground">OrigStudio</div>
-                            <div className="text-[10px] uppercase tracking-widest text-slate-400">Enterprise Edition</div>
+                            <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">Enterprise Edition</div>
                         </div>
                     )}
                 </Link>
@@ -136,7 +140,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                 {navSections.map((section, si) => (
                     <div key={si}>
                         {section.header && !collapsed && (
-                            <div className="pt-4 pb-2 px-4 text-[11px] uppercase tracking-[0.05em] font-bold text-slate-500">
+                            <div className="pt-4 pb-2 px-4 text-[11px] uppercase tracking-[0.05em] font-bold text-sidebar-foreground/50">
                                 {section.header}
                             </div>
                         )}
@@ -151,8 +155,8 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                                                 collapsed ? 'justify-center px-2 py-2 mx-auto' : 'px-4 py-2'
                                             } ${
                                                 active
-                                                    ? 'bg-indigo-600/20 text-white border-l-4 border-indigo-500 font-semibold'
-                                                    : 'text-slate-300 hover:text-white hover:bg-white/5 border-l-4 border-transparent'
+                                                    ? 'bg-sidebar-accent/20 text-sidebar-accent-foreground border-l-4 border-sidebar-accent font-semibold'
+                                                    : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/10 border-l-4 border-transparent'
                                             }`}
                                             title={collapsed ? item.label : undefined}
                                         >
@@ -171,7 +175,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             <div className={`${collapsed ? 'p-3' : 'px-4 py-3'} border-t border-sidebar-border`}>
                 <Link
                     to="/"
-                    className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4 py-2'} text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                    className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-4 py-2'} text-sidebar-foreground/60 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
                 >
                     <LogOut size={20}/>
                     {!collapsed && <span className="text-sm font-medium">{t('admin.exitAdmin')}</span>}
@@ -180,14 +184,14 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
 
             {/* System Health */}
             {!collapsed && (
-                <div className="p-4 bg-white/5">
+                <div className="p-4 bg-sidebar-accent/10">
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded bg-emerald-500/20 flex items-center justify-center">
-                            <Zap size={16} className="text-emerald-400"/>
+                        <div className="h-8 w-8 rounded bg-sidebar-accent/20 flex items-center justify-center">
+                            <Zap size={16} className="text-sidebar-accent"/>
                         </div>
                         <div>
-                            <div className="text-[12px] font-bold text-slate-200">System Health</div>
-                            <div className="text-[10px] text-emerald-400">99.98% Operational</div>
+                            <div className="text-[12px] font-bold text-sidebar-foreground">System Health</div>
+                            <div className="text-[10px] text-sidebar-accent">99.98% Operational</div>
                         </div>
                     </div>
                 </div>
@@ -287,7 +291,7 @@ const AdminLayout = () => {
                     collapsed={sidebarCollapsed}
                     onToggleCollapse={() => setSidebarCollapsed(c => !c)}
                 />
-                <main className="flex-grow overflow-auto bg-slate-50 p-6">
+                <main className="flex-grow overflow-auto bg-muted/30 p-6">
                     <Outlet/>
                 </main>
             </div>
