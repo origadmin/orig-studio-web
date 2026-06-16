@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/admin/review/batch": {
+    "/api/v1/admin/medias/review/batch": {
         parameters: {
             query?: never;
             header?: never;
@@ -20,7 +20,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/review/history": {
+    "/api/v1/admin/medias/review/history": {
         parameters: {
             query?: never;
             header?: never;
@@ -36,7 +36,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/review/pending": {
+    "/api/v1/admin/medias/review/pending": {
         parameters: {
             query?: never;
             header?: never;
@@ -53,7 +53,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/review/{id}": {
+    "/api/v1/admin/medias/review/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -69,7 +69,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/review/{review.id}": {
+    "/api/v1/admin/medias/review/{review.id}": {
         parameters: {
             query?: never;
             header?: never;

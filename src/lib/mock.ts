@@ -351,12 +351,17 @@ const mockRoutes: [RegExp, MockHandler][] = [
     // DRM Licenses
     [/\/admin\/drm-licenses(\?|$)/, () => paginate(Array.from({length: 45}, (_, i) => genDrmLicense(i)), 1, 20)],
 
-    // Payment Plans
-    [/\/admin\/payment-plans/, () => Array.from({length: 4}, (_, i) => genPaymentPlan(i))],
+    // Payment Plans (Subscription)
+    [/\/admin\/subscription-plans/, () => Array.from({length: 4}, (_, i) => genPaymentPlan(i))],
 
     // Payment Orders
-    [/\/admin\/payment-orders(\?|$)/, () => paginate(Array.from({length: 67}, (_, i) => ({
+    [/\/admin\/orders(\?|$)/, () => paginate(Array.from({length: 67}, (_, i) => ({
         id: uid(), user_id: uid(), plan_id: uid(), amount: pick([9.99, 19.99, 49.99]), status: pick(['completed', 'pending', 'failed', 'refunded']), payment_method: pick(['credit_card', 'paypal', 'crypto']), created_at: randDate(30),
+    })), 1, 20)],
+
+    // Wallets
+    [/\/admin\/wallets(\?|$)/, () => paginate(Array.from({length: 20}, (_, i) => ({
+        id: uid(), user_id: uid(), balance: randInt(100, 100000) / 100, currency: 'CNY', status: 'active', created_at: randDate(60),
     })), 1, 20)],
 
     // Promotion Channels

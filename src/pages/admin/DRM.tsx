@@ -461,7 +461,7 @@ const KeysTab: React.FC = () => {
                                 <SelectValue placeholder={t('admin.selectDrmPolicy', 'Select Policy')}/>
                             </SelectTrigger>
                             <SelectContent>
-                                {policies.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                {policies.filter(p => p.id).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                         <Button variant="ghost" size="icon" className="rounded-lg">

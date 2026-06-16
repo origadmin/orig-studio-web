@@ -794,7 +794,7 @@ const AdsTab: React.FC = () => {
                             <Select value={selectedPlacement} onValueChange={setSelectedPlacement}>
                                 <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('admin.selectAdPlacement')}/></SelectTrigger>
                                 <SelectContent>
-                                    {placements.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                                    {placements.filter(p => p.id).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                             <Button size="sm" onClick={() => setCreateDialogOpen(true)} disabled={!selectedPlacement}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAd')}</Button>
