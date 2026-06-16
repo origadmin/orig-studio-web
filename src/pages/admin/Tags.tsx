@@ -30,7 +30,7 @@ import {
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import {tagApi, Tag, CreateTagRequest, UpdateTagRequest} from '@/lib/api/admin-tags';
+import {adminTagApi, Tag, CreateTagRequest, UpdateTagRequest} from '@/lib/api/admin-tags';
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
 import {getTagColor} from '@/lib/utils/tag-color';
@@ -73,7 +73,7 @@ const Tags: React.FC = () => {
             if (params.search) {
                 apiParams.search = params.search;
             }
-            const response = await tagApi.list(apiParams);
+            const response = await adminTagApi.list(apiParams);
             const tagList = Array.isArray(response?.items) ? response.items : [];
             setTags(tagList);
             if (response?.total !== undefined) {
@@ -101,7 +101,7 @@ const Tags: React.FC = () => {
 
     const handleCreate = async () => {
         try {
-            await tagApi.create(formData as CreateTagRequest);
+            await adminTagApi.create(formData as CreateTagRequest);
             await loadTags();
             setShowCreateDialog(false);
             resetForm();
@@ -113,7 +113,7 @@ const Tags: React.FC = () => {
     const handleUpdate = async () => {
         if (!currentTag) return;
         try {
-            await tagApi.update(currentTag.id, formData as UpdateTagRequest);
+            await adminTagApi.update(currentTag.id, formData as UpdateTagRequest);
             await loadTags();
             setShowEditDialog(false);
             resetForm();
@@ -126,7 +126,7 @@ const Tags: React.FC = () => {
     const handleDelete = async () => {
         if (!currentTag) return;
         try {
-            await tagApi.delete(currentTag.id);
+            await adminTagApi.delete(currentTag.id);
             await loadTags();
             setShowDeleteDialog(false);
             setCurrentTag(null);

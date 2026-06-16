@@ -27,6 +27,7 @@ import { Route as PortalCookiesRouteImport } from "./routes/_portal/cookies";
 import { Route as PortalCategoriesRouteImport } from "./routes/_portal/categories";
 import { Route as PortalAboutRouteImport } from "./routes/_portal/about";
 import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
+import { Route as AuthenticatedSettingsRouteImport } from "./routes/_authenticated/settings";
 import { Route as AuthenticatedAdminRouteImport } from "./routes/_authenticated/admin";
 import { Route as AuthenticatedPortalRouteImport } from "./routes/_authenticated/_portal";
 import { Route as AuthenticatedAdminIndexRouteImport } from "./routes/_authenticated/admin/index";
@@ -35,6 +36,10 @@ import { Route as PortalPlaylistTokenRouteImport } from "./routes/_portal/playli
 import { Route as PortalPSlugRouteImport } from "./routes/_portal/p.$slug";
 import { Route as PortalChannelIdRouteImport } from "./routes/_portal/channel.$id";
 import { Route as PortalCIdRouteImport } from "./routes/_portal/c.$id";
+import { Route as AuthenticatedSettingsProfileRouteImport } from "./routes/_authenticated/settings.profile";
+import { Route as AuthenticatedSettingsPreferencesRouteImport } from "./routes/_authenticated/settings.preferences";
+import { Route as AuthenticatedSettingsPasswordRouteImport } from "./routes/_authenticated/settings.password";
+import { Route as AuthenticatedSettingsAppearanceRouteImport } from "./routes/_authenticated/settings.appearance";
 import { Route as AuthenticatedAdminUsersRouteImport } from "./routes/_authenticated/admin/users";
 import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_authenticated/admin/transcoding";
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
@@ -47,6 +52,7 @@ import { Route as AuthenticatedAdminPaymentRouteImport } from "./routes/_authent
 import { Route as AuthenticatedAdminNotificationsRouteImport } from "./routes/_authenticated/admin/notifications";
 import { Route as AuthenticatedAdminLiveRoomsRouteImport } from "./routes/_authenticated/admin/live-rooms";
 import { Route as AuthenticatedAdminDrmRouteImport } from "./routes/_authenticated/admin/drm";
+import { Route as AuthenticatedAdminContentStructureRouteImport } from "./routes/_authenticated/admin/content-structure";
 import { Route as AuthenticatedAdminCommentsRouteImport } from "./routes/_authenticated/admin/comments";
 import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authenticated/admin/channels";
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
@@ -167,6 +173,11 @@ const PortalHandleRoute = PortalHandleRouteImport.update({
   path: "/$handle",
   getParentRoute: () => PortalRouteRoute,
 } as any);
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: "/settings",
+  path: "/settings",
+  getParentRoute: () => AuthenticatedRoute,
+} as any);
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: "/admin",
   path: "/admin",
@@ -206,6 +217,30 @@ const PortalCIdRoute = PortalCIdRouteImport.update({
   path: "/c/$id",
   getParentRoute: () => PortalRouteRoute,
 } as any);
+const AuthenticatedSettingsProfileRoute =
+  AuthenticatedSettingsProfileRouteImport.update({
+    id: "/profile",
+    path: "/profile",
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any);
+const AuthenticatedSettingsPreferencesRoute =
+  AuthenticatedSettingsPreferencesRouteImport.update({
+    id: "/preferences",
+    path: "/preferences",
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any);
+const AuthenticatedSettingsPasswordRoute =
+  AuthenticatedSettingsPasswordRouteImport.update({
+    id: "/password",
+    path: "/password",
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any);
+const AuthenticatedSettingsAppearanceRoute =
+  AuthenticatedSettingsAppearanceRouteImport.update({
+    id: "/appearance",
+    path: "/appearance",
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any);
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: "/users",
   path: "/users",
@@ -275,6 +310,12 @@ const AuthenticatedAdminDrmRoute = AuthenticatedAdminDrmRouteImport.update({
   path: "/drm",
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any);
+const AuthenticatedAdminContentStructureRoute =
+  AuthenticatedAdminContentStructureRouteImport.update({
+    id: "/content-structure",
+    path: "/content-structure",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminCommentsRoute =
   AuthenticatedAdminCommentsRouteImport.update({
     id: "/comments",
@@ -463,6 +504,7 @@ const AuthenticatedPortalMeArticlesTokenEditRoute =
 export interface FileRoutesByFullPath {
   "/": typeof PortalIndexRoute;
   "/admin": typeof AuthenticatedAdminRouteWithChildren;
+  "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
@@ -487,6 +529,7 @@ export interface FileRoutesByFullPath {
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/admin/content-structure": typeof AuthenticatedAdminContentStructureRoute;
   "/admin/drm": typeof AuthenticatedAdminDrmRoute;
   "/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
@@ -499,6 +542,10 @@ export interface FileRoutesByFullPath {
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
+  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
+  "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
+  "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
@@ -530,6 +577,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/": typeof PortalIndexRoute;
+  "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
@@ -551,6 +599,7 @@ export interface FileRoutesByTo {
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/admin/content-structure": typeof AuthenticatedAdminContentStructureRoute;
   "/admin/drm": typeof AuthenticatedAdminDrmRoute;
   "/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
@@ -563,6 +612,10 @@ export interface FileRoutesByTo {
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
+  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
+  "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
+  "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
@@ -597,6 +650,7 @@ export interface FileRoutesById {
   "/_authenticated": typeof AuthenticatedRouteWithChildren;
   "/_authenticated/_portal": typeof AuthenticatedPortalRouteWithChildren;
   "/_authenticated/admin": typeof AuthenticatedAdminRouteWithChildren;
+  "/_authenticated/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/_portal/$handle": typeof PortalHandleRoute;
   "/_portal/about": typeof PortalAboutRoute;
   "/_portal/categories": typeof PortalCategoriesRoute;
@@ -622,6 +676,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
   "/_authenticated/admin/channels": typeof AuthenticatedAdminChannelsRoute;
   "/_authenticated/admin/comments": typeof AuthenticatedAdminCommentsRoute;
+  "/_authenticated/admin/content-structure": typeof AuthenticatedAdminContentStructureRoute;
   "/_authenticated/admin/drm": typeof AuthenticatedAdminDrmRoute;
   "/_authenticated/admin/live-rooms": typeof AuthenticatedAdminLiveRoomsRoute;
   "/_authenticated/admin/notifications": typeof AuthenticatedAdminNotificationsRoute;
@@ -634,6 +689,10 @@ export interface FileRoutesById {
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/_authenticated/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/_authenticated/admin/users": typeof AuthenticatedAdminUsersRoute;
+  "/_authenticated/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
+  "/_authenticated/settings/password": typeof AuthenticatedSettingsPasswordRoute;
+  "/_authenticated/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
+  "/_authenticated/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/_portal/c/$id": typeof PortalCIdRoute;
   "/_portal/channel/$id": typeof PortalChannelIdRoute;
   "/_portal/p/$slug": typeof PortalPSlugRoute;
@@ -668,6 +727,7 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/admin"
+    | "/settings"
     | "/$handle"
     | "/about"
     | "/categories"
@@ -692,6 +752,7 @@ export interface FileRouteTypes {
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
+    | "/admin/content-structure"
     | "/admin/drm"
     | "/admin/live-rooms"
     | "/admin/notifications"
@@ -704,6 +765,10 @@ export interface FileRouteTypes {
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
+    | "/settings/appearance"
+    | "/settings/password"
+    | "/settings/preferences"
+    | "/settings/profile"
     | "/c/$id"
     | "/channel/$id"
     | "/p/$slug"
@@ -735,6 +800,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/settings"
     | "/$handle"
     | "/about"
     | "/categories"
@@ -756,6 +822,7 @@ export interface FileRouteTypes {
     | "/admin/categories"
     | "/admin/channels"
     | "/admin/comments"
+    | "/admin/content-structure"
     | "/admin/drm"
     | "/admin/live-rooms"
     | "/admin/notifications"
@@ -768,6 +835,10 @@ export interface FileRouteTypes {
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
+    | "/settings/appearance"
+    | "/settings/password"
+    | "/settings/preferences"
+    | "/settings/profile"
     | "/c/$id"
     | "/channel/$id"
     | "/p/$slug"
@@ -801,6 +872,7 @@ export interface FileRouteTypes {
     | "/_authenticated"
     | "/_authenticated/_portal"
     | "/_authenticated/admin"
+    | "/_authenticated/settings"
     | "/_portal/$handle"
     | "/_portal/about"
     | "/_portal/categories"
@@ -826,6 +898,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/categories"
     | "/_authenticated/admin/channels"
     | "/_authenticated/admin/comments"
+    | "/_authenticated/admin/content-structure"
     | "/_authenticated/admin/drm"
     | "/_authenticated/admin/live-rooms"
     | "/_authenticated/admin/notifications"
@@ -838,6 +911,10 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/tags"
     | "/_authenticated/admin/transcoding"
     | "/_authenticated/admin/users"
+    | "/_authenticated/settings/appearance"
+    | "/_authenticated/settings/password"
+    | "/_authenticated/settings/preferences"
+    | "/_authenticated/settings/profile"
     | "/_portal/c/$id"
     | "/_portal/channel/$id"
     | "/_portal/p/$slug"
@@ -1003,6 +1080,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PortalHandleRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
+    "/_authenticated/settings": {
+      id: "/_authenticated/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport;
+      parentRoute: typeof AuthenticatedRoute;
+    };
     "/_authenticated/admin": {
       id: "/_authenticated/admin";
       path: "/admin";
@@ -1058,6 +1142,34 @@ declare module "@tanstack/react-router" {
       fullPath: "/c/$id";
       preLoaderRoute: typeof PortalCIdRouteImport;
       parentRoute: typeof PortalRouteRoute;
+    };
+    "/_authenticated/settings/profile": {
+      id: "/_authenticated/settings/profile";
+      path: "/profile";
+      fullPath: "/settings/profile";
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRoute;
+    };
+    "/_authenticated/settings/preferences": {
+      id: "/_authenticated/settings/preferences";
+      path: "/preferences";
+      fullPath: "/settings/preferences";
+      preLoaderRoute: typeof AuthenticatedSettingsPreferencesRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRoute;
+    };
+    "/_authenticated/settings/password": {
+      id: "/_authenticated/settings/password";
+      path: "/password";
+      fullPath: "/settings/password";
+      preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRoute;
+    };
+    "/_authenticated/settings/appearance": {
+      id: "/_authenticated/settings/appearance";
+      path: "/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport;
+      parentRoute: typeof AuthenticatedSettingsRoute;
     };
     "/_authenticated/admin/users": {
       id: "/_authenticated/admin/users";
@@ -1141,6 +1253,13 @@ declare module "@tanstack/react-router" {
       path: "/drm";
       fullPath: "/admin/drm";
       preLoaderRoute: typeof AuthenticatedAdminDrmRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/content-structure": {
+      id: "/_authenticated/admin/content-structure";
+      path: "/content-structure";
+      fullPath: "/admin/content-structure";
+      preLoaderRoute: typeof AuthenticatedAdminContentStructureRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/admin/comments": {
@@ -1559,6 +1678,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute;
   AuthenticatedAdminChannelsRoute: typeof AuthenticatedAdminChannelsRoute;
   AuthenticatedAdminCommentsRoute: typeof AuthenticatedAdminCommentsRoute;
+  AuthenticatedAdminContentStructureRoute: typeof AuthenticatedAdminContentStructureRoute;
   AuthenticatedAdminDrmRoute: typeof AuthenticatedAdminDrmRoute;
   AuthenticatedAdminLiveRoomsRoute: typeof AuthenticatedAdminLiveRoomsRoute;
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute;
@@ -1583,6 +1703,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminChannelsRoute: AuthenticatedAdminChannelsRoute,
   AuthenticatedAdminCommentsRoute: AuthenticatedAdminCommentsRoute,
+  AuthenticatedAdminContentStructureRoute:
+    AuthenticatedAdminContentStructureRoute,
   AuthenticatedAdminDrmRoute: AuthenticatedAdminDrmRoute,
   AuthenticatedAdminLiveRoomsRoute: AuthenticatedAdminLiveRoomsRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
@@ -1602,14 +1724,35 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren);
 
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute;
+  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute;
+  AuthenticatedSettingsPreferencesRoute: typeof AuthenticatedSettingsPreferencesRoute;
+  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute;
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
+  AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
+  AuthenticatedSettingsPreferencesRoute: AuthenticatedSettingsPreferencesRoute,
+  AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
+};
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  );
+
 interface AuthenticatedRouteChildren {
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRouteWithChildren;
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren;
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren;
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPortalRoute: AuthenticatedPortalRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
 };
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

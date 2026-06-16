@@ -14,7 +14,7 @@ import {adminDrmApi} from '@/lib/api/drm';
 import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
 import {adminLiveApi, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
 import {adminPromotionApi, type CreatePromotionRequest, type UpdatePromotionRequest, type CreatePromotionChannelRequest, type CreatePromotionTemplateRequest, type CreatePromotionTaskRequest, type UpdatePromotionChannelRequest, type UpdatePromotionTemplateRequest} from '@/lib/api/promotion';
-import {adminAdsApi, type CreateAdCampaignRequest, type CreateAdSlotRequest, type UpdateAdCampaignRequest, type UpdateAdSlotRequest} from '@/lib/api/ads';
+import {adminAdsApi} from '@/lib/api/ads';
 import {spriteApi} from '@/lib/api/sprite';
 import {favoriteApi} from '@/lib/api/favorite';
 import {PAGINATION_CONFIG} from '@/config/pagination';
@@ -1457,86 +1457,4 @@ export function useDeletePromotion() {
     });
 }
 
-// ==================== Ads Hooks ====================
 
-export function useAdminAdCampaigns(params?: { page?: number; page_size?: number }) {
-    return useQuery({
-        queryKey: ['admin', 'adCampaigns', params],
-        queryFn: async () => {
-            const res = await adminAdsApi.listCampaigns(params?.page, params?.page_size);
-            return res;
-        },
-    });
-}
-
-export function useCreateAdCampaign() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: CreateAdCampaignRequest) => adminAdsApi.createCampaign(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
-        },
-    });
-}
-
-export function useUpdateAdCampaign() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({id, data}: {id: string; data: UpdateAdCampaignRequest}) =>
-            adminAdsApi.updateCampaign(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
-        },
-    });
-}
-
-export function useDeleteAdCampaign() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => adminAdsApi.deleteCampaign(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adCampaigns']});
-        },
-    });
-}
-
-export function useAdminAdSlots() {
-    return useQuery({
-        queryKey: ['admin', 'adSlots'],
-        queryFn: async () => {
-            const res = await adminAdsApi.listSlots();
-            return res;
-        },
-    });
-}
-
-export function useCreateAdSlot() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: CreateAdSlotRequest) => adminAdsApi.createSlot(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
-        },
-    });
-}
-
-export function useUpdateAdSlot() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({id, data}: {id: string; data: UpdateAdSlotRequest}) =>
-            adminAdsApi.updateSlot(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
-        },
-    });
-}
-
-export function useDeleteAdSlot() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) => adminAdsApi.deleteSlot(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['admin', 'adSlots']});
-        },
-    });
-}

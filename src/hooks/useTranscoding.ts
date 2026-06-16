@@ -52,6 +52,10 @@ export function useTranscoding(mediaId?: string): {
 
     const connect = useCallback(() => {
         if (!mountedRef.current) return;
+        if (!mediaId) {
+            disconnect();
+            return;
+        }
 
         disconnect();
 

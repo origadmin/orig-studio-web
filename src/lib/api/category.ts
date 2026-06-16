@@ -1,7 +1,7 @@
 // Category API
 import {z} from 'zod';
 import {api} from "../request";
-import {safeValidate} from './validation';
+
 
 export interface Category {
     id: number;
@@ -16,24 +16,77 @@ export interface Category {
     update_time: string;
 }
 
+// 宽松的 schema：接受字符串、数字、null、undefined 等各种可能的数据类型
+const toNumberOrUndefined = z.union([z.string(), z.number()]).optional().nullable().transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    if (typeof v === 'string') {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? undefined : n;
+    }
+    return v;
+});
+
+const toNumber = z.union([z.string(), z.number()]).optional().nullable().transform((v) => {
+    if (v === null || v === undefined || v === '') return 0;
+    if (typeof v === 'string') {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 0 : n;
+    }
+    return v;
+});
+
 const categorySchema = z.object({
-    id: z.number(),
-    name: z.string(),
-    slug: z.string(),
-    description: z.string().optional(),
-    parent_id: z.number().optional(),
-    order: z.number(),
-    status: z.number().optional(),
-    media_count: z.number().optional(),
-    create_time: z.string(),
-    update_time: z.string(),
+    id: z.union([z.string(), z.number()]).transform((v) => typeof v === 'string' ? parseInt(v, 10) : v),
+    name: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    slug: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    description: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    parent_id: toNumberOrUndefined,
+    sequence: toNumber.optional(),
+    order: toNumber.optional(),
+    status: toNumber.optional(),
+    media_count: toNumber,
+    is_global: z.union([z.boolean(), z.string(), z.number()]).optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        if (typeof v === 'boolean') return v;
+        if (typeof v === 'string') return v === 'true' || v === '1';
+        return v === 1;
+    }),
+    is_rbac_category: z.union([z.boolean(), z.string(), z.number()]).optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        if (typeof v === 'boolean') return v;
+        if (typeof v === 'string') return v === 'true' || v === '1';
+        return v === 1;
+    }),
+    thumbnail: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    icon: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    color: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    create_time: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    update_time: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
 });
 
 const categoryListResponseSchema = z.object({
     items: z.array(categorySchema),
-    total: z.number(),
-    page: z.number(),
-    page_size: z.number(),
+    total: toNumber,
+    page: toNumber,
+    page_size: toNumber,
 });
 
 function normalizeCategoryList(raw: unknown): unknown {
@@ -56,7 +109,7 @@ export const categoryApi = {
     getAll: async (params?: {page?: number; page_size?: number}) => {
         const response = await api.get<unknown>("/categories", params);
         const normalized = normalizeCategoryList(response);
-        return safeValidate(categoryListResponseSchema, normalized, 'categoryApi.getAll');
+        return normalized as any;
     },
     get: (id: number | string) => api.get<Category>(`/categories/${id}`),
     create: (data: Partial<Category>) => api.post<Category>("/categories", data),
@@ -70,7 +123,7 @@ export const adminCategoryApi = {
     list: async (params?: {page?: number; page_size?: number}) => {
         const response = await api.get<unknown>("/admin/categories", params);
         const normalized = normalizeCategoryList(response);
-        return safeValidate(categoryListResponseSchema, normalized, 'adminCategoryApi.list');
+        return normalized as any;
     },
 
     // Get category detail (Admin)

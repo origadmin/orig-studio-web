@@ -55,8 +55,9 @@ export default function ArticlePage() {
                 const response = await adminArticleApi.adminList(getParams());
                 const articleList = extractList<Article>(response);
                 setArticles(articleList);
-                if ((response as any)?.total !== undefined) {
-                    setTotal((response as any).total);
+                const totalVal = (response as any)?.total;
+                if (typeof totalVal === 'number') {
+                    setTotal(totalVal);
                 }
             } catch (err) {
                 setError('Failed to load articles');

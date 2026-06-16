@@ -52,7 +52,9 @@ async function refreshUserFromMe(storedUser: User): Promise<User> {
             status?: string;
         }>('/me');
 
-        const userData = meData;
+        // The response interceptor already unwraps {code, data}, so meData === data.
+        // For /me, data = {user: {...}}, so extract the inner user object.
+        const userData = (meData as any)?.user || meData;
         const {roles, isSuperuser} = resolveUserRoles(userData);
 
         const updatedUser: User = {
@@ -137,7 +139,14 @@ export function AuthProvider({children}: AuthProviderProps) {
                 refreshingRef.current = false;
                 if (success) {
                     setToken(getStoredToken());
-                    setUser(getStoredUser());
+                    const storedUser = getStoredUser();
+                    if (storedUser) {
+                        refreshUserFromMe(storedUser).then(updatedUser => {
+                            setUser(updatedUser);
+                        });
+                    } else {
+                        setUser(null);
+                    }
                 } else {
                     setToken(null);
                     setUser(null);
@@ -161,7 +170,14 @@ export function AuthProvider({children}: AuthProviderProps) {
                             refreshingRef.current = false;
                             if (success) {
                                 setToken(getStoredToken());
-                                setUser(getStoredUser());
+                                const storedUser = getStoredUser();
+                                if (storedUser) {
+                                    refreshUserFromMe(storedUser).then(updatedUser => {
+                                        setUser(updatedUser);
+                                    });
+                                } else {
+                                    setUser(null);
+                                }
                             } else {
                                 setToken(null);
                                 setUser(null);
@@ -246,7 +262,14 @@ export function AuthProvider({children}: AuthProviderProps) {
             const success = await attemptRefresh();
             if (success) {
                 setToken(getStoredToken());
-                setUser(getStoredUser());
+                const storedUser = getStoredUser();
+                if (storedUser) {
+                    refreshUserFromMe(storedUser).then(updatedUser => {
+                        setUser(updatedUser);
+                    });
+                } else {
+                    setUser(null);
+                }
             } else {
                 setToken(null);
                 setUser(null);

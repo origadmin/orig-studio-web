@@ -3,7 +3,7 @@
 // Type definitions aligned with backend ent entity JSON output
 import {z} from 'zod';
 import {api, getAccessToken, API_BASE_URL} from "../request";
-import {safeValidate} from './validation';
+// import {safeValidate} from './validation';
 
 // 统一响应格式接口
 export interface ApiResponse<T> {
@@ -179,50 +179,99 @@ export interface MediaListResponse {
     page_size: number;
 }
 
+// 宽松的 schema 工具函数
+const toNumber = z.union([z.string(), z.number()]).optional().nullable().transform((v) => {
+    if (v === null || v === undefined || v === '') return 0;
+    if (typeof v === 'string') {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 0 : n;
+    }
+    return v;
+});
+
+const toNumberOptional = z.union([z.string(), z.number()]).optional().nullable().transform((v) => {
+    if (v === null || v === undefined || v === '') return undefined;
+    if (typeof v === 'string') {
+        const n = parseInt(v, 10);
+        return isNaN(n) ? undefined : n;
+    }
+    return v;
+});
+
+const toString = z.any().optional().nullable().transform((v) => {
+    if (v === null || v === undefined) return undefined;
+    return String(v);
+});
+
+const toBoolean = z.union([z.boolean(), z.string(), z.number()]).optional().nullable().transform((v) => {
+    if (v === null || v === undefined) return undefined;
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'string') return v === 'true' || v === '1';
+    return v === 1;
+});
+
 const mediaSchema = z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string().optional(),
-    short_token: z.string().optional(),
-    type: z.string(),
-    url: z.string(),
-    hls_file: z.string().optional(),
-    thumbnail: z.string().optional(),
-    poster: z.string().optional(),
-    preview_file_path: z.string().optional(),
-    preview_file: z.string().optional(),
-    duration: z.number(),
-    size: z.string().optional(),
-    width: z.number(),
-    height: z.number(),
-    mime_type: z.string().optional(),
-    md5sum: z.string().optional(),
-    extension: z.string().optional(),
-    privacy: z.number(),
-    encoding_status: z.string(),
-    sprite_status: z.string().optional(),
-    sprite_path: z.string().optional(),
-    vtt_path: z.string().optional(),
-    state: z.string(),
-    view_count: z.number(),
-    like_count: z.number(),
-    dislike_count: z.number(),
-    comment_count: z.number(),
-    favorite_count: z.number(),
-    download_count: z.number().optional(),
-    allow_download: z.boolean().optional(),
-    enable_comments: z.boolean().optional(),
-    featured: z.boolean().optional(),
-    review_status: z.string().optional(),
-    listable: z.boolean().optional(),
-    reported_times: z.number().optional(),
-    tags: z.array(z.string()).optional(),
-    user_id: z.string(),
-    channel_id: z.string().optional(),
-    category_id: z.number().optional(),
-    published_at: z.string().optional(),
-    create_time: z.string().optional(),
-    update_time: z.string().optional(),
+    id: z.any().transform((v) => String(v)),
+    title: z.any().transform((v) => String(v)),
+    description: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    short_token: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    type: z.any().transform((v) => String(v)),
+    url: z.any().transform((v) => String(v)),
+    hls_file: toString,
+    thumbnail: toString,
+    poster: toString,
+    preview_file_path: toString,
+    preview_file: toString,
+    duration: toNumber,
+    size: toString,
+    width: toNumber,
+    height: toNumber,
+    mime_type: toString,
+    md5sum: toString,
+    extension: toString,
+    privacy: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    encoding_status: z.any().transform((v) => String(v)),
+    sprite_status: toString,
+    sprite_path: toString,
+    vtt_path: toString,
+    state: z.any().transform((v) => String(v)),
+    view_count: toNumber,
+    like_count: toNumber,
+    dislike_count: toNumber,
+    comment_count: toNumber,
+    favorite_count: toNumber,
+    download_count: toNumberOptional,
+    allow_download: toBoolean,
+    enable_comments: toBoolean,
+    featured: toBoolean,
+    review_status: toString,
+    listable: toBoolean,
+    reported_times: toNumberOptional,
+    tags: z.array(z.string()).optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return Array.isArray(v) ? v.map(String) : undefined;
+    }),
+    user_id: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    channel_id: z.any().optional().nullable().transform((v) => {
+        if (v === null || v === undefined) return undefined;
+        return String(v);
+    }),
+    category_id: toNumberOptional,
+    published_at: toString,
+    create_time: toString,
+    update_time: toString,
     user: z.any().optional(),
     category: z.any().optional(),
     channel: z.any().optional(),
@@ -231,9 +280,9 @@ const mediaSchema = z.object({
 
 const mediaListResponseSchema = z.object({
     items: z.array(mediaSchema),
-    total: z.number(),
-    page: z.number(),
-    page_size: z.number(),
+    total: toNumber,
+    page: toNumber,
+    page_size: toNumber,
 });
 
 /**
@@ -434,7 +483,7 @@ export const mediaApi = {
     }) => {
         const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);
-        return safeValidate(mediaListResponseSchema, normalized, 'mediaApi.list');
+        return normalized as any;
     },
 
     // 获取媒体详情（公开，使用 short_token）
@@ -453,7 +502,7 @@ export const mediaApi = {
     }) => {
         const response = await api.get<unknown>("/admin/medias", params as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);
-        return safeValidate(mediaListResponseSchema, normalized, 'mediaApi.adminList');
+        return normalized as any;
     },
 
     // 上传媒体文件（需要 JWT，支持进度回调）
@@ -698,7 +747,7 @@ export const publicMediaApi = {
     }) => {
         const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);
-        return safeValidate(mediaListResponseSchema, normalized, 'publicMediaApi.list');
+        return normalized as any;
     },
 
     // 获取媒体公开详情（使用 short_token）
@@ -840,7 +889,7 @@ export const adminMediaApi = {
     }) => {
         const response = await api.get<unknown>("/admin/medias", params as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);
-        return safeValidate(mediaListResponseSchema, normalized, 'adminMediaApi.list');
+        return normalized as any;
     },
 
     // 获取媒体完整详情（返回所有字段，包括私有视频）

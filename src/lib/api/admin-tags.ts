@@ -63,7 +63,7 @@ export interface ImportResponse {
   errors: Array<{ row: number; error: string }>;
 }
 
-export const tagApi = {
+export const adminTagApi = {
   // List tags with pagination and filters
   list: async (params?: TagQueryParams): Promise<TagListResponse> => {
     const response = await api.get<TagListResponse>('/admin/tags', { params });

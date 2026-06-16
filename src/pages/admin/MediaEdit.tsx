@@ -221,7 +221,7 @@ export default function MediaEditPage() {
     useEffect(() => {
         if (id) {
             adminMediaApi.getStats(id).then(setStats).catch(() => {});
-            adminMediaApi.getTasks(id).then((res: any) => setTasks((Array.isArray(res?.tasks) ? res.tasks : Array.isArray(res?.items) ? res.items : []))).catch(() => {});
+            adminMediaApi.getTasks(id).then((res) => setTasks(extractTasks(res))).catch(() => {});
         }
     }, [id]);
 
@@ -296,13 +296,21 @@ export default function MediaEditPage() {
     // Keyboard shortcut: Ctrl+S / Cmd+S
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
+    // Helper: extract tasks list from API response
+    const extractTasks = (res: any): EncodingTask[] => {
+        const safeRes = res ?? {};
+        if (Array.isArray(safeRes?.tasks)) return safeRes.tasks;
+        if (Array.isArray(safeRes?.items)) return safeRes.items;
+        return [];
+    };
+
     // Retry encoding task
     const handleRetryTask = async (taskId: string) => {
         if (!id) return;
         try {
             await adminMediaApi.retryTask(id, taskId);
             const res = await adminMediaApi.getTasks(id);
-            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
+            setTasks(extractTasks(res));
         } catch (err) {
             console.error('Failed to retry task', err);
         }
@@ -315,7 +323,7 @@ export default function MediaEditPage() {
             await api.post(`/admin/medias/${id}/regenerate-thumbnail`, {});
             toast.success(t('mediaEdit.thumbnailRegenerateScheduled'));
             const res = await adminMediaApi.getTasks(id);
-            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
+            setTasks(extractTasks(res));
         } catch (err: any) {
             const errMsg = err?.message || '未知错误';
             toast.error(`${t('mediaEdit.thumbnailRegenerateFailed')}: ${errMsg}`);
@@ -333,7 +341,7 @@ export default function MediaEditPage() {
             await api.post(`/admin/medias/${id}/regenerate-sprite`, {});
             toast.success(t('mediaEdit.spriteRegenerateScheduled'));
             const res = await adminMediaApi.getTasks(id);
-            setTasks((Array.isArray((res as any)?.tasks) ? (res as any).tasks : Array.isArray((res as any)?.items) ? (res as any).items : []));
+            setTasks(extractTasks(res));
         } catch (err: any) {
             const errMsg = err?.message || '未知错误';
             if (errMsg.includes('already processing') || errMsg.includes('already in progress')) {

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Comments Moderation page
  *
  * Renders the comment moderation console used by administrators to review,
@@ -65,8 +65,8 @@ const Comments: React.FC = () => {
   const fetchStats = useCallback(async () => {
     try {
       const response = await adminCommentApi.getStats();
-      if (response) {
-        setStats(response as any);
+      if (response && typeof response === 'object') {
+        setStats(response as CommentStats);
       }
     } catch (err) {
       console.error('Failed to fetch stats:', err);

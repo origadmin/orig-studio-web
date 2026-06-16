@@ -1,110 +1,131 @@
 import {api} from "../request";
 
-export interface AdCampaign {
+export interface AdPlacement {
     id: string;
     name: string;
+    code: string;
     type: string;
-    status: string;
-    start_date: string;
-    end_date: string;
-    budget: number;
-    spent: number;
+    position: string;
+    width: number;
+    height: number;
+    is_active: boolean;
+    max_ads: number;
+    sort_order: number;
+    create_time: string;
+    update_time: string;
+}
+
+export interface Ad {
+    id: string;
+    placement_id: string;
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url: string;
+    image_mobile_url?: string;
+    link_url: string;
+    link_target?: string;
+    badge_text?: string;
+    priority: number;
+    is_active: boolean;
+    start_at?: string;
+    end_at?: string;
     impressions: number;
     clicks: number;
-    ctr: number;
-    target_url: string;
-    creative_url: string;
-    position: string;
-    priority: number;
+    sort_order: number;
     create_time: string;
     update_time: string;
 }
 
-export interface AdSlot {
-    id: string;
-    name: string;
-    position: string;
-    ad_type: string;
-    dimensions: string;
-    is_active: boolean;
-    current_campaign_id: string;
-    impressions: number;
-    revenue: number;
-    create_time: string;
-    update_time: string;
-}
-
-export interface AdCampaignListResponse {
-    items: AdCampaign[];
+export interface AdListResponse {
+    items: Ad[];
     total: number;
     page: number;
     page_size: number;
 }
 
-export interface CreateAdCampaignRequest {
+export interface CreateAdPlacementRequest {
     name: string;
-    type: string;
-    start_date: string;
-    end_date: string;
-    budget?: number;
-    target_url?: string;
-    creative_url?: string;
-    position?: string;
-    priority?: number;
-}
-
-export interface UpdateAdCampaignRequest {
-    name?: string;
+    code: string;
     type?: string;
-    status?: string;
-    start_date?: string;
-    end_date?: string;
-    budget?: number;
-    target_url?: string;
-    creative_url?: string;
     position?: string;
-    priority?: number;
-}
-
-export interface CreateAdSlotRequest {
-    name: string;
-    position: string;
-    ad_type: string;
-    dimensions?: string;
+    width?: number;
+    height?: number;
     is_active?: boolean;
+    max_ads?: number;
+    sort_order?: number;
 }
 
-export interface UpdateAdSlotRequest {
+export interface UpdateAdPlacementRequest {
     name?: string;
+    code?: string;
+    type?: string;
     position?: string;
-    ad_type?: string;
-    dimensions?: string;
+    width?: number;
+    height?: number;
     is_active?: boolean;
-    current_campaign_id?: string;
+    max_ads?: number;
+    sort_order?: number;
+}
+
+export interface CreateAdRequest {
+    placement_id: string;
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url: string;
+    image_mobile_url?: string;
+    link_url: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+    sort_order?: number;
+}
+
+export interface UpdateAdRequest {
+    title?: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+    sort_order?: number;
 }
 
 export const adminAdsApi = {
-    listCampaigns: (page?: number, pageSize?: number) =>
-        api.get<AdCampaignListResponse>(`/admin/ad-campaigns?page=${page || 1}&page_size=${pageSize || 20}`),
+    listPlacements: () =>
+        api.get<AdPlacement[]>('/admin/ad-placements'),
 
-    createCampaign: (data: CreateAdCampaignRequest) =>
-        api.post<AdCampaign>('/admin/ad-campaigns', data),
+    createPlacement: (data: CreateAdPlacementRequest) =>
+        api.post<AdPlacement>('/admin/ad-placements', data),
 
-    updateCampaign: (id: string, data: UpdateAdCampaignRequest) =>
-        api.put<AdCampaign>(`/admin/ad-campaigns/${id}`, data),
+    updatePlacement: (id: string, data: UpdateAdPlacementRequest) =>
+        api.put<AdPlacement>(`/admin/ad-placements/${id}`, data),
 
-    deleteCampaign: (id: string) =>
-        api.del<void>(`/admin/ad-campaigns/${id}`),
+    deletePlacement: (id: string) =>
+        api.del<void>(`/admin/ad-placements/${id}`),
 
-    listSlots: () =>
-        api.get<AdSlot[]>('/admin/ad-slots'),
+    togglePlacement: (id: string) =>
+        api.post<AdPlacement>(`/admin/ad-placements/${id}/toggle`),
 
-    createSlot: (data: CreateAdSlotRequest) =>
-        api.post<AdSlot>('/admin/ad-slots', data),
+    listAds: (placementId?: string) =>
+        api.get<AdListResponse>(placementId ? `/admin/ads?placement_id=${placementId}` : '/admin/ads'),
 
-    updateSlot: (id: string, data: UpdateAdSlotRequest) =>
-        api.put<AdSlot>(`/admin/ad-slots/${id}`, data),
+    createAd: (data: CreateAdRequest) =>
+        api.post<Ad>('/admin/ads', data),
 
-    deleteSlot: (id: string) =>
-        api.del<void>(`/admin/ad-slots/${id}`),
+    updateAd: (id: string, data: UpdateAdRequest) =>
+        api.put<Ad>(`/admin/ads/${id}`, data),
+
+    deleteAd: (id: string) =>
+        api.del<void>(`/admin/ads/${id}`),
+
+    toggleAd: (id: string) =>
+        api.post<Ad>(`/admin/ads/${id}/toggle`),
 };

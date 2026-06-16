@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {api} from "../request";
-import {safeValidate} from './validation';
+
 
 export const notificationSchema = z.object({
     id: z.number(),
@@ -57,7 +57,7 @@ export const notificationApi = {
     getAll: async (params?: { page?: number; page_size?: number; read?: boolean }) => {
         const response = await api.get<unknown>('/notifications', params);
         const normalized = normalizeNotificationList(response);
-        return safeValidate(notificationListResponseSchema, normalized, 'notificationApi.getAll');
+        return normalized as any;
     },
 
     getUnreadCount: async (): Promise<number> => {

@@ -28,6 +28,9 @@ export default defineConfig({
     output: {
         assetPrefix: '/', // Ensure resources load with absolute paths in nested routes
     },
+    performance: {
+        buildCache: false,
+    },
     server: {
         port: 18080,
         historyApiFallback: true, // Ensure client-side routes correctly fallback to index.html

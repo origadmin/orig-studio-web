@@ -1,4 +1,4 @@
-﻿import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Bell,
     Send,
@@ -93,9 +93,9 @@ const AdminNotifications: React.FC = () => {
         try {
             setLoading(true);
             const response = await notificationApi.getAll({page_size: 50});
-            const items = response.items;
+            const items = response?.items ?? [];
             setNotifications(items);
-            setUnreadCount(response.unread_count ?? items.filter(n => !n.read).length);
+            setUnreadCount(response?.unread_count ?? items.filter(n => !n.read).length);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
         } finally {

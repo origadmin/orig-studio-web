@@ -26,7 +26,7 @@ import {
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Skeleton} from '@/components/ui/skeleton';
 import {useTranslation} from 'react-i18next';
-import {categoryApi, type Category} from '@/lib/api/category';
+import {adminCategoryApi, type Category} from '@/lib/api/category';
 import ErrorPage from '@/components/common/ErrorPage';
 
 const CategoryManager: React.FC = () => {
@@ -54,7 +54,7 @@ const CategoryManager: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await categoryApi.getAll();
+            const response = await adminCategoryApi.list();
             setCategories(response?.items || []);
         } catch (err) {
             setError('Failed to fetch categories');
@@ -66,7 +66,7 @@ const CategoryManager: React.FC = () => {
 
     const handleCreate = async () => {
         try {
-            await categoryApi.create(formData);
+            await adminCategoryApi.create(formData);
             await fetchCategories();
             setShowCreateDialog(false);
             resetForm();
@@ -79,7 +79,7 @@ const CategoryManager: React.FC = () => {
         if (!currentCategory) return;
 
         try {
-            await categoryApi.update(currentCategory.id, formData);
+            await adminCategoryApi.update(currentCategory.id, formData);
             await fetchCategories();
             setShowEditDialog(false);
             resetForm();
@@ -93,7 +93,7 @@ const CategoryManager: React.FC = () => {
         if (!confirm('Are you sure you want to delete this category?')) return;
 
         try {
-            await categoryApi.delete(id);
+            await adminCategoryApi.delete(id);
             await fetchCategories();
         } catch (err) {
             console.error('Failed to delete category:', err);
@@ -109,12 +109,12 @@ const CategoryManager: React.FC = () => {
 
         if (direction === 'up' && index > 0) {
             const targetCategory = siblings[index - 1];
-            await categoryApi.update(id, {order: targetCategory.order});
-            await categoryApi.update(targetCategory.id, {order: category.order});
+            await adminCategoryApi.update(id, {order: targetCategory.order});
+            await adminCategoryApi.update(targetCategory.id, {order: category.order});
         } else if (direction === 'down' && index < siblings.length - 1) {
             const targetCategory = siblings[index + 1];
-            await categoryApi.update(id, {order: targetCategory.order});
-            await categoryApi.update(targetCategory.id, {order: category.order});
+            await adminCategoryApi.update(id, {order: targetCategory.order});
+            await adminCategoryApi.update(targetCategory.id, {order: category.order});
         }
 
         await fetchCategories();

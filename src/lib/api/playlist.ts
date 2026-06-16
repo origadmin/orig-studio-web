@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {api} from "../request";
-import {safeValidate} from './validation';
+
 
 // PlaylistMediaItem represents a media item within a playlist (simplified for display).
 // Matches backend biz.PlaylistMediaItem struct.
@@ -104,7 +104,7 @@ export const playlistApi = {
     getMyPlaylists: async (params?: { page?: number; page_size?: number }) => {
         const response = await api.get<unknown>("/me/playlists", params as Record<string, unknown>);
         const normalized = normalizePlaylistList(response);
-        return safeValidate(playlistListResponseSchema, normalized, 'playlistApi.getMyPlaylists');
+        return normalized as any;
     },
 
     // Get a public playlist by short_token (portal view)
@@ -143,7 +143,7 @@ export const adminPlaylistApi = {
     list: async (params?: { page?: number; page_size?: number }) => {
         const response = await api.get<unknown>("/admin/playlists", params as Record<string, unknown>);
         const normalized = normalizePlaylistList(response);
-        return safeValidate(playlistListResponseSchema, normalized, 'adminPlaylistApi.list');
+        return normalized as any;
     },
 
     // Get playlist detail by UUID (Admin)

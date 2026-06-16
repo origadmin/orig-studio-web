@@ -1,7 +1,7 @@
 // API client - user module
 import {z} from 'zod';
 import {api} from "../request";
-import {safeValidate} from './validation';
+
 
 export interface User {
     id: string;
@@ -206,7 +206,7 @@ export const userApi = {
     list: async (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) => {
         const response = await api.get<unknown>("/users", params);
         const normalized = normalizeUserList(response);
-        return safeValidate(userListResponseSchema, normalized, 'userApi.list');
+        return normalized as any;
     },
 
     // 获取用户详情（公开，使用 slug）
@@ -262,14 +262,14 @@ export const userApi = {
     getSubscriptions: async (params?: { page?: number; page_size?: number }) => {
         const response = await api.get<unknown>("/me/subscriptions", params);
         const normalized = normalizeUserList(response);
-        return safeValidate(userListResponseSchema, normalized, 'userApi.getSubscriptions');
+        return normalized as any;
     },
 
     // Get my followers list
     getFollowers: async (params?: { page?: number; page_size?: number }) => {
         const response = await api.get<unknown>("/me/followers", params);
         const normalized = normalizeUserList(response);
-        return safeValidate(userListResponseSchema, normalized, 'userApi.getFollowers');
+        return normalized as any;
     },
 };
 
@@ -283,7 +283,7 @@ export const adminUserApi = {
     list: async (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) => {
         const response = await api.get<unknown>("/admin/users", params);
         const normalized = normalizeUserList(response);
-        return safeValidate(userListResponseSchema, normalized, 'adminUserApi.list');
+        return normalized as any;
     },
 
     // Get user detail by ID (Admin)

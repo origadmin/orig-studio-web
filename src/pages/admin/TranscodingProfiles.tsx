@@ -296,70 +296,50 @@ export default function TranscodingProfiles() {
     }, [newProfile.extension, newProfile.video_codec, newProfile.resolution]);
 
     return (
-        <div className="p-6 space-y-6">
-            {/* ═══ Breadcrumbs ════════════════════════════════ */}
-            <Breadcrumb className="mb-4">
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator/>
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.transcodingProfiles', 'Transcoding Profiles')}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-
+        <div className="p-8">
             {/* ═══ Page Header ════════════════════════════════ */}
-            <div className="flex items-end justify-between">
-                <div className="space-y-1">
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                        <Sliders className="h-7 w-7 text-primary" />
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-slate-800">
                         {t('admin.transcodingProfiles', 'Transcoding Profiles')}
                     </h2>
-                    <p className="text-muted-foreground text-sm max-w-2xl">
+                    <p className="text-sm text-slate-500 mt-1">
                         {t(
                             'admin.transcodingProfilesDesc',
                             'Manage global video encoding parameters and resolution presets.'
                         )}
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="outline" size="sm">
-                        <Upload className="h-4 w-4 mr-2" />
-                        {t('admin.import', 'Import')}
-                    </Button>
+                <div className="flex items-center gap-2">
                     <Button
-                        size="sm"
+                        variant="outline"
                         onClick={() => {
                             setNewProfile({is_active: true});
                             setIsAddModalOpen(true);
                         }}
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors h-9"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus className="w-4 h-4"/>
                         {t('admin.newProfile', 'New Profile')}
                     </Button>
                 </div>
             </div>
 
             {/* ═══ Filter Bar ════════════════════════════════ */}
-            <Card className="p-0">
-                <CardContent className="p-4 flex flex-wrap items-center gap-3">
-                    <div className="relative flex-1 max-w-sm min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <div className="mb-4">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
                         <Input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={t('admin.searchProfiles', 'Search profiles...')}
-                            className="w-full pl-9 pr-4 h-9 bg-muted/40 border-border rounded-lg text-sm focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/60"
+                            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
                         />
                     </div>
-
                     <Select value={codecFilter} onValueChange={setCodecFilter}>
-                        <SelectTrigger className="h-9 px-3 bg-card border-border rounded-lg text-sm text-muted-foreground focus:ring-1 focus:ring-primary/30 w-[160px]">
-                            <SelectValue placeholder={t('admin.allCodecs', 'All Codecs')} />
+                        <SelectTrigger className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer w-[160px]">
+                            <SelectValue placeholder={t('admin.allCodecs', 'All Codecs')}/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="-">{t('admin.allCodecs', 'All Codecs')}</SelectItem>
@@ -368,10 +348,9 @@ export default function TranscodingProfiles() {
                             ))}
                         </SelectContent>
                     </Select>
-
                     <Select value={resolutionFilter} onValueChange={setResolutionFilter}>
-                        <SelectTrigger className="h-9 px-3 bg-card border-border rounded-lg text-sm text-muted-foreground focus:ring-1 focus:ring-primary/30 w-[170px]">
-                            <SelectValue placeholder={t('admin.allResolutions', 'All Resolutions')} />
+                        <SelectTrigger className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer w-[170px]">
+                            <SelectValue placeholder={t('admin.allResolutions', 'All Resolutions')}/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="-">{t('admin.allResolutions', 'All Resolutions')}</SelectItem>
@@ -380,25 +359,23 @@ export default function TranscodingProfiles() {
                             ))}
                         </SelectContent>
                     </Select>
-
                     <Button
                         variant="outline"
-                        size="sm"
                         onClick={resetFilters}
-                        className="h-9 px-3 text-muted-foreground"
+                        className="inline-flex items-center gap-1.5 h-9 px-3 border border-slate-200 rounded-lg text-sm text-slate-500 hover:bg-slate-50 transition-colors"
                     >
-                        <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+                        <RotateCcw className="w-3.5 h-3.5"/>
                         {t('admin.reset', 'Reset')}
                     </Button>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* ═══ Table ════════════════════════════════ */}
-            <Card className="p-0 overflow-hidden">
-                <Table className="w-full text-left">
+            <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
+                <Table>
                     <TableHeader>
-                        <TableRow className="bg-muted/30 border-b border-border">
-                            <TableHead className="px-6 py-3 w-10">
+                        <TableRow className="border-b border-slate-200 hover:bg-white">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 <Checkbox
                                     checked={
                                         filteredProfiles.length > 0 &&
@@ -406,44 +383,43 @@ export default function TranscodingProfiles() {
                                     }
                                     onCheckedChange={toggleSelectAll}
                                     aria-label="Select all"
-                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                                 />
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.profileName', 'Profile Name')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.codec', 'Codec')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.resolution', 'Resolution')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.bitrate', 'Bitrate')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.status', 'Status')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                                 {t('admin.lastModified', 'Last Modified')}
                             </TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide text-right">
                                 {t('admin.actions', 'Actions')}
                             </TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-border">
+                    <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                                <TableCell colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500">
                                     {t('admin.loading', 'Loading profiles...')}
                                 </TableCell>
                             </TableRow>
                         ) : paginatedProfiles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-6 py-12 text-center">
-                                    <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                        <Search className="h-10 w-10 mb-3 opacity-30" />
+                                <TableCell colSpan={8} className="px-4 py-8 text-center">
+                                    <div className="flex flex-col items-center justify-center text-slate-500">
+                                        <Search className="h-8 w-8 mb-2 opacity-30"/>
                                         <p className="text-sm font-medium">
                                             {t('admin.noProfiles', 'No profiles found')}
                                         </p>
@@ -454,69 +430,66 @@ export default function TranscodingProfiles() {
                             paginatedProfiles.map((p) => (
                                 <TableRow
                                     key={p.id}
-                                    className={`hover:bg-muted/30 transition-colors ${
-                                        selectedRows.includes(p.id) ? 'bg-muted/30' : ''
-                                    }`}
+                                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                                 >
-                                    <TableCell className="px-6 py-3.5">
+                                    <TableCell className="px-4 py-3">
                                         <Checkbox
                                             checked={selectedRows.includes(p.id)}
                                             onCheckedChange={() => toggleSelectRow(p.id)}
                                             aria-label={`Select ${p.name}`}
-                                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm font-semibold text-foreground">
+                                    <TableCell className="px-4 py-3 text-sm font-medium text-slate-800">
                                         {p.name}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5">
-                                        <Badge variant="soft-primary">
+                                    <TableCell className="px-4 py-3">
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
                                             {p.video_codec}
-                                        </Badge>
+                                        </span>
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-xs font-mono text-muted-foreground">
+                                    <TableCell className="px-4 py-3 text-xs font-mono text-slate-600">
                                         {p.resolution}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm text-muted-foreground font-mono">
+                                    <TableCell className="px-4 py-3 text-sm text-slate-600 font-mono">
                                         {p.video_bitrate || '—'}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5">
+                                    <TableCell className="px-4 py-3">
                                         <Switch
                                             checked={p.is_active}
                                             onCheckedChange={() => handleToggleActive(p)}
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-xs text-muted-foreground">
+                                    <TableCell className="px-4 py-3 text-xs text-slate-500">
                                         —
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-right">
+                                    <TableCell className="px-4 py-3 text-right">
                                         <div className="flex items-center justify-end gap-1">
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
                                                 onClick={() => handleEdit(p)}
                                                 title={t('admin.edit', 'Edit')}
-                                                className="text-muted-foreground hover:text-primary"
+                                                className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md"
                                             >
-                                                <Edit className="w-4 h-4" />
+                                                <Edit className="w-4 h-4"/>
                                             </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
                                                 onClick={() => handleDuplicate(p)}
                                                 title={t('admin.duplicate', 'Duplicate')}
-                                                className="text-muted-foreground hover:text-primary"
+                                                className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md"
                                             >
-                                                <Copy className="w-4 h-4" />
+                                                <Copy className="w-4 h-4"/>
                                             </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon-sm"
                                                 onClick={() => handleDelete(p.id)}
                                                 title={t('admin.delete', 'Delete')}
-                                                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                                className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 className="w-4 h-4"/>
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -527,23 +500,20 @@ export default function TranscodingProfiles() {
                 </Table>
 
                 {/* ═══ Pagination ════════════════════════════════ */}
-                <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/20">
-                    <p className="text-xs text-muted-foreground">
-                        {t('admin.showing', 'Showing')}{' '}
-                        {filteredProfiles.length === 0 ? 0 : startIndex + 1}–
-                        {endIndex}{' '}
-                        {t('admin.of', 'of')} {filteredProfiles.length}{' '}
-                        {t('admin.profiles', 'profiles')}
+                <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
+                    <p className="text-xs text-slate-500">
+                        {t('admin.showing', 'Showing')} {filteredProfiles.length === 0 ? 0 : startIndex + 1}–
+                        {endIndex} {t('admin.of', 'of')} {filteredProfiles.length} {t('admin.profiles', 'profiles')}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground"
+                            className="h-8 w-8 text-slate-400 border-slate-200 rounded-md"
                             disabled={safePage <= 1}
                             onClick={() => setPage(p => Math.max(1, p - 1))}
                         >
-                            <ChevronLeft className="w-4 h-4" />
+                            <ChevronLeft className="w-4 h-4"/>
                         </Button>
                         {Array.from({length: totalPages}, (_, i) => i + 1).slice(0, 5).map(n => (
                             <Button
@@ -551,7 +521,9 @@ export default function TranscodingProfiles() {
                                 variant={safePage === n ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setPage(n)}
-                                className="h-8 min-w-8 px-3"
+                                className={safePage === n
+                                    ? "h-8 min-w-8 px-2.5 bg-slate-800 text-white hover:bg-slate-800 rounded-md"
+                                    : "h-8 min-w-8 px-2.5 border-slate-200 text-slate-600 rounded-md"}
                             >
                                 {n}
                             </Button>
@@ -559,15 +531,15 @@ export default function TranscodingProfiles() {
                         <Button
                             variant="outline"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground"
+                            className="h-8 w-8 text-slate-400 border-slate-200 rounded-md"
                             disabled={safePage >= totalPages}
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                         >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4"/>
                         </Button>
                     </div>
                 </div>
-            </Card>
+            </div>
 
             {/* ═══ Bulk Action Bar ════════════════════════════════ */}
             {selectedRows.length > 0 && (
@@ -621,7 +593,7 @@ export default function TranscodingProfiles() {
 
             {/* ═══ New Profile Modal ════════════════════════════════ */}
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
                             {t('admin.newTranscodingProfile', 'New Transcoding Profile')}

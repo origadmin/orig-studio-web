@@ -52,6 +52,8 @@ export type {Category} from "./category";
 // ==================== Tags ====================
 export {tagApi} from "./tag";
 export type {Tag} from "./tag";
+export {adminTagApi} from "./admin-tags";
+export type {Tag as AdminTag, TagListResponse, TagQueryParams, CreateTagRequest, UpdateTagRequest} from "./admin-tags";
 
 // ==================== Comments ====================
 export {commentApi} from "./comment";

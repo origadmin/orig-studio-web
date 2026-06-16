@@ -18,16 +18,16 @@ interface FeatureFlags {
 }
 
 const defaultFeatures: FeatureFlags = {
-    multiTenant: false,
-    auditLog: false,
-    advancedRBAC: false,
-    reviewWorkflow: false,
-    enterpriseNotification: false,
-    drm: false,
-    liveRooms: false,
-    payment: false,
-    promotion: false,
-    ads: false,
+    multiTenant: true,
+    auditLog: true,
+    advancedRBAC: true,
+    reviewWorkflow: true,
+    enterpriseNotification: true,
+    drm: true,
+    liveRooms: true,
+    payment: true,
+    promotion: true,
+    ads: true,
 };
 
 const FeatureFlagsContext = createContext<FeatureFlags>(defaultFeatures);

@@ -138,7 +138,7 @@ export default function MediaPage() {
     const handleShowVariants = async (media: Media) => {
         try {
             const data = await adminMediaApi.getVariants(media.id);
-            setVariantData(data as unknown as MediaVariantSummary);
+            setVariantData(data);
             setVariantDetailOpen(true);
         } catch (err: any) {
             console.error("Failed to fetch variants:", err.message);
@@ -150,7 +150,7 @@ export default function MediaPage() {
         setRetryingAllId(mediaId);
         try {
             await encodingApi.retryAllFailed(String(mediaId));
-            if (variantData?.media_id === mediaId) {
+            if (variantData?.media_id === String(mediaId)) {
                 handleShowVariants({id: mediaId} as Media);
             }
         } catch (err: any) {

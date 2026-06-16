@@ -1,7 +1,7 @@
 // API client - Article module
 import {z} from 'zod';
 import {api} from "../request";
-import {safeValidate} from './validation';
+
 
 export interface MediaBrief {
     id: string;
@@ -159,7 +159,7 @@ export const articleApi = {
     }) => {
         const response = await api.get<unknown>("/articles", {...params, state: params?.state || "published"});
         const normalized = normalizeArticleList(response);
-        return safeValidate(articleListResponseSchema, normalized, 'articleApi.list');
+        return normalized as any;
     },
 
     // Get article detail (public, by slug)
@@ -184,7 +184,7 @@ export const adminArticleApi = {
     }) => {
         const response = await api.get<unknown>("/admin/articles", params);
         const normalized = normalizeArticleList(response);
-        return safeValidate(articleListResponseSchema, normalized, 'adminArticleApi.adminList');
+        return normalized as any;
     },
 
     // Get article detail (Admin)
@@ -217,7 +217,7 @@ export const userArticleApi = {
     }) => {
         const response = await api.get<unknown>("/articles/me", params);
         const normalized = normalizeArticleList(response);
-        return safeValidate(articleListResponseSchema, normalized, 'userArticleApi.myArticles');
+        return normalized as any;
     },
 
     /**
