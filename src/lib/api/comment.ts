@@ -125,29 +125,29 @@ export const adminCommentApi = {
         api.del<void>(`/admin/comments/${id}`),
 
     approve: (id: string) =>
-        api.post(`/admin/comments/${id}/approve`),
+        api.post<{ message: string }>(`/admin/comments/${id}/approve`),
 
     reject: (id: string) =>
-        api.post(`/admin/comments/${id}/reject`),
+        api.post<{ message: string }>(`/admin/comments/${id}/reject`),
 
     block: (id: string) =>
-        api.post(`/admin/comments/${id}/block`),
+        api.post<{ message: string }>(`/admin/comments/${id}/block`),
 
     unblock: (id: string) =>
-        api.post(`/admin/comments/${id}/unblock`),
+        api.post<{ message: string }>(`/admin/comments/${id}/unblock`),
 
     dismissReports: (id: string) =>
-        api.post(`/admin/comments/${id}/dismiss-reports`),
+        api.post<{ message: string }>(`/admin/comments/${id}/dismiss-reports`),
 
     getReports: (id: string) =>
-        api.get(`/admin/comments/${id}/reports`),
+        api.get<CommentReport[]>(`/admin/comments/${id}/reports`),
 
     getStats: (params?: { media_id?: string }) =>
         api.get<CommentStats>('/admin/comments/stats', params),
 
     batchApprove: (ids: string[]) =>
-        api.post('/admin/comments/batch-approve', { ids }),
+        api.post<{ success: number; failed: number }>('/admin/comments/batch-approve', { ids }),
 
     batchReject: (ids: string[]) =>
-        api.post('/admin/comments/batch-reject', { ids }),
+        api.post<{ success: number; failed: number }>('/admin/comments/batch-reject', { ids }),
 };

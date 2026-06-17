@@ -12,25 +12,15 @@
 
 declare const __MOCK_MODE__: boolean | undefined;
 
-const MOCK_KEY = 'origstudio_mock';
-
+// Mock mode is determined solely by build-time define.
+// No sessionStorage caching — prevents "stuck in mock mode" issues.
 export function isMockMode(): boolean {
-    const cached = sessionStorage.getItem(MOCK_KEY);
-    if (cached !== null) return cached === 'true';
-
-    // Only check build-time define — rsbuild source.define replaces at compile time
-    if (__MOCK_MODE__) {
-        sessionStorage.setItem(MOCK_KEY, 'true');
-        return true;
-    }
-
-    sessionStorage.setItem(MOCK_KEY, 'false');
-    return false;
+    return !!__MOCK_MODE__;
 }
 
-/** Check mock mode status for UI indicator — does NOT change mode */
+/** Check if mock mode is active (same as isMockMode for current implementation) */
 export function isMockActive(): boolean {
-    return sessionStorage.getItem(MOCK_KEY) === 'true';
+    return isMockMode();
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -297,8 +287,8 @@ const mockRoutes: [RegExp, MockHandler][] = [
         media_growth: 12.5, user_growth: 8.3, views_growth: 15.7, revenue_growth: 22.1,
     })],
 
-    // Media (admin)
-    [/\/admin\/media(\?|$)/, (_url, _m, _b, fullUrl) => {
+    // Media (admin) — matches OpenAPI /api/v1/admin/medias
+    [/\/admin\/medias(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 47}, (_, i) => genMedia(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
@@ -342,57 +332,52 @@ const mockRoutes: [RegExp, MockHandler][] = [
         return paginate(Array.from({length: 18}, (_, i) => genLiveRoom(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // DRM Policies
-    [/\/admin\/drm-policies/, () => Array.from({length: 6}, (_, i) => genDrmPolicy(i))],
+    // DRM Policies — matches OpenAPI /api/v1/admin/drm/policies
+    [/\/admin\/drm\/policies/, () => Array.from({length: 6}, (_, i) => genDrmPolicy(i))],
 
-    // DRM Keys
-    [/\/admin\/drm-keys(\?|$)/, () => paginate(Array.from({length: 32}, (_, i) => genDrmKey(i)), 1, 20)],
+    // DRM Keys — matches OpenAPI /api/v1/admin/drm/keys
+    [/\/admin\/drm\/keys(\?|$)/, () => paginate(Array.from({length: 32}, (_, i) => genDrmKey(i)), 1, 20)],
 
-    // DRM Licenses
-    [/\/admin\/drm-licenses(\?|$)/, () => paginate(Array.from({length: 45}, (_, i) => genDrmLicense(i)), 1, 20)],
+    // DRM Licenses — matches OpenAPI /api/v1/admin/drm/licenses
+    [/\/admin\/drm\/licenses(\?|$)/, () => paginate(Array.from({length: 45}, (_, i) => genDrmLicense(i)), 1, 20)],
 
-    // Payment Plans (Subscription)
-    [/\/admin\/subscription-plans/, () => Array.from({length: 4}, (_, i) => genPaymentPlan(i))],
+    // Payment Plans — matches OpenAPI /api/v1/admin/billing/plans
+    [/\/admin\/billing\/plans/, () => Array.from({length: 4}, (_, i) => genPaymentPlan(i))],
 
-    // Payment Orders
-    [/\/admin\/orders(\?|$)/, () => paginate(Array.from({length: 67}, (_, i) => ({
+    // Payment Orders — matches OpenAPI /api/v1/admin/billing/orders
+    [/\/admin\/billing\/orders(\?|$)/, () => paginate(Array.from({length: 67}, (_, i) => ({
         id: uid(), user_id: uid(), plan_id: uid(), amount: pick([9.99, 19.99, 49.99]), status: pick(['completed', 'pending', 'failed', 'refunded']), payment_method: pick(['credit_card', 'paypal', 'crypto']), created_at: randDate(30),
     })), 1, 20)],
 
-    // Wallets
-    [/\/admin\/wallets(\?|$)/, () => paginate(Array.from({length: 20}, (_, i) => ({
-        id: uid(), user_id: uid(), balance: randInt(100, 100000) / 100, currency: 'CNY', status: 'active', created_at: randDate(60),
-    })), 1, 20)],
-
-    // Promotion Channels
-    [/\/admin\/promotion-channels(\?|$)/, (_url, _m, _b, fullUrl) => {
+    // Promotion Channels — matches OpenAPI /api/v1/admin/promotion/channels
+    [/\/admin\/promotion\/channels(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 9}, (_, i) => genPromotionChannel(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // Promotion Templates
-    [/\/admin\/promotion-templates/, () => Array.from({length: 7}, (_, i) => genPromotionTemplate(i))],
+    // Promotion Templates — matches OpenAPI /api/v1/admin/promotion/templates
+    [/\/admin\/promotion\/templates/, () => Array.from({length: 7}, (_, i) => genPromotionTemplate(i))],
 
-    // Promotion Tasks
-    [/\/admin\/promotion-tasks(\?|$)/, (_url, _m, _b, fullUrl) => {
+    // Promotion Tasks — matches OpenAPI /api/v1/admin/promotion/tasks
+    [/\/admin\/promotion\/tasks(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 28}, (_, i) => genPromotionTask(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // Promotion Logs
-    [/\/admin\/promotion-logs(\?|$)/, (_url, _m, _b, fullUrl) => {
+    // Promotion Logs — matches OpenAPI /api/v1/admin/promotion/logs
+    [/\/admin\/promotion\/logs(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 120}, (_, i) => genPromotionLog(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // Ad Campaigns
-    [/\/admin\/ad-campaigns(\?|$)/, (_url, _m, _b, fullUrl) => {
+    // Ad Campaigns — matches OpenAPI /api/v1/admin/ads/campaigns
+    [/\/admin\/ads\/campaigns(\?|$)/, (_url, _m, _b, fullUrl) => {
         const params = new URLSearchParams((fullUrl || '').split('?')[1] || '');
         return paginate(Array.from({length: 14}, (_, i) => genAdCampaign(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // Ad Slots
-    [/\/admin\/ad-slots/, () => Array.from({length: 6}, (_, i) => genAdSlot(i))],
+    // Ad Slots — matches OpenAPI /api/v1/admin/ads/slots
+    [/\/admin\/ads\/slots/, () => Array.from({length: 6}, (_, i) => genAdSlot(i))],
 
     // Notifications
     [/\/admin\/notifications(\?|$)/, () => paginate(Array.from({length: 30}, (_, i) => genNotification(i)), 1, 20)],
@@ -408,15 +393,15 @@ const mockRoutes: [RegExp, MockHandler][] = [
         max_upload_size: '500', storage_driver: 's3',
     })],
 
-    // Transcoding profiles
-    [/\/admin\/transcoding-profiles/, () => Array.from({length: 5}, (_, i) => ({
+    // Encoding profiles — matches OpenAPI /api/v1/admin/encoding/profiles
+    [/\/admin\/encoding\/profiles/, () => Array.from({length: 5}, (_, i) => ({
         id: uid(), name: ['1080p H.264', '720p H.264', '480p H.264', '1080p HEVC', '4K HEVC'][i],
         codec: pick(['h264', 'hevc']), resolution: pick(['1920x1080', '1280x720', '854x480', '3840x2160']),
         bitrate: pick(['8000k', '5000k', '2500k', '15000k']), is_default: i === 0, created_at: randDate(180),
     }))],
 
-    // Transcoding status/jobs
-    [/\/admin\/transcoding-jobs(\?|$)/, () => paginate(Array.from({length: 40}, (_, i) => ({
+    // Encoding tasks — matches OpenAPI /api/v1/admin/medias/encoding/tasks
+    [/\/admin\/medias\/encoding\/tasks(\?|$)/, () => paginate(Array.from({length: 40}, (_, i) => ({
         id: uid(), media_id: uid(), profile_id: uid(), status: pick(['queued', 'processing', 'completed', 'failed']),
         progress: randInt(0, 100), created_at: randDate(7), updated_at: randDate(1),
     })), 1, 20)],
@@ -431,16 +416,14 @@ export async function mockFetch<T>(url: string, method: string, body?: any): Pro
     if (!isMockMode()) return null;
 
     for (const [pattern, handler] of mockRoutes) {
-        // 同时匹配带前缀和不带前缀的 URL
+        // Match both prefixed and non-prefixed URLs
         const urlWithoutPrefix = url.replace(/^\/api\/v1/, '');
         const matches = pattern.test(url) || pattern.test(urlWithoutPrefix);
         
         if (matches) {
             await delay();
             const result = handler(url, method, body, url);
-            // mock 结果在 fetchApi 中直接返回，不经过 axios 响应拦截器
-            // 而 axios 拦截器会自动解包 {code, data} 格式
-            // 所以这里直接返回原始数据，与拦截器解包后的结果一致
+            // Mock result returned directly in fetchApi, not through axios interceptor
             if (method !== 'GET' && method !== 'HEAD') {
                 return (body ? {...result, ...body} : result) as T;
             }
@@ -452,9 +435,7 @@ export async function mockFetch<T>(url: string, method: string, body?: any): Pro
     // the request hit the real API (which would fail and trigger auth error loops)
     console.warn(`[mock] No mock route for ${method} ${url}, returning empty fallback`);
     if (method === 'GET') {
-        // Return sensible defaults for GET requests
         return {items: [], total: 0, page: 1, page_size: 20} as T;
     }
-    // For mutations, return a generic success response
     return {id: 'mock', success: true} as T;
 }

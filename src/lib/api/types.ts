@@ -13,10 +13,3 @@ export interface PaginationParams {
   page?: number;
   page_size?: number;
 }
-
-// Generic API response wrapper
-export interface ApiResponse<T> {
-  code: number;
-  message: string;
-  data: T;
-}

@@ -66,7 +66,7 @@ export interface ImportResponse {
 export const adminTagApi = {
   // List tags with pagination and filters
   list: async (params?: TagQueryParams): Promise<TagListResponse> => {
-    const response = await api.get<TagListResponse>('/admin/tags', { params });
+    const response = await api.get<TagListResponse>('/admin/tags', params as Record<string, unknown> | undefined);
     return response;
   },
 

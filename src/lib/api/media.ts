@@ -3,14 +3,6 @@
 // Type definitions aligned with backend ent entity JSON output
 import {z} from 'zod';
 import {api, getAccessToken, API_BASE_URL} from "../request";
-// import {safeValidate} from './validation';
-
-// 统一响应格式接口
-export interface ApiResponse<T> {
-    code: number;
-    message: string;
-    data: T;
-}
 
 // Media 对齐后端 entity.Media JSON 序列化字段
 export interface Media {
@@ -487,9 +479,10 @@ export const mediaApi = {
     },
 
     // 获取媒体详情（公开，使用 short_token）
-    get: (token: number | string) => {
+    get: async (token: number | string) => {
         const cleanToken = String(token).replace(/["']/g, '').trim();
-        return api.get<Media>(`/medias/${cleanToken}`);
+        const media = await api.get<Media>(`/medias/${cleanToken}`);
+        return normalizeMedia(media);
     },
 
     // Admin: get all media (including unpublished)
@@ -542,9 +535,7 @@ export const mediaApi = {
             xhr.addEventListener("load", () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     try {
-                        const response = JSON.parse(xhr.responseText);
-                        // Unwrap unified response format {code, message, data}
-                        const data = response.data || response;
+                        const data = JSON.parse(xhr.responseText);
                         resolve({data});
                     } catch {
                         reject(new Error("Invalid response"));
@@ -752,9 +743,10 @@ export const publicMediaApi = {
 
     // 获取媒体公开详情（使用 short_token）
     // 返回公开字段，不包含敏感信息
-    get: (shortToken: string) => {
+    get: async (shortToken: string) => {
         const cleanToken = String(shortToken).replace(/["']/g, '').trim();
-        return api.get<Media>(`/medias/${cleanToken}`);
+        const media = await api.get<Media>(`/medias/${cleanToken}`);
+        return normalizeMedia(media);
     },
 
     // 增加观看计数（使用 short_token）
@@ -798,9 +790,7 @@ export const publicMediaApi = {
             xhr.addEventListener("load", () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     try {
-                        const response = JSON.parse(xhr.responseText);
-                        // Unwrap unified response format {code, message, data}
-                        const data = response.data || response;
+                        const data = JSON.parse(xhr.responseText);
                         resolve({data});
                     } catch {
                         reject(new Error("Invalid response"));
@@ -894,7 +884,10 @@ export const adminMediaApi = {
 
     // 获取媒体完整详情（返回所有字段，包括私有视频）
     // 使用 UUID ID，不接受 short_token
-    getById: (id: string) => api.get<Media>(`/admin/medias/${id}`),
+    getById: async (id: string) => {
+        const media = await api.get<Media>(`/admin/medias/${id}`);
+        return normalizeMedia(media);
+    },
 
     // 更新媒体（Admin 可以编辑任何媒体）
     update: (id: string, data: UpdateMediaRequest) =>

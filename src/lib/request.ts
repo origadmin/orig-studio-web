@@ -14,12 +14,9 @@ export const API_BASE_URL = getApiBaseUrl();
 export const API_PREFIX = "/api/v1";
 export const REQUEST_TIMEOUT = 30000;
 
-// Unified response format interface
-export interface ApiResponse<T> {
-    code: number;
-    message: string;
-    data: T;
-}
+// Backend returns proto messages directly, no wrapper format
+// Success response: direct proto JSON
+// Error response: {code, reason, message, metadata}
 
 interface Token {
     access_token: string;
@@ -97,16 +94,15 @@ export const attemptRefresh = async (): Promise<boolean> => {
         }
 
         // Use raw axios (not the request instance) to avoid circular interceptor calls.
-        // Since this bypasses the response interceptor that auto-unwraps {code, data},
-        // we must manually unwrap the unified response format (B096 fix).
-        const {data: responseBody} = await axios.post<ApiResponse<Token>>(
+        // Backend returns Token message directly, no wrapper format
+        const {data: responseBody} = await axios.post<Token>(
             (API_BASE_URL || "") + API_PREFIX + "/auth/refresh",
             {refresh_token: refreshToken}
         );
-        if (responseBody.code !== 0 || !responseBody.data) {
+        if (!responseBody.access_token) {
             return false;
         }
-        setAuth(responseBody.data);
+        setAuth(responseBody);
         return true;
     } catch {
         return false;
@@ -175,7 +171,7 @@ export const isTokenExpired = (bufferSeconds: number = 60): boolean => {
     }
 
     try {
-        // 解析 JWT token 来获取 exp 字段
+        // Parse JWT token to get exp field
         const parts = token.split('.');
         if (parts.length !== 3) {
             // Not a JWT — if we have a token but no exp, treat as valid
@@ -183,7 +179,7 @@ export const isTokenExpired = (bufferSeconds: number = 60): boolean => {
         }
         const payload = JSON.parse(atob(parts[1]));
         if (!payload.exp) return true;
-        // 提前 bufferSeconds 认为过期，避免边界情况
+        // Advance bufferSeconds to avoid edge cases
         return Date.now() > (payload.exp - bufferSeconds) * 1000;
     } catch {
         // Non-JWT token (e.g. mock) — treat as valid if it exists
@@ -191,7 +187,7 @@ export const isTokenExpired = (bufferSeconds: number = 60): boolean => {
     }
 };
 
-// 创建 Axios 实例
+// Create Axios instance
 function createRequest() {
     const request = axios.create({
         baseURL: API_BASE_URL + API_PREFIX,
@@ -213,7 +209,7 @@ function createRequest() {
         (error) => Promise.reject(error)
     );
 
-    // 响应拦截器：处理 401 和 token 刷新 - 按照 webui 项目模式
+    // Response interceptor: handle 401 and token refresh
     let isRefreshing = false;
     let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }[] = [];
 
@@ -235,40 +231,18 @@ function createRequest() {
 
     request.interceptors.response.use(
         (response) => {
-            // 适配新的统一响应格式 {code, message, data}
-            // 如果响应包含 code 和 data 字段，返回 data 部分
-            const data = response.data;
-            if (data && typeof data === 'object' && 'code' in data && 'data' in data) {
-                // 检查是否成功响应 (code === 0)
-                if (data.code !== 0) {
-                    // 业务错误，抛出异常
-                    return Promise.reject({
-                        response: {
-                            data: {
-                                code: data.code,
-                                message: data.message || 'Request failed',
-                            }
-                        }
-                    });
-                }
-                // 返回 data 部分
-                return {...response, data: data.data};
-            }
-            // Non-unified format (no code/data envelope), return as-is
+            // Backend success response returns proto message directly, no wrapper
             return response;
         },
         async (error) => {
             const originalRequest = error.config as any;
 
             // Public auth URLs that should not trigger token refresh on 401.
-            // originalRequest.url is the relative path (e.g., "/auth/refresh")
-            // because baseURL already includes API_PREFIX. So we match against
-            // the relative paths, not the full API_PREFIX + path (B098 fix).
             const publicAuthUrls = ["/auth/refresh", "/auth/signin", "/auth/signup"];
             const requestUrl = originalRequest.url || "";
             const isPublicAuthUrl = publicAuthUrls.some(url => requestUrl.includes(url));
             
-            // 如果不是 401 或者是公共接口的 401，直接拒绝
+            // If not 401 or is public auth URL, reject directly
             if (error.response?.status !== 401 || isPublicAuthUrl) {
                 return Promise.reject(error);
             }
@@ -317,17 +291,16 @@ function createRequest() {
                 }
 
                 // Use raw axios (not the request instance) to avoid circular interceptor calls.
-                // Since this bypasses the response interceptor that auto-unwraps {code, data},
-                // we must manually unwrap the unified response format (B096 fix).
-                const { data: responseBody } = await axios.post<ApiResponse<Token>>(
+                // Backend returns Token message directly, no wrapper
+                const { data: responseBody } = await axios.post<Token>(
                     (API_BASE_URL || "") + API_PREFIX + "/auth/refresh",
                     { refresh_token: refreshToken }
                 );
 
-                if (responseBody.code !== 0 || !responseBody.data) {
+                if (!responseBody.access_token) {
                     throw new Error("Token refresh failed: invalid response");
                 }
-                const newToken = responseBody.data;
+                const newToken = responseBody;
 
                 setAuth(newToken);
                 if (originalRequest.headers) {
@@ -338,7 +311,7 @@ function createRequest() {
             } catch (refreshError) {
                 const axiosError = refreshError as any;
                 
-                // 检查是否是刷新 token 失败
+                // Check if refresh token failed
                 const isRefreshError = axiosError?.response?.status === 401;
                 
                 processQueue(axiosError, null);
@@ -363,7 +336,7 @@ const getRequest = () => {
     return requestInstance;
 };
 
-// 请求方法
+// Request methods
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
@@ -378,14 +351,9 @@ const isDev = process.env.NODE_ENV === 'development';
 /**
  * Normalize pagination parameters in request params.
  * Ensures page >= 1 and page_size is within [1, MAX_PAGE_SIZE].
- * Only processes requests that contain page/page_size keys.
- * Logs a warning in development mode when corrections are made.
  */
 function normalizePaginationInParams(params: Record<string, unknown>): void {
     if ('page' in params) {
-        // If page key exists but value is undefined/null, delete the key
-        // so the backend uses its default. This prevents the warning
-        // "pagination param corrected: page undefined -> 1".
         if (params.page === undefined || params.page === null) {
             delete params.page;
         } else {
@@ -441,7 +409,7 @@ async function fetchApi<T>(
         normalizePaginationInParams(options.params);
     }
 
-    // 构建 URL 参数
+    // Build URL params
     const searchParams = new URLSearchParams();
     if (options.params) {
         Object.entries(options.params).forEach(([key, value]) => {
@@ -485,12 +453,15 @@ export const api = {
     get: <T>(url: string, params?: Record<string, unknown>) => fetchApi<T>(url, "GET", {params}),
     post: <T, B = unknown>(url: string, body?: B, options?: {
         params?: Record<string, unknown>
+        headers?: Record<string, string>
     }) => fetchApi<T>(url, "POST", {body, ...options}),
     put: <T, B = unknown>(url: string, body?: B, options?: {
         params?: Record<string, unknown>
+        headers?: Record<string, string>
     }) => fetchApi<T>(url, "PUT", {body, ...options}),
     patch: <T, B = unknown>(url: string, body?: B, options?: {
         params?: Record<string, unknown>
+        headers?: Record<string, string>
     }) => fetchApi<T>(url, "PATCH", {body, ...options}),
     del: <T>(url: string, params?: Record<string, unknown>) => fetchApi<T>(url, "DELETE", {params}),
 };

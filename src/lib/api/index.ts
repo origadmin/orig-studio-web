@@ -1,9 +1,9 @@
-// API 模块导出
-// 对应后端 /api/v1/* 路径
+// API module exports
+// Corresponds to backend /api/v1/* paths
 
 // ==================== Core ====================
 export {api, getAccessToken, setAuth, clearAuth} from "../request";
-export type {Token, ApiError, ApiResponse} from "../request";
+export type {Token, ApiError} from "../request";
 
 // ==================== Auth ====================
 export {signIn, signUp, signOut, refreshToken, getCurrentUser, isAuthenticated, authApi} from "./auth";
@@ -19,7 +19,6 @@ export type {
     UpdateProfileRequest,
     ChangePasswordRequest,
     SubscriptionStatusResponse,
-    SubscriptionListResponse,
     UserProfile,
     UserSetting,
     UpdateSettingRequest,
@@ -78,6 +77,7 @@ export {shareApi} from "./share";
 export {subscriptionApi} from "./subscription";
 export type {
     SubscriptionStatus,
+    SubscriptionListResponse,
     SubscriptionListResponse as SubscriptionList,
 } from "./subscription";
 

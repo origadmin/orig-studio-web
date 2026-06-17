@@ -1,6 +1,7 @@
 // API client - user module
 import {z} from 'zod';
 import {api} from "../request";
+import type {SubscriptionListResponse} from "./subscription";
 
 
 export interface User {
@@ -159,13 +160,6 @@ export interface SubscriptionStatusResponse {
     subscriber_count: number;
 }
 
-export interface SubscriptionListResponse {
-    items: User[];
-    total: number;
-    page: number;
-    page_size: number;
-}
-
 export interface PublicProfile {
     id: string;
     username: string;
@@ -259,18 +253,12 @@ export const userApi = {
         api.del<{ success: boolean }>(`/users/${slug}/subscribe`),
 
     // Get my subscriptions list
-    getSubscriptions: async (params?: { page?: number; page_size?: number }) => {
-        const response = await api.get<unknown>("/me/subscriptions", params);
-        const normalized = normalizeUserList(response);
-        return normalized as any;
-    },
+    getSubscriptions: (params?: { page?: number; page_size?: number }) =>
+        api.get<SubscriptionListResponse>("/me/subscriptions", params),
 
     // Get my followers list
-    getFollowers: async (params?: { page?: number; page_size?: number }) => {
-        const response = await api.get<unknown>("/me/followers", params);
-        const normalized = normalizeUserList(response);
-        return normalized as any;
-    },
+    getFollowers: (params?: { page?: number; page_size?: number }) =>
+        api.get<SubscriptionListResponse>("/me/followers", params),
 };
 
 // ==================== Admin User API (UUID based, requires JWT + Admin) ====================

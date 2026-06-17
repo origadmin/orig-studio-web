@@ -20,12 +20,8 @@ export interface TrendingResponse {
 }
 
 const exploreApi = {
-    getTrending: async (params?: {limit?: number}): Promise<TrendingResponse> => {
-        const searchParams = new URLSearchParams();
-        if (params?.limit) searchParams.set('limit', String(params.limit));
-        const query = searchParams.toString();
-        return api.get<TrendingResponse>(`/explore/trending${query ? `?${query}` : ''}`);
-    },
+    getTrending: (params?: {limit?: number}) =>
+        api.get<TrendingResponse>('/explore/trending', params),
 };
 
 export {exploreApi};

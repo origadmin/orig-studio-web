@@ -1,50 +1,9 @@
 import {api} from "../request";
+import {statsApi} from "./stats";
+import type {DashboardStats, MediaStats, UserStats} from "./stats";
 
-// ==================== Stats Types ====================
-export interface DashboardStats {
-    total_users: number;
-    total_media: number;
-    total_views: number;
-    new_users_today: number;
-    new_media_today: number;
-    views_today: number;
-    encoding_pending: number;
-    encoding_failed: number;
-}
-
-export interface MediaStats {
-    total: number;
-    video_count: number;
-    audio_count: number;
-    image_count: number;
-    public_count: number;
-    private_count: number;
-    encoding_pending: number;
-    encoding_failed: number;
-}
-
-export interface UserStats {
-    total: number;
-    active_today: number;
-    new_today: number;
-    admin_count: number;
-    editor_count: number;
-    regular_count: number;
-}
-
-export interface TrafficStatsItem {
-    date: string;
-    views: number;
-    unique_visitors: number;
-    bandwidth: number;
-}
-
-export interface TrafficStatsResponse {
-    list: TrafficStatsItem[];
-    total: number;
-    page: number;
-    page_size: number;
-}
+// Re-export stats types for backward compatibility
+export type {DashboardStats, MediaStats, UserStats};
 
 // ==================== Settings Types ====================
 export type SettingType = 'string' | 'int' | 'bool' | 'json';
@@ -75,14 +34,19 @@ export interface UpdateSettingsRequest {
     settings: UpdateSettingItem[];
 }
 
-// ==================== Stats API ====================
-export const statsApi = {
-    getDashboard: () => api.get<DashboardStats>("/admin/stats/dashboard"),
-    getMedia: () => api.get<MediaStats>("/admin/stats/medias"),
-    getUsers: () => api.get<UserStats>("/admin/stats/users"),
-    getTraffic: (params?: { page?: number; page_size?: number }) =>
-        api.get<TrafficStatsResponse>("/admin/stats/traffic", params),
-};
+export interface TrafficStatsItem {
+    date: string;
+    views: number;
+    unique_visitors: number;
+    bandwidth: number;
+}
+
+export interface TrafficStatsResponse {
+    items: TrafficStatsItem[];
+    total: number;
+    page: number;
+    page_size: number;
+}
 
 // ==================== Settings API ====================
 export const settingsApi = {
