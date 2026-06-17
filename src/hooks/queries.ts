@@ -156,11 +156,12 @@ export function useAdminMediaList(params: {
     keyword?: string;
     state?: string;
     type?: string;
+    tags?: string[];
 }) {
     return useQuery({
         queryKey: mediaKeys.adminList(params),
         queryFn: async () => {
-            const res = await mediaApi.adminList(params);
+            const res = await adminMediaApi.list(params);
             // Normalize edge fields for each media item
             if (res?.items) {
                 res.items = normalizeMediaList(res.items);

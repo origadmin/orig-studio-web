@@ -18,7 +18,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/c
 import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2} from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {toast} from 'sonner';
 import type {Media} from '@/lib/api/media';
@@ -57,6 +57,7 @@ interface EncodingTask {
     media_id: string;
     profile_id: number;
     status: string;
+    progress: number;
     output_path: string;
     error_message: string;
     chunk: boolean;
@@ -568,7 +569,7 @@ export default function MediaEditPage() {
 
                                         <div className="space-y-1.5">
                                             <Label className="text-xs font-bold">缩略图时间</Label>
-                                            <Input value="00:00:12.500" className="bg-card"/>
+                                            <Input defaultValue="" placeholder="00:00:00.000" className="bg-card"/>
                                         </div>
 
                                         <div className="space-y-3 pt-4">
@@ -761,22 +762,37 @@ export default function MediaEditPage() {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody className="divide-y divide-border/10">
-                                                {/* Demo rows */}
-                                                <TableRow>
-                                                    <TableCell className="py-3 font-mono">MASTER_4K</TableCell>
-                                                    <TableCell className="py-3">3840x2160</TableCell>
-                                                    <TableCell className="py-3">H.265</TableCell>
-                                                    <TableCell className="py-3">{media.size || 'N/A'}</TableCell>
-                                                    <TableCell className="py-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <Button variant="ghost" size="icon" className="w-6 h-6"><Eye className="w-4 h-4"/></Button>
-                                                            <Button variant="ghost" size="icon" className="w-6 h-6"><Copy className="w-4 h-4"/></Button>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="py-3">
-                                                        <CheckCircle className="w-5 h-5 text-success"/>
-                                                    </TableCell>
-                                                </TableRow>
+                                                {tasks.length === 0 ? (
+                                                    <TableRow>
+                                                        <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                                                            暂无转码变体
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ) : (
+                                                    tasks.map((task) => {
+                                                        const profile = profiles.get(task.profile_id);
+                                                        return (
+                                                            <TableRow key={task.id}>
+                                                                <TableCell className="py-3 font-mono">{profile?.name || `Profile-${task.profile_id}`}</TableCell>
+                                                                <TableCell className="py-3">{profile?.resolution || '-'}</TableCell>
+                                                                <TableCell className="py-3">{profile?.video_codec || '-'}</TableCell>
+                                                                <TableCell className="py-3">{task.progress}%</TableCell>
+                                                                <TableCell className="py-3">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Button variant="ghost" size="icon" className="w-6 h-6"><Eye className="w-4 h-4"/></Button>
+                                                                        <Button variant="ghost" size="icon" className="w-6 h-6"><Copy className="w-4 h-4"/></Button>
+                                                                    </div>
+                                                                </TableCell>
+                                                                <TableCell className="py-3">
+                                                                    {task.status === 'success' && <CheckCircle className="w-5 h-5 text-success"/>}
+                                                                    {task.status === 'processing' && <Loader2 className="w-5 h-5 text-primary animate-spin"/>}
+                                                                    {task.status === 'failed' && <XCircle className="w-5 h-5 text-destructive"/>}
+                                                                    {task.status === 'pending' && <Clock className="w-5 h-5 text-muted-foreground"/>}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })
+                                                )}
                                             </TableBody>
                                         </Table>
                                     </div>
@@ -847,18 +863,8 @@ export default function MediaEditPage() {
                                         </TableHeader>
                                         <TableBody className="divide-y divide-border/10">
                                             <TableRow>
-                                                <TableCell className="py-3">
-                                                    <span className="px-2 py-0.5 bg-card border border-border rounded text-[10px] font-bold">
-                                                        中文
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className="py-3">简体中文 (强制)</TableCell>
-                                                <TableCell className="py-3 font-mono text-primary text-[11px] truncate max-w-[200px]">/sub/zh.vtt</TableCell>
-                                                <TableCell className="py-3">
-                                                    <div className="flex items-center gap-3 text-muted-foreground">
-                                                        <Edit className="w-4 h-4 hover:text-primary cursor-pointer"/>
-                                                        <XCircle className="w-4 h-4 hover:text-destructive cursor-pointer"/>
-                                                    </div>
+                                                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                                                    暂无字幕
                                                 </TableCell>
                                             </TableRow>
                                         </TableBody>
@@ -928,7 +934,7 @@ export default function MediaEditPage() {
                                 <div className="pb-3 border-b border-border/10">
                                     <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">UUID</Label>
                                     <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">550e8400-e29b-41d4-a716-446655440000</code>
+                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{media?.id || '—'}</code>
                                         <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                     </div>
                                 </div>

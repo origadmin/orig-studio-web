@@ -32,6 +32,8 @@ import {PAGINATION_CONFIG} from '@/config/pagination';
 
 // ─── Types ─────────────────────────────────────────────
 
+type EncodingTaskWithMeta = EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string };
+
 type StatusFilter = "all" | "processing" | "queued" | "completed" | "failed";
 
 // ─── Status Badge Component ─────────────────────────────
@@ -84,7 +86,7 @@ function TaskRowCells({
                            showError,
                            onToggleError,
                        }: {
-    task: EncodingTask;
+    task: EncodingTaskWithMeta;
     onRetry: () => void;
     isRetrying: boolean;
     isSelected: boolean;
@@ -115,7 +117,7 @@ function TaskRowCells({
                         {typeof task.id === 'number' ? `TRC-${String(task.id).padStart(5, '0')}` : task.id}
                     </span>
                     <span className="font-mono text-xs text-slate-500">
-                        {(task as any).media_title || task.media_id || 'N/A'}
+                        {task.media_title || task.media_id || 'N/A'}
                     </span>
                 </div>
             </TableCell>
@@ -137,7 +139,7 @@ function TaskRowCells({
             </TableCell>
             <TableCell>
                 <span className="text-sm text-slate-700">
-                    {(task as any).profile_name || task.profile_id || '-'}
+                    {task.profile_name || task.profile_id || '-'}
                 </span>
             </TableCell>
             <TableCell className="text-right">
@@ -278,7 +280,7 @@ export default function TranscodingStatus() {
     // Available profiles for filtering
     const [availableProfiles, setAvailableProfiles] = useState<string[]>([]);
 
-    const {lastEvent, sseStatus} = useTranscoding(urlMediaId ?? undefined);
+    const {lastEvent, sseStatus} = useTranscoding(urlMediaId ?? "");
 
     // Fetch encoding profiles for filter dropdown
     const fetchProfiles = useCallback(async () => {
@@ -291,7 +293,8 @@ export default function TranscodingStatus() {
                     .filter((n): n is string => typeof n === 'string' && n.trim().length > 0);
                 setAvailableProfiles(Array.from(new Set(names)).sort());
             }
-        } catch {
+        } catch (err) {
+            console.error('Failed to load profiles:', err);
         }
     }, []);
 
@@ -299,7 +302,7 @@ export default function TranscodingStatus() {
     const fetchTasks = useCallback(async () => {
         try {
             setLoading(true);
-            const params: any = {
+            const params: Record<string, string | number> = {
                 page: page,
                 page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
             };
@@ -332,13 +335,12 @@ export default function TranscodingStatus() {
             const response = await encodingApi.getTasks(params);
             setFilteredData(response);
 
-            // Calculate stats from items (backend returns "tasks" not "items")
-            const items = response?.items || response?.tasks || [];
+            // Use backend global counts instead of current-page filtering
             setStats({
-                active: items.filter((t: EncodingTask) => t.status === 'processing').length,
-                queued: items.filter((t: EncodingTask) => t.status === 'pending' || t.status === 'queued').length,
-                completed: items.filter((t: EncodingTask) => t.status === 'success' || t.status === 'completed').length,
-                failed: items.filter((t: EncodingTask) => t.status === 'failed' || t.status === 'skipped').length,
+                active: response?.processing_count || 0,
+                queued: response?.pending_count || 0,
+                completed: response?.success_count || 0,
+                failed: response?.failed_count || 0,
             });
         } catch (error) {
             console.error("Failed to fetch tasks:", error);
@@ -390,7 +392,7 @@ export default function TranscodingStatus() {
 
     // Filtered task list
     const filteredTasks = useMemo(() => {
-        return filteredData?.items || filteredData?.tasks || [];
+        return filteredData?.items || [];
     }, [filteredData]);
 
     // Selection handlers
@@ -398,7 +400,7 @@ export default function TranscodingStatus() {
         if (selectedRows.length === filteredTasks.length) {
             setSelectedRows([]);
         } else {
-            setSelectedRows(filteredTasks.map(t => t.id));
+            setSelectedRows(filteredTasks.map((t: EncodingTaskWithMeta) => t.id));
         }
     };
 
@@ -640,7 +642,7 @@ export default function TranscodingStatus() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredTasks.map((task) => {
+                            filteredTasks.map((task: EncodingTaskWithMeta) => {
                                 const isFailed = task.status === "failed" || task.status === "skipped";
                                 const showError = errorVisibleTasks.has(task.id) && isFailed && !!task.error_message;
                                 return (

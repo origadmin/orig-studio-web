@@ -4,6 +4,591 @@
  */
 
 export interface paths {
+    "/api/v1/admin/ad-placements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Admin placement management */
+        get: operations["AdService_ListAdPlacements"];
+        put?: never;
+        post: operations["AdService_CreateAdPlacement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ad-placements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdService_UpdateAdPlacement"];
+        post?: never;
+        delete: operations["AdService_DeleteAdPlacement"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ad-placements/{id}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdService_ToggleAdPlacement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Admin ad management */
+        get: operations["AdService_ListAds"];
+        put?: never;
+        post: operations["AdService_CreateAd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdService_UpdateAd"];
+        post?: never;
+        delete: operations["AdService_DeleteAd"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ads/{id}/click-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdService_ListAdClickLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/ads/{id}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdService_ToggleAd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_ListAdminArticles"];
+        put?: never;
+        post: operations["ArticleService_CreateAdminArticle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_GetAdminArticle"];
+        put: operations["ArticleService_UpdateAdminArticle"];
+        post?: never;
+        delete: operations["ArticleService_DeleteAdminArticle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/articles/{id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ArticleService_UpdateAdminArticleState"];
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuditService_ListAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AuditService_ExportAuditLogs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuditService_GetAuditLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalManagementService_ListBanners"];
+        put?: never;
+        post: operations["PortalManagementService_CreateBanner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/banners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PortalManagementService_UpdateBanner"];
+        post?: never;
+        delete: operations["PortalManagementService_DeleteBanner"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/banners/{id}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PortalManagementService_ToggleBanner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCategoryService_ListAdminCategories"];
+        put?: never;
+        post: operations["AdminCategoryService_CreateAdminCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCategoryService_GetAdminCategory"];
+        put: operations["AdminCategoryService_UpdateAdminCategory"];
+        post?: never;
+        delete: operations["AdminCategoryService_DeleteAdminCategory"];
+        options?: never;
+        head?: never;
+        /** @description PatchAdminCategory partially updates a category (admin). */
+        patch: operations["AdminCategoryService_PatchAdminCategory"];
+        trace?: never;
+    };
+    "/api/v1/admin/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminChannelService_ListAdminChannels"];
+        put?: never;
+        post: operations["AdminChannelService_CreateAdminChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/channels/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminChannelService_GetAdminChannel"];
+        put: operations["AdminChannelService_UpdateAdminChannel"];
+        post?: never;
+        delete: operations["AdminChannelService_DeleteAdminChannel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCommentService_ListAdminComments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/batch-approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_BatchApproveComments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/batch-reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_BatchRejectComments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCommentService_GetCommentStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCommentService_GetAdminComment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_ApproveComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_BlockComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/dismiss-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_DismissCommentReports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_RejectComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCommentService_GetCommentReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/comments/{id}/unblock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminCommentService_UnblockComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/encoding/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ListEncodeProfiles returns a list of encoding profiles. */
+        get: operations["EncodingProfileService_ListEncodeProfiles"];
+        put?: never;
+        /** @description CreateEncodeProfile creates a new encoding profile. */
+        post: operations["EncodingProfileService_CreateEncodeProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/encoding/profiles/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description PreviewEncodeCommand previews the encoding command. */
+        post: operations["EncodingProfileService_PreviewEncodeCommand"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/encoding/profiles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetEncodeProfile returns an encoding profile by ID. */
+        get: operations["EncodingProfileService_GetEncodeProfile"];
+        put?: never;
+        post?: never;
+        /** @description DeleteEncodeProfile deletes an encoding profile. */
+        delete: operations["EncodingProfileService_DeleteEncodeProfile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/encoding/profiles/{profile.id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description UpdateEncodeProfile updates an existing encoding profile. */
+        put: operations["EncodingProfileService_UpdateEncodeProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_ListAdminMedias"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/medias/review/batch": {
         parameters: {
             query?: never;
@@ -12,8 +597,8 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["AdminService_BatchUpdateReviews"];
-        post?: never;
+        put?: never;
+        post: operations["AdminService_BatchUpdateReviews"];
         delete?: never;
         options?: never;
         head?: never;
@@ -85,6 +670,537 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/medias/transcoding/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description NON-PROTO-SPECIAL: SSE (Server-Sent Events) streaming endpoint. Requires adapter-level handling; proto gateway cannot natively proxy SSE. */
+        get: operations["AdminMediaService_GetTranscodingEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_GetAdminMedia"];
+        /** @description UpdateAdminMedia updates a media (admin). */
+        put: operations["AdminMediaService_UpdateAdminMedia"];
+        post?: never;
+        /** @description DeleteAdminMedia deletes a media (admin). */
+        delete: operations["AdminMediaService_DeleteAdminMedia"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/regenerate-sprite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMediaService_RegenerateSprite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/regenerate-thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMediaService_RegenerateThumbnail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminMediaService_ReviewMedia"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/review-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_GetMediaReviewLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminMediaService_UpdateMediaState"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_GetMediaAdminStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_ListAdminMediaTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/tasks/{task_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMediaService_RetryAdminMediaTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/variants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminMediaService_GetAdminMediaVariants"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/nav-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalManagementService_ListNavItems"];
+        put?: never;
+        post: operations["PortalManagementService_CreateNavItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/nav-items/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PortalManagementService_ReorderNavItems"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/nav-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PortalManagementService_UpdateNavItem"];
+        post?: never;
+        delete: operations["PortalManagementService_DeleteNavItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentService_ListOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentService_GetOrder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalManagementService_ListPages"];
+        put?: never;
+        post: operations["PortalManagementService_CreatePage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PortalManagementService_UpdatePage"];
+        post?: never;
+        delete: operations["PortalManagementService_DeletePage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_ListGroups"];
+        put?: never;
+        post: operations["PermissionService_CreateGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups/{group_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_ListGroupMembers"];
+        put?: never;
+        post: operations["PermissionService_AddGroupMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups/{group_id}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PermissionService_RemoveGroupMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_GetGroup"];
+        put: operations["PermissionService_UpdateGroup"];
+        post?: never;
+        delete: operations["PermissionService_DeleteGroup"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_ListPermissionGroupMembers"];
+        put?: never;
+        post: operations["PermissionService_AddPermissionGroupMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/permission-groups/{id}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PermissionService_TogglePermissionGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/playlists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPlaylistService_ListAdminPlaylists"];
+        put?: never;
+        post: operations["AdminPlaylistService_CreateAdminPlaylist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/playlists/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminPlaylistService_GetAdminPlaylist"];
+        put: operations["AdminPlaylistService_UpdateAdminPlaylist"];
+        post?: never;
+        delete: operations["AdminPlaylistService_DeleteAdminPlaylist"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_ListBanners"];
+        put?: never;
+        post: operations["PortalService_CreateBanner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/banners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_GetBanner"];
+        put: operations["PortalService_UpdateBanner"];
+        post?: never;
+        delete: operations["PortalService_DeleteBanner"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/custom-pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_ListCustomPages"];
+        put?: never;
+        post: operations["PortalService_CreateCustomPage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/custom-pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_GetCustomPage"];
+        put: operations["PortalService_UpdateCustomPage"];
+        post?: never;
+        delete: operations["PortalService_DeleteCustomPage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/nav-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_ListNavItems"];
+        put?: never;
+        post: operations["PortalService_CreateNavItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/nav-items/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PortalService_ReorderNavItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/portal/nav-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalService_GetNavItem"];
+        put: operations["PortalService_UpdateNavItem"];
+        post?: never;
+        delete: operations["PortalService_DeleteNavItem"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/settings": {
         parameters: {
             query?: never;
@@ -97,6 +1213,55 @@ export interface paths {
         put: operations["AdminService_UpdateSettings"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetSystemInfo returns system information. */
+        get: operations["AdminService_GetSystemInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemConfigService_GetSettingsByCategory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemConfigService_GetSettingByKey"];
+        put: operations["SystemConfigService_UpdateSettingByKey"];
+        post?: never;
+        delete: operations["SystemConfigService_DeleteSettingByKey"];
         options?: never;
         head?: never;
         patch?: never;
@@ -127,6 +1292,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["AdminService_GetMediaStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/stats/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminService_GetRevenueStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -167,41 +1348,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/forgot-password": {
+    "/api/v1/admin/subscription-plans": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["PaymentService_ListSubscriptionPlans"];
         put?: never;
-        /** @description ForgotPassword initiates password reset process. */
-        post: operations["UserService_ForgotPassword"];
+        post: operations["PaymentService_CreateSubscriptionPlan"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/login": {
+    "/api/v1/admin/subscription-plans/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["PaymentService_GetSubscriptionPlan"];
+        put: operations["PaymentService_UpdateSubscriptionPlan"];
+        post?: never;
+        delete: operations["PaymentService_DeleteSubscriptionPlan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTagService_ListAdminTags"];
         put?: never;
-        /** @description Login authenticates a user and returns JWT tokens. */
-        post: operations["UserService_Login"];
+        post: operations["AdminTagService_CreateAdminTag"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/logout": {
+    "/api/v1/admin/tags/bulk": {
         parameters: {
             query?: never;
             header?: never;
@@ -210,12 +1405,348 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Logout invalidates the current session. */
-        post: operations["UserService_Logout"];
+        post: operations["AdminTagService_BulkUpdateTags"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tags/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminTagService_ImportTags"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tags/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminTagService_GetAdminTag"];
+        put: operations["AdminTagService_UpdateAdminTag"];
+        post?: never;
+        delete: operations["AdminTagService_DeleteAdminTag"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TenantService_ListTenants"];
+        put?: never;
+        post: operations["TenantService_CreateTenant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/tenants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TenantService_GetTenant"];
+        put: operations["TenantService_UpdateTenant"];
+        post?: never;
+        delete: operations["TenantService_DeleteTenant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminUserService_ListAdminUsers"];
+        put?: never;
+        post: operations["AdminUserService_CreateAdminUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminUserService_GetAdminUser"];
+        put: operations["AdminUserService_UpdateAdminUser"];
+        post?: never;
+        delete: operations["AdminUserService_DeleteAdminUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminUserService_GetAdminUserPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminUserService_UpdateAdminUserRole"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["AdminUserService_UpdateAdminUserStatus"];
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_GetUserPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/wallets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentService_ListWallets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/wallets/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PaymentService_GetWallet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public ad endpoints */
+        get: operations["AdService_ListActiveAdsByPlacement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ads/{id}/click": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdService_RecordAdClick"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ads/{id}/impression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdService_RecordAdImpression"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_ListArticles"];
+        put?: never;
+        post: operations["ArticleService_CreateArticle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles/featured": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_GetFeaturedArticles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_GetLatestArticles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_GetMyArticles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ArticleService_GetArticleBySlug"];
+        put: operations["ArticleService_UpdateArticle"];
+        post?: never;
+        delete: operations["ArticleService_DeleteArticle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/articles/{slug}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ArticleService_UpdateArticleState"];
         trace?: never;
     };
     "/api/v1/auth/me": {
@@ -225,12 +1756,26 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * @description GetCurrentUser returns the current authenticated user (moved from /auth/me to /me).
-         *      This is kept for backward compatibility, use MeService for new code.
-         */
+        /** @description GetCurrentUser returns the current authenticated user. */
         get: operations["UserService_GetCurrentUser"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description ChangePassword changes the current user's password (auth endpoint). */
+        put: operations["UserService_ChangePassword"];
         post?: never;
         delete?: never;
         options?: never;
@@ -255,7 +1800,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/register": {
+    "/api/v1/auth/signin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Login authenticates a user and returns JWT tokens. */
+        post: operations["UserService_Login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Logout invalidates the current session. */
+        post: operations["UserService_Logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signup": {
         parameters: {
             query?: never;
             header?: never;
@@ -266,23 +1845,6 @@ export interface paths {
         put?: never;
         /** @description Register creates a new user account. */
         post: operations["UserService_Register"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/auth/reset-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** @description ResetPassword resets user password with token. */
-        post: operations["UserService_ResetPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -321,7 +1883,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/categories/{id}": {
+    "/api/v1/categories/{slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -353,15 +1915,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{channel.id}": {
+    "/api/v1/channels/invitations": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put: operations["ChannelService_UpdateChannel"];
+        get: operations["ChannelService_GetChannelInvitations"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -369,14 +1931,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{channel_id}/medias": {
+    "/api/v1/channels/invitations/{id}/accept": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ChannelService_GetChannelMedias"];
+        get?: never;
+        put?: never;
+        post: operations["ChannelService_AcceptChannelInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/invitations/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChannelService_RejectChannelInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_GetMyChannel"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/me/handle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ChannelService_UpdateMyChannelHandle"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/validate-handle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_ValidateChannelHandle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_GetChannelByToken"];
+        put: operations["ChannelService_UpdateChannel"];
+        post?: never;
+        delete: operations["ChannelService_DeleteChannel"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/{token}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ChannelService_InviteUserToChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/{token}/medias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         put?: never;
         post: operations["ChannelService_AddChannelMedia"];
         delete?: never;
@@ -385,7 +2059,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{channel_id}/medias/{media_id}": {
+    "/api/v1/channels/{token}/medias/{media_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -401,7 +2075,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{channel_id}/subscribers": {
+    "/api/v1/channels/{token}/notification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ChannelService_UpdateChannelNotification"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/{token}/playlists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_GetChannelPlaylists"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/channels/{token}/subscribers": {
         parameters: {
             query?: never;
             header?: never;
@@ -417,7 +2123,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{channel_id}/subscription": {
+    "/api/v1/channels/{token}/subscription": {
         parameters: {
             query?: never;
             header?: never;
@@ -433,17 +2139,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/channels/{id}": {
+    "/api/v1/channels/{token}/videos": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get: operations["ChannelService_GetChannel"];
+        get: operations["ChannelService_GetChannelVideos"];
         put?: never;
         post?: never;
-        delete: operations["ChannelService_DeleteChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PaymentService_Checkout"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -489,9 +2211,42 @@ export interface paths {
             cookie?: never;
         };
         get: operations["CommentService_GetComment"];
-        put?: never;
+        put: operations["ContentService_UpdateComment"];
         post?: never;
         delete: operations["CommentService_DeleteComment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comments/{id}/dislikes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CommentService_DislikeComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comments/{id}/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ContentService_GetCommentLikes"];
+        put?: never;
+        /** @description Comment interactions */
+        post: operations["CommentService_LikeComment"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -507,6 +2262,236 @@ export interface paths {
         get: operations["CommentService_GetCommentReplies"];
         put?: never;
         post: operations["CommentService_CreateCommentReply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/comments/{id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CommentService_ReportComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemSettingsService_GetPublicConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/explore/trending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ExploreService_GetTrending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/features": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeatureFlagService_GetFeatureFlags"];
+        put: operations["FeatureFlagService_UpdateFeatureFlag"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ========== Feed ========== */
+        get: operations["ContentService_GetFeed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InteractionService_GetInteractionsFavorites"];
+        put?: never;
+        post: operations["InteractionService_ToggleInteractionFavorite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/favorites/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Favorites */
+        get: operations["InteractionService_CheckFavorite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InteractionService_GetInteractionsFollowers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/followers/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Followers */
+        get: operations["InteractionService_GetFollowerCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InteractionService_GetInteractionsLikes"];
+        put?: never;
+        post: operations["InteractionService_ToggleInteractionLike"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/likes/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Likes */
+        get: operations["InteractionService_GetLikeStatusBatch"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Shares */
+        post: operations["InteractionService_CreateInteractionShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InteractionService_GetInteractionsSubscriptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/interactions/subscriptions/count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Subscriptions */
+        get: operations["InteractionService_GetSubscriptionCount"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -531,6 +2516,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetMyChannels returns the current user's channels. */
+        get: operations["UserService_GetMyChannels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/favorites": {
         parameters: {
             query?: never;
@@ -540,6 +2542,40 @@ export interface paths {
         };
         /** @description GetMyFavorites returns the current user's favorites. */
         get: operations["UserService_GetMyFavorites"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/favorites/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description RemoveFavorite removes a favorite for the current user. */
+        delete: operations["UserService_RemoveFavorite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/followers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetMyFollowers returns the current user's followers. */
+        get: operations["UserService_GetMyFollowers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -558,8 +2594,44 @@ export interface paths {
         /** @description GetMyHistory returns the current user's watch history. */
         get: operations["UserService_GetMyHistory"];
         put?: never;
-        post?: never;
+        /** @description UpsertHistory creates or updates a history record (progress reporting). */
+        post: operations["UserService_UpsertHistory"];
+        /** @description ClearHistory clears all watch history for the current user. */
+        delete: operations["UserService_ClearHistory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/history/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description SyncHistory batch-syncs history records (login merge). */
+        post: operations["UserService_SyncHistory"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/history/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description RemoveHistoryItem removes a single history record. */
+        delete: operations["UserService_RemoveHistoryItem"];
         options?: never;
         head?: never;
         patch?: never;
@@ -574,6 +2646,23 @@ export interface paths {
         };
         /** @description GetMyLikes returns the current user's likes. */
         get: operations["UserService_GetMyLikes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ========== Notifications ========== */
+        get: operations["ContentService_ListNotifications"];
         put?: never;
         post?: never;
         delete?: never;
@@ -609,6 +2698,87 @@ export interface paths {
         /** @description GetMyPlaylists returns the current user's playlists. */
         get: operations["UserService_GetMyPlaylists"];
         put?: never;
+        post: operations["PlaylistService_CreateMyPlaylist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/playlists/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PlaylistService_DeleteMyPlaylist"];
+        options?: never;
+        head?: never;
+        patch: operations["PlaylistService_UpdateMyPlaylist"];
+        trace?: never;
+    };
+    "/api/v1/me/playlists/{id}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PlaylistService_AddMyPlaylistMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/playlists/{id}/media/reorder": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["PlaylistService_ReorderMyPlaylistMedia"];
+        trace?: never;
+    };
+    "/api/v1/me/playlists/{id}/media/{media_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["PlaylistService_RemoveMyPlaylistMedia"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/slug": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** @description UpdateMySlug updates the current user's slug. */
+        put: operations["UserService_UpdateMySlug"];
         post?: never;
         delete?: never;
         options?: never;
@@ -660,60 +2830,6 @@ export interface paths {
         /** @description ListMedias returns a list of medias. */
         get: operations["MediaService_ListMedias"];
         put?: never;
-        /** @description CreateMedia creates a new media. */
-        post: operations["MediaService_CreateMedia"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/encoding/profiles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description ListEncodeProfiles returns a list of encoding profiles. */
-        get: operations["EncodingProfileService_ListEncodeProfiles"];
-        put?: never;
-        /** @description CreateEncodeProfile creates a new encoding profile. */
-        post: operations["EncodingProfileService_CreateEncodeProfile"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/encoding/profiles/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description GetEncodeProfile returns an encoding profile by ID. */
-        get: operations["EncodingProfileService_GetEncodeProfile"];
-        put?: never;
-        post?: never;
-        /** @description DeleteEncodeProfile deletes an encoding profile. */
-        delete: operations["EncodingProfileService_DeleteEncodeProfile"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/encoding/profiles/{profile.id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** @description UpdateEncodeProfile updates an existing encoding profile. */
-        put: operations["EncodingProfileService_UpdateEncodeProfile"];
         post?: never;
         delete?: never;
         options?: never;
@@ -721,7 +2837,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/encoding/retry-failed": {
+    "/api/v1/medias/encoding/retry": {
         parameters: {
             query?: never;
             header?: never;
@@ -730,25 +2846,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description RetryAllFailedTasks retries all failed encoding tasks. */
+        /** @description RetryEncodingTask retries a specific task. */
+        post: operations["MediaService_RetryEncodingTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/encoding/retry-all-failed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description RetryAllFailedTasks retries all failed tasks. */
         post: operations["MediaService_RetryAllFailedTasks"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/encoding/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description GetEncodingStatus returns the overall encoding status of the system. */
-        get: operations["MediaService_GetEncodingStatus"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -762,8 +2878,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description ListAllEncodingTasks returns a flat list of all encoding tasks (admin view). */
-        get: operations["MediaService_ListAllEncodingTasks"];
+        /** @description EncodingTasks returns all encoding tasks. */
+        get: operations["MediaService_EncodingTasks"];
         put?: never;
         post?: never;
         delete?: never;
@@ -772,17 +2888,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/upload": {
+    "/api/v1/medias/featured": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** @description ListFeaturedMedias returns a list of featured medias. */
+        get: operations["MediaService_ListFeaturedMedias"];
         put?: never;
-        /** @description UploadMedia uploads a media file. */
-        post: operations["MediaService_UploadMedia"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ListLatestMedias returns a list of latest medias. */
+        get: operations["MediaService_ListLatestMedias"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/transcoding/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description TranscodingStatus returns current transcoding status. */
+        get: operations["MediaService_TranscodingStatus"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -798,10 +2948,27 @@ export interface paths {
         };
         /** @description GetMedia returns a media by ID. */
         get: operations["MediaService_GetMedia"];
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        put: operations["MediaService_UpdateMedia"];
+        post?: never;
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        delete: operations["MediaService_DeleteMedia"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ContentService_ListMediaComments"];
         put?: never;
         post?: never;
-        /** @description DeleteMedia deletes a media. */
-        delete: operations["MediaService_DeleteMedia"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -814,8 +2981,279 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaDownload returns the download URL for a media. */
+        /**
+         * @description STUB: Not yet implemented. Do not remove - reserved for future development.
+         *      NON-PROTO-SPECIAL: Returns binary stream. Requires adapter-level handling for file download/streaming.
+         */
         get: operations["MediaService_GetMediaDownload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/favorite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description ToggleMediaFavorite toggles favorite status (canonical). */
+        post: operations["MediaService_ToggleMediaFavorite"];
+        /** @description DeleteMediaFavorite removes favorite (canonical). */
+        delete: operations["MediaService_DeleteMediaFavorite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/favorites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetMediaFavorites returns favorites (plural compat). */
+        get: operations["MediaService_GetMediaFavorites"];
+        put?: never;
+        /** @description ToggleMediaFavoriteCompat toggles via plural (compat). */
+        post: operations["MediaService_ToggleMediaFavoriteCompat"];
+        /** @description DeleteMediaFavoriteCompat removes via plural (compat). */
+        delete: operations["MediaService_DeleteMediaFavoriteCompat"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/like": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description ToggleMediaLike toggles like status for a media (canonical). */
+        post: operations["MediaService_ToggleMediaLike"];
+        /** @description DeleteMediaLike removes like from a media (canonical). */
+        delete: operations["MediaService_DeleteMediaLike"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetMediaLikes returns likes for a media (plural compat). */
+        get: operations["MediaService_GetMediaLikes"];
+        put?: never;
+        /** @description ToggleMediaLikeCompat toggles like via plural endpoint (compat). */
+        post: operations["MediaService_ToggleMediaLikeCompat"];
+        /** @description DeleteMediaLikeCompat removes like via plural endpoint (compat). */
+        delete: operations["MediaService_DeleteMediaLikeCompat"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaMetadata"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/audio-waveform": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaAudioWaveform"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/key-frames": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaKeyFrames"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/mining": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        post: operations["MediaService_StartMetadataMining"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/scene-changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaSceneChanges"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMetadataMiningStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/metadata/text-content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaTextContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description ReportMedia reports a media for review. */
+        post: operations["MediaService_ReportMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetMediaShares returns share links for a media. */
+        get: operations["MediaService_GetMediaShares"];
+        put?: never;
+        /** @description CreateMediaShare records a media share event. */
+        post: operations["MediaService_CreateMediaShare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/sprite.jpg": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description NON-PROTO-SPECIAL: Returns non-JSON content (VTT/JPEG). Requires adapter-level content-type handling.
+         *      GetMediaSpriteJPG returns the JPG sprite image for a media.
+         */
+        get: operations["MediaService_GetMediaSpriteJPG"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/sprite.vtt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description NON-PROTO-SPECIAL: Returns non-JSON content (VTT/JPEG). Requires adapter-level content-type handling.
+         *      GetMediaSpriteVTT returns the VTT sprite file for a media.
+         */
+        get: operations["MediaService_GetMediaSpriteVTT"];
         put?: never;
         post?: never;
         delete?: never;
@@ -831,10 +3269,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaStream returns the streaming URL for a media. */
+        /**
+         * @description STUB: Not yet implemented. Do not remove - reserved for future development.
+         *      NON-PROTO-SPECIAL: Returns binary stream. Requires adapter-level handling for file download/streaming.
+         */
         get: operations["MediaService_GetMediaStream"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/medias/{id}/subtitles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_GetMediaSubtitles"];
+        put?: never;
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        post: operations["MediaService_CreateMediaSubtitle"];
         delete?: never;
         options?: never;
         head?: never;
@@ -848,7 +3307,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaThumbnail returns the thumbnail URL for a media. */
+        /**
+         * @description STUB: Not yet implemented. Do not remove - reserved for future development.
+         *      NON-PROTO-SPECIAL: Returns non-JSON content (image). Requires adapter-level content-type handling.
+         */
         get: operations["MediaService_GetMediaThumbnail"];
         put?: never;
         post?: never;
@@ -892,7 +3354,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/{media.id}": {
+    "/api/v1/medias/{media_id}/favorite": {
         parameters: {
             query?: never;
             header?: never;
@@ -900,46 +3362,27 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** @description UpdateMedia updates an existing media. */
-        put: operations["MediaService_UpdateMedia"];
-        post?: never;
+        put?: never;
+        /** @description ========== Favorites ========== */
+        post: operations["ContentService_ToggleFavorite"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/{media_id}/comments": {
+    "/api/v1/medias/{media_id}/like": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaComments returns comments for a media. */
-        get: operations["MediaService_GetMediaComments"];
+        get?: never;
         put?: never;
-        post?: never;
+        /** @description ========== Likes ========== */
+        post: operations["ContentService_ToggleLike"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/{media_id}/favorites": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description GetMediaFavorites returns the favorite status for a media. */
-        get: operations["MediaService_GetMediaFavorites"];
-        put?: never;
-        /** @description ToggleMediaFavorite toggles favorite status for a media. */
-        post: operations["MediaService_ToggleMediaFavorite"];
-        /** @description DeleteMediaFavorite removes favorite from a media. */
-        delete: operations["MediaService_DeleteMediaFavorite"];
         options?: never;
         head?: never;
         patch?: never;
@@ -952,27 +3395,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaLikes returns the like status for a media. */
-        get: operations["MediaService_GetMediaLikes"];
-        put?: never;
-        /** @description ToggleMediaLike toggles like status for a media. */
-        post: operations["MediaService_ToggleMediaLike"];
-        /** @description DeleteMediaLike removes like from a media. */
-        delete: operations["MediaService_DeleteMediaLike"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/{media_id}/metadata": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description GetMediaMetadata returns metadata for a media. */
-        get: operations["MediaService_GetMediaMetadata"];
+        get: operations["ContentService_ListLikes"];
         put?: never;
         post?: never;
         delete?: never;
@@ -981,51 +3404,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/{media_id}/shares": {
+    "/api/v1/notifications": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description GetMediaShares returns share statistics for a media. */
-        get: operations["MediaService_GetMediaShares"];
-        put?: never;
-        /** @description CreateMediaShare creates a share record for a media. */
-        post: operations["MediaService_CreateMediaShare"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/{media_id}/subtitles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description GetMediaSubtitles returns subtitles for a media. */
-        get: operations["MediaService_GetMediaSubtitles"];
-        put?: never;
-        /** @description CreateMediaSubtitle uploads a subtitle for a media. */
-        post: operations["MediaService_CreateMediaSubtitle"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/medias/{media_id}/tasks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** @description ListEncodingTasks returns a list of encoding tasks for a media. */
-        get: operations["MediaService_ListEncodingTasks"];
+        /** @description Additional notification routes */
+        get: operations["ContentService_ListAllNotifications"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1034,7 +3421,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/medias/{media_id}/tasks/{task_id}/retry": {
+    "/api/v1/notifications/read-all": {
         parameters: {
             query?: never;
             header?: never;
@@ -1043,8 +3430,87 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description RetryEncodingTask retries a specific encoding task. */
-        post: operations["MediaService_RetryEncodingTask"];
+        post: operations["ContentService_MarkAllNotificationsReadPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ContentService_MarkAllNotificationsRead"];
+        trace?: never;
+    };
+    "/api/v1/notifications/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ContentService_GetUnreadNotificationCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["ContentService_DeleteNotification"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ContentService_MarkNotificationReadPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["ContentService_MarkNotificationRead"];
+        trace?: never;
+    };
+    "/api/v1/p/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalManagementService_GetCustomPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PermissionService_ListPermissions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1074,7 +3540,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["PlaylistService_GetPlaylist"];
+        get?: never;
         put?: never;
         post?: never;
         delete: operations["PlaylistService_DeletePlaylist"];
@@ -1147,6 +3613,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/playlists/{short_token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PlaylistService_GetPlaylist"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portal/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["PortalManagementService_GetPortalConfig"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/portal/home": {
         parameters: {
             query?: never;
@@ -1195,6 +3693,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_ResolveHandle"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/search": {
         parameters: {
             query?: never;
@@ -1227,6 +3741,216 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stats/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemStatsService_GetPublicDashboardStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stats/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemStatsService_GetPublicMediaStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stats/user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemStatsService_GetPublicUserStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/videos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ChannelService_GetSubscriptionVideos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subtitles/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        get: operations["MediaService_ListSubtitleLanguages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subtitles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description STUB: Not yet implemented. Do not remove - reserved for future development. */
+        delete: operations["MediaService_DeleteSubtitle"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/config/channel-limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemConfigService_GetChannelLimits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemSettingsService_GetSystemSettings"];
+        put: operations["SystemSettingsService_UpdateSystemSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings/email/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemConfigService_GetEmailStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings/email/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SystemConfigService_TestEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings/storage/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemSettingsService_GetStorageCapabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SystemSettingsService_GetSystemSettingByKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system/settings/{key}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SystemSettingsService_ResetSystemSetting"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tags": {
         parameters: {
             query?: never;
@@ -1243,7 +3967,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/tags/{id}": {
+    "/api/v1/tags/{slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1259,7 +3983,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/tags/{tag.id}": {
+    "/api/v1/tags/{tag.slug}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1275,21 +3999,169 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/uploads": {
+    "/api/v1/tenant/current": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description ListUploadSessions returns all upload sessions for the current user. */
+        get: operations["TenantService_GetCurrentTenant"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description UploadFile uploads a file directly (single-request upload for small files). */
+        post: operations["UploadService_UploadFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/initiate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description InitiateMultipartUpload starts a multipart upload session. */
+        post: operations["UploadService_InitiateMultipartUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetUploadSession gets upload session info. */
+        get: operations["UploadService_GetUploadSession"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/{upload_id}/abort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description AbortMultipartUpload aborts a multipart upload. */
+        post: operations["UploadService_AbortMultipartUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/{upload_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description CompleteMultipartUpload completes a multipart upload. */
+        post: operations["UploadService_CompleteMultipartUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/{upload_id}/part": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description UploadPart uploads a part of a multipart upload. */
+        post: operations["UploadService_UploadPart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/multipart/{upload_id}/parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ListParts lists uploaded parts for a multipart upload. */
+        get: operations["UploadService_ListParts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ListUploadSessions lists upload sessions for a user. */
         get: operations["UploadService_ListUploadSessions"];
         put?: never;
-        /**
-         * @description UploadFile uploads a small file in a single request.
-         *      For files larger than 2MB, use multipart upload instead.
-         */
-        post: operations["UploadService_UploadFile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/upload/simple": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description SimpleUpload uploads a small file directly (alternative to UploadFile). */
+        post: operations["UploadService_SimpleUpload"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1316,7 +4188,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/uploads/{upload_id}": {
+    "/api/v1/uploads/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description ListUploadSessions returns all upload sessions for the current user. */
+        get: operations["UploadService_ListUploadSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/sessions/{upload_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1327,11 +4216,44 @@ export interface paths {
         get: operations["UploadService_GetUploadSession"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/simple": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * @description AbortMultipartUpload cancels an in-progress multipart upload.
-         *      All uploaded parts will be deleted.
+         * @description NON-PROTO-SPECIAL: multipart/form-data upload. Requires adapter-level handling; proto gateway body:"*" assumes JSON.
+         *      SimpleUpload uploads a file with a simple single-request approach.
          */
-        delete: operations["UploadService_AbortMultipartUpload"];
+        post: operations["UploadService_SimpleUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/abort": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description AbortMultipartUpload cancels an in-progress multipart upload. */
+        post: operations["UploadService_AbortMultipartUpload"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1356,6 +4278,23 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description UpdateMetadata updates upload session metadata. */
+        patch: operations["UploadService_UpdateMetadata"];
         trace?: never;
     };
     "/api/v1/uploads/{upload_id}/parts": {
@@ -1406,8 +4345,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description ListUsers returns a list of users. */
-        get: operations["UserService_ListUsers"];
+        /** @description GetUserByUsername returns a user by username (query parameter). */
+        get: operations["UserService_GetUserByUsername"];
         put?: never;
         /** @description CreateUser creates a new user. */
         post: operations["UserService_CreateUser"];
@@ -1441,8 +4380,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetUser returns a user by ID. */
-        get: operations["UserService_GetUser"];
+        /** @description GetUserBySlug returns a user by slug (same as GetUser, kept for compatibility). */
+        get: operations["UserService_GetUserBySlug"];
         put?: never;
         post?: never;
         /** @description DeleteUser deletes a user. */
@@ -1461,6 +4400,23 @@ export interface paths {
         };
         /** @description GetUserFollowers returns followers for a user. */
         get: operations["UserService_GetUserFollowers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/likes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetUserLikes returns likes for a user. */
+        get: operations["UserService_GetUserLikes"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1555,6 +4511,58 @@ export interface paths {
         patch: operations["UserService_UpdateUserStatus"];
         trace?: never;
     };
+    "/api/v1/users/{id}/subscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description SubscribeUser subscribes to a user. */
+        post: operations["UserService_SubscribeUser"];
+        /** @description UnsubscribeUser unsubscribes from a user. */
+        delete: operations["UserService_UnsubscribeUser"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetUserSubscription returns subscription status for a user. */
+        get: operations["UserService_GetUserSubscription"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/{id}/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetUserSubscriptions returns subscriptions for a user. */
+        get: operations["UserService_GetUserSubscriptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users/{user.id}": {
         parameters: {
             query?: never;
@@ -1572,15 +4580,709 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/webhooks/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PaymentService_HandleWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        "api.v1.services.audit.AuditEntry": {
+            id?: string;
+            user_id?: string;
+            username?: string;
+            action?: string;
+            resource?: string;
+            ip?: string;
+            user_agent?: string;
+            result?: string;
+            detail?: string;
+            /** Format: date-time */
+            create_time?: string;
+        };
+        "api.v1.services.audit.ExportAuditLogsRequest": {
+            user_id?: string;
+            action?: string;
+            resource?: string;
+            result?: string;
+            start_time?: string;
+            end_time?: string;
+            format?: string;
+        };
+        "api.v1.services.audit.ExportAuditLogsResponse": {
+            download_url?: string;
+            /** Format: int32 */
+            total_records?: number;
+        };
+        "api.v1.services.audit.GetAuditLogResponse": {
+            entry?: components["schemas"]["api.v1.services.audit.AuditEntry"];
+        };
+        "api.v1.services.audit.ListAuditLogsResponse": {
+            items?: components["schemas"]["api.v1.services.audit.AuditEntry"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        /** @description Checkout */
+        "api.v1.services.billing.CheckoutRequest": {
+            plan_id?: string;
+            channel?: string;
+        };
+        "api.v1.services.billing.CheckoutResponse": {
+            order_no?: string;
+            payment_url?: string;
+            client_secret?: string;
+            status?: string;
+        };
+        "api.v1.services.billing.CreateSubscriptionPlanRequest": {
+            name?: string;
+            description?: string;
+            /** Format: double */
+            price?: number;
+            currency?: string;
+            /** Format: int32 */
+            duration_days?: number;
+            features?: Record<string, never>;
+            is_active?: boolean;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.billing.CreateSubscriptionPlanResponse": {
+            plan?: components["schemas"]["api.v1.services.billing.SubscriptionPlan"];
+        };
+        "api.v1.services.billing.GetOrderResponse": {
+            order?: components["schemas"]["api.v1.services.billing.Order"];
+        };
+        "api.v1.services.billing.GetSubscriptionPlanResponse": {
+            plan?: components["schemas"]["api.v1.services.billing.SubscriptionPlan"];
+        };
+        "api.v1.services.billing.GetWalletResponse": {
+            wallet?: components["schemas"]["api.v1.services.billing.Wallet"];
+        };
+        /** @description Webhook */
+        "api.v1.services.billing.HandleWebhookRequest": {
+            /** Format: bytes */
+            payload?: string;
+            signature?: string;
+        };
+        "api.v1.services.billing.HandleWebhookResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.billing.ListOrdersResponse": {
+            items?: components["schemas"]["api.v1.services.billing.Order"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.billing.ListSubscriptionPlansResponse": {
+            items?: components["schemas"]["api.v1.services.billing.SubscriptionPlan"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.billing.ListWalletsResponse": {
+            items?: components["schemas"]["api.v1.services.billing.Wallet"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.billing.Order": {
+            id?: string;
+            order_no?: string;
+            /** Format: double */
+            amount?: number;
+            currency?: string;
+            status?: string;
+            payment_method?: string;
+            /** Format: date-time */
+            paid_at?: string;
+            user_id?: string;
+            plan_id?: string;
+            /** Format: date-time */
+            create_time?: string;
+        };
+        "api.v1.services.billing.SubscriptionPlan": {
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: double */
+            price?: number;
+            currency?: string;
+            /** Format: int32 */
+            duration_days?: number;
+            features?: Record<string, never>;
+            is_active?: boolean;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.billing.UpdateSubscriptionPlanRequest": {
+            id?: string;
+            name?: string;
+            description?: string;
+            /** Format: double */
+            price?: number;
+            currency?: string;
+            /** Format: int32 */
+            duration_days?: number;
+            features?: Record<string, never>;
+            is_active?: boolean;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.billing.UpdateSubscriptionPlanResponse": {
+            plan?: components["schemas"]["api.v1.services.billing.SubscriptionPlan"];
+        };
+        "api.v1.services.billing.Wallet": {
+            id?: string;
+            /** Format: double */
+            balance?: number;
+            /** Format: double */
+            frozen?: number;
+            currency?: string;
+            user_id?: string;
+        };
+        "api.v1.services.content.Category": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            description?: string;
+            media_count?: string;
+        };
+        "api.v1.services.content.Comment": {
+            id?: string;
+            uid?: string;
+            text?: string;
+            media_id?: string;
+            user_id?: string;
+            parent_id?: string;
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            user?: components["schemas"]["api.v1.services.types.User"];
+            replies?: components["schemas"]["api.v1.services.content.Comment"][];
+        };
+        "api.v1.services.content.CreateBannerRequest": {
+            title?: string;
+            title_i18n?: {
+                [key: string]: string;
+            };
+            subtitle?: string;
+            subtitle_i18n?: {
+                [key: string]: string;
+            };
+            badge_text?: string;
+            image_url?: string;
+            image_mobile_url?: string;
+            bg_color_start?: string;
+            bg_color_end?: string;
+            /** Format: double */
+            bg_overlay_opacity?: number;
+            primary_btn_text?: string;
+            primary_btn_url?: string;
+            secondary_btn_text?: string;
+            secondary_btn_url?: string;
+            /** Format: int32 */
+            sequence?: number;
+            is_active?: boolean;
+            /** Format: date-time */
+            start_at?: string;
+            /** Format: date-time */
+            end_at?: string;
+            /** Format: int32 */
+            auto_slide_interval?: number;
+            link_url?: string;
+            link_target?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.content.CreateBannerResponse": {
+            banner?: components["schemas"]["api.v1.services.content.PortalBanner"];
+        };
+        "api.v1.services.content.CreateCommentRequest": {
+            media_id?: string;
+            text?: string;
+            parent_id?: string;
+        };
+        "api.v1.services.content.CreateCommentResponse": {
+            comment?: components["schemas"]["api.v1.services.content.Comment"];
+        };
+        "api.v1.services.content.CreateCustomPageRequest": {
+            title?: string;
+            slug?: string;
+            type?: string;
+            content_format?: string;
+            content?: string;
+            layout?: string;
+            is_published?: boolean;
+            seo_title?: string;
+            seo_description?: string;
+            featured_image?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.content.CreateCustomPageResponse": {
+            page?: components["schemas"]["api.v1.services.content.PortalCustomPage"];
+        };
+        "api.v1.services.content.CreateNavItemRequest": {
+            type?: string;
+            label?: string;
+            label_i18n?: {
+                [key: string]: string;
+            };
+            url?: string;
+            target_type?: string;
+            target_id?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            sequence?: number;
+            parent_id?: string;
+            is_visible?: boolean;
+            open_new_tab?: boolean;
+            css_class?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        "api.v1.services.content.CreateNavItemResponse": {
+            item?: components["schemas"]["api.v1.services.content.PortalNavItem"];
+        };
+        "api.v1.services.content.DeleteCommentResponse": Record<string, never>;
+        "api.v1.services.content.DeleteNotificationResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.content.GetBannerResponse": {
+            banner?: components["schemas"]["api.v1.services.content.PortalBanner"];
+        };
+        "api.v1.services.content.GetCommentLikesResponse": {
+            like_count?: string;
+            dislike_count?: string;
+            is_liked?: boolean;
+            is_disliked?: boolean;
+        };
+        "api.v1.services.content.GetCommentResponse": {
+            comment?: components["schemas"]["api.v1.services.content.Comment"];
+        };
+        "api.v1.services.content.GetCustomPageResponse": {
+            page?: components["schemas"]["api.v1.services.content.PortalCustomPage"];
+        };
+        "api.v1.services.content.GetExploreTrendingResponse": {
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+        };
+        "api.v1.services.content.GetFeedResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.content.GetNavItemResponse": {
+            item?: components["schemas"]["api.v1.services.content.PortalNavItem"];
+        };
+        "api.v1.services.content.GetPortalHomeResponse": {
+            featured?: components["schemas"]["api.v1.services.types.Media"][];
+            recommended?: components["schemas"]["api.v1.services.types.Media"][];
+            popular_channels?: components["schemas"]["api.v1.services.types.Channel"][];
+        };
+        "api.v1.services.content.GetPortalSubscriptionFeedResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.content.GetPortalTrendingResponse": {
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+        };
+        "api.v1.services.content.GetUnreadNotificationCountResponse": {
+            /** Format: int32 */
+            count?: number;
+        };
+        "api.v1.services.content.ListAllNotificationsResponse": {
+            /** Format: int32 */
+            total?: number;
+            notifications?: components["schemas"]["api.v1.services.content.Notification"][];
+            /** Format: int32 */
+            unread_count?: number;
+        };
+        "api.v1.services.content.ListBannersResponse": {
+            items?: components["schemas"]["api.v1.services.content.PortalBanner"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.content.ListCategoriesResponse": {
+            /** Format: int32 */
+            total?: number;
+            categories?: components["schemas"]["api.v1.services.content.Category"][];
+        };
+        "api.v1.services.content.ListCommentsResponse": {
+            /** Format: int32 */
+            total?: number;
+            comments?: components["schemas"]["api.v1.services.content.Comment"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.content.ListCustomPagesResponse": {
+            items?: components["schemas"]["api.v1.services.content.PortalCustomPage"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.content.ListFavoritesResponse": {
+            /** Format: int32 */
+            total?: number;
+            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.content.ListLikesResponse": {
+            /** Format: int32 */
+            total?: number;
+            users?: components["schemas"]["api.v1.services.types.User"][];
+        };
+        "api.v1.services.content.ListMediaCommentsResponse": {
+            /** Format: int32 */
+            total?: number;
+            comments?: components["schemas"]["api.v1.services.content.Comment"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.content.ListNavItemsResponse": {
+            items?: components["schemas"]["api.v1.services.content.PortalNavItem"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.content.ListNotificationsResponse": {
+            /** Format: int32 */
+            total?: number;
+            notifications?: components["schemas"]["api.v1.services.content.Notification"][];
+            /** Format: int32 */
+            unread_count?: number;
+        };
+        "api.v1.services.content.ListTagsResponse": {
+            /** Format: int32 */
+            total?: number;
+            tags?: components["schemas"]["api.v1.services.content.Tag"][];
+        };
+        "api.v1.services.content.MarkAllNotificationsReadPostRequest": Record<string, never>;
+        "api.v1.services.content.MarkAllNotificationsReadPostResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.content.MarkAllNotificationsReadResponse": Record<string, never>;
+        "api.v1.services.content.MarkNotificationReadPostRequest": {
+            id?: string;
+        };
+        "api.v1.services.content.MarkNotificationReadPostResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.content.MarkNotificationReadResponse": Record<string, never>;
+        "api.v1.services.content.Notification": {
+            id?: string;
+            type?: string;
+            title?: string;
+            body?: string;
+            is_read?: boolean;
+            /** Format: date-time */
+            created_at?: string;
+            actor_id?: string;
+            actor?: components["schemas"]["api.v1.services.types.User"];
+            media_id?: string;
+        };
+        "api.v1.services.content.PortalBanner": {
+            id?: string;
+            title?: string;
+            title_i18n?: {
+                [key: string]: string;
+            };
+            subtitle?: string;
+            subtitle_i18n?: {
+                [key: string]: string;
+            };
+            badge_text?: string;
+            image_url?: string;
+            image_mobile_url?: string;
+            bg_color_start?: string;
+            bg_color_end?: string;
+            /** Format: double */
+            bg_overlay_opacity?: number;
+            primary_btn_text?: string;
+            primary_btn_url?: string;
+            secondary_btn_text?: string;
+            secondary_btn_url?: string;
+            /** Format: int32 */
+            sequence?: number;
+            is_active?: boolean;
+            /** Format: date-time */
+            start_at?: string;
+            /** Format: date-time */
+            end_at?: string;
+            /** Format: int32 */
+            auto_slide_interval?: number;
+            link_url?: string;
+            link_target?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            /** Format: date-time */
+            create_time?: string;
+            /** Format: date-time */
+            update_time?: string;
+        };
+        "api.v1.services.content.PortalCustomPage": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            type?: string;
+            content_format?: string;
+            content?: string;
+            layout?: string;
+            is_published?: boolean;
+            /** Format: date-time */
+            published_at?: string;
+            seo_title?: string;
+            seo_description?: string;
+            featured_image?: string;
+            view_count?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            /** Format: date-time */
+            create_time?: string;
+            /** Format: date-time */
+            update_time?: string;
+        };
+        "api.v1.services.content.PortalNavItem": {
+            id?: string;
+            type?: string;
+            label?: string;
+            label_i18n?: {
+                [key: string]: string;
+            };
+            url?: string;
+            target_type?: string;
+            target_id?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            sequence?: number;
+            parent_id?: string;
+            is_visible?: boolean;
+            open_new_tab?: boolean;
+            css_class?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+            /** Format: date-time */
+            create_time?: string;
+            /** Format: date-time */
+            update_time?: string;
+        };
+        "api.v1.services.content.ReorderNavItemsRequest": {
+            item_ids?: string[];
+        };
+        "api.v1.services.content.ReorderNavItemsResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.content.Tag": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            media_count?: string;
+        };
+        "api.v1.services.content.ToggleCommentDislikeRequest": {
+            id?: string;
+        };
+        "api.v1.services.content.ToggleCommentDislikeResponse": {
+            disliked?: boolean;
+            dislike_count?: string;
+        };
+        "api.v1.services.content.ToggleCommentLikeRequest": {
+            id?: string;
+        };
+        "api.v1.services.content.ToggleCommentLikeResponse": {
+            liked?: boolean;
+            like_count?: string;
+        };
+        "api.v1.services.content.ToggleFavoriteRequest": {
+            media_id?: string;
+        };
+        "api.v1.services.content.ToggleFavoriteResponse": {
+            favorited?: boolean;
+            total_favorites?: string;
+        };
+        "api.v1.services.content.ToggleLikeRequest": {
+            media_id?: string;
+        };
+        "api.v1.services.content.ToggleLikeResponse": {
+            liked?: boolean;
+            total_likes?: string;
+        };
+        "api.v1.services.content.UpdateBannerRequest": {
+            id?: string;
+            title?: string;
+            title_i18n?: {
+                [key: string]: string;
+            };
+            subtitle?: string;
+            subtitle_i18n?: {
+                [key: string]: string;
+            };
+            badge_text?: string;
+            image_url?: string;
+            image_mobile_url?: string;
+            bg_color_start?: string;
+            bg_color_end?: string;
+            /** Format: double */
+            bg_overlay_opacity?: number;
+            primary_btn_text?: string;
+            primary_btn_url?: string;
+            secondary_btn_text?: string;
+            secondary_btn_url?: string;
+            /** Format: int32 */
+            sequence?: number;
+            is_active?: boolean;
+            /** Format: date-time */
+            start_at?: string;
+            /** Format: date-time */
+            end_at?: string;
+            /** Format: int32 */
+            auto_slide_interval?: number;
+            link_url?: string;
+            link_target?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.content.UpdateBannerResponse": {
+            banner?: components["schemas"]["api.v1.services.content.PortalBanner"];
+        };
+        "api.v1.services.content.UpdateCommentRequest": {
+            id?: string;
+            text?: string;
+        };
+        "api.v1.services.content.UpdateCommentResponse": {
+            comment?: components["schemas"]["api.v1.services.content.Comment"];
+        };
+        "api.v1.services.content.UpdateCustomPageRequest": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            type?: string;
+            content_format?: string;
+            content?: string;
+            layout?: string;
+            is_published?: boolean;
+            seo_title?: string;
+            seo_description?: string;
+            featured_image?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.content.UpdateCustomPageResponse": {
+            page?: components["schemas"]["api.v1.services.content.PortalCustomPage"];
+        };
+        "api.v1.services.content.UpdateNavItemRequest": {
+            id?: string;
+            type?: string;
+            label?: string;
+            label_i18n?: {
+                [key: string]: string;
+            };
+            url?: string;
+            target_type?: string;
+            target_id?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            sequence?: number;
+            parent_id?: string;
+            is_visible?: boolean;
+            open_new_tab?: boolean;
+            css_class?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        "api.v1.services.content.UpdateNavItemResponse": {
+            item?: components["schemas"]["api.v1.services.content.PortalNavItem"];
+        };
+        "api.v1.services.media.AbortMultipartUploadRequest": {
+            upload_id?: string;
+            key?: string;
+        };
+        "api.v1.services.media.AbortMultipartUploadResponse": Record<string, never>;
+        "api.v1.services.media.AcceptChannelInvitationRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.AcceptChannelInvitationResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.AdClickLogInfo": {
+            id?: string;
+            ad_id?: string;
+            ip?: string;
+            user_agent?: string;
+            created_at?: string;
+        };
+        "api.v1.services.media.AdInfo": {
+            id?: string;
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            placement_id?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+            impression_count?: string;
+            click_count?: string;
+        };
+        "api.v1.services.media.AdPlacementInfo": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            type?: string;
+            description?: string;
+            /** Format: int32 */
+            width?: number;
+            /** Format: int32 */
+            height?: number;
+            is_active?: boolean;
+        };
         "api.v1.services.media.AddChannelMediaRequest": {
-            channel_id?: string;
+            token?: string;
             media_id?: string;
         };
         "api.v1.services.media.AddChannelMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.AddMyPlaylistMediaRequest": {
+            id?: string;
+            media_id?: string;
+        };
+        "api.v1.services.media.AddMyPlaylistMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.AddPermissionGroupMemberRequest": {
+            id?: string;
+            user_id?: string;
+        };
+        "api.v1.services.media.AddPermissionGroupMemberResponse": {
             success?: boolean;
         };
         "api.v1.services.media.AddPlaylistMediaRequest": {
@@ -1590,6 +5292,56 @@ export interface components {
         "api.v1.services.media.AddPlaylistMediaResponse": {
             media_count?: string;
         };
+        "api.v1.services.media.ApproveCommentRequest": {
+            id?: string;
+            notes?: string;
+        };
+        "api.v1.services.media.ApproveCommentResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ArticleInfo": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            content?: string;
+            summary?: string;
+            cover_image?: string;
+            author_id?: string;
+            state?: string;
+            category_id?: string;
+            tags?: string[];
+            created_at?: string;
+            updated_at?: string;
+            view_count?: string;
+            like_count?: string;
+            comment_count?: string;
+            featured?: boolean;
+        };
+        "api.v1.services.media.BannerInfo": {
+            id?: string;
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.BatchApproveCommentsRequest": {
+            ids?: string[];
+            notes?: string;
+        };
+        "api.v1.services.media.BatchApproveCommentsResponse": {
+            /** Format: int32 */
+            updated_count?: number;
+        };
+        "api.v1.services.media.BatchRejectCommentsRequest": {
+            ids?: string[];
+            reason?: string;
+        };
+        "api.v1.services.media.BatchRejectCommentsResponse": {
+            /** Format: int32 */
+            updated_count?: number;
+        };
         "api.v1.services.media.BatchUpdateReviewsRequest": {
             ids?: string[];
             status?: string;
@@ -1598,6 +5350,142 @@ export interface components {
         "api.v1.services.media.BatchUpdateReviewsResponse": {
             /** Format: int32 */
             updated_count?: number;
+        };
+        "api.v1.services.media.BlockCommentRequest": {
+            id?: string;
+            reason?: string;
+        };
+        "api.v1.services.media.BlockCommentResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.BulkUpdateTagsRequest": {
+            ids?: string[];
+            status?: string;
+        };
+        "api.v1.services.media.BulkUpdateTagsResponse": {
+            /** Format: int32 */
+            updated_count?: number;
+        };
+        "api.v1.services.media.CheckFavoriteResponse": {
+            is_favorited?: boolean;
+        };
+        "api.v1.services.media.CompleteMultipartUploadRequest": {
+            upload_id?: string;
+            key?: string;
+            parts?: components["schemas"]["api.v1.services.media.PartInfo"][];
+            title?: string;
+            description?: string;
+            category_id?: string;
+            tags?: string[];
+            sha256?: string;
+        };
+        "api.v1.services.media.CompleteMultipartUploadResponse": {
+            media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.CreateAdPlacementRequest": {
+            name?: string;
+            slug?: string;
+            type?: string;
+            description?: string;
+            /** Format: int32 */
+            width?: number;
+            /** Format: int32 */
+            height?: number;
+        };
+        "api.v1.services.media.CreateAdPlacementResponse": {
+            item?: components["schemas"]["api.v1.services.media.AdPlacementInfo"];
+        };
+        "api.v1.services.media.CreateAdRequest": {
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            placement_id?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.media.CreateAdResponse": {
+            item?: components["schemas"]["api.v1.services.media.AdInfo"];
+        };
+        "api.v1.services.media.CreateAdminArticleRequest": {
+            title?: string;
+            slug?: string;
+            content?: string;
+            summary?: string;
+            cover_image?: string;
+            author_id?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.CreateAdminArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.CreateAdminCategoryRequest": {
+            name?: string;
+            slug?: string;
+            description?: string;
+            parent_id?: string;
+        };
+        "api.v1.services.media.CreateAdminCategoryResponse": {
+            category?: components["schemas"]["api.v1.services.types.Category"];
+        };
+        "api.v1.services.media.CreateAdminChannelRequest": {
+            name?: string;
+            handle?: string;
+            description?: string;
+            user_id?: string;
+        };
+        "api.v1.services.media.CreateAdminChannelResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        };
+        "api.v1.services.media.CreateAdminPlaylistRequest": {
+            title?: string;
+            description?: string;
+            user_id?: string;
+            privacy?: string;
+        };
+        "api.v1.services.media.CreateAdminPlaylistResponse": {
+            playlist?: components["schemas"]["api.v1.services.types.Playlist"];
+        };
+        "api.v1.services.media.CreateAdminTagRequest": {
+            name?: string;
+            slug?: string;
+            description?: string;
+            color?: string;
+        };
+        "api.v1.services.media.CreateAdminTagResponse": {
+            tag?: components["schemas"]["api.v1.services.types.Tag"];
+        };
+        "api.v1.services.media.CreateAdminUserRequest": {
+            username?: string;
+            email?: string;
+            password?: string;
+            nickname?: string;
+            role_ids?: string[];
+        };
+        "api.v1.services.media.CreateAdminUserResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        "api.v1.services.media.CreateArticleRequest": {
+            title?: string;
+            slug?: string;
+            content?: string;
+            summary?: string;
+            cover_image?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.CreateArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.CreateBannerRequest": {
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.media.CreateBannerResponse": {
+            item?: components["schemas"]["api.v1.services.media.BannerInfo"];
         };
         "api.v1.services.media.CreateCategoryRequest": {
             category?: components["schemas"]["api.v1.services.types.Category"];
@@ -1630,14 +5518,15 @@ export interface components {
         "api.v1.services.media.CreateEncodeProfileResponse": {
             profile?: components["schemas"]["api.v1.services.types.EncodeProfile"];
         };
-        "api.v1.services.media.CreateMediaRequest": {
-            media?: components["schemas"]["api.v1.services.types.Media"];
+        "api.v1.services.media.CreateInteractionShareRequest": {
+            media_id?: string;
+            platform?: string;
         };
-        "api.v1.services.media.CreateMediaResponse": {
-            media?: components["schemas"]["api.v1.services.types.Media"];
+        "api.v1.services.media.CreateInteractionShareResponse": {
+            success?: boolean;
         };
         "api.v1.services.media.CreateMediaShareRequest": {
-            media_id?: string;
+            id?: string;
             platform?: string;
         };
         "api.v1.services.media.CreateMediaShareResponse": {
@@ -1645,12 +5534,48 @@ export interface components {
             share_url?: string;
         };
         "api.v1.services.media.CreateMediaSubtitleRequest": {
-            media_id?: string;
+            id?: string;
             language?: string;
             file_url?: string;
         };
         "api.v1.services.media.CreateMediaSubtitleResponse": {
             subtitle?: components["schemas"]["api.v1.services.types.Subtitle"];
+        };
+        "api.v1.services.media.CreateMyPlaylistRequest": {
+            title?: string;
+            description?: string;
+            privacy?: string;
+        };
+        "api.v1.services.media.CreateMyPlaylistResponse": {
+            playlist?: components["schemas"]["api.v1.services.types.Playlist"];
+        };
+        "api.v1.services.media.CreateNavItemRequest": {
+            label?: string;
+            url?: string;
+            icon?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            parent_id?: string;
+        };
+        "api.v1.services.media.CreateNavItemResponse": {
+            item?: components["schemas"]["api.v1.services.media.NavItemInfo"];
+        };
+        "api.v1.services.media.CreatePageRequest": {
+            title?: string;
+            slug?: string;
+            content?: string;
+            is_published?: boolean;
+        };
+        "api.v1.services.media.CreatePageResponse": {
+            item?: components["schemas"]["api.v1.services.media.PageInfo"];
+        };
+        "api.v1.services.media.CreatePermissionGroupRequest": {
+            name?: string;
+            description?: string;
+            permissions?: string[];
+        };
+        "api.v1.services.media.CreatePermissionGroupResponse": {
+            group?: components["schemas"]["api.v1.services.media.PermissionGroupInfo"];
         };
         "api.v1.services.media.CreatePlaylistRequest": {
             playlist?: components["schemas"]["api.v1.services.types.Playlist"];
@@ -1664,6 +5589,24 @@ export interface components {
         "api.v1.services.media.CreateTagResponse": {
             tag?: components["schemas"]["api.v1.services.types.Tag"];
         };
+        "api.v1.services.media.CreateTenantRequest": {
+            name?: string;
+            domain?: string;
+        };
+        "api.v1.services.media.CreateTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.media.TenantInfo"];
+        };
+        "api.v1.services.media.DeleteAdPlacementResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminArticleResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminCategoryResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminChannelResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminMediaResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminPlaylistResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminTagResponse": Record<string, never>;
+        "api.v1.services.media.DeleteAdminUserResponse": Record<string, never>;
+        "api.v1.services.media.DeleteArticleResponse": Record<string, never>;
+        "api.v1.services.media.DeleteBannerResponse": Record<string, never>;
         "api.v1.services.media.DeleteCategoryResponse": Record<string, never>;
         "api.v1.services.media.DeleteChannelResponse": Record<string, never>;
         "api.v1.services.media.DeleteCommentResponse": Record<string, never>;
@@ -1675,22 +5618,93 @@ export interface components {
             success?: boolean;
         };
         "api.v1.services.media.DeleteMediaResponse": Record<string, never>;
+        "api.v1.services.media.DeleteMyPlaylistResponse": Record<string, never>;
+        "api.v1.services.media.DeleteNavItemResponse": Record<string, never>;
+        "api.v1.services.media.DeletePageResponse": Record<string, never>;
+        "api.v1.services.media.DeletePermissionGroupResponse": Record<string, never>;
         "api.v1.services.media.DeletePlaylistResponse": Record<string, never>;
+        "api.v1.services.media.DeleteSettingByKeyResponse": Record<string, never>;
+        "api.v1.services.media.DeleteSubtitleResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.DeleteTagResponse": Record<string, never>;
+        "api.v1.services.media.DeleteTenantResponse": Record<string, never>;
+        "api.v1.services.media.DislikeCommentRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.DislikeCommentResponse": {
+            success?: boolean;
+            dislike_count?: string;
+        };
+        "api.v1.services.media.DismissCommentReportsRequest": {
+            id?: string;
+            notes?: string;
+        };
+        "api.v1.services.media.DismissCommentReportsResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.GetAdminArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.GetAdminCategoryResponse": {
+            category?: components["schemas"]["api.v1.services.types.Category"];
+        };
+        "api.v1.services.media.GetAdminChannelResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        };
+        "api.v1.services.media.GetAdminCommentResponse": {
+            comment?: components["schemas"]["api.v1.services.types.Comment"];
+        };
+        "api.v1.services.media.GetAdminMediaResponse": {
+            media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.GetAdminMediaVariantsResponse": {
+            variants?: components["schemas"]["api.v1.services.types.MediaVariant"][];
+        };
+        "api.v1.services.media.GetAdminPlaylistResponse": {
+            playlist?: components["schemas"]["api.v1.services.types.Playlist"];
+        };
+        "api.v1.services.media.GetAdminTagResponse": {
+            tag?: components["schemas"]["api.v1.services.types.Tag"];
+        };
+        "api.v1.services.media.GetAdminUserPermissionsResponse": {
+            permissions?: string[];
+            roles?: string[];
+        };
+        "api.v1.services.media.GetAdminUserResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        "api.v1.services.media.GetArticleBySlugResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.GetArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
         "api.v1.services.media.GetCategoryResponse": {
             category?: components["schemas"]["api.v1.services.types.Category"];
         };
-        "api.v1.services.media.GetChannelMediasResponse": {
+        "api.v1.services.media.GetChannelByTokenResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        };
+        "api.v1.services.media.GetChannelInvitationsResponse": {
             /** Format: int32 */
             total?: number;
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             page_size?: number;
         };
-        "api.v1.services.media.GetChannelResponse": {
-            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        "api.v1.services.media.GetChannelLimitsResponse": {
+            limits?: components["schemas"]["api.v1.services.types.ChannelLimits"];
+        };
+        "api.v1.services.media.GetChannelPlaylistsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
         };
         "api.v1.services.media.GetChannelSubscribersResponse": {
             /** Format: int32 */
@@ -1706,6 +5720,15 @@ export interface components {
         "api.v1.services.media.GetChannelSubscriptionResponse": {
             is_subscribed?: boolean;
         };
+        "api.v1.services.media.GetChannelVideosResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
         "api.v1.services.media.GetCommentRepliesResponse": {
             /** Format: int32 */
             total?: number;
@@ -1715,8 +5738,31 @@ export interface components {
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.media.GetCommentReportsResponse": {
+            /** Format: int32 */
+            total?: number;
+            report_reasons?: string[];
+        };
         "api.v1.services.media.GetCommentResponse": {
             comment?: components["schemas"]["api.v1.services.types.Comment"];
+        };
+        "api.v1.services.media.GetCommentStatsResponse": {
+            /** Format: int32 */
+            total_comments?: number;
+            /** Format: int32 */
+            pending_comments?: number;
+            /** Format: int32 */
+            reported_comments?: number;
+            /** Format: int32 */
+            blocked_comments?: number;
+        };
+        "api.v1.services.media.GetCurrentTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.media.TenantInfo"];
+        };
+        "api.v1.services.media.GetCustomPageResponse": {
+            title?: string;
+            content?: string;
+            slug?: string;
         };
         "api.v1.services.media.GetDashboardStatsResponse": {
             /** Format: int32 */
@@ -1729,6 +5775,11 @@ export interface components {
             total_channels?: number;
             /** Format: int32 */
             pending_reviews?: number;
+        };
+        "api.v1.services.media.GetEmailStatusResponse": {
+            configured?: boolean;
+            provider?: string;
+            from_address?: string;
         };
         "api.v1.services.media.GetEncodeProfileResponse": {
             profile?: components["schemas"]["api.v1.services.types.EncodeProfile"];
@@ -1752,21 +5803,69 @@ export interface components {
             /** Format: int32 */
             total_pages?: number;
         };
+        "api.v1.services.media.GetFeatureFlagsResponse": {
+            features?: {
+                [key: string]: boolean;
+            };
+        };
+        "api.v1.services.media.GetFeaturedArticlesResponse": {
+            items?: components["schemas"]["api.v1.services.media.ArticleInfo"][];
+        };
+        "api.v1.services.media.GetFollowerCountResponse": {
+            /** Format: int32 */
+            count?: number;
+        };
         "api.v1.services.media.GetHomeContentResponse": {
             featured?: components["schemas"]["api.v1.services.types.Media"][];
             recommended?: components["schemas"]["api.v1.services.types.Media"][];
             popular_channels?: components["schemas"]["api.v1.services.types.Channel"][];
         };
-        "api.v1.services.media.GetMediaCommentsResponse": {
+        "api.v1.services.media.GetInteractionsFavoritesResponse": {
+            items?: components["schemas"]["api.v1.services.types.Media"][];
             /** Format: int32 */
             total?: number;
-            comments?: components["schemas"]["api.v1.services.types.Comment"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             page_size?: number;
+        };
+        "api.v1.services.media.GetInteractionsFollowersResponse": {
+            items?: components["schemas"]["api.v1.services.types.User"][];
             /** Format: int32 */
-            total_pages?: number;
+            total?: number;
+        };
+        "api.v1.services.media.GetInteractionsLikesResponse": {
+            items?: components["schemas"]["api.v1.services.types.Like"][];
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.GetInteractionsSubscriptionsResponse": {
+            items?: components["schemas"]["api.v1.services.types.Channel"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.media.GetLatestArticlesResponse": {
+            items?: components["schemas"]["api.v1.services.media.ArticleInfo"][];
+        };
+        "api.v1.services.media.GetLikeStatusBatchResponse": {
+            status?: {
+                [key: string]: boolean;
+            };
+        };
+        "api.v1.services.media.GetMediaAdminStatsResponse": {
+            view_count?: string;
+            like_count?: string;
+            comment_count?: string;
+            favorite_count?: string;
+        };
+        "api.v1.services.media.GetMediaAudioWaveformResponse": {
+            samples?: number[];
+            /** Format: int32 */
+            sample_rate?: number;
         };
         "api.v1.services.media.GetMediaDownloadResponse": {
             download_url?: string;
@@ -1775,6 +5874,9 @@ export interface components {
         "api.v1.services.media.GetMediaFavoritesResponse": {
             favorite_count?: string;
             is_favorited?: boolean;
+        };
+        "api.v1.services.media.GetMediaKeyFramesResponse": {
+            key_frames?: components["schemas"]["api.v1.services.media.KeyFrameInfo"][];
         };
         "api.v1.services.media.GetMediaLikesResponse": {
             like_count?: string;
@@ -1788,9 +5890,24 @@ export interface components {
         "api.v1.services.media.GetMediaResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
         };
+        "api.v1.services.media.GetMediaReviewLogsResponse": {
+            logs?: components["schemas"]["api.v1.services.types.Review"][];
+        };
+        "api.v1.services.media.GetMediaSceneChangesResponse": {
+            scenes?: components["schemas"]["api.v1.services.media.SceneChangeInfo"][];
+        };
         "api.v1.services.media.GetMediaSharesResponse": {
             share_count?: string;
             share_url?: string;
+        };
+        "api.v1.services.media.GetMediaSpriteJPGResponse": {
+            /** Format: bytes */
+            data?: string;
+            content_type?: string;
+        };
+        "api.v1.services.media.GetMediaSpriteVTTResponse": {
+            content?: string;
+            content_type?: string;
         };
         "api.v1.services.media.GetMediaStatsResponse": {
             /** Format: int32 */
@@ -1806,11 +5923,32 @@ export interface components {
         "api.v1.services.media.GetMediaSubtitlesResponse": {
             subtitles?: components["schemas"]["api.v1.services.types.Subtitle"][];
         };
+        "api.v1.services.media.GetMediaTextContentResponse": {
+            text?: string;
+            segments?: components["schemas"]["api.v1.services.media.TextSegment"][];
+        };
         "api.v1.services.media.GetMediaThumbnailResponse": {
             thumbnail_url?: string;
         };
         "api.v1.services.media.GetMediaVariantsResponse": {
             variants?: components["schemas"]["api.v1.services.types.MediaVariant"][];
+        };
+        "api.v1.services.media.GetMetadataMiningStatusResponse": {
+            status?: string;
+            /** Format: int32 */
+            progress?: number;
+        };
+        "api.v1.services.media.GetMyArticlesResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.media.ArticleInfo"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.GetMyChannelResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
         };
         "api.v1.services.media.GetPendingReviewsResponse": {
             /** Format: int32 */
@@ -1821,18 +5959,62 @@ export interface components {
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.media.GetPermissionGroupResponse": {
+            group?: components["schemas"]["api.v1.services.media.PermissionGroupInfo"];
+        };
         "api.v1.services.media.GetPlaylistResponse": {
             playlist?: components["schemas"]["api.v1.services.types.Playlist"];
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
         };
         "api.v1.services.media.GetPlaylistsResponse": {
             /** Format: int32 */
             total?: number;
-            playlists?: components["schemas"]["api.v1.services.types.Playlist"][];
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             page_size?: number;
+        };
+        "api.v1.services.media.GetPortalConfigResponse": {
+            modules?: components["schemas"]["api.v1.services.media.PortalModules"];
+            layout?: string;
+            site?: components["schemas"]["api.v1.services.media.PortalSite"];
+            logo_url?: string;
+            favicon_url?: string;
+        };
+        "api.v1.services.media.GetPublicConfigResponse": {
+            site_name?: string;
+            site_description?: string;
+            allow_registration?: boolean;
+            allow_upload?: boolean;
+        };
+        "api.v1.services.media.GetPublicDashboardStatsResponse": {
+            /** Format: int32 */
+            total_users?: number;
+            /** Format: int32 */
+            total_media?: number;
+            /** Format: int32 */
+            total_views?: number;
+            /** Format: int32 */
+            total_comments?: number;
+        };
+        "api.v1.services.media.GetPublicMediaStatsResponse": {
+            /** Format: int32 */
+            total_uploads?: number;
+            /** Format: int32 */
+            total_views?: number;
+        };
+        "api.v1.services.media.GetPublicUserStatsResponse": {
+            /** Format: int32 */
+            total_users?: number;
+            /** Format: int32 */
+            active_users?: number;
+        };
+        "api.v1.services.media.GetRevenueStatsResponse": {
+            total_revenue?: string;
+            subscription_revenue?: string;
+            ad_revenue?: string;
+            daily_stats?: components["schemas"]["api.v1.services.types.StatPoint"][];
         };
         "api.v1.services.media.GetReviewHistoryResponse": {
             /** Format: int32 */
@@ -1849,22 +6031,73 @@ export interface components {
         "api.v1.services.media.GetSearchSuggestionsResponse": {
             suggestions?: string[];
         };
+        "api.v1.services.media.GetSettingByKeyResponse": {
+            key?: string;
+            value?: string;
+            description?: string;
+        };
+        "api.v1.services.media.GetSettingsByCategoryResponse": {
+            category?: string;
+            settings?: {
+                [key: string]: string;
+            };
+        };
         "api.v1.services.media.GetSettingsResponse": {
             settings?: {
                 [key: string]: string;
             };
         };
+        "api.v1.services.media.GetStorageCapabilitiesResponse": {
+            providers?: string[];
+            active_provider?: string;
+        };
+        "api.v1.services.media.GetSubscriptionCountResponse": {
+            /** Format: int32 */
+            count?: number;
+        };
         "api.v1.services.media.GetSubscriptionFeedResponse": {
             /** Format: int32 */
             total?: number;
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.media.GetSubscriptionVideosResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.GetSystemInfoResponse": {
+            app_version?: string;
+            go_version?: string;
+            db_dialect?: string;
+            uptime_seconds?: string;
+        };
+        "api.v1.services.media.GetSystemSettingByKeyResponse": {
+            key?: string;
+            value?: string;
+        };
+        "api.v1.services.media.GetSystemSettingResponse": {
+            key?: string;
+            value?: string;
+            description?: string;
+        };
+        "api.v1.services.media.GetSystemSettingsResponse": {
+            settings?: {
+                [key: string]: string;
+            };
+        };
         "api.v1.services.media.GetTagResponse": {
             tag?: components["schemas"]["api.v1.services.types.Tag"];
+        };
+        "api.v1.services.media.GetTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.media.TenantInfo"];
         };
         "api.v1.services.media.GetTrafficStatsResponse": {
             total_bandwidth?: string;
@@ -1872,7 +6105,28 @@ export interface components {
             daily_stats?: components["schemas"]["api.v1.services.types.StatPoint"][];
         };
         "api.v1.services.media.GetTrendingContentResponse": {
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+        };
+        "api.v1.services.media.GetTrendingResponse": {
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+        };
+        "api.v1.services.media.GetUploadSessionResponse": {
+            upload_id?: string;
+            key?: string;
+            filename?: string;
+            file_size?: string;
+            content_type?: string;
+            /** Format: int32 */
+            total_parts?: number;
+            /** Format: int32 */
+            uploaded_parts?: number;
+            status?: string;
+            /** Format: int32 */
+            chunk_size?: number;
+            uploaded_size?: string;
+            parts?: components["schemas"]["api.v1.services.media.PartInfo"][];
+            create_time?: string;
+            expires_at?: string;
         };
         "api.v1.services.media.GetUserStatsResponse": {
             /** Format: int32 */
@@ -1883,11 +6137,147 @@ export interface components {
             active_users?: number;
             daily_stats?: components["schemas"]["api.v1.services.types.StatPoint"][];
         };
+        "api.v1.services.media.ImportTagsRequest": {
+            names?: string[];
+        };
+        "api.v1.services.media.ImportTagsResponse": {
+            /** Format: int32 */
+            imported_count?: number;
+            /** Format: int32 */
+            skipped_count?: number;
+        };
         "api.v1.services.media.IncrementViewCountRequest": {
             id?: string;
         };
         "api.v1.services.media.IncrementViewCountResponse": {
             view_count?: string;
+        };
+        "api.v1.services.media.InitiateMultipartUploadRequest": {
+            filename?: string;
+            file_size?: string;
+            content_type?: string;
+            title?: string;
+            description?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.InitiateMultipartUploadResponse": {
+            upload_id?: string;
+            key?: string;
+            /** Format: int32 */
+            total_parts?: number;
+            /** Format: int32 */
+            chunk_size?: number;
+        };
+        "api.v1.services.media.InviteUserToChannelRequest": {
+            token?: string;
+            user_id?: string;
+        };
+        "api.v1.services.media.InviteUserToChannelResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.KeyFrameInfo": {
+            /** Format: float */
+            time?: number;
+            url?: string;
+        };
+        "api.v1.services.media.LikeCommentRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.LikeCommentResponse": {
+            success?: boolean;
+            like_count?: string;
+        };
+        "api.v1.services.media.ListActiveAdsByPlacementResponse": {
+            items?: components["schemas"]["api.v1.services.media.AdInfo"][];
+        };
+        "api.v1.services.media.ListAdClickLogsResponse": {
+            items?: components["schemas"]["api.v1.services.media.AdClickLogInfo"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.media.ListAdPlacementsResponse": {
+            items?: components["schemas"]["api.v1.services.media.AdPlacementInfo"][];
+        };
+        "api.v1.services.media.ListAdminArticlesResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.media.ArticleInfo"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminCategoriesResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Category"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminChannelsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Channel"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminCommentsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Comment"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminMediaTasksResponse": {
+            tasks?: components["schemas"]["api.v1.services.types.EncodingTask"][];
+        };
+        "api.v1.services.media.ListAdminMediasResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminPlaylistsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminTagsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Tag"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdminUsersResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.User"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListAdsResponse": {
+            items?: components["schemas"]["api.v1.services.media.AdInfo"][];
+            /** Format: int32 */
+            total?: number;
         };
         "api.v1.services.media.ListAllEncodingTasksResponse": {
             /** Format: int32 */
@@ -1900,10 +6290,22 @@ export interface components {
             /** Format: int32 */
             total_pages?: number;
         };
+        "api.v1.services.media.ListArticlesResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.media.ArticleInfo"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListBannersResponse": {
+            items?: components["schemas"]["api.v1.services.media.BannerInfo"][];
+        };
         "api.v1.services.media.ListCategoriesResponse": {
             /** Format: int32 */
             total?: number;
-            categories?: components["schemas"]["api.v1.services.types.Category"][];
+            items?: components["schemas"]["api.v1.services.types.Category"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -1915,7 +6317,7 @@ export interface components {
         "api.v1.services.media.ListChannelsResponse": {
             /** Format: int32 */
             total?: number;
-            channels?: components["schemas"]["api.v1.services.types.Channel"][];
+            items?: components["schemas"]["api.v1.services.types.Channel"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -1924,7 +6326,7 @@ export interface components {
         "api.v1.services.media.ListCommentsResponse": {
             /** Format: int32 */
             total?: number;
-            comments?: components["schemas"]["api.v1.services.types.Comment"][];
+            items?: components["schemas"]["api.v1.services.types.Comment"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -1936,13 +6338,28 @@ export interface components {
         "api.v1.services.media.ListEncodeProfilesResponse": {
             profiles?: components["schemas"]["api.v1.services.types.EncodeProfile"][];
         };
-        "api.v1.services.media.ListEncodingTasksResponse": {
-            tasks?: components["schemas"]["api.v1.services.types.EncodingTask"][];
+        "api.v1.services.media.ListFeaturedMediasResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListLatestMediasResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
         };
         "api.v1.services.media.ListMediasResponse": {
             /** Format: int32 */
             total?: number;
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -1950,11 +6367,54 @@ export interface components {
             next_page_token?: string;
             /** Format: int32 */
             total_pages?: number;
+        };
+        "api.v1.services.media.ListMyPlaylistsResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListNavItemsResponse": {
+            items?: components["schemas"]["api.v1.services.media.NavItemInfo"][];
+        };
+        "api.v1.services.media.ListPagesResponse": {
+            items?: components["schemas"]["api.v1.services.media.PageInfo"][];
+        };
+        "api.v1.services.media.ListPartsResponse": {
+            parts?: components["schemas"]["api.v1.services.media.PartInfo"][];
+            /** Format: int32 */
+            total_parts?: number;
+            uploaded_size?: string;
+            total_size?: string;
+            status?: string;
+        };
+        "api.v1.services.media.ListPermissionGroupMembersResponse": {
+            /** Format: int32 */
+            total?: number;
+            members?: components["schemas"]["api.v1.services.types.User"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListPermissionGroupsResponse": {
+            /** Format: int32 */
+            total?: number;
+            groups?: components["schemas"]["api.v1.services.media.PermissionGroupInfo"][];
+        };
+        "api.v1.services.media.ListPermissionsResponse": {
+            permissions?: string[];
+        };
+        "api.v1.services.media.ListSubtitleLanguagesResponse": {
+            languages?: string[];
         };
         "api.v1.services.media.ListTagsResponse": {
             /** Format: int32 */
             total?: number;
-            tags?: components["schemas"]["api.v1.services.types.Tag"][];
+            items?: components["schemas"]["api.v1.services.types.Tag"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -1963,10 +6423,146 @@ export interface components {
             /** Format: int32 */
             total_pages?: number;
         };
+        "api.v1.services.media.ListTenantsResponse": {
+            tenants?: components["schemas"]["api.v1.services.media.TenantInfo"][];
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.media.ListUploadSessionsResponse": {
+            sessions?: components["schemas"]["api.v1.services.media.GetUploadSessionResponse"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.media.NavItemInfo": {
+            id?: string;
+            label?: string;
+            url?: string;
+            icon?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+            parent_id?: string;
+        };
+        "api.v1.services.media.PageInfo": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            content?: string;
+            is_published?: boolean;
+        };
+        "api.v1.services.media.PartInfo": {
+            /** Format: int32 */
+            part_number?: number;
+            etag?: string;
+            size?: string;
+        };
+        "api.v1.services.media.PatchAdminCategoryRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            description?: string;
+            parent_id?: string;
+            /** Format: int32 */
+            status?: number;
+        };
+        "api.v1.services.media.PatchAdminCategoryResponse": {
+            category?: components["schemas"]["api.v1.services.types.Category"];
+        };
+        "api.v1.services.media.PermissionGroupInfo": {
+            id?: string;
+            name?: string;
+            description?: string;
+            is_active?: boolean;
+            /** Format: int32 */
+            member_count?: number;
+            permissions?: string[];
+        };
+        "api.v1.services.media.PortalModules": {
+            articles?: boolean;
+            videos?: boolean;
+            music?: boolean;
+        };
+        "api.v1.services.media.PortalSite": {
+            site_name?: string;
+            site_description?: string;
+            allow_registration?: boolean;
+            allow_upload?: boolean;
+            primary_url?: string;
+        };
+        "api.v1.services.media.PreviewEncodeCommandRequest": {
+            command_template?: string;
+            input_path?: string;
+            output_path?: string;
+        };
+        "api.v1.services.media.PreviewEncodeCommandResponse": {
+            full_command?: string;
+        };
+        "api.v1.services.media.RecordAdClickRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.RecordAdClickResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RecordAdImpressionRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.RecordAdImpressionResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RegenerateSpriteRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.RegenerateSpriteResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RegenerateThumbnailRequest": {
+            id?: string;
+            /** Format: double */
+            thumbnail_time?: number;
+        };
+        "api.v1.services.media.RegenerateThumbnailResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RejectChannelInvitationRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.RejectChannelInvitationResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RejectCommentRequest": {
+            id?: string;
+            reason?: string;
+        };
+        "api.v1.services.media.RejectCommentResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.RemoveChannelMediaResponse": {
             success?: boolean;
         };
+        "api.v1.services.media.RemoveMyPlaylistMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.RemovePermissionGroupMemberResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.RemovePlaylistMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ReorderMyPlaylistMediaRequest": {
+            id?: string;
+            media_ids?: string[];
+        };
+        "api.v1.services.media.ReorderMyPlaylistMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ReorderNavItemsRequest": {
+            ids?: string[];
+        };
+        "api.v1.services.media.ReorderNavItemsResponse": {
             success?: boolean;
         };
         "api.v1.services.media.ReorderPlaylistMediaRequest": {
@@ -1975,6 +6571,38 @@ export interface components {
         };
         "api.v1.services.media.ReorderPlaylistMediaResponse": {
             success?: boolean;
+        };
+        "api.v1.services.media.ReportCommentRequest": {
+            id?: string;
+            reason?: string;
+        };
+        "api.v1.services.media.ReportCommentResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ReportMediaRequest": {
+            id?: string;
+            reason?: string;
+            description?: string;
+        };
+        "api.v1.services.media.ReportMediaResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ResetSystemSettingRequest": {
+            key?: string;
+        };
+        "api.v1.services.media.ResetSystemSettingResponse": {
+            key?: string;
+            value?: string;
+        };
+        "api.v1.services.media.ResolveHandleResponse": {
+            resolution?: components["schemas"]["api.v1.services.types.HandleResolution"];
+        };
+        "api.v1.services.media.RetryAdminMediaTaskRequest": {
+            id?: string;
+            task_id?: string;
+        };
+        "api.v1.services.media.RetryAdminMediaTaskResponse": {
+            task?: components["schemas"]["api.v1.services.types.EncodingTask"];
         };
         "api.v1.services.media.RetryAllFailedTasksRequest": {
             media_id?: string;
@@ -1990,10 +6618,26 @@ export interface components {
         "api.v1.services.media.RetryEncodingTaskResponse": {
             task?: components["schemas"]["api.v1.services.types.EncodingTask"];
         };
+        "api.v1.services.media.ReviewMediaRequest": {
+            id?: string;
+            status?: string;
+            reason?: string;
+            notes?: string;
+        };
+        "api.v1.services.media.ReviewMediaResponse": {
+            review?: components["schemas"]["api.v1.services.types.Review"];
+        };
+        "api.v1.services.media.SceneChangeInfo": {
+            /** Format: float */
+            time?: number;
+            /** Format: float */
+            confidence?: number;
+            url?: string;
+        };
         "api.v1.services.media.SearchResponse": {
             /** Format: int32 */
             total?: number;
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
             channels?: components["schemas"]["api.v1.services.types.Channel"][];
             playlists?: components["schemas"]["api.v1.services.types.Playlist"][];
             users?: components["schemas"]["api.v1.services.types.User"][];
@@ -2002,23 +6646,101 @@ export interface components {
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.media.SimpleUploadRequest": {
+            filename?: string;
+            /** Format: bytes */
+            data?: string;
+            content_type?: string;
+            title?: string;
+            description?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.SimpleUploadResponse": {
+            media?: components["schemas"]["api.v1.services.types.Media"];
+            url?: string;
+            upload_url?: string;
+        };
+        "api.v1.services.media.StartMetadataMiningRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.StartMetadataMiningResponse": {
+            success?: boolean;
+            task_id?: string;
+        };
         "api.v1.services.media.SubscribeChannelRequest": {
-            channel_id?: string;
+            token?: string;
         };
         "api.v1.services.media.SubscribeChannelResponse": {
             success?: boolean;
             is_subscribed?: boolean;
         };
-        "api.v1.services.media.ToggleMediaFavoriteRequest": {
+        "api.v1.services.media.TenantInfo": {
+            id?: string;
+            name?: string;
+            domain?: string;
+            status?: string;
+            created_at?: string;
+        };
+        "api.v1.services.media.TestEmailRequest": {
+            to_address?: string;
+            subject?: string;
+            body?: string;
+        };
+        "api.v1.services.media.TestEmailResponse": {
+            success?: boolean;
+            message?: string;
+        };
+        "api.v1.services.media.TextSegment": {
+            /** Format: float */
+            start_time?: number;
+            /** Format: float */
+            end_time?: number;
+            text?: string;
+        };
+        "api.v1.services.media.ToggleAdPlacementRequest": {
+            id?: string;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.ToggleAdPlacementResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ToggleAdRequest": {
+            id?: string;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.ToggleAdResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ToggleBannerRequest": {
+            id?: string;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.ToggleBannerResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ToggleInteractionFavoriteRequest": {
             media_id?: string;
+        };
+        "api.v1.services.media.ToggleInteractionFavoriteResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ToggleInteractionLikeRequest": {
+            media_id?: string;
+        };
+        "api.v1.services.media.ToggleInteractionLikeResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.ToggleMediaFavoriteRequest": {
+            id?: string;
         };
         "api.v1.services.media.ToggleMediaFavoriteResponse": {
             is_favorited?: boolean;
             favorite_count?: string;
         };
         "api.v1.services.media.ToggleMediaLikeRequest": {
-            media_id?: string;
-            like_type?: string;
+            id?: string;
+            type?: string;
         };
         "api.v1.services.media.ToggleMediaLikeResponse": {
             is_liked?: boolean;
@@ -2026,13 +6748,193 @@ export interface components {
             like_count?: string;
             dislike_count?: string;
         };
+        "api.v1.services.media.TogglePermissionGroupRequest": {
+            id?: string;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.TogglePermissionGroupResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.TranscodingEvent": {
+            event_type?: string;
+            media_id?: string;
+            task_id?: string;
+            status?: string;
+            /** Format: int32 */
+            progress?: number;
+            message?: string;
+        };
         "api.v1.services.media.TranscodingMediaItem": {
             media?: components["schemas"]["api.v1.services.types.Media"];
             tasks?: components["schemas"]["api.v1.services.types.EncodingTask"][];
         };
+        "api.v1.services.media.UnblockCommentRequest": {
+            id?: string;
+        };
+        "api.v1.services.media.UnblockCommentResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.UnsubscribeChannelResponse": {
             success?: boolean;
             is_subscribed?: boolean;
+        };
+        "api.v1.services.media.UpdateAdPlacementRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            type?: string;
+            description?: string;
+            /** Format: int32 */
+            width?: number;
+            /** Format: int32 */
+            height?: number;
+        };
+        "api.v1.services.media.UpdateAdPlacementResponse": {
+            item?: components["schemas"]["api.v1.services.media.AdPlacementInfo"];
+        };
+        "api.v1.services.media.UpdateAdRequest": {
+            id?: string;
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            placement_id?: string;
+            /** Format: int32 */
+            sort_order?: number;
+        };
+        "api.v1.services.media.UpdateAdResponse": {
+            item?: components["schemas"]["api.v1.services.media.AdInfo"];
+        };
+        "api.v1.services.media.UpdateAdminArticleRequest": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            content?: string;
+            summary?: string;
+            cover_image?: string;
+            category_id?: string;
+            tags?: string[];
+            state?: string;
+        };
+        "api.v1.services.media.UpdateAdminArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.UpdateAdminArticleStateRequest": {
+            id?: string;
+            state?: string;
+            reason?: string;
+        };
+        "api.v1.services.media.UpdateAdminArticleStateResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.UpdateAdminCategoryRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            description?: string;
+            parent_id?: string;
+            /** Format: int32 */
+            status?: number;
+        };
+        "api.v1.services.media.UpdateAdminCategoryResponse": {
+            category?: components["schemas"]["api.v1.services.types.Category"];
+        };
+        "api.v1.services.media.UpdateAdminChannelRequest": {
+            id?: string;
+            name?: string;
+            handle?: string;
+            description?: string;
+            status?: string;
+        };
+        "api.v1.services.media.UpdateAdminChannelResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        };
+        "api.v1.services.media.UpdateAdminMediaRequest": {
+            id?: string;
+            title?: string;
+            description?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.UpdateAdminMediaResponse": {
+            media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.UpdateAdminPlaylistRequest": {
+            id?: string;
+            title?: string;
+            description?: string;
+            privacy?: string;
+            status?: string;
+        };
+        "api.v1.services.media.UpdateAdminPlaylistResponse": {
+            playlist?: components["schemas"]["api.v1.services.types.Playlist"];
+        };
+        "api.v1.services.media.UpdateAdminTagRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            description?: string;
+            color?: string;
+            status?: string;
+        };
+        "api.v1.services.media.UpdateAdminTagResponse": {
+            tag?: components["schemas"]["api.v1.services.types.Tag"];
+        };
+        "api.v1.services.media.UpdateAdminUserRequest": {
+            id?: string;
+            nickname?: string;
+            email?: string;
+            phone?: string;
+            role_ids?: string[];
+        };
+        "api.v1.services.media.UpdateAdminUserResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        "api.v1.services.media.UpdateAdminUserRoleRequest": {
+            id?: string;
+            role_ids?: string[];
+        };
+        "api.v1.services.media.UpdateAdminUserRoleResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.UpdateAdminUserStatusRequest": {
+            id?: string;
+            /** Format: int32 */
+            status?: number;
+        };
+        "api.v1.services.media.UpdateAdminUserStatusResponse": {
+            success?: boolean;
+        };
+        "api.v1.services.media.UpdateArticleRequest": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            content?: string;
+            summary?: string;
+            cover_image?: string;
+            category_id?: string;
+            tags?: string[];
+        };
+        "api.v1.services.media.UpdateArticleResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.UpdateArticleStateRequest": {
+            slug?: string;
+            state?: string;
+        };
+        "api.v1.services.media.UpdateArticleStateResponse": {
+            article?: components["schemas"]["api.v1.services.media.ArticleInfo"];
+        };
+        "api.v1.services.media.UpdateBannerRequest": {
+            id?: string;
+            title?: string;
+            image_url?: string;
+            link_url?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.UpdateBannerResponse": {
+            item?: components["schemas"]["api.v1.services.media.BannerInfo"];
         };
         "api.v1.services.media.UpdateCategoryRequest": {
             category?: components["schemas"]["api.v1.services.types.Category"];
@@ -2042,7 +6944,15 @@ export interface components {
         "api.v1.services.media.UpdateCategoryResponse": {
             category?: components["schemas"]["api.v1.services.types.Category"];
         };
+        "api.v1.services.media.UpdateChannelNotificationRequest": {
+            token?: string;
+            enabled?: boolean;
+        };
+        "api.v1.services.media.UpdateChannelNotificationResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.UpdateChannelRequest": {
+            token?: string;
             channel?: components["schemas"]["api.v1.services.types.Channel"];
             /** Format: field-mask */
             update_mask?: string;
@@ -2064,13 +6974,77 @@ export interface components {
         "api.v1.services.media.UpdateEncodeProfileResponse": {
             profile?: components["schemas"]["api.v1.services.types.EncodeProfile"];
         };
+        "api.v1.services.media.UpdateFeatureFlagRequest": {
+            flag?: string;
+            enabled?: boolean;
+        };
+        "api.v1.services.media.UpdateFeatureFlagResponse": {
+            features?: {
+                [key: string]: boolean;
+            };
+        };
         "api.v1.services.media.UpdateMediaRequest": {
+            id?: string;
             media?: components["schemas"]["api.v1.services.types.Media"];
             /** Format: field-mask */
             update_mask?: string;
         };
         "api.v1.services.media.UpdateMediaResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.UpdateMediaStateRequest": {
+            id?: string;
+            state?: string;
+            reason?: string;
+        };
+        "api.v1.services.media.UpdateMediaStateResponse": {
+            media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.UpdateMyChannelHandleRequest": {
+            handle?: string;
+        };
+        "api.v1.services.media.UpdateMyChannelHandleResponse": {
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+        };
+        "api.v1.services.media.UpdateMyPlaylistRequest": {
+            id?: string;
+            title?: string;
+            description?: string;
+            privacy?: string;
+        };
+        "api.v1.services.media.UpdateMyPlaylistResponse": {
+            playlist?: components["schemas"]["api.v1.services.types.Playlist"];
+        };
+        "api.v1.services.media.UpdateNavItemRequest": {
+            id?: string;
+            label?: string;
+            url?: string;
+            icon?: string;
+            /** Format: int32 */
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        "api.v1.services.media.UpdateNavItemResponse": {
+            item?: components["schemas"]["api.v1.services.media.NavItemInfo"];
+        };
+        "api.v1.services.media.UpdatePageRequest": {
+            id?: string;
+            title?: string;
+            slug?: string;
+            content?: string;
+            is_published?: boolean;
+        };
+        "api.v1.services.media.UpdatePageResponse": {
+            item?: components["schemas"]["api.v1.services.media.PageInfo"];
+        };
+        "api.v1.services.media.UpdatePermissionGroupRequest": {
+            id?: string;
+            name?: string;
+            description?: string;
+            permissions?: string[];
+        };
+        "api.v1.services.media.UpdatePermissionGroupResponse": {
+            group?: components["schemas"]["api.v1.services.media.PermissionGroupInfo"];
         };
         "api.v1.services.media.UpdatePlaylistRequest": {
             playlist?: components["schemas"]["api.v1.services.types.Playlist"];
@@ -2086,12 +7060,30 @@ export interface components {
         "api.v1.services.media.UpdateReviewResponse": {
             review?: components["schemas"]["api.v1.services.types.Review"];
         };
+        "api.v1.services.media.UpdateSettingByKeyRequest": {
+            key?: string;
+            value?: string;
+        };
+        "api.v1.services.media.UpdateSettingByKeyResponse": {
+            key?: string;
+            value?: string;
+        };
         "api.v1.services.media.UpdateSettingsRequest": {
             settings?: {
                 [key: string]: string;
             };
         };
         "api.v1.services.media.UpdateSettingsResponse": {
+            settings?: {
+                [key: string]: string;
+            };
+        };
+        "api.v1.services.media.UpdateSystemSettingsRequest": {
+            settings?: {
+                [key: string]: string;
+            };
+        };
+        "api.v1.services.media.UpdateSystemSettingsResponse": {
             settings?: {
                 [key: string]: string;
             };
@@ -2104,18 +7096,44 @@ export interface components {
         "api.v1.services.media.UpdateTagResponse": {
             tag?: components["schemas"]["api.v1.services.types.Tag"];
         };
-        "api.v1.services.media.UploadMediaRequest": {
+        "api.v1.services.media.UpdateTenantRequest": {
+            id?: string;
+            name?: string;
+            domain?: string;
+            status?: string;
+        };
+        "api.v1.services.media.UpdateTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.media.TenantInfo"];
+        };
+        "api.v1.services.media.UploadFileRequest": {
+            filename?: string;
+            /** Format: bytes */
+            data?: string;
+            content_type?: string;
             title?: string;
             description?: string;
-            type?: string;
-            file_path?: string;
-            size?: string;
-            /** Format: int32 */
-            duration?: number;
-            user_id?: string;
+            category_id?: string;
+            tags?: string[];
         };
-        "api.v1.services.media.UploadMediaResponse": {
+        "api.v1.services.media.UploadFileResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
+        };
+        "api.v1.services.media.UploadPartRequest": {
+            upload_id?: string;
+            /** Format: int32 */
+            part_number?: number;
+            /** Format: bytes */
+            data?: string;
+        };
+        "api.v1.services.media.UploadPartResponse": {
+            etag?: string;
+            /** Format: int32 */
+            part_number?: number;
+            size?: string;
+        };
+        "api.v1.services.media.ValidateChannelHandleResponse": {
+            available?: boolean;
+            message?: string;
         };
         /** @description Category is the model entity for Category. */
         "api.v1.services.types.Category": {
@@ -2160,6 +7178,43 @@ export interface components {
             short_token?: string;
             /** Format: date-time */
             add_date?: string;
+            /** @description NEW FIELDS (start from field number 20 to reserve space) */
+            name?: string;
+            slug?: string;
+            handle?: string;
+            avatar?: string;
+            banner?: string;
+            /** Format: enum */
+            status?: number;
+            /** @description NOTE: is_default (field 26) REMOVED in v2 -- per A009 no default channel */
+            is_verified?: boolean;
+            tags?: string[];
+            category_id?: string;
+            /** Format: int32 */
+            article_count?: number;
+            total_views?: string;
+            links?: components["schemas"]["api.v1.services.types.ChannelLink"][];
+            /** @description Edge data */
+            user?: components["schemas"]["api.v1.services.types.User"];
+            category?: components["schemas"]["api.v1.services.types.Category"];
+            /** @description View context (returned by single-channel GET, not stored in DB) */
+            is_owner?: boolean;
+            is_subscribed?: boolean;
+        };
+        /** @description ChannelLimits represents channel creation limits for a user. */
+        "api.v1.services.types.ChannelLimits": {
+            /** Format: int32 */
+            max_channels?: number;
+            /** Format: int32 */
+            current_count?: number;
+            can_create?: boolean;
+        };
+        /** @description ChannelLink represents an external link. */
+        "api.v1.services.types.ChannelLink": {
+            type?: string;
+            platform?: string;
+            url?: string;
+            title?: string;
         };
         /** @description Comment is the model entity for Comment. */
         "api.v1.services.types.Comment": {
@@ -2216,20 +7271,36 @@ export interface components {
             /** Format: date-time */
             update_time?: string;
         };
-        /** @description HistoryItem is the model entity for watch history. */
+        /** @description HandleResolution is the response for /@username resolution. */
+        "api.v1.services.types.HandleResolution": {
+            /** Format: enum */
+            type?: number;
+            channel?: components["schemas"]["api.v1.services.types.Channel"];
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        /**
+         * @description HistoryItem is the model entity for watch history.
+         *      BREAKING CHANGE from previous version:
+         *        - media_id -> content_id (supports multi-content-type)
+         *        - progress -> progress_seconds (clarified unit)
+         *        - duration -> duration_seconds (clarified unit)
+         *        - added content_type field
+         */
         "api.v1.services.types.HistoryItem": {
             id?: string;
             /** Format: date-time */
             create_time?: string;
             user_id?: string;
-            media_id?: string;
+            content_id?: string;
             /** Format: int32 */
-            progress?: number;
+            progress_seconds?: number;
             /** Format: int32 */
-            duration?: number;
+            duration_seconds?: number;
             is_finished?: boolean;
             /** Format: date-time */
             last_watched_at?: string;
+            /** Format: enum */
+            content_type?: number;
         };
         /** @description Like is the model entity for Like. */
         "api.v1.services.types.Like": {
@@ -2495,6 +7566,11 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** @description AbortMultipartUploadRequest is the request for aborting a multipart upload. */
+        "api.v1.services.upload.AbortMultipartUploadRequest": {
+            /** @description Upload session ID */
+            upload_id?: string;
+        };
         /** @description AbortMultipartUploadResponse is the response for aborting a multipart upload. */
         "api.v1.services.upload.AbortMultipartUploadResponse": Record<string, never>;
         /** @description CompleteMultipartUploadRequest is the request for completing a multipart upload. */
@@ -2612,8 +7688,8 @@ export interface components {
             /** @description Size of the part in bytes */
             size?: string;
         };
-        /** @description UploadFileRequest is the request for uploading a small file. */
-        "api.v1.services.upload.UploadFileRequest": {
+        /** @description SimpleUploadRequest is the request for simple file upload. */
+        "api.v1.services.upload.SimpleUploadRequest": {
             /**
              * Format: bytes
              * @description File data
@@ -2632,10 +7708,32 @@ export interface components {
             /** @description Tags (optional) */
             tags?: string[];
         };
-        /** @description UploadFileResponse is the response for uploading a small file. */
-        "api.v1.services.upload.UploadFileResponse": {
+        /** @description SimpleUploadResponse is the response for simple file upload. */
+        "api.v1.services.upload.SimpleUploadResponse": {
             /** @description Created media record */
             media?: components["schemas"]["api.v1.services.types.Media"];
+            /** @description Upload URL (pre-signed, if applicable) */
+            upload_url?: string;
+        };
+        /** @description UpdateMetadataRequest is the request for updating upload session metadata. */
+        "api.v1.services.upload.UpdateMetadataRequest": {
+            /** @description Upload session ID */
+            upload_id?: string;
+            /** @description Media title (optional) */
+            title?: string;
+            /** @description Media description (optional) */
+            description?: string;
+            /** @description Category ID (optional) */
+            category_id?: string;
+            /** @description Tags (optional) */
+            tags?: string[];
+        };
+        /** @description UpdateMetadataResponse is the response for updating upload session metadata. */
+        "api.v1.services.upload.UpdateMetadataResponse": {
+            /** @description Upload session ID */
+            upload_id?: string;
+            /** @description Updated status */
+            status?: string;
         };
         /** @description UploadPartRequest is the request for uploading a part. */
         "api.v1.services.upload.UploadPartRequest": {
@@ -2659,6 +7757,20 @@ export interface components {
             /** @description Size of the uploaded part */
             size?: string;
         };
+        "api.v1.services.user.AddGroupMemberRequest": {
+            group_id?: string;
+            user_id?: string;
+        };
+        "api.v1.services.user.AddGroupMemberResponse": {
+            member?: components["schemas"]["api.v1.services.user.PermissionMember"];
+        };
+        "api.v1.services.user.ChangePasswordRequest": {
+            current_password?: string;
+            new_password?: string;
+        };
+        "api.v1.services.user.ChangePasswordResponse": {
+            success?: boolean;
+        };
         /** @description ChangeUserPasswordRequest is the request message for changing user password. */
         "api.v1.services.user.ChangeUserPasswordRequest": {
             /** @description The field will contain id of the resource requested. */
@@ -2668,6 +7780,41 @@ export interface components {
         };
         /** @description ChangeUserPasswordResponse is the response message for changing user password. */
         "api.v1.services.user.ChangeUserPasswordResponse": Record<string, never>;
+        /** @description ClearHistoryResponse is the response for clearing all history. */
+        "api.v1.services.user.ClearHistoryResponse": {
+            /**
+             * Format: int32
+             * @description Number of records deleted.
+             */
+            deleted_count?: number;
+        };
+        "api.v1.services.user.CreateGroupRequest": {
+            name?: string;
+            description?: string;
+            permissions?: string[];
+            category_scope?: string[];
+            is_active?: boolean;
+        };
+        "api.v1.services.user.CreateGroupResponse": {
+            group?: components["schemas"]["api.v1.services.user.PermissionGroup"];
+        };
+        "api.v1.services.user.CreateTenantRequest": {
+            name?: string;
+            slug?: string;
+            domain?: string;
+            logo?: string;
+            description?: string;
+            status?: string;
+            plan?: string;
+            /** Format: int32 */
+            max_users?: number;
+            /** Format: int32 */
+            max_storage_mb?: number;
+            config?: Record<string, never>;
+        };
+        "api.v1.services.user.CreateTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.user.Tenant"];
+        };
         /** @description CreateUserRequest is the request message for creating a user. */
         "api.v1.services.user.CreateUserRequest": {
             /** @description The user resource to be created. */
@@ -2687,33 +7834,44 @@ export interface components {
         };
         /** @description DeleteUserResponse is the response message for deleting a user. */
         "api.v1.services.user.DeleteUserResponse": Record<string, never>;
-        /** @description ForgotPasswordRequest is the request message for forgot password. */
-        "api.v1.services.user.ForgotPasswordRequest": {
-            /** @description The email address. */
-            email?: string;
-        };
-        /** @description ForgotPasswordResponse is the response message for forgot password. */
-        "api.v1.services.user.ForgotPasswordResponse": {
-            /** @description Whether the request was successful. */
-            success?: boolean;
-            /** @description Message to display to user. */
-            message?: string;
-        };
         /** @description GetCurrentUserResponse is the response message for getting current user. */
         "api.v1.services.user.GetCurrentUserResponse": {
             /** @description The current user. */
             user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        "api.v1.services.user.GetGroupResponse": {
+            group?: components["schemas"]["api.v1.services.user.PermissionGroup"];
         };
         /** @description GetMeResponse is the response message for getting current user info. */
         "api.v1.services.user.GetMeResponse": {
             /** @description The current user. */
             user?: components["schemas"]["api.v1.services.types.User"];
         };
+        /** @description GetMyChannelsResponse is the response for getting my channels. */
+        "api.v1.services.user.GetMyChannelsResponse": {
+            /** Format: int32 */
+            total?: number;
+            channels?: components["schemas"]["api.v1.services.types.Channel"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
         /** @description GetMyFavoritesResponse is the response message for getting my favorites. */
         "api.v1.services.user.GetMyFavoritesResponse": {
             /** Format: int32 */
             total?: number;
-            medias?: components["schemas"]["api.v1.services.types.Media"][];
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        /** @description GetMyFollowersResponse is the response for getting my followers. */
+        "api.v1.services.user.GetMyFollowersResponse": {
+            /** Format: int32 */
+            total?: number;
+            followers?: components["schemas"]["api.v1.services.types.User"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -2743,7 +7901,7 @@ export interface components {
         "api.v1.services.user.GetMyPlaylistsResponse": {
             /** Format: int32 */
             total?: number;
-            playlists?: components["schemas"]["api.v1.services.types.Playlist"][];
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -2766,11 +7924,21 @@ export interface components {
         "api.v1.services.user.GetMySubscriptionsResponse": {
             /** Format: int32 */
             total?: number;
-            channels?: components["schemas"]["api.v1.services.types.Channel"][];
+            items?: components["schemas"]["api.v1.services.types.Channel"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
             page_size?: number;
+        };
+        "api.v1.services.user.GetTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.user.Tenant"];
+        };
+        "api.v1.services.user.GetUserBySlugResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        /** @description GetUserByUsernameResponse is the response for getting a user by username. */
+        "api.v1.services.user.GetUserByUsernameResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
         };
         /** @description GetUserFollowersResponse is the response message for getting user followers. */
         "api.v1.services.user.GetUserFollowersResponse": {
@@ -2782,11 +7950,23 @@ export interface components {
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.user.GetUserLikesResponse": {
+            items?: components["schemas"]["api.v1.services.types.Like"][];
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.user.GetUserPermissionsResponse": {
+            detail?: components["schemas"]["api.v1.services.user.UserPermissionDetail"];
+        };
         /** @description GetUserPlaylistsResponse is the response message for getting user playlists. */
         "api.v1.services.user.GetUserPlaylistsResponse": {
             /** Format: int32 */
             total?: number;
-            playlists?: components["schemas"]["api.v1.services.types.Playlist"][];
+            items?: components["schemas"]["api.v1.services.types.Playlist"][];
             /** Format: int32 */
             page?: number;
             /** Format: int32 */
@@ -2808,6 +7988,34 @@ export interface components {
             /** Format: int32 */
             total_followers?: number;
         };
+        /** @description GetUserSubscriptionResponse is the response for getting subscription status. */
+        "api.v1.services.user.GetUserSubscriptionResponse": {
+            is_subscribed?: boolean;
+        };
+        "api.v1.services.user.GetUserSubscriptionsResponse": {
+            items?: components["schemas"]["api.v1.services.types.Channel"][];
+            /** Format: int32 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+        };
+        "api.v1.services.user.ListGroupMembersResponse": {
+            items?: components["schemas"]["api.v1.services.user.PermissionMember"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.user.ListGroupsResponse": {
+            items?: components["schemas"]["api.v1.services.user.PermissionGroup"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.user.ListTenantsResponse": {
+            items?: components["schemas"]["api.v1.services.user.Tenant"][];
+            /** Format: int32 */
+            total?: number;
+        };
         /** @description ListUserRolesResponse is the response message for listing user roles. */
         "api.v1.services.user.ListUserRolesResponse": {
             /**
@@ -2815,8 +8023,8 @@ export interface components {
              * @description The total number of items in the list.
              */
             total?: number;
-            /** @description The list of roles */
-            roles?: components["schemas"]["api.v1.services.types.Role"][];
+            /** @description The list of items */
+            items?: components["schemas"]["api.v1.services.types.Role"][];
         };
         /** @description ListUsersResponse is the response message for listing users. */
         "api.v1.services.user.ListUsersResponse": {
@@ -2825,8 +8033,8 @@ export interface components {
              * @description The total number of items in the list.
              */
             total?: number;
-            /** @description The paging users */
-            users?: components["schemas"]["api.v1.services.types.User"][];
+            /** @description The paging items */
+            items?: components["schemas"]["api.v1.services.types.User"][];
             /**
              * Format: int32
              * @description The page number.
@@ -2871,6 +8079,29 @@ export interface components {
             /** @description Whether the logout was successful. */
             success?: boolean;
         };
+        "api.v1.services.user.PermissionGroup": {
+            id?: string;
+            name?: string;
+            description?: string;
+            permissions?: string[];
+            category_scope?: string[];
+            is_active?: boolean;
+            created_by?: string;
+            /** Format: int32 */
+            member_count?: number;
+            /** Format: date-time */
+            create_time?: string;
+            /** Format: date-time */
+            update_time?: string;
+        };
+        "api.v1.services.user.PermissionMember": {
+            id?: string;
+            user_id?: string;
+            username?: string;
+            group_id?: string;
+            /** Format: date-time */
+            joined_at?: string;
+        };
         /** @description RefreshTokenRequest is the request message for refreshing token. */
         "api.v1.services.user.RefreshTokenRequest": {
             /** @description The refresh token. */
@@ -2907,17 +8138,66 @@ export interface components {
             /** @description Token expiration timestamp. */
             expires_at?: string;
         };
-        /** @description ResetPasswordRequest is the request message for resetting password. */
-        "api.v1.services.user.ResetPasswordRequest": {
-            /** @description The reset token. */
-            token?: string;
-            /** @description The new password. */
-            password?: string;
-        };
-        /** @description ResetPasswordResponse is the response message for resetting password. */
-        "api.v1.services.user.ResetPasswordResponse": {
-            /** @description Whether the reset was successful. */
+        /** @description RemoveFavoriteResponse is the response for removing a favorite. */
+        "api.v1.services.user.RemoveFavoriteResponse": {
             success?: boolean;
+        };
+        /** @description RemoveHistoryItemResponse is the response for removing a single history item. */
+        "api.v1.services.user.RemoveHistoryItemResponse": Record<string, never>;
+        /** @description SubscribeUserRequest is the request for subscribing to a user. */
+        "api.v1.services.user.SubscribeUserRequest": {
+            id?: string;
+        };
+        /** @description SubscribeUserResponse is the response for subscribing to a user. */
+        "api.v1.services.user.SubscribeUserResponse": {
+            success?: boolean;
+            is_subscribed?: boolean;
+        };
+        /** @description SyncHistoryRequest is the request for batch-syncing history records. */
+        "api.v1.services.user.SyncHistoryRequest": {
+            /** @description The local history items to merge with server. */
+            items?: components["schemas"]["api.v1.services.types.HistoryItem"][];
+        };
+        /** @description SyncHistoryResponse is the response for batch-syncing history records. */
+        "api.v1.services.user.SyncHistoryResponse": {
+            /** @description The complete merged history list from server. */
+            items?: components["schemas"]["api.v1.services.types.HistoryItem"][];
+            /**
+             * Format: int32
+             * @description Number of items that were merged (updated or created).
+             */
+            merged_count?: number;
+        };
+        "api.v1.services.user.Tenant": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            domain?: string;
+            logo?: string;
+            description?: string;
+            status?: string;
+            plan?: string;
+            /** Format: int32 */
+            max_users?: number;
+            /** Format: int32 */
+            max_storage_mb?: number;
+            config?: Record<string, never>;
+        };
+        /** @description UnsubscribeUserResponse is the response for unsubscribing from a user. */
+        "api.v1.services.user.UnsubscribeUserResponse": {
+            success?: boolean;
+            is_subscribed?: boolean;
+        };
+        "api.v1.services.user.UpdateGroupRequest": {
+            id?: string;
+            name?: string;
+            description?: string;
+            permissions?: string[];
+            category_scope?: string[];
+            is_active?: boolean;
+        };
+        "api.v1.services.user.UpdateGroupResponse": {
+            group?: components["schemas"]["api.v1.services.user.PermissionGroup"];
         };
         /** @description UpdateMeRequest is the request message for updating current user. */
         "api.v1.services.user.UpdateMeRequest": {
@@ -2944,6 +8224,30 @@ export interface components {
         "api.v1.services.user.UpdateMyPasswordResponse": {
             /** @description Whether the update was successful. */
             success?: boolean;
+        };
+        "api.v1.services.user.UpdateMySlugRequest": {
+            slug?: string;
+        };
+        "api.v1.services.user.UpdateMySlugResponse": {
+            user?: components["schemas"]["api.v1.services.types.User"];
+        };
+        "api.v1.services.user.UpdateTenantRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            domain?: string;
+            logo?: string;
+            description?: string;
+            status?: string;
+            plan?: string;
+            /** Format: int32 */
+            max_users?: number;
+            /** Format: int32 */
+            max_storage_mb?: number;
+            config?: Record<string, never>;
+        };
+        "api.v1.services.user.UpdateTenantResponse": {
+            tenant?: components["schemas"]["api.v1.services.user.Tenant"];
         };
         /** @description UpdateUserRequest is the request message for updating a user. */
         "api.v1.services.user.UpdateUserRequest": {
@@ -2985,6 +8289,50 @@ export interface components {
         };
         /** @description UpdateUserStatusResponse is the response message for updating user status. */
         "api.v1.services.user.UpdateUserStatusResponse": Record<string, never>;
+        /** @description UpsertHistoryRequest is the request for creating/updating a history record. */
+        "api.v1.services.user.UpsertHistoryRequest": {
+            /** @description The content ID (media_id or article_id). */
+            content_id?: string;
+            /**
+             * Format: enum
+             * @description The content type.
+             */
+            content_type?: number;
+            /**
+             * Format: int32
+             * @description The progress in seconds.
+             */
+            progress_seconds?: number;
+            /**
+             * Format: int32
+             * @description The total duration in seconds.
+             */
+            duration_seconds?: number;
+        };
+        /** @description UpsertHistoryResponse is the response for upserting a history record. */
+        "api.v1.services.user.UpsertHistoryResponse": {
+            /** @description The upserted history item. */
+            item?: components["schemas"]["api.v1.services.types.HistoryItem"];
+        };
+        "api.v1.services.user.UserGroupSummary": {
+            id?: string;
+            name?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            joined_at?: string;
+        };
+        "api.v1.services.user.UserPermissionDetail": {
+            user_id?: string;
+            role?: string;
+            effective_permissions?: {
+                [key: string]: components["schemas"]["api.v1.services.user.UserPermissionSource"];
+            };
+            groups?: components["schemas"]["api.v1.services.user.UserGroupSummary"][];
+        };
+        "api.v1.services.user.UserPermissionSource": {
+            sources?: string[];
+            scope?: string[];
+        };
         /** @description VerifyPasswordRequest is the request message for verifying password. */
         "api.v1.services.user.VerifyPasswordRequest": {
             /** @description The user ID. */
@@ -3027,6 +8375,1790 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    AdService_ListAdPlacements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdPlacementsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_CreateAdPlacement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdPlacementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdPlacementResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_UpdateAdPlacement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdPlacementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdPlacementResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_DeleteAdPlacement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdPlacementResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_ToggleAdPlacement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleAdPlacementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleAdPlacementResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_ListAds: {
+        parameters: {
+            query?: {
+                placement_id?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_CreateAd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_UpdateAd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_DeleteAd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_ListAdClickLogs: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdClickLogsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_ToggleAd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleAdRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleAdResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_ListAdminArticles: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                state?: string;
+                author_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminArticlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_CreateAdminArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_GetAdminArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_UpdateAdminArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_DeleteAdminArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_UpdateAdminArticleState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminArticleStateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminArticleStateResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AuditService_ListAuditLogs: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                user_id?: string;
+                action?: string;
+                resource?: string;
+                result?: string;
+                start_time?: string;
+                end_time?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.audit.ListAuditLogsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AuditService_ExportAuditLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.audit.ExportAuditLogsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.audit.ExportAuditLogsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AuditService_GetAuditLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.audit.GetAuditLogResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_ListBanners: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListBannersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_CreateBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateBannerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_UpdateBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateBannerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_DeleteBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_ToggleBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleBannerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_ListAdminCategories: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminCategoriesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_CreateAdminCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_GetAdminCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_UpdateAdminCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_DeleteAdminCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCategoryService_PatchAdminCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.PatchAdminCategoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.PatchAdminCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminChannelService_ListAdminChannels: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminChannelsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminChannelService_CreateAdminChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminChannelService_GetAdminChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminChannelService_UpdateAdminChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminChannelService_DeleteAdminChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_ListAdminComments: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string;
+                media_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminCommentsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_BatchApproveComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.BatchApproveCommentsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.BatchApproveCommentsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_BatchRejectComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.BatchRejectCommentsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.BatchRejectCommentsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_GetCommentStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetCommentStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_GetAdminComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_ApproveComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ApproveCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ApproveCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_BlockComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.BlockCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.BlockCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_DismissCommentReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.DismissCommentReportsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DismissCommentReportsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_RejectComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RejectCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RejectCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_GetCommentReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetCommentReportsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminCommentService_UnblockComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UnblockCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UnblockCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_ListEncodeProfiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListEncodeProfilesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_CreateEncodeProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateEncodeProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateEncodeProfileResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_PreviewEncodeCommand: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.PreviewEncodeCommandRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.PreviewEncodeCommandResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_GetEncodeProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetEncodeProfileResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_DeleteEncodeProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteEncodeProfileResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    EncodingProfileService_UpdateEncodeProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                "profile.id": string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateEncodeProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateEncodeProfileResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_ListAdminMedias: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                state?: string;
+                review_status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminMediasResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     AdminService_BatchUpdateReviews: {
         parameters: {
             query?: never;
@@ -3190,6 +10322,1829 @@ export interface operations {
             };
         };
     };
+    AdminMediaService_GetTranscodingEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.TranscodingEvent"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_GetAdminMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_UpdateAdminMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_DeleteAdminMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_RegenerateSprite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_RegenerateThumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RegenerateThumbnailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RegenerateThumbnailResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_ReviewMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ReviewMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ReviewMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_GetMediaReviewLogs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaReviewLogsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_UpdateMediaState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateMediaStateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateMediaStateResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_GetMediaAdminStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaAdminStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_ListAdminMediaTasks: {
+        parameters: {
+            query?: {
+                status?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminMediaTasksResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_RetryAdminMediaTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RetryAdminMediaTaskRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RetryAdminMediaTaskResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_GetAdminMediaVariants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminMediaVariantsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_ListNavItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListNavItemsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_CreateNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateNavItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_ReorderNavItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ReorderNavItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ReorderNavItemsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_UpdateNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateNavItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_DeleteNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_ListOrders: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.ListOrdersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_GetOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.GetOrderResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_ListPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListPagesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_CreatePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreatePageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreatePageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_UpdatePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdatePageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdatePageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_DeletePage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeletePageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_ListGroups: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                is_active?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.ListGroupsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_CreateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.CreateGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.CreateGroupResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_ListGroupMembers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.ListGroupMembersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_AddGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.AddGroupMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.AddGroupMemberResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_RemoveGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_GetGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetGroupResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_UpdateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.UpdateGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.UpdateGroupResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_DeleteGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_ListPermissionGroupMembers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListPermissionGroupMembersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_AddPermissionGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.AddPermissionGroupMemberRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.AddPermissionGroupMemberResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_TogglePermissionGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.TogglePermissionGroupRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.TogglePermissionGroupResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminPlaylistService_ListAdminPlaylists: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                user_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminPlaylistsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminPlaylistService_CreateAdminPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminPlaylistRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminPlaylistService_GetAdminPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminPlaylistService_UpdateAdminPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminPlaylistRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminPlaylistService_DeleteAdminPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_ListBanners: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                is_active?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListBannersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_CreateBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.CreateBannerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.CreateBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_GetBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_UpdateBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.UpdateBannerRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.UpdateBannerResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_DeleteBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_ListCustomPages: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListCustomPagesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_CreateCustomPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.CreateCustomPageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.CreateCustomPageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_GetCustomPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetCustomPageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_UpdateCustomPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.UpdateCustomPageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.UpdateCustomPageResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_DeleteCustomPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_ListNavItems: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListNavItemsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_CreateNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.CreateNavItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.CreateNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_ReorderNavItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.ReorderNavItemsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ReorderNavItemsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_GetNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_UpdateNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.UpdateNavItemRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.UpdateNavItemResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalService_DeleteNavItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     AdminService_GetSettings: {
         parameters: {
             query?: never;
@@ -3252,6 +12207,163 @@ export interface operations {
             };
         };
     };
+    AdminService_GetSystemInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSystemInfoResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_GetSettingsByCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSettingsByCategoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_GetSettingByKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSettingByKeyResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_UpdateSettingByKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateSettingByKeyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateSettingByKeyResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_DeleteSettingByKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteSettingByKeyResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     AdminService_GetDashboardStats: {
         parameters: {
             query?: never;
@@ -3299,6 +12411,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.GetMediaStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminService_GetRevenueStats: {
+        parameters: {
+            query?: {
+                period?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetRevenueStatsResponse"];
                 };
             };
             /** @description Default error response */
@@ -3374,7 +12517,39 @@ export interface operations {
             };
         };
     };
-    UserService_ForgotPassword: {
+    PaymentService_ListSubscriptionPlans: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.ListSubscriptionPlansResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_CreateSubscriptionPlan: {
         parameters: {
             query?: never;
             header?: never;
@@ -3383,7 +12558,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["api.v1.services.user.ForgotPasswordRequest"];
+                "application/json": components["schemas"]["api.v1.services.billing.CreateSubscriptionPlanRequest"];
             };
         };
         responses: {
@@ -3393,7 +12568,1343 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.user.ForgotPasswordResponse"];
+                    "application/json": components["schemas"]["api.v1.services.billing.CreateSubscriptionPlanResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_GetSubscriptionPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.GetSubscriptionPlanResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_UpdateSubscriptionPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.billing.UpdateSubscriptionPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.UpdateSubscriptionPlanResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_DeleteSubscriptionPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_ListAdminTags: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminTagsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_CreateAdminTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminTagRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_BulkUpdateTags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.BulkUpdateTagsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.BulkUpdateTagsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_ImportTags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ImportTagsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ImportTagsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_GetAdminTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_UpdateAdminTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminTagRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_DeleteAdminTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_ListTenants: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.ListTenantsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_CreateTenant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.CreateTenantRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.CreateTenantResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_GetTenant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetTenantResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_UpdateTenant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.UpdateTenantRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.UpdateTenantResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_DeleteTenant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_ListAdminUsers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                status?: string;
+                role?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListAdminUsersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_CreateAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateAdminUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateAdminUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_GetAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_UpdateAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_DeleteAdminUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteAdminUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_GetAdminUserPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminUserPermissionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_UpdateAdminUserRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserRoleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminUserService_UpdateAdminUserStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserStatusRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateAdminUserStatusResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PermissionService_GetUserPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserPermissionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_ListWallets: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.ListWalletsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_GetWallet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.GetWalletResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_ListActiveAdsByPlacement: {
+        parameters: {
+            query?: {
+                slug?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListActiveAdsByPlacementResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_RecordAdClick: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RecordAdClickRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RecordAdClickResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdService_RecordAdImpression: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RecordAdImpressionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RecordAdImpressionResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_ListArticles: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                keyword?: string;
+                category_id?: string;
+                tag?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListArticlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_CreateArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_GetFeaturedArticles: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetFeaturedArticlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_GetLatestArticles: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetLatestArticlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_GetMyArticles: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMyArticlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_GetArticleBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetArticleBySlugResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_UpdateArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateArticleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_DeleteArticle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteArticleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ArticleService_UpdateArticleState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateArticleStateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateArticleStateResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetCurrentUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetCurrentUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_ChangePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.ChangePasswordResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_RefreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.RefreshTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.RefreshTokenResponse"];
                 };
             };
             /** @description Default error response */
@@ -3473,68 +13984,6 @@ export interface operations {
             };
         };
     };
-    UserService_GetCurrentUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.user.GetCurrentUserResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    UserService_RefreshToken: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.user.RefreshTokenRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.user.RefreshTokenResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
     UserService_Register: {
         parameters: {
             query?: never;
@@ -3555,39 +14004,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.RegisterResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    UserService_ResetPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.user.ResetPasswordRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.user.ResetPasswordResponse"];
                 };
             };
             /** @description Default error response */
@@ -3709,7 +14125,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -3740,7 +14156,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -3833,12 +14249,238 @@ export interface operations {
             };
         };
     };
+    ChannelService_GetChannelInvitations: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetChannelInvitationsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_AcceptChannelInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.AcceptChannelInvitationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.AcceptChannelInvitationResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_RejectChannelInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RejectChannelInvitationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RejectChannelInvitationResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_GetMyChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMyChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_UpdateMyChannelHandle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateMyChannelHandleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateMyChannelHandleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_ValidateChannelHandle: {
+        parameters: {
+            query?: {
+                handle?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ValidateChannelHandleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_GetChannelByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetChannelByTokenResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     ChannelService_UpdateChannel: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                "channel.id": string;
+                token: string;
             };
             cookie?: never;
         };
@@ -3868,15 +14510,12 @@ export interface operations {
             };
         };
     };
-    ChannelService_GetChannelMedias: {
+    ChannelService_DeleteChannel: {
         parameters: {
-            query?: {
-                page?: number;
-                page_size?: number;
-            };
+            query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -3888,7 +14527,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetChannelMediasResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteChannelResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_InviteUserToChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.InviteUserToChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.InviteUserToChannelResponse"];
                 };
             };
             /** @description Default error response */
@@ -3907,7 +14581,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -3942,7 +14616,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
                 media_id: string;
             };
             cookie?: never;
@@ -3969,6 +14643,75 @@ export interface operations {
             };
         };
     };
+    ChannelService_UpdateChannelNotification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateChannelNotificationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateChannelNotificationResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_GetChannelPlaylists: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetChannelPlaylistsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     ChannelService_GetChannelSubscribers: {
         parameters: {
             query?: {
@@ -3978,7 +14721,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -4009,7 +14752,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -4040,7 +14783,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -4075,7 +14818,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                channel_id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -4101,12 +14844,15 @@ export interface operations {
             };
         };
     };
-    ChannelService_GetChannel: {
+    ChannelService_GetChannelVideos: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
             header?: never;
             path: {
-                id: string;
+                token: string;
             };
             cookie?: never;
         };
@@ -4118,7 +14864,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetChannelResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.GetChannelVideosResponse"];
                 };
             };
             /** @description Default error response */
@@ -4132,16 +14878,18 @@ export interface operations {
             };
         };
     };
-    ChannelService_DeleteChannel: {
+    PaymentService_Checkout: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.billing.CheckoutRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -4149,7 +14897,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.DeleteChannelResponse"];
+                    "application/json": components["schemas"]["api.v1.services.billing.CheckoutResponse"];
                 };
             };
             /** @description Default error response */
@@ -4299,6 +15047,41 @@ export interface operations {
             };
         };
     };
+    ContentService_UpdateComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.UpdateCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.UpdateCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     CommentService_DeleteComment: {
         parameters: {
             query?: never;
@@ -4317,6 +15100,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.DeleteCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    CommentService_DislikeComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.DislikeCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DislikeCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_GetCommentLikes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetCommentLikesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    CommentService_LikeComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.LikeCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.LikeCommentResponse"];
                 };
             };
             /** @description Default error response */
@@ -4399,6 +15283,544 @@ export interface operations {
             };
         };
     };
+    CommentService_ReportComment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ReportCommentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ReportCommentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_GetPublicConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPublicConfigResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ExploreService_GetTrending: {
+        parameters: {
+            query?: {
+                period?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetTrendingResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    FeatureFlagService_GetFeatureFlags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetFeatureFlagsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    FeatureFlagService_UpdateFeatureFlag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateFeatureFlagRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateFeatureFlagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_GetFeed: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                category?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetFeedResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetInteractionsFavorites: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetInteractionsFavoritesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_ToggleInteractionFavorite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleInteractionFavoriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleInteractionFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_CheckFavorite: {
+        parameters: {
+            query?: {
+                media_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CheckFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetInteractionsFollowers: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetInteractionsFollowersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetFollowerCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetFollowerCountResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetInteractionsLikes: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetInteractionsLikesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_ToggleInteractionLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleInteractionLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleInteractionLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetLikeStatusBatch: {
+        parameters: {
+            query?: {
+                media_ids?: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetLikeStatusBatchResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_CreateInteractionShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateInteractionShareRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateInteractionShareResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetInteractionsSubscriptions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetInteractionsSubscriptionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    InteractionService_GetSubscriptionCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSubscriptionCountResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     UserService_GetMe: {
         parameters: {
             query?: never;
@@ -4461,6 +15883,38 @@ export interface operations {
             };
         };
     };
+    UserService_GetMyChannels: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetMyChannelsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     UserService_GetMyFavorites: {
         parameters: {
             query?: {
@@ -4493,7 +15947,38 @@ export interface operations {
             };
         };
     };
-    UserService_GetMyHistory: {
+    UserService_RemoveFavorite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.RemoveFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetMyFollowers: {
         parameters: {
             query?: {
                 page?: number;
@@ -4511,7 +15996,168 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetMyFollowersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetMyHistory: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                /** @description Filter by content type (optional). */
+                content_type?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["api.v1.services.user.GetMyHistoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_UpsertHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.UpsertHistoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.UpsertHistoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_ClearHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.ClearHistoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_SyncHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.SyncHistoryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.SyncHistoryResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_RemoveHistoryItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The history record ID to remove. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.RemoveHistoryItemResponse"];
                 };
             };
             /** @description Default error response */
@@ -4544,6 +16190,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.GetMyLikesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_ListNotifications: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                type?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListNotificationsResponse"];
                 };
             };
             /** @description Default error response */
@@ -4609,6 +16288,240 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.GetMyPlaylistsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_CreateMyPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateMyPlaylistRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateMyPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_DeleteMyPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteMyPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_UpdateMyPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateMyPlaylistRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateMyPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_AddMyPlaylistMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.AddMyPlaylistMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.AddMyPlaylistMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_ReorderMyPlaylistMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ReorderMyPlaylistMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ReorderMyPlaylistMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PlaylistService_RemoveMyPlaylistMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RemoveMyPlaylistMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_UpdateMySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.UpdateMySlugRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.UpdateMySlugResponse"];
                 };
             };
             /** @description Default error response */
@@ -4723,7 +16636,7 @@ export interface operations {
             };
         };
     };
-    MediaService_CreateMedia: {
+    MediaService_RetryEncodingTask: {
         parameters: {
             query?: never;
             header?: never;
@@ -4732,7 +16645,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["api.v1.services.media.CreateMediaRequest"];
+                "application/json": components["schemas"]["api.v1.services.media.RetryEncodingTaskRequest"];
             };
         };
         responses: {
@@ -4742,166 +16655,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.CreateMediaResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    EncodingProfileService_ListEncodeProfiles: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.ListEncodeProfilesResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    EncodingProfileService_CreateEncodeProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.CreateEncodeProfileRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.CreateEncodeProfileResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    EncodingProfileService_GetEncodeProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetEncodeProfileResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    EncodingProfileService_DeleteEncodeProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.DeleteEncodeProfileResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    EncodingProfileService_UpdateEncodeProfile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                "profile.id": string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.UpdateEncodeProfileRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.UpdateEncodeProfileResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.RetryEncodingTaskResponse"];
                 };
             };
             /** @description Default error response */
@@ -4948,41 +16702,7 @@ export interface operations {
             };
         };
     };
-    MediaService_GetEncodingStatus: {
-        parameters: {
-            query?: {
-                user_id?: string;
-                status?: string;
-                page?: number;
-                page_size?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetEncodingStatusResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_ListAllEncodingTasks: {
+    MediaService_EncodingTasks: {
         parameters: {
             query?: {
                 status?: string;
@@ -5016,18 +16736,17 @@ export interface operations {
             };
         };
     };
-    MediaService_UploadMedia: {
+    MediaService_ListFeaturedMedias: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.UploadMediaRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -5035,7 +16754,73 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.UploadMediaResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.ListFeaturedMediasResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ListLatestMedias: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListLatestMediasResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_TranscodingStatus: {
+        parameters: {
+            query?: {
+                user_id?: string;
+                status?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetEncodingStatusResponse"];
                 };
             };
             /** @description Default error response */
@@ -5080,6 +16865,41 @@ export interface operations {
             };
         };
     };
+    MediaService_UpdateMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     MediaService_DeleteMedia: {
         parameters: {
             query?: never;
@@ -5098,6 +16918,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.DeleteMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_ListMediaComments: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListMediaCommentsResponse"];
                 };
             };
             /** @description Default error response */
@@ -5142,6 +16996,716 @@ export interface operations {
             };
         };
     };
+    MediaService_ToggleMediaFavorite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_DeleteMediaFavorite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaFavorites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaFavoritesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ToggleMediaFavoriteCompat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_DeleteMediaFavoriteCompat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaFavoriteResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ToggleMediaLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_DeleteMediaLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaLikes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaLikesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ToggleMediaLikeCompat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_DeleteMediaLikeCompat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaMetadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaMetadataResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaAudioWaveform: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaAudioWaveformResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaKeyFrames: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaKeyFramesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_StartMetadataMining: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.StartMetadataMiningRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.StartMetadataMiningResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaSceneChanges: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSceneChangesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMetadataMiningStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMetadataMiningStatusResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaTextContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaTextContentResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ReportMedia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ReportMediaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ReportMediaResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaShares: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSharesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_CreateMediaShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateMediaShareRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateMediaShareResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaSpriteJPG: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSpriteJPGResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaSpriteVTT: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSpriteVTTResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     MediaService_GetMediaStream: {
         parameters: {
             query?: never;
@@ -5160,6 +17724,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.GetMediaStreamResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_GetMediaSubtitles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSubtitlesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_CreateMediaSubtitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CreateMediaSubtitleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CreateMediaSubtitleResponse"];
                 };
             };
             /** @description Default error response */
@@ -5270,18 +17900,18 @@ export interface operations {
             };
         };
     };
-    MediaService_UpdateMedia: {
+    ContentService_ToggleFavorite: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                "media.id": string;
+                media_id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["api.v1.services.media.UpdateMediaRequest"];
+                "application/json": components["schemas"]["api.v1.services.content.ToggleFavoriteRequest"];
             };
         };
         responses: {
@@ -5291,7 +17921,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.UpdateMediaResponse"];
+                    "application/json": components["schemas"]["api.v1.services.content.ToggleFavoriteResponse"];
                 };
             };
             /** @description Default error response */
@@ -5305,7 +17935,42 @@ export interface operations {
             };
         };
     };
-    MediaService_GetMediaComments: {
+    ContentService_ToggleLike: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                media_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.ToggleLikeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ToggleLikeResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_ListLikes: {
         parameters: {
             query?: {
                 page?: number;
@@ -5325,7 +17990,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaCommentsResponse"];
+                    "application/json": components["schemas"]["api.v1.services.content.ListLikesResponse"];
                 };
             };
             /** @description Default error response */
@@ -5339,12 +18004,136 @@ export interface operations {
             };
         };
     };
-    MediaService_GetMediaFavorites: {
+    ContentService_ListAllNotifications: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                type?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.ListAllNotificationsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_MarkAllNotificationsReadPost: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.content.MarkAllNotificationsReadPostRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.MarkAllNotificationsReadPostResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_MarkAllNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.MarkAllNotificationsReadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_GetUnreadNotificationCount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.content.GetUnreadNotificationCountResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ContentService_DeleteNotification: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                media_id: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -5356,7 +18145,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaFavoritesResponse"];
+                    "application/json": components["schemas"]["api.v1.services.content.DeleteNotificationResponse"];
                 };
             };
             /** @description Default error response */
@@ -5370,18 +18159,18 @@ export interface operations {
             };
         };
     };
-    MediaService_ToggleMediaFavorite: {
+    ContentService_MarkNotificationReadPost: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                media_id: string;
+                id: string;
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteRequest"];
+                "application/json": components["schemas"]["api.v1.services.content.MarkNotificationReadPostRequest"];
             };
         };
         responses: {
@@ -5391,7 +18180,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaFavoriteResponse"];
+                    "application/json": components["schemas"]["api.v1.services.content.MarkNotificationReadPostResponse"];
                 };
             };
             /** @description Default error response */
@@ -5405,12 +18194,12 @@ export interface operations {
             };
         };
     };
-    MediaService_DeleteMediaFavorite: {
+    ContentService_MarkNotificationRead: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                media_id: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -5422,7 +18211,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaFavoriteResponse"];
+                    "application/json": components["schemas"]["api.v1.services.content.MarkNotificationReadResponse"];
                 };
             };
             /** @description Default error response */
@@ -5436,12 +18225,12 @@ export interface operations {
             };
         };
     };
-    MediaService_GetMediaLikes: {
+    PortalManagementService_GetCustomPage: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                media_id: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -5453,7 +18242,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaLikesResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.GetCustomPageResponse"];
                 };
             };
             /** @description Default error response */
@@ -5467,48 +18256,11 @@ export interface operations {
             };
         };
     };
-    MediaService_ToggleMediaLike: {
+    PermissionService_ListPermissions: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.ToggleMediaLikeResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_DeleteMediaLike: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -5519,237 +18271,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.media.DeleteMediaLikeResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_GetMediaMetadata: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaMetadataResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_GetMediaShares: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSharesResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_CreateMediaShare: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.CreateMediaShareRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.CreateMediaShareResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_GetMediaSubtitles: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetMediaSubtitlesResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_CreateMediaSubtitle: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.CreateMediaSubtitleRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.CreateMediaSubtitleResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_ListEncodingTasks: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.ListEncodingTasksResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    MediaService_RetryEncodingTask: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                media_id: string;
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.RetryEncodingTaskRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.RetryEncodingTaskResponse"];
+                    "application/json": components["schemas"]["api.v1.services.media.ListPermissionsResponse"];
                 };
             };
             /** @description Default error response */
@@ -5817,37 +18339,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.CreatePlaylistResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    PlaylistService_GetPlaylist: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetPlaylistResponse"];
                 };
             };
             /** @description Default error response */
@@ -6029,6 +18520,66 @@ export interface operations {
             };
         };
     };
+    PlaylistService_GetPlaylist: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                short_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPlaylistResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PortalManagementService_GetPortalConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPortalConfigResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     PortalService_GetHomeContent: {
         parameters: {
             query?: {
@@ -6124,6 +18675,37 @@ export interface operations {
             };
         };
     };
+    ChannelService_ResolveHandle: {
+        parameters: {
+            query?: {
+                handle?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ResolveHandleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     SearchService_Search: {
         parameters: {
             query?: {
@@ -6177,6 +18759,433 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.GetSearchSuggestionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemStatsService_GetPublicDashboardStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPublicDashboardStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemStatsService_GetPublicMediaStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPublicMediaStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemStatsService_GetPublicUserStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPublicUserStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    ChannelService_GetSubscriptionVideos: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSubscriptionVideosResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_ListSubtitleLanguages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListSubtitleLanguagesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_DeleteSubtitle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.DeleteSubtitleResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_GetChannelLimits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetChannelLimitsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_GetSystemSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSystemSettingsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_UpdateSystemSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UpdateSystemSettingsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UpdateSystemSettingsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_GetEmailStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetEmailStatusResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemConfigService_TestEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.TestEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.TestEmailResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_GetStorageCapabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetStorageCapabilitiesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_GetSystemSettingByKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetSystemSettingByKeyResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    SystemSettingsService_ResetSystemSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.ResetSystemSettingRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ResetSystemSettingResponse"];
                 };
             };
             /** @description Default error response */
@@ -6263,7 +19272,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -6294,7 +19303,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                slug: string;
             };
             cookie?: never;
         };
@@ -6325,7 +19334,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                "tag.id": string;
+                "tag.slug": string;
             };
             cookie?: never;
         };
@@ -6342,6 +19351,367 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.UpdateTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TenantService_GetCurrentTenant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetCurrentTenantResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_UploadFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UploadFileRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UploadFileResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_InitiateMultipartUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.InitiateMultipartUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.InitiateMultipartUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_GetUploadSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetUploadSessionResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_AbortMultipartUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.AbortMultipartUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.AbortMultipartUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_CompleteMultipartUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.CompleteMultipartUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.CompleteMultipartUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_UploadPart: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.UploadPartRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.UploadPartResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_ListParts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListPartsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_ListUploadSessions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListUploadSessionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_SimpleUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.SimpleUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.SimpleUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_InitiateMultipartUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.upload.InitiateMultipartUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.upload.InitiateMultipartUploadResponse"];
                 };
             };
             /** @description Default error response */
@@ -6391,72 +19761,6 @@ export interface operations {
             };
         };
     };
-    UploadService_UploadFile: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.upload.UploadFileRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.upload.UploadFileResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    UploadService_InitiateMultipartUpload: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.upload.InitiateMultipartUploadRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.upload.InitiateMultipartUploadResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
     UploadService_GetUploadSession: {
         parameters: {
             query?: never;
@@ -6489,6 +19793,39 @@ export interface operations {
             };
         };
     };
+    UploadService_SimpleUpload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.upload.SimpleUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.upload.SimpleUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     UploadService_AbortMultipartUpload: {
         parameters: {
             query?: never;
@@ -6499,7 +19836,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.upload.AbortMultipartUploadRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -6544,6 +19885,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.upload.CompleteMultipartUploadResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UploadService_UpdateMetadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Upload session ID */
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.upload.UpdateMetadataRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.upload.UpdateMetadataResponse"];
                 };
             };
             /** @description Default error response */
@@ -6627,21 +20004,10 @@ export interface operations {
             };
         };
     };
-    UserService_ListUsers: {
+    UserService_GetUserByUsername: {
         parameters: {
             query?: {
-                /** @description The page number. */
-                page?: number;
-                /** @description The maximum number of items to return. */
-                page_size?: number;
-                /** @description The next_page_token value returned from a previous List request, if any. */
-                page_token?: string;
-                /** @description Filter by keyword (username, email, phone, nickname) */
-                keyword?: string;
-                /** @description Filter by status */
-                status?: number;
-                /** @description Whether to include roles in the response. */
-                with_roles?: boolean;
+                username?: string;
             };
             header?: never;
             path?: never;
@@ -6655,7 +20021,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.user.ListUsersResponse"];
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserByUsernameResponse"];
                 };
             };
             /** @description Default error response */
@@ -6735,19 +20101,11 @@ export interface operations {
             };
         };
     };
-    UserService_GetUser: {
+    UserService_GetUserBySlug: {
         parameters: {
-            query?: {
-                /** @description Whether to include roles in the response. */
-                with_roles?: boolean;
-                /** @description Whether to include profile in the response. */
-                with_profile?: boolean;
-                /** @description Whether to include setting in the response. */
-                with_setting?: boolean;
-            };
+            query?: never;
             header?: never;
             path: {
-                /** @description The field will contain id of the resource requested. */
                 id: string;
             };
             cookie?: never;
@@ -6760,7 +20118,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.user.GetUserResponse"];
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserBySlugResponse"];
                 };
             };
             /** @description Default error response */
@@ -6827,6 +20185,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.GetUserFollowersResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetUserLikes: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserLikesResponse"];
                 };
             };
             /** @description Default error response */
@@ -7045,6 +20437,137 @@ export interface operations {
             };
         };
     };
+    UserService_SubscribeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.user.SubscribeUserRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.SubscribeUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_UnsubscribeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.UnsubscribeUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetUserSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserSubscriptionResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_GetUserSubscriptions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserSubscriptionsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     UserService_UpdateUser: {
         parameters: {
             query?: never;
@@ -7067,6 +20590,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.UpdateUserResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    PaymentService_HandleWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.billing.HandleWebhookRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.billing.HandleWebhookResponse"];
                 };
             };
             /** @description Default error response */

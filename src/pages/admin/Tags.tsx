@@ -63,15 +63,28 @@ const Tags: React.FC = () => {
 
     useEffect(() => {
         loadTags();
-    }, [searchParams.page]);
+    }, [searchParams.page, sortBy]);
 
     const loadTags = async (params = searchParams) => {
         setLoading(true);
         setError(null);
         try {
-            const apiParams: any = {page: params.page, page_size: params.page_size};
+            const apiParams: Record<string, string | number> = {page: params.page, page_size: params.page_size};
             if (params.search) {
                 apiParams.search = params.search;
+            }
+            // Map sortBy to API params
+            const sortMap: Record<SortKey, { sort_by: string; sort_order: string }> = {
+                latest: {sort_by: 'create_time', sort_order: 'desc'},
+                oldest: {sort_by: 'create_time', sort_order: 'asc'},
+                name_asc: {sort_by: 'title', sort_order: 'asc'},
+                name_desc: {sort_by: 'title', sort_order: 'desc'},
+                count_desc: {sort_by: 'media_count', sort_order: 'desc'},
+            };
+            const sort = sortMap[sortBy];
+            if (sort) {
+                apiParams.sort_by = sort.sort_by;
+                apiParams.sort_order = sort.sort_order;
             }
             const response = await adminTagApi.list(apiParams);
             const tagList = Array.isArray(response?.items) ? response.items : [];

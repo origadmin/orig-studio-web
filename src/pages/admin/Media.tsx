@@ -80,15 +80,18 @@ export default function MediaPage() {
     const [variantData, setVariantData] = useState<MediaVariantSummary | null>(null);
     const [retryingAllId, setRetryingAllId] = useState<string | number | null>(null);
 
-    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', type: '', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
 
     const [total, setTotal] = useState(0);
 
     // React Query Hooks
-    const {data: mediaData, isLoading: loading, refetch: loadMedia} = useAdminMediaList(searchParams);
+    const {data: mediaData, isLoading: loading, error, refetch: loadMedia} = useAdminMediaList({
+        ...searchParams,
+        tags: searchParams.tags ? searchParams.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
+    });
     const deleteMutation = useDeleteMedia();
 
-    const mediaList = mediaData?.items || (Array.isArray(mediaData) ? mediaData : []) as Media[];
+    const mediaList = (mediaData?.items || (Array.isArray(mediaData) ? mediaData : [])) as Media[];
 
     React.useEffect(() => {
         if (mediaData?.total !== undefined) {
@@ -170,8 +173,8 @@ export default function MediaPage() {
 
     // Stats
     const totalAssets = total || mediaList.length;
-    const activeTranscodes = mediaList.filter(m => m.encoding_status === 'processing').length;
-    const failedTasks = mediaList.filter(m => m.encoding_status === 'failed').length;
+    const activeTranscodes = mediaList.filter((m: Media) => m.encoding_status === 'processing').length;
+    const failedTasks = mediaList.filter((m: Media) => m.encoding_status === 'failed').length;
 
     // Pagination
     const totalPages = Math.ceil(total / searchParams.page_size);
@@ -412,8 +415,8 @@ export default function MediaPage() {
                         </SelectContent>
                     </Select>
                     <Select
-                        value="all"
-                        onValueChange={() => {}}
+                        value={searchParams.type || 'all'}
+                        onValueChange={(value) => setSearchParams({...searchParams, type: value === 'all' ? '' : value, page: 1})}
                     >
                         <SelectTrigger className="w-[160px]">
                             <SelectValue/>
@@ -425,10 +428,16 @@ export default function MediaPage() {
                             <SelectItem value="audio">Audio</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Input
+                        placeholder={t('admin.filterByTags', 'Filter by tags (comma separated)')}
+                        value={searchParams.tags}
+                        onChange={(e) => setSearchParams({...searchParams, tags: e.target.value, page: 1})}
+                        className="w-[200px]"
+                    />
                     <Button
                         variant="outline"
                         onClick={() => {
-                            setSearchParams({keyword: '', state: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+                            setSearchParams({keyword: '', state: '', type: '', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
                             loadMedia();
                         }}
                     >
@@ -463,6 +472,16 @@ export default function MediaPage() {
                                     <Loader2 className="w-6 h-6 text-slate-300 animate-spin mx-auto"/>
                                 </TableCell>
                             </TableRow>
+                        ) : error ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="px-6 py-16 text-center">
+                                    <p className="text-sm text-destructive mb-3">{t('admin.loadFailed', 'Failed to load media')}</p>
+                                    <Button variant="outline" onClick={() => loadMedia()}>
+                                        <RotateCcw className="w-3.5 h-3.5"/>
+                                        {t('admin.retry', 'Retry')}
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
                         ) : mediaList.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="px-6 py-16 text-center">
@@ -481,7 +500,7 @@ export default function MediaPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            mediaList.map((media) => {
+                            mediaList.map((media: Media) => {
                                 const isFailed = media.encoding_status === 'failed';
                                 return (
                                     <TableRow

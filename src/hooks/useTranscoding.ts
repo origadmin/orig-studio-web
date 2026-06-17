@@ -52,14 +52,15 @@ export function useTranscoding(mediaId?: string): {
 
     const connect = useCallback(() => {
         if (!mountedRef.current) return;
-        if (!mediaId) {
+        // undefined = disabled; "" = global subscription; "uuid" = specific media
+        if (mediaId === undefined) {
             disconnect();
             return;
         }
 
         disconnect();
 
-        const sseUrl = mediaApi.getSSEUrl(mediaId);
+        const sseUrl = mediaApi.getSSEUrl(mediaId || undefined);
         const eventSource = new EventSource(sseUrl);
         eventSourceRef.current = eventSource;
 

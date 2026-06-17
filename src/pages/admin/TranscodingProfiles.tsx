@@ -84,13 +84,16 @@ export default function TranscodingProfiles() {
     // Available filter options
     const availableCodecs = useMemo(() => {
         const set = new Set<string>();
-        profiles.forEach(p => set.add(p.video_codec));
+        profiles.forEach(p => {
+            if (p.video_codec) set.add(p.video_codec);
+        });
         return Array.from(set);
     }, [profiles]);
 
     const availableResolutions = useMemo(() => {
         const set = new Set<string>();
         profiles.forEach(p => {
+            if (!p.resolution) return;
             const height = p.resolution.split('x')[1] || p.resolution;
             if (height) set.add(height);
         });
@@ -771,9 +774,9 @@ export default function TranscodingProfiles() {
                                     <SelectValue placeholder="Select video codec" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="h264">H.264</SelectItem>
-                                    <SelectItem value="h265">H.265/HEVC</SelectItem>
-                                    <SelectItem value="vp9">VP9</SelectItem>
+                                    <SelectItem value="libx264">libx264 (H.264)</SelectItem>
+                                    <SelectItem value="libx265">libx265 (H.265/HEVC)</SelectItem>
+                                    <SelectItem value="libvpx-vp9">libvpx-vp9 (VP9)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

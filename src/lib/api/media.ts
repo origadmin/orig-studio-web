@@ -404,7 +404,7 @@ export interface ShareResponse {
 }
 
 // ==================== Encoding Module ====================
-// NOTE: 后端路径 /api/v1/admin/encoding/* (有 admin 前缀)
+// NOTE: 后端路径 /api/v1/medias/encoding/* (proto 生成路由)
 export const encodingApi = {
     // 获取转码事件流（SSE）
     // 后端端点已移至 admin 路由组: /api/v1/admin/medias/transcoding/events
@@ -428,18 +428,16 @@ export const encodingApi = {
         profile?: string;
         chunk?: string;
         search?: string;
-    }) => api.get<EncodingTaskListResponse>('/admin/encoding/tasks', params as Record<string, unknown>),
+    }) => api.get<EncodingTaskListResponse>('/medias/encoding/tasks', params as Record<string, unknown>),
 
     // 重试单个任务
     retryTask: (taskId: string) => {
-        return api.post<{ message: string; task: any }>(`/admin/encoding/tasks/${taskId}/retry`);
+        return api.post<{ message: string; task: any }>('/medias/encoding/retry', { task_id: taskId });
     },
 
     // 重试所有失败任务
     retryAllFailed: (mediaId?: string) => {
-        return api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-failed', null, {
-            params: {media_id: mediaId}
-        });
+        return api.post<{ message: string; retried_count: number }>('/medias/encoding/retry-all-failed', { media_id: mediaId });
     },
 
     // 编码配置管理
@@ -593,7 +591,7 @@ export const mediaApi = {
         status?: string;
         page?: number;
         page_size?: number;
-    }) => api.get<TranscodingStatusResponse>("/encoding/status", params as Record<string, unknown>),
+    }) => api.get<TranscodingStatusResponse>("/medias/transcoding/status", params as Record<string, unknown>),
 
     // 获取转码事件流（SSE）
     // 后端端点已移至 admin 路由组: /api/v1/admin/medias/transcoding/events
@@ -687,21 +685,17 @@ export const legacyMediaApi = {
         page?: number;
         page_size?: number;
         media_id?: number;
-    }) => api.get<EncodingTaskListResponse>("/admin/encoding/tasks", params as Record<string, unknown>),
+    }) => api.get<EncodingTaskListResponse>("/medias/encoding/tasks", params as Record<string, unknown>),
     /** @deprecated 使用 adminMediaApi.getTasks(id) 代替。此方法使用不存在的 public 路径 */
     listTasks: (mediaId: number) => api.get<{ tasks: EncodingTask[] }>(`/admin/medias/${mediaId}/tasks`),
     /** @deprecated 使用 encodingApi.retryAllFailed(mediaId) 或 adminMediaApi.retryTask(id, taskId) 代替 */
     retryTranscode: (mediaId: number) =>
-        api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-failed', null, {
-            params: {media_id: mediaId}
-        }),
+        api.post<{ message: string; retried_count: number }>('/medias/encoding/retry-all-failed', { media_id: String(mediaId) }),
     retryTask: (taskId: string) => {
-        return api.post<{ message: string; task: any }>(`/admin/encoding/tasks/${taskId}/retry`);
+        return api.post<{ message: string; task: any }>('/medias/encoding/retry', { task_id: taskId });
     },
     retryAllFailed: (mediaId: number) => {
-        return api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-failed', null, {
-            params: {media_id: mediaId}
-        });
+        return api.post<{ message: string; retried_count: number }>('/medias/encoding/retry-all-failed', { media_id: String(mediaId) });
     },
     /** @deprecated 使用 adminMediaApi.getVariants(id) 代替。此方法使用不存在的 public 路径 */
     getVariants: (mediaId: number) =>
@@ -923,7 +917,7 @@ export const adminMediaApi = {
 
     // 获取编码任务列表
     getTasks: (id: string) =>
-        api.get<{ tasks: EncodingTask[] }>(`/admin/medias/${id}/tasks`),
+        api.get<{ items: EncodingTask[]; total: number }>(`/admin/medias/${id}/tasks`),
 
     // 重试编码任务
     retryTask: (id: string, taskId: string) =>
