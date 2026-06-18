@@ -3,6 +3,7 @@ import {Outlet} from '@tanstack/react-router';
 import Header from '@/components/portal/Header';
 import Sidebar from '@/components/portal/Sidebar';
 import CategoryChips from '@/components/portal/CategoryChips';
+import Footer from '@/components/portal/Footer';
 import {useTheme} from '@/themes';
 
 const PortalLayout = () => {
@@ -29,7 +30,7 @@ const PortalLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background transition-colors">
+        <div className="min-h-screen bg-background transition-colors flex flex-col">
             <Header
                 onToggleSidebar={toggleSidebar}
                 sidebarCollapsed={sidebarCollapsed}
@@ -45,7 +46,7 @@ const PortalLayout = () => {
             />
 
             <main
-                className="pt-14 min-h-screen transition-all duration-300 bg-background relative z-10"
+                className="pt-14 min-h-screen transition-all duration-300 bg-background relative z-10 flex-1"
                 style={{
                     marginLeft: isDesktop ? (sidebarCollapsed ? 72 : 240) : 0
                 }}
@@ -53,6 +54,7 @@ const PortalLayout = () => {
                 <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
                     <Outlet/>
                 </div>
+                <Footer/>
             </main>
         </div>
     );

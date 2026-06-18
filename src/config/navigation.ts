@@ -12,6 +12,10 @@ import {
     Tv,
     CreditCard,
     Shield,
+    Compass,
+    Tags,
+    LayoutGrid,
+    Upload,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -24,6 +28,26 @@ export const NAV_CONFIG: NavSection[] = [
             {id: 'featured', label: 'nav.featured', to: '/featured', icon: Star, module: 'videos'},
             {id: 'latest', label: 'nav.latest', to: '/latest', icon: Clock, module: 'videos'},
             {id: 'live', label: 'nav.live', to: '/live', icon: Radio, module: 'live'},
+        ],
+    },
+    {
+        id: 'discover',
+        title: 'nav.discover',
+        items: [
+            {id: 'channels', label: 'nav.channels', to: '/explore', icon: Tv, module: 'videos'},
+            {id: 'categories', label: 'nav.categories', to: '/categories', icon: LayoutGrid},
+            {id: 'tags', label: 'nav.tags', to: '/tags', icon: Tags},
+            {id: 'explore', label: 'nav.explore', to: '/explore', icon: Compass},
+        ],
+    },
+    {
+        id: 'create',
+        title: 'nav.create',
+        requiresAuth: true,
+        items: [
+            {id: 'upload', label: 'nav.upload', to: '/me/upload', icon: Upload, module: 'videos'},
+            {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
+            {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
         ],
     },
     {
@@ -46,8 +70,6 @@ export const NAV_CONFIG: NavSection[] = [
         requiresAuth: true,
         items: [
             {id: 'my-profile', label: 'nav.myProfile', to: '/@__dynamic__', icon: UserCircle, isDynamic: true},
-            {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
-            {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
             {id: 'my-articles', label: 'nav.myArticles', to: '/me/articles', icon: FileText, module: 'articles'},
             {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
             {id: 'history', label: 'nav.history', to: '/me/history', icon: History},

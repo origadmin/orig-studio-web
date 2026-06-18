@@ -1,16 +1,15 @@
 import React from 'react';
 import {Link, useLocation} from '@tanstack/react-router';
-import {usePortalConfig} from '@/hooks/queries';
-import {ChevronRight} from 'lucide-react';
+import {useCategoryList} from '@/hooks/queries';
 
 const CategoryChips: React.FC = () => {
-    const {data: config} = usePortalConfig();
+    const {data: categories} = useCategoryList();
     const location = useLocation();
     const pathname = location.pathname;
 
-    const categories = config?.categories ?? [];
+    const items = categories ?? [];
 
-    if (categories.length === 0) return null;
+    if (items.length === 0) return null;
 
     const isActive = (slug: string) => pathname === `/c/${slug}` || pathname === `/categories`;
 
@@ -27,7 +26,7 @@ const CategoryChips: React.FC = () => {
                 >
                     All
                 </Link>
-                {categories.map((cat) => (
+                {items.map((cat: any) => (
                     <Link
                         key={cat.id}
                         to="/c/$id"

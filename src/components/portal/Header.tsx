@@ -15,7 +15,6 @@ import {
     Heart,
     Shield,
     ChevronDown,
-    Plus,
     Sun,
     Moon,
     FileText,
@@ -286,12 +285,12 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                             </Link>
                             )}
 
-                            {/* 上传按钮 */}
+                            {/* 上传按钮 - primary style */}
                             <Link
                                 to="/me/upload"
-                                className="hidden sm:flex items-center gap-1.5 h-10 px-3.5 text-sm font-medium text-muted-foreground hover:bg-accent rounded-full transition-colors"
+                                className="hidden sm:flex items-center gap-1.5 h-10 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors"
                             >
-                                <Plus size={16}/>
+                                <Upload size={16}/>
                                 <span className="hidden lg:inline">{t('nav.upload')}</span>
                             </Link>
 
