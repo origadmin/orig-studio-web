@@ -60,10 +60,13 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
 
     const navSections: NavSection[] = useMemo(() => [
         {
+            // Core video business features (always visible - primary focus)
+            header: t('admin.sectionCore', 'Core'),
             items: [
                 {id: "dashboard", icon: LayoutDashboard, label: t('admin.dashboard'), path: "/admin"},
                 {id: "media", icon: Film, label: t('admin.media'), path: "/admin/media"},
-                {id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"},
+                {id: "transcoding-profiles", icon: Cpu, label: t('admin.transcodingProfiles', 'Transcoding'), path: "/admin/transcoding/profiles"},
+                {id: "transcoding-status", icon: Activity, label: t('admin.transcodingStatus', 'Transcoding Status'), path: "/admin/transcoding/status"},
             ],
         },
         {
@@ -74,11 +77,21 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             ],
         },
         {
+            header: t('admin.sectionContent', 'Content'),
+            items: [
+                ...(featureFlags.playlists ? [{id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"}] : []),
+                {id: "categories", icon: FolderTree, label: t('admin.categories'), path: "/admin/categories"},
+                {id: "tags", icon: Tags, label: t('admin.tags'), path: "/admin/tags"},
+                ...(featureFlags.comments ? [{id: "comments", icon: MessageSquare, label: t('admin.comments'), path: "/admin/comments"}] : []),
+                ...(featureFlags.articles ? [{id: "articles", icon: FileText, label: t('admin.articles'), path: "/admin/articles"}] : []),
+            ],
+        },
+        {
             header: t('admin.sectionSecurity', 'Security & Access'),
             items: [
                 ...(featureFlags.drm ? [{id: "drm", icon: Shield, label: t('admin.drm', 'DRM Management'), path: "/admin/drm"}] : []),
-                {id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"},
-                {id: "permissions", icon: Key, label: t('admin.permissions', 'Permissions'), path: "/admin/permissions"},
+                ...(featureFlags.users ? [{id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"}] : []),
+                ...(featureFlags.permissions ? [{id: "permissions", icon: Key, label: t('admin.permissions', 'Permissions'), path: "/admin/permissions"}] : []),
             ],
         },
         {
@@ -90,20 +103,9 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             ],
         },
         {
-            header: t('admin.sectionContent', 'Content'),
-            items: [
-                {id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"},
-                {id: "categories", icon: FolderTree, label: t('admin.categories'), path: "/admin/categories"},
-                {id: "tags", icon: Tags, label: t('admin.tags'), path: "/admin/tags"},
-                {id: "comments", icon: MessageSquare, label: t('admin.comments'), path: "/admin/comments"},
-            ],
-        },
-        {
             header: t('admin.sectionSystem', 'System'),
             items: [
-                {id: "transcoding-profiles", icon: Cpu, label: t('admin.transcodingProfiles', 'Transcoding'), path: "/admin/transcoding/profiles"},
-                {id: "transcoding-status", icon: Activity, label: t('admin.transcodingStatus', 'Transcoding Status'), path: "/admin/transcoding/status"},
-                {id: "notifications", icon: Bell, label: t('admin.notifications', 'Notifications'), path: "/admin/notifications"},
+                ...(featureFlags.notifications ? [{id: "notifications", icon: Bell, label: t('admin.notifications', 'Notifications'), path: "/admin/notifications"}] : []),
                 {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
             ],
         },

@@ -35,6 +35,20 @@ import {
     Film,
     ShieldAlert,
     BookOpen,
+    Upload,
+    Radio,
+    FolderTree,
+    Tags,
+    MessageSquare,
+    PlayCircle,
+    Key,
+    Bell,
+    Tv2,
+    CreditCard,
+    Megaphone,
+    Target,
+    Cpu,
+    Users,
 } from 'lucide-react';
 import {settingsApi, type GroupedSettings} from '@/lib/api/system';
 import {api} from '@/lib/request';
@@ -99,6 +113,18 @@ interface FormData {
     module_videos: boolean;
     module_music: boolean;
     homepage_layout: string;
+    // Feature flags for admin menu visibility
+    feature_articles: boolean;
+    feature_comments: boolean;
+    feature_playlists: boolean;
+    feature_users: boolean;
+    feature_permissions: boolean;
+    feature_notifications: boolean;
+    feature_drm: boolean;
+    feature_live_rooms: boolean;
+    feature_payment: boolean;
+    feature_promotion: boolean;
+    feature_ads: boolean;
 }
 
 interface SystemInfo {
@@ -172,6 +198,18 @@ const defaultFormData: FormData = {
     module_videos: true,
     module_music: false,
     homepage_layout: 'auto',
+    // Feature flags - secondary features enabled by default
+    feature_articles: true,
+    feature_comments: true,
+    feature_playlists: true,
+    feature_users: true,
+    feature_permissions: true,
+    feature_notifications: true,
+    feature_drm: true,
+    feature_live_rooms: true,
+    feature_payment: true,
+    feature_promotion: true,
+    feature_ads: true,
 };
 
 const tabs = [
@@ -181,6 +219,7 @@ const tabs = [
     {id: 'email', label: 'Email'},
     {id: 'security', label: 'Security'},
     {id: 'modules', label: 'Modules'},
+    {id: 'features', label: 'Features'},
     {id: 'system', label: 'System'},
 ];
 
@@ -295,6 +334,18 @@ const Settings: React.FC = () => {
                     module_videos: getSettingValue('module_videos') === 'true',
                     module_music: getSettingValue('module_music') === 'true',
                     homepage_layout: getSettingValue('homepage_layout') || prev.homepage_layout,
+                    // Feature flags
+                    feature_articles: getSettingValue('feature_articles') !== 'false',
+                    feature_comments: getSettingValue('feature_comments') !== 'false',
+                    feature_playlists: getSettingValue('feature_playlists') !== 'false',
+                    feature_users: getSettingValue('feature_users') !== 'false',
+                    feature_permissions: getSettingValue('feature_permissions') !== 'false',
+                    feature_notifications: getSettingValue('feature_notifications') !== 'false',
+                    feature_drm: getSettingValue('feature_drm') !== 'false',
+                    feature_live_rooms: getSettingValue('feature_live_rooms') !== 'false',
+                    feature_payment: getSettingValue('feature_payment') !== 'false',
+                    feature_promotion: getSettingValue('feature_promotion') !== 'false',
+                    feature_ads: getSettingValue('feature_ads') !== 'false',
                 }));
             }
         } catch (error) {
@@ -436,6 +487,18 @@ const Settings: React.FC = () => {
                 {key: 'module_videos', value: String(formData.module_videos)},
                 {key: 'module_music', value: String(formData.module_music)},
                 {key: 'homepage_layout', value: formData.homepage_layout},
+                // Feature flags
+                {key: 'feature_articles', value: String(formData.feature_articles)},
+                {key: 'feature_comments', value: String(formData.feature_comments)},
+                {key: 'feature_playlists', value: String(formData.feature_playlists)},
+                {key: 'feature_users', value: String(formData.feature_users)},
+                {key: 'feature_permissions', value: String(formData.feature_permissions)},
+                {key: 'feature_notifications', value: String(formData.feature_notifications)},
+                {key: 'feature_drm', value: String(formData.feature_drm)},
+                {key: 'feature_live_rooms', value: String(formData.feature_live_rooms)},
+                {key: 'feature_payment', value: String(formData.feature_payment)},
+                {key: 'feature_promotion', value: String(formData.feature_promotion)},
+                {key: 'feature_ads', value: String(formData.feature_ads)},
             ];
             await settingsApi.update({settings});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
@@ -1409,6 +1472,112 @@ const Settings: React.FC = () => {
                                     </CardContent>
                                 </Card>
                             </div>
+                        </div>
+                    </TabsContent>
+
+                    {/* ===== Tab: Features ===== */}
+                    <TabsContent value="features">
+                        <div className="space-y-6">
+                            {/* Core Features Info */}
+                            <Card className="border-primary/20 bg-primary/5">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <ShieldCheck className="w-5 h-5 text-primary"/>
+                                        Core Features (Always Enabled)
+                                    </CardTitle>
+                                    <CardDescription>
+                                        These features represent the primary video business focus and cannot be disabled.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {[
+                                            {name: 'Upload', icon: Upload, desc: 'Multipart upload'},
+                                            {name: 'Transcoding', icon: Cpu, desc: 'Video encoding'},
+                                            {name: 'Media Browse', icon: Film, desc: 'Media library'},
+                                            {name: 'Channels', icon: Radio, desc: 'Channel management'},
+                                            {name: 'Categories', icon: FolderTree, desc: 'Content categories'},
+                                            {name: 'Tags', icon: Tags, desc: 'Content tagging'},
+                                        ].map((feature) => (
+                                            <div key={feature.name} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
+                                                <feature.icon className="w-4 h-4 text-primary flex-shrink-0"/>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-semibold text-foreground">{feature.name}</p>
+                                                    <p className="text-[10px] text-muted-foreground truncate">{feature.desc}</p>
+                                                </div>
+                                                <Badge variant="soft-success" className="ml-auto">Active</Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Secondary Features Toggle */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Secondary Features</CardTitle>
+                                    <CardDescription>
+                                        Toggle to show or hide admin menu items. Disabled features remain accessible via direct URL but are hidden from navigation.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {[
+                                        {key: 'feature_articles' as const, name: 'Articles', desc: 'Blog & article system', icon: FileText},
+                                        {key: 'feature_comments' as const, name: 'Comments', desc: 'Comment moderation', icon: MessageSquare},
+                                        {key: 'feature_playlists' as const, name: 'Playlists', desc: 'Playlist management', icon: PlayCircle},
+                                        {key: 'feature_users' as const, name: 'Users', desc: 'User management', icon: Users},
+                                        {key: 'feature_permissions' as const, name: 'Permissions', desc: 'Role & permission management', icon: Key},
+                                        {key: 'feature_notifications' as const, name: 'Notifications', desc: 'System notifications', icon: Bell},
+                                    ].map((feature) => (
+                                        <div key={feature.key} className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
+                                            <div className="flex items-center gap-3">
+                                                <feature.icon className="w-5 h-5 text-muted-foreground"/>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-foreground">{feature.name}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-mono uppercase">{feature.desc}</p>
+                                                </div>
+                                            </div>
+                                            <Switch
+                                                checked={formData[feature.key]}
+                                                onCheckedChange={(checked) => setFormData(prev => ({...prev, [feature.key]: checked}))}
+                                            />
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+
+                            {/* Enterprise Features Toggle */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Enterprise Features</CardTitle>
+                                    <CardDescription>
+                                        EE-only features. Disable to simplify the admin interface for CE-only deployments.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {[
+                                        {key: 'feature_drm' as const, name: 'DRM Management', desc: 'Digital rights management', icon: Shield},
+                                        {key: 'feature_live_rooms' as const, name: 'Live Rooms', desc: 'Live streaming rooms', icon: Tv2},
+                                        {key: 'feature_payment' as const, name: 'Payment', desc: 'Payment & subscription', icon: CreditCard},
+                                        {key: 'feature_promotion' as const, name: 'Promotion', desc: 'Promotion campaigns', icon: Megaphone},
+                                        {key: 'feature_ads' as const, name: 'Ads', desc: 'Advertisement management', icon: Target},
+                                    ].map((feature) => (
+                                        <div key={feature.key} className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
+                                            <div className="flex items-center gap-3">
+                                                <feature.icon className="w-5 h-5 text-muted-foreground"/>
+                                                <div>
+                                                    <p className="text-sm font-semibold text-foreground">{feature.name}</p>
+                                                    <p className="text-[10px] text-muted-foreground font-mono uppercase">{feature.desc}</p>
+                                                </div>
+                                            </div>
+                                            <Switch
+                                                checked={formData[feature.key]}
+                                                onCheckedChange={(checked) => setFormData(prev => ({...prev, [feature.key]: checked}))}
+                                            />
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
                         </div>
                     </TabsContent>
 
