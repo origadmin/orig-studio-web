@@ -64,6 +64,10 @@ function StatusBadge({status}: { status: string }) {
             label: "Skipped",
             className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
         },
+        partial: {
+            label: "Partial",
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
+        },
         failed: {
             label: "Failed",
             className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"

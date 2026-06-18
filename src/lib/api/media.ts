@@ -407,7 +407,7 @@ export interface ShareResponse {
 // NOTE: 后端路径 /api/v1/medias/encoding/* (proto 生成路由)
 export const encodingApi = {
     // 获取转码事件流（SSE）
-    // 后端端点已移至 admin 路由组: /api/v1/admin/medias/transcoding/events
+    // 后端公共端点: /api/v1/medias/transcoding/events
     // EventSource 不支持自定义 header，因此通过 query parameter 传递 JWT token
     getSSEUrl: (mediaId?: string) => {
         const token = getAccessToken();
@@ -415,7 +415,7 @@ export const encodingApi = {
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", mediaId);
         const qs = params.toString();
-        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 
     // 获取所有转码任务（扁平列表）
@@ -571,21 +571,6 @@ export const mediaApi = {
     stream: (token: number | string) => api.get<{ stream_url: string }>(`/medias/${token}/stream`),
     getThumbnail: (token: number | string) => api.get<{ thumbnail_url: string }>(`/medias/${token}/thumbnail`),
 
-    // 转码相关（单个媒体，使用 short_token）
-    encoding: {
-        /** @deprecated 使用 adminMediaApi.getTasks(id) 代替。此方法使用不存在的 public 路径 /medias/${token}/tasks，后端仅有 /admin/medias/:id/tasks */
-        getTasks: (token: number | string) =>
-            api.get<{ tasks: EncodingTask[] }>(`/medias/${token}/tasks`),
-
-        /** @deprecated 使用 adminMediaApi.getVariants(id) 代替。此方法使用不存在的 public 路径 /medias/${token}/variants，后端仅有 /admin/medias/:id/variants */
-        getVariants: (token: number | string) =>
-            api.get<MediaVariantSummary>(`/medias/${token}/variants`),
-
-        /** @deprecated 使用 encodingApi.retryAllFailed(token) 或 adminMediaApi.retryTask(id, taskId) 代替。此方法使用不存在的 public 路径，且 :taskId 为字面量未替换 */
-        retry: (token: number | string) =>
-            api.post<{ message: string; media_id: number }>(`/medias/${token}/tasks/:taskId/retry`),
-    },
-
     // 旧版转码状态（兼容）
     getTranscodingStatus: (params?: {
         status?: string;
@@ -594,7 +579,7 @@ export const mediaApi = {
     }) => api.get<TranscodingStatusResponse>("/medias/transcoding/status", params as Record<string, unknown>),
 
     // 获取转码事件流（SSE）
-    // 后端端点已移至 admin 路由组: /api/v1/admin/medias/transcoding/events
+    // 后端公共端点: /api/v1/medias/transcoding/events
     // EventSource 不支持自定义 header，因此通过 query parameter 传递 JWT token
     getSSEUrl: (mediaId?: string) => {
         const token = getAccessToken();
@@ -602,7 +587,7 @@ export const mediaApi = {
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", mediaId);
         const qs = params.toString();
-        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 
     // ==================== 点赞/点踩 API (使用 short_token) ====================
@@ -702,13 +687,13 @@ export const legacyMediaApi = {
         api.get<MediaVariantSummary>(`/admin/medias/${mediaId}/variants`),
     /** @deprecated 使用 encodingApi.getSSEUrl() 代替 */
     getSSEUrl: (mediaId?: number) => {
-        // 后端端点已移至 admin 路由组: /api/v1/admin/medias/transcoding/events
+        // 后端公共端点: /api/v1/medias/transcoding/events
         const token = getAccessToken();
         const params = new URLSearchParams();
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", String(mediaId));
         const qs = params.toString();
-        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 };
 
