@@ -203,10 +203,10 @@ export default function MediaPage() {
         };
         const c = type ? config[type] : undefined;
         if (!c) {
-            return <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">{type || t('common.unknown', '未知')}</span>;
+            return <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">{type || t('common.unknown', '未知')}</span>;
         }
         return (
-            <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase", c.bg, c.text)}>
+            <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", c.bg, c.text)}>
                 {t(c.key, c.label)}
             </span>
         );

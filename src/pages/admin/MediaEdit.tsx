@@ -18,7 +18,7 @@ import {Separator} from '@/components/ui/separator';
 import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
+import {EditPageHeader, type HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
@@ -85,13 +85,32 @@ const TYPE_I18N_KEYS: Record<string, string> = {
     document: 'admin.document',
 };
 
-const STATE_TO_STATUS_DOT: Record<string, StatusDotStatus> = {
-    active: 'success',
-    published: 'success',
-    draft: 'draft',
-    deleted: 'deleted',
-    pending: 'pending',
-};
+function getComprehensiveStatus(media: Media): StatusDotStatus {
+    const enc = media.encoding_status;
+    const st = media.state;
+    if (enc === 'failed') return 'failed';
+    if (enc === 'processing') return 'processing';
+    if (enc === 'pending') return 'pending';
+    if (enc === 'partial') return 'partial';
+    if (enc === 'success' || st === 'active') return 'success';
+    if (st === 'draft') return 'draft';
+    if (st === 'deleted') return 'deleted';
+    return 'unknown';
+}
+
+function getStatusLabel(media: Media, t: TFunction): string {
+    const status = getComprehensiveStatus(media);
+    switch (status) {
+        case 'success': return t('common.status.success', 'Published');
+        case 'processing': return t('common.status.processing', 'Processing');
+        case 'pending': return t('common.status.pending', 'Queued');
+        case 'failed': return t('common.status.failed', 'Failed');
+        case 'partial': return t('common.status.partial', 'Partial');
+        case 'draft': return t('common.status.draft', 'Draft');
+        case 'deleted': return t('common.status.deleted', 'Deleted');
+        default: return t('common.unknown', 'Unknown');
+    }
+}
 
 interface StatusPillConfig {
     bg: string;
@@ -105,47 +124,47 @@ function getLifecyclePill(state?: string): StatusPillConfig {
     switch (state) {
         case 'active':
         case 'published':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.lifecycleActive', fallback: 'ACTIVE'};
+            return {bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', labelKey: 'mediaEdit.lifecycleActive', fallback: 'ACTIVE'};
         case 'draft':
-            return {bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', labelKey: 'mediaEdit.lifecycleDraft', fallback: 'DRAFT'};
+            return {bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border', labelKey: 'mediaEdit.lifecycleDraft', fallback: 'DRAFT'};
         case 'deleted':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.lifecycleDeleted', fallback: 'DELETED'};
+            return {bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', labelKey: 'mediaEdit.lifecycleDeleted', fallback: 'DELETED'};
         default:
-            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
+            return {bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
     }
 }
 
 function getReviewPill(status?: string): StatusPillConfig {
     switch (status) {
         case 'approved':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.reviewApproved', fallback: 'APPROVED'};
+            return {bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', labelKey: 'mediaEdit.reviewApproved', fallback: 'APPROVED'};
         case 'rejected':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.reviewRejected', fallback: 'REJECTED'};
+            return {bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', labelKey: 'mediaEdit.reviewRejected', fallback: 'REJECTED'};
         case 'pending':
         default:
-            return {bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', labelKey: 'mediaEdit.reviewPending', fallback: 'PENDING'};
+            return {bg: 'bg-info/10', text: 'text-info', border: 'border-info/30', labelKey: 'mediaEdit.reviewPending', fallback: 'PENDING'};
     }
 }
 
 function getEncodingPill(status?: string): StatusPillConfig {
     switch (status) {
         case 'success':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.encodingSuccess', fallback: 'SUCCESS'};
+            return {bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', labelKey: 'mediaEdit.encodingSuccess', fallback: 'SUCCESS'};
         case 'processing':
-            return {bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', labelKey: 'mediaEdit.encodingProcessing', fallback: 'PROCESSING'};
+            return {bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/30', labelKey: 'mediaEdit.encodingProcessing', fallback: 'PROCESSING'};
         case 'failed':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.encodingFailed', fallback: 'FAILED'};
+            return {bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', labelKey: 'mediaEdit.encodingFailed', fallback: 'FAILED'};
         case 'partial':
-            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'mediaEdit.encodingPartial', fallback: 'PARTIAL'};
+            return {bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', labelKey: 'mediaEdit.encodingPartial', fallback: 'PARTIAL'};
         case 'pending':
-            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'mediaEdit.encodingPending', fallback: 'QUEUED'};
+            return {bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', labelKey: 'mediaEdit.encodingPending', fallback: 'QUEUED'};
         default:
-            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'IDLE'};
+            return {bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border', labelKey: 'common.unknown', fallback: 'IDLE'};
     }
 }
 
 const IDLE_PILL: StatusPillConfig = {
-    bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'mediaEdit.spritesIdle', fallback: 'IDLE',
+    bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border', labelKey: 'mediaEdit.spritesIdle', fallback: 'IDLE',
 };
 
 function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[] {
@@ -161,8 +180,8 @@ function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[]
         });
     }
 
-    const statusDot = STATE_TO_STATUS_DOT[media.state] || 'unknown';
-    const stateLabel = t(`common.status.${media.state}`, media.state || t('common.unknown', 'Unknown'));
+    const statusDot = getComprehensiveStatus(media);
+    const stateLabel = getStatusLabel(media, t);
     badges.push({
         type: 'state',
         statusDot,
@@ -179,15 +198,6 @@ function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[]
     }
 
     return badges;
-}
-
-/**
- * Map encoding_status string to EncodingStatusConfig
- */
-function mapEncodingStatus(status: string | undefined): EncodingStatusConfig | undefined {
-    const validStatuses = ['success', 'processing', 'pending', 'failed'];
-    if (!status || !validStatuses.includes(status)) return undefined;
-    return {status: status as EncodingStatusConfig['status']};
 }
 
 export default function MediaEditPage() {
@@ -385,9 +395,8 @@ export default function MediaEditPage() {
         }
     };
 
-    // Compute header badges and encoding status from media
+    // Compute header badges from media
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, t) : [], [media, t]);
-    const encodingConfig = useMemo(() => media ? mapEncodingStatus(media.encoding_status) : undefined, [media]);
 
     const encodingStatusDot = (status: string | undefined): StatusDotStatus => {
         switch (status) {
@@ -495,7 +504,6 @@ export default function MediaEditPage() {
                 onPreview={media.short_token ? handlePreview : undefined}
                 onDelete={() => setDeleteDialogOpen(true)}
                 badges={headerBadges}
-                encodingStatus={encodingConfig}
             />
 
             <div className="max-w-[1440px] mx-auto px-6 py-6">
@@ -994,25 +1002,25 @@ export default function MediaEditPage() {
                                             <>
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", lc.bg, lc.text, lc.border)}>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", lc.bg, lc.text, lc.border)}>
                                                         {t(lc.labelKey, lc.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', 'Review')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", rv.bg, rv.text, rv.border)}>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", rv.bg, rv.text, rv.border)}>
                                                         {t(rv.labelKey, rv.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', 'Encoding')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", enc.bg, enc.text, enc.border)}>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", enc.bg, enc.text, enc.border)}>
                                                         {t(enc.labelKey, enc.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprites', 'Sprites')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", idle.bg, idle.text, idle.border)}>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", idle.bg, idle.text, idle.border)}>
                                                         {t(idle.labelKey, idle.fallback)}
                                                     </span>
                                                 </div>
