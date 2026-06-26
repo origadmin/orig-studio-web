@@ -246,7 +246,7 @@ const Pages: React.FC = () => {
                             <div className="space-y-2">
                                 <Label>{t('admin.pages.form.type', 'Type')}</Label>
                                 <select
-                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    className="w-full h-9 rounded-input border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     value={form.type}
                                     onChange={e => setForm(prev => ({...prev, type: e.target.value as any}))}
                                 >
@@ -258,7 +258,7 @@ const Pages: React.FC = () => {
                             <div className="space-y-2">
                                 <Label>{t('admin.pages.form.format', 'Content Format')}</Label>
                                 <select
-                                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    className="w-full h-9 rounded-input border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                     value={form.content_format}
                                     onChange={e => setForm(prev => ({...prev, content_format: e.target.value as any}))}
                                 >

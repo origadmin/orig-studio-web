@@ -475,7 +475,7 @@ export default function MediaEditPage() {
                                 <div className="mt-6">
                                     <Label htmlFor="description" className="text-xs text-muted-foreground block mb-2 uppercase font-bold tracking-wider">{t('mediaEdit.description', '描述')}</Label>
                                     <textarea id="description"
-                                              className="w-full bg-card border border-border rounded-lg p-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none min-h-[80px]"
+                                              className="w-full bg-card border border-input rounded-input p-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none min-h-[80px]"
                                               value={form.description}
                                               onChange={e => setForm({...form, description: e.target.value})}
                                               placeholder={t('mediaEdit.descriptionPlaceholder', '添加关于这个媒体文件的详细描述...')}/>
@@ -808,7 +808,7 @@ export default function MediaEditPage() {
                                         <div className="space-y-1 lg:col-span-2">
                                             <Label className="text-[11px] font-bold uppercase">文件 (VTT/SRT)</Label>
                                             <div className="flex gap-2">
-                                                <Input type="file" className="flex-1 bg-card border border-border rounded-lg p-2 text-sm text-[11px]"/>
+                                                <Input type="file" className="flex-1 bg-card border border-input rounded-input text-sm text-[11px]"/>
                                                 <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold shrink-0">
                                                     上传
                                                 </Button>
@@ -990,7 +990,7 @@ export default function MediaEditPage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <textarea className="w-full bg-muted border border-border rounded-lg p-2 text-xs min-h-[50px] resize-none" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}></textarea>
+                                <textarea className="w-full bg-muted border border-input rounded-input p-2 text-xs min-h-[50px] resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}></textarea>
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button className="py-2 bg-green-600 text-white rounded-lg font-bold text-[11px] hover:bg-green-700">
                                         {t('mediaEdit.approve', '通过')}

@@ -450,14 +450,14 @@ const KeysTab: React.FC = () => {
                     <div className="relative w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
-                            className="w-full pl-10 pr-4 py-2 bg-background rounded-lg border border-border focus:border-primary focus:ring-0 text-sm"
+                            className="w-full pl-9"
                             placeholder={t('admin.searchKeys', 'Search keys by Asset ID...')}
                             type="text"
                         />
                     </div>
                     <div className="flex gap-2">
                         <Select value={selectedPolicy} onValueChange={v => setSelectedPolicy(v)}>
-                            <SelectTrigger className="h-9 w-[180px] bg-background border border-border rounded-lg text-sm text-foreground">
+                            <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder={t('admin.selectDrmPolicy', 'Select Policy')}/>
                             </SelectTrigger>
                             <SelectContent>

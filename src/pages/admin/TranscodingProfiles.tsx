@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  */
 
@@ -332,16 +332,16 @@ export default function TranscodingProfiles() {
             <div className="mb-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                         <Input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={t('admin.searchProfiles', 'Search profiles...')}
-                            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all"
+                            className="w-full pl-9"
                         />
                     </div>
                     <Select value={codecFilter} onValueChange={setCodecFilter}>
-                        <SelectTrigger className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer w-[160px]">
+                        <SelectTrigger className="w-[160px]">
                             <SelectValue placeholder={t('admin.allCodecs', 'All Codecs')}/>
                         </SelectTrigger>
                         <SelectContent>
@@ -352,7 +352,7 @@ export default function TranscodingProfiles() {
                         </SelectContent>
                     </Select>
                     <Select value={resolutionFilter} onValueChange={setResolutionFilter}>
-                        <SelectTrigger className="h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none cursor-pointer w-[170px]">
+                        <SelectTrigger className="w-[170px]">
                             <SelectValue placeholder={t('admin.allResolutions', 'All Resolutions')}/>
                         </SelectTrigger>
                         <SelectContent>
