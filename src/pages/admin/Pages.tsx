@@ -133,12 +133,12 @@ const Pages: React.FC = () => {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.pages.title', 'Custom Pages')}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.pages', '自定义页面')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>

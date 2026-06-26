@@ -31,6 +31,7 @@ import {Select, SelectTrigger, SelectContent, SelectItem, SelectValue} from '@/c
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter} from '@/components/ui/dialog';
+import {getFullUrl} from '@/lib/utils';
 
 const Playlists: React.FC = () => {
     const {t} = useTranslation();
@@ -180,12 +181,12 @@ const Playlists: React.FC = () => {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.playlists') || 'Playlists'}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.playlists', '播放列表')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -386,7 +387,7 @@ const Playlists: React.FC = () => {
                                                         <img
                                                             alt={playlist.title}
                                                             className="w-full h-full object-cover"
-                                                            src={thumbnail}
+                                                            src={getFullUrl(thumbnail)}
                                                         />
                                                     ) : (
                                                         <ImageIcon className="w-4 h-4 text-indigo-400"/>
@@ -471,7 +472,7 @@ const Playlists: React.FC = () => {
                 {total > 0 && (
                     <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
-                            {t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}
+                            {t('admin.showingItems', {start: startItem, end: endItem, total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
                         </p>
                         <div className="flex items-center gap-1">
                             <Button

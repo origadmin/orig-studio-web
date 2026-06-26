@@ -209,12 +209,12 @@ const AdminNotifications: React.FC = () => {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.notifications', 'Notifications')}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.notifications', '通知管理')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>

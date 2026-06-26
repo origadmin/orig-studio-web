@@ -285,12 +285,12 @@ const Categories: React.FC = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+              <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator/>
           <BreadcrumbItem>
-            <BreadcrumbPage>{t('admin.categories') || 'Categories'}</BreadcrumbPage>
+            <BreadcrumbPage>{t('admin.breadcrumb.categories', '分类')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -302,18 +302,17 @@ const Categories: React.FC = () => {
           </div>
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground">
-              {t('admin.categoriesManagement') || t('admin.categories') || 'Categories Management'}
+              {t('admin.categoriesManagement', '分类管理')}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {t('admin.manageCategoriesDesc') ||
-                'Manage hierarchical content categories with parent-child relationships.'}
+              {t('admin.manageCategoriesDesc', '管理具有父子关系的分层内容分类。')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Button onClick={openCreateDialog}>
             <Plus className="w-4 h-4" />
-            {t('admin.newCategory') || 'New Category'}
+            {t('admin.newCategory', '新建分类')}
           </Button>
         </div>
       </div>
@@ -325,7 +324,7 @@ const Categories: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.totalCategories') || 'Total Categories'}
+                  {t('admin.totalCategories', '总分类数')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.total}
@@ -342,14 +341,14 @@ const Categories: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.active') || 'Active'}
+                  {t('admin.active', '活跃')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.active}
                 </h3>
                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                   <CheckCircle className="w-3 h-3" />
-                  {activeCapacityPct}% {t('admin.capacity') || 'capacity'}
+                  {activeCapacityPct}% {t('admin.capacity', '使用率')}
                 </p>
               </div>
               <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
@@ -363,7 +362,7 @@ const Categories: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.maxDepth') || 'Max Depth'}
+                  {t('admin.maxDepth', '最大层级')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {maxDepth + 1}
@@ -401,7 +400,7 @@ const Categories: React.FC = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               className="pl-9"
-              placeholder={t('admin.searchCategories') || 'Search categories...'}
+              placeholder={t('admin.searchCategories', '搜索分类...')}
               type="text"
               value={searchKeyword}
               onChange={(e) => setSearchKeyword(e.target.value)}

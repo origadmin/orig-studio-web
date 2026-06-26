@@ -574,12 +574,12 @@ const Settings: React.FC = () => {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>System Settings</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.settings', '系统设置')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>

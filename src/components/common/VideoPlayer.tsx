@@ -176,8 +176,16 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         const lower = src.toLowerCase();
         if (lower.endsWith('.webm') || lower.endsWith('.ogg') || lower.endsWith('.ogv')) return true;
         if (lower.endsWith('.mp4') || lower.endsWith('.mov')) {
-            return typeof HTMLVideoElement !== 'undefined' &&
-                HTMLVideoElement.prototype.canPlayType('video/mp4; codecs="avc1.42E01E,mp4a.40.2"') !== '';
+            // Must call canPlayType on an actual video element instance, not on
+            // HTMLVideoElement.prototype — calling on the prototype throws
+            // "TypeError: Illegal invocation" in Chrome because the native
+            // method checks that `this` is a real media element.
+            try {
+                const probe = document.createElement('video');
+                return probe.canPlayType('video/mp4; codecs="avc1.42E01E,mp4a.40.2"') !== '';
+            } catch {
+                return true;
+            }
         }
         return false;
     }, []);
@@ -291,7 +299,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
 
                 // Auto play if requested
                 if (autoPlay) {
-                    video.play().catch(console.error);
+                    video.play().catch((err) => console.error('Play failed:', err));
                 }
             });
 
@@ -354,7 +362,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // `waiting`/`playing` events — no manual setIsBuffering needed.
                 if (wasPlayingBeforeQualitySwitch.current) {
                     wasPlayingBeforeQualitySwitch.current = false;
-                    video.play().catch(console.error);
+                    video.play().catch((err) => console.error('Play failed:', err));
                 }
             });
 
@@ -369,12 +377,12 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         } else if (video.canPlayType('application/vnd.apple.mpegurl') && fullHlsSrc) {
             video.src = fullHlsSrc;
             if (autoPlay) {
-                video.play().catch(console.error);
+                video.play().catch((err) => console.error('Play failed:', err));
             }
         } else if (fullSrc && canPlayOriginal(src)) {
             video.src = fullSrc;
             if (autoPlay) {
-                video.play().catch(console.error);
+                video.play().catch((err) => console.error('Play failed:', err));
             }
         } else if (fullSrc && !canPlayOriginal(src)) {
             setHasError(true);

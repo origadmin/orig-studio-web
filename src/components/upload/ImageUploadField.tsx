@@ -3,7 +3,7 @@ import {Upload, X, Image as ImageIcon} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {cn} from '@/lib/utils';
+import {cn, getFullUrl} from '@/lib/utils';
 import {mediaApi} from '@/lib/api/media';
 import {useTranslation} from 'react-i18next';
 
@@ -66,7 +66,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                 {value && (
                     <div
                         className="relative w-full h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group">
-                        <img src={value} alt="" className="w-full h-full object-cover"/>
+                        <img src={getFullUrl(value)} alt="" className="w-full h-full object-cover"/>
                         <Button
                             variant="ghost"
                             size="icon-sm"

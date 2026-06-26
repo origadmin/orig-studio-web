@@ -8,7 +8,7 @@ import {useParams} from '@tanstack/react-router';
 import {articleApi, type Article} from '@/lib/api/article';
 import {publicMediaApi, type Media} from '@/lib/api/media';
 import {userApi, type User as AuthorUser} from '@/lib/api/user';
-import {API_BASE_URL} from '@/lib/request';
+import {getFullUrl} from '@/lib/utils';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
@@ -17,13 +17,6 @@ import {AlertTriangle, Eye, Clock, ArrowLeft} from 'lucide-react';
 import {formatDate, formatViews} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import VideoPlayer from '@/components/common/VideoPlayer';
-
-function resolveMediaUrl(url: string | undefined): string | undefined {
-    if (!url) return undefined;
-    if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    const base = API_BASE_URL || '';
-    return `${base}/${url.replace(/^\//, '')}`;
-}
 
 function renderMarkdown(content: string): string {
     let html = content
@@ -96,10 +89,10 @@ export default function ArticleViewPage() {
         return renderMarkdown(article.content);
     }, [article?.content]);
 
-    const displayThumbnail = resolveMediaUrl(article?.thumbnail || article?.media?.thumbnail);
+    const displayThumbnail = getFullUrl(article?.thumbnail || article?.media?.thumbnail);
 
     const authorName = author?.nickname || author?.username || (article?.user_id ? `User ${String(article.user_id).substring(0, 8)}` : 'Unknown');
-    const authorAvatar = author?.avatar ? resolveMediaUrl(author.avatar) : undefined;
+    const authorAvatar = author?.avatar ? getFullUrl(author.avatar) : undefined;
     const authorBio = author?.bio || '';
 
     if (loading) {
@@ -199,7 +192,7 @@ export default function ArticleViewPage() {
                             <VideoPlayer
                                 src={media.url || ''}
                                 hlsSrc={media.hls_file}
-                                poster={resolveMediaUrl(media.poster || media.thumbnail)}
+                                poster={getFullUrl(media.poster || media.thumbnail)}
                                 isProcessing={isProcessing}
                             />
                         </div>

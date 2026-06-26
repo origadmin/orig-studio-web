@@ -44,12 +44,12 @@ export default function DRMPage() {
                     <BreadcrumbList>
                         <BreadcrumbItem>
                             <BreadcrumbLink asChild>
-                                <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                                <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator/>
                         <BreadcrumbItem>
-                            <BreadcrumbPage>{t('admin.drmManagement', 'DRM Management')}</BreadcrumbPage>
+                            <BreadcrumbPage>{t('admin.breadcrumb.drm', 'DRM管理')}</BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
@@ -669,7 +669,7 @@ const LicensesTab: React.FC = () => {
                     </Table>
                     {total > 20 && (
                         <div className="px-6 py-4 border-t border-border flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, total)} of {total} items</p>
+                            <p className="text-xs text-muted-foreground">{t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}</p>
                             <div className="flex items-center gap-1">
                                 <Button variant="outline" size="icon" className="h-8 w-8" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
                                     <ChevronLeft size={16}/>

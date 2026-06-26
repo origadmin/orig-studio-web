@@ -1,13 +1,12 @@
-/*
+﻿/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  * 管理端 - 媒体管理页面
  */
 
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Link} from '@tanstack/react-router';
 import {useLocation, useNavigate} from '@tanstack/react-router';
-import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
+import {AdminPageTemplate} from '@/components/AdminPageTemplate';
 import {
     Play,
     Trash2,
@@ -56,9 +55,9 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import {encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
-import {API_BASE_URL} from '@/lib/request';
 import {useAdminMediaList, useDeleteMedia} from '@/hooks/queries';
 import {UploadComponent} from '@/components/upload/UploadComponent';
+import {getFullUrl} from '@/lib/utils';
 import {formatFileSize, formatDateTime} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 
@@ -117,6 +116,12 @@ export default function MediaPage() {
         return count.toString();
     };
 
+    const handleViewClick = (media: Media) => {
+        if (media.short_token) {
+            window.open(`/watch?v=${media.short_token}`, '_blank');
+        }
+    };
+
     const handleEditClick = (media: Media) => {
         navigate({to: '/admin/media/$id', params: {id: String(media.id)}});
     };
@@ -163,12 +168,8 @@ export default function MediaPage() {
         }
     };
 
-    // Helper: resolve preview image URL
     const resolvePreview = (path?: string) => {
-        if (!path) return "";
-        if (path.startsWith("http")) return path;
-        const base = API_BASE_URL;
-        return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+        return getFullUrl(path) || '';
     };
 
     // Stats
@@ -182,50 +183,57 @@ export default function MediaPage() {
     const endItem = Math.min(searchParams.page * searchParams.page_size, total);
 
     // Unified status badge — mirrors the prototype's single Status column.
-    // Priority: encoding failures → processing → success/published → draft → deleted → fallback
+    // Priority: encoding failures → processing → queued → success/published → draft → deleted → fallback
     const unifiedStatusBadge = (media: Media) => {
         const enc = media.encoding_status;
         const st = media.state;
 
         if (enc === 'failed') {
             return (
-                <Badge variant="soft-danger">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.failedStatus', 'Failed')}
+                <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 shrink-0 inline-block"></span>{t('admin.failedStatus', '转码失败')}
                 </Badge>
             );
         }
         if (enc === 'processing') {
             return (
-                <Badge variant="soft-warning">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>{t('admin.processing', 'Processing')}
+                <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1 shrink-0 inline-block"></span>{t('admin.transcoding', '转码中')}
+                </Badge>
+            );
+        }
+        if (enc === 'pending') {
+            return (
+                <Badge variant="soft-info" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mr-1 shrink-0 inline-block"></span>{t('admin.queuedStatus', '队列中')}
                 </Badge>
             );
         }
         if (enc === 'success' || st === 'active') {
             return (
-                <Badge variant="soft-success">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{t('admin.publishedStatus', 'Published')}
+                <Badge variant="soft-success" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 shrink-0 inline-block"></span>{t('admin.publishedStatus', '已发布')}
                 </Badge>
             );
         }
-        if (st === 'draft' || enc === 'pending') {
+        if (st === 'draft') {
             return (
-                <Badge variant="soft-neutral">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>{t('admin.draftStatus', 'Draft')}
+                <Badge variant="soft-neutral" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1 shrink-0 inline-block"></span>{t('admin.draftStatus', '草稿')}
                 </Badge>
             );
         }
         if (st === 'deleted') {
             return (
-                <Badge variant="soft-danger">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.deletedStatus', 'Deleted')}
+                <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 shrink-0 inline-block"></span>{t('admin.deletedStatus', '已删除')}
                 </Badge>
             );
         }
         if (enc === 'partial') {
             return (
-                <Badge variant="soft-warning">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{t('admin.partialComplete', 'Partial')}
+                <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 shrink-0 inline-block"></span>{t('admin.partialComplete', '部分完成')}
                 </Badge>
             );
         }
@@ -237,32 +245,32 @@ export default function MediaPage() {
         switch (status) {
             case 'success':
                 return (
-                    <Badge variant="soft-success">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>{t('admin.complete', 'Complete')}
+                    <Badge variant="soft-success" className="text-xs whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 inline-block"></span>{t('admin.complete', '完成')}
                     </Badge>
                 );
             case 'processing':
                 return (
-                    <Badge variant="soft-warning">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>{t('admin.processing', 'Processing')}
+                    <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1 inline-block"></span>{t('admin.transcoding', '转码中')}
                     </Badge>
                 );
             case 'pending':
                 return (
-                    <Badge variant="soft-info">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>{t('admin.queued', 'Queued')}
+                    <Badge variant="soft-info" className="text-xs whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mr-1 inline-block"></span>{t('admin.queuedStatus', '队列中')}
                     </Badge>
                 );
             case 'failed':
                 return (
-                    <Badge variant="soft-danger">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>{t('admin.failed', 'Failed')}
+                    <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 inline-block"></span>{t('admin.failed', '失败')}
                     </Badge>
                 );
             case 'partial':
                 return (
-                    <Badge variant="soft-warning">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>{t('admin.partialComplete', 'Partial')}
+                    <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 inline-block"></span>{t('admin.partialComplete', '部分完成')}
                     </Badge>
                 );
             default:
@@ -274,195 +282,161 @@ export default function MediaPage() {
     const typeBadge = (type?: string) => {
         switch (type) {
             case 'video':
-                return <Badge variant="soft-primary" className="rounded text-[10px] font-bold uppercase">Video</Badge>;
+                return <Badge variant="soft-primary" className="rounded text-[10px] font-bold">{t('admin.video', '视频')}</Badge>;
             case 'image':
-                return <Badge variant="soft-success" className="rounded text-[10px] font-bold uppercase">Image</Badge>;
+                return <Badge variant="soft-success" className="rounded text-[10px] font-bold">{t('admin.image', '图片')}</Badge>;
             case 'audio':
-                return <Badge variant="soft-info" className="rounded text-[10px] font-bold uppercase">Audio</Badge>;
+                return <Badge variant="soft-info" className="rounded text-[10px] font-bold">{t('admin.audio', '音频')}</Badge>;
             default:
-                return <Badge variant="soft-neutral" className="rounded text-[10px] font-bold uppercase">{type || 'Unknown'}</Badge>;
+                return <Badge variant="soft-neutral" className="rounded text-[10px] font-bold">{type || t('common.unknown', '未知')}</Badge>;
         }
     };
 
-    return (
-        <div className="p-8">
-            <Breadcrumb className="mb-4">
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator/>
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.mediaManagement', 'Media Library')}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-            {/* Page Title Area */}
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.mediaManagement', 'Media Library')}</h2>
-                    <p className="text-sm text-muted-foreground mt-1">{t('admin.mediaManagementDesc', 'Manage video, audio, and image assets across the network.')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        onClick={() => setUploadDialogOpen(true)}
-                    >
-                        <Plus className="w-4 h-4"/>
-                        {t('admin.uploadMedia', 'Upload')}
-                    </Button>
-                </div>
-            </div>
+    const pageActions = (
+        <Button
+            onClick={() => setUploadDialogOpen(true)}
+        >
+            <Plus className="w-4 h-4"/>
+            {t('admin.uploadMedia', '上传媒体')}
+        </Button>
+    );
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                {/* Total Assets */}
-                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalAssets', 'Total Assets')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{totalAssets}</h3>
-                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3"/>
-                                    {t('admin.assetsGrowth', '+12% vs last month')}
-                                </p>
-                            </div>
-                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <Film className="w-5 h-5"/>
-                            </div>
+    const pageFilters = (
+        <>
+            <Select
+                value={searchParams.state || 'all'}
+                onValueChange={(value) => setSearchParams({...searchParams, state: value === 'all' ? '' : value, page: 1})}
+            >
+                <SelectTrigger className="w-[160px]">
+                    <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t('admin.allStatus', '全部状态')}</SelectItem>
+                    <SelectItem value="active">{t('admin.publishedStatus', '已发布')}</SelectItem>
+                    <SelectItem value="draft">{t('admin.draftStatus', '草稿')}</SelectItem>
+                    <SelectItem value="deleted">{t('admin.deletedStatus', '已删除')}</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select
+                value={searchParams.type || 'all'}
+                onValueChange={(value) => setSearchParams({...searchParams, type: value === 'all' ? '' : value, page: 1})}
+            >
+                <SelectTrigger className="w-[160px]">
+                    <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t('admin.allTypes', '类型: 全部')}</SelectItem>
+                    <SelectItem value="video">{t('admin.video', '视频')}</SelectItem>
+                    <SelectItem value="image">{t('admin.image', '图片')}</SelectItem>
+                    <SelectItem value="audio">{t('admin.audio', '音频')}</SelectItem>
+                </SelectContent>
+            </Select>
+            <Input
+                placeholder={t('admin.filterByTags', '按标签筛选（逗号分隔）')}
+                value={searchParams.tags}
+                onChange={(e) => setSearchParams({...searchParams, tags: e.target.value, page: 1})}
+                className="w-[200px]"
+            />
+            <Button
+                variant="outline"
+                onClick={() => {
+                    setSearchParams({keyword: '', state: '', type: '', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+                    loadMedia();
+                }}
+            >
+                <RotateCcw className="w-3.5 h-3.5"/>
+                {t('admin.reset', '重置')}
+            </Button>
+        </>
+    );
+
+    const pageStats = (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalAssets', '媒体总数')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{totalAssets}</h3>
                         </div>
-                    </CardContent>
-                </Card>
-
-                {/* Active Transcodes */}
-                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', 'Active Transcodes')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{activeTranscodes}</h3>
-                                <p className="text-xs font-semibold text-muted-foreground mt-2">{t('admin.nodesOnline', '6 nodes online')}</p>
-                            </div>
-                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <Cpu className="w-5 h-5"/>
-                            </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Film className="w-5 h-5"/>
                         </div>
-                    </CardContent>
-                </Card>
-
-                {/* Storage Used */}
-                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', 'Storage Used')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">4.2TB</h3>
-                                <div className="w-32 h-1.5 bg-muted rounded-full mt-3 overflow-hidden">
-                                    <div className="h-full bg-indigo-600 w-[84%]"></div>
-                                </div>
-                            </div>
-                            <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                <HardDrive className="w-5 h-5"/>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Failed Tasks */}
-                <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
-                    <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', 'Failed Tasks')}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
-                                <p className="text-xs font-semibold text-red-600 mt-2 hover:underline cursor-pointer">{t('admin.viewErrorLogs', 'View error logs')}</p>
-                            </div>
-                            <div className="w-11 h-11 bg-red-50 text-red-600 rounded-xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
-                                <AlertCircle className="w-5 h-5"/>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Filters */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative flex-1 min-w-[240px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-                        <Input
-                            className="pl-9"
-                            type="text"
-                            placeholder={t('admin.searchAssets', 'Search assets...')}
-                            value={searchParams.keyword}
-                            onChange={(e) => setSearchParams({...searchParams, keyword: e.target.value})}
-                        />
                     </div>
-                    <Select
-                        value={searchParams.state || 'all'}
-                        onValueChange={(value) => setSearchParams({...searchParams, state: value === 'all' ? '' : value, page: 1})}
-                    >
-                        <SelectTrigger className="w-[160px]">
-                            <SelectValue/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('admin.allStatus', 'Status: All')}</SelectItem>
-                            <SelectItem value="active">{t('admin.publishedStatus', 'Published')}</SelectItem>
-                            <SelectItem value="draft">{t('admin.draftStatus', 'Draft')}</SelectItem>
-                            <SelectItem value="deleted">{t('admin.deletedStatus', 'Deleted')}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={searchParams.type || 'all'}
-                        onValueChange={(value) => setSearchParams({...searchParams, type: value === 'all' ? '' : value, page: 1})}
-                    >
-                        <SelectTrigger className="w-[160px]">
-                            <SelectValue/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('admin.allTypes', 'Type: All')}</SelectItem>
-                            <SelectItem value="video">Video</SelectItem>
-                            <SelectItem value="image">Image</SelectItem>
-                            <SelectItem value="audio">Audio</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Input
-                        placeholder={t('admin.filterByTags', 'Filter by tags (comma separated)')}
-                        value={searchParams.tags}
-                        onChange={(e) => setSearchParams({...searchParams, tags: e.target.value, page: 1})}
-                        className="w-[200px]"
-                    />
-                    <Button
-                        variant="outline"
-                        onClick={() => {
-                            setSearchParams({keyword: '', state: '', type: '', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
-                            loadMedia();
-                        }}
-                    >
-                        <RotateCcw className="w-3.5 h-3.5"/>
-                        {t('admin.reset', 'Reset')}
-                    </Button>
-                </div>
-                <div className="text-xs text-muted-foreground font-medium">
-                    {t('admin.showingAssets', `Showing ${startItem} - ${endItem} of ${total} assets`)}
-                </div>
-            </div>
+                </CardContent>
+            </Card>
 
+            <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', '活跃转码')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{activeTranscodes}</h3>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <Cpu className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', '存储使用')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">-</h3>
+                            <div className="w-32 h-1.5 bg-muted rounded-full mt-3 overflow-hidden">
+                                <div className="h-full bg-indigo-600 w-[0%]"></div>
+                            </div>
+                        </div>
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <HardDrive className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', '失败任务')}</p>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
+                        </div>
+                        <div className="w-11 h-11 bg-red-50 text-red-600 rounded-xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
+                            <AlertCircle className="w-5 h-5"/>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
+    return (
+        <AdminPageTemplate
+            title={t('admin.mediaManagement', '媒体管理')}
+            description={t('admin.mediaManagementDesc', '在这里集中管理所有的视频与图片资源')}
+            actions={pageActions}
+            stats={pageStats}
+            searchPlaceholder={t('admin.searchAssets', '搜索媒体资源...')}
+            searchValue={searchParams.keyword}
+            onSearchChange={(value) => setSearchParams({...searchParams, keyword: value})}
+            filters={pageFilters}
+        >
             {/* Data Table */}
             <div className="bg-card rounded-lg border border-border shadow-sm">
                 <Table className="text-left">
                     <TableHeader>
                         <TableRow className="bg-muted border-b border-border">
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.thumbnail', 'Thumbnail')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.assetName', 'Asset Name')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.type', 'Type')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.size', 'Size')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.views', 'Views')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.status', 'Status')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.date', 'Date')}</TableHead>
-                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">{t('admin.actions', 'Actions')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.thumbnail', '缩略图')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.assetName', '媒体名称')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.type', '类型')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.size', '大小')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.views', '播放量')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.status', '状态')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.date', '日期')}</TableHead>
+                            <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">{t('admin.actions', '操作')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-slate-50">
@@ -475,10 +449,10 @@ export default function MediaPage() {
                         ) : error ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="px-6 py-16 text-center">
-                                    <p className="text-sm text-destructive mb-3">{t('admin.loadFailed', 'Failed to load media')}</p>
+                                    <p className="text-sm text-destructive mb-3">{t('admin.loadFailed', '加载媒体失败')}</p>
                                     <Button variant="outline" onClick={() => loadMedia()}>
                                         <RotateCcw className="w-3.5 h-3.5"/>
-                                        {t('admin.retry', 'Retry')}
+                                        {t('admin.retry', '重试')}
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -488,14 +462,14 @@ export default function MediaPage() {
                                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Film className="w-8 h-8 text-slate-300"/>
                                     </div>
-                                    <h3 className="text-base font-semibold text-card-foreground mb-1">{t('admin.noMediaFound', 'No media found')}</h3>
-                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('admin.uploadFirstMedia', 'Upload your first media asset to get started.')}</p>
+                                    <h3 className="text-base font-semibold text-card-foreground mb-1">{t('admin.noMediaFound', '未找到媒体')}</h3>
+                                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('admin.uploadFirstMedia', '上传您的第一个媒体资源开始使用。')}</p>
                                     <Button
                                         className="mt-4"
                                         onClick={() => setUploadDialogOpen(true)}
                                     >
                                         <Plus className="w-4 h-4"/>
-                                        {t('admin.uploadMedia', 'Upload')}
+                                        {t('admin.uploadMedia', '上传媒体')}
                                     </Button>
                                 </TableCell>
                             </TableRow>
@@ -509,12 +483,16 @@ export default function MediaPage() {
                                     >
                                         {/* Thumbnail */}
                                         <TableCell className="px-6 py-3.5">
-                                            <div className="w-16 aspect-video rounded-md bg-muted overflow-hidden relative border border-border">
+                                            <div
+                                                className="w-16 aspect-video rounded-md bg-muted overflow-hidden relative border border-border cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all"
+                                                onClick={() => handleViewClick(media)}
+                                                title={t('admin.view', '查看')}
+                                            >
                                                 {media.thumbnail ? (
                                                     <img
-                                                        alt="Preview"
+                                                        alt="预览"
                                                         className={`w-full h-full object-cover ${isFailed ? 'grayscale opacity-50' : ''}`}
-                                                        src={media.thumbnail.startsWith('http') ? media.thumbnail : `${API_BASE_URL}${media.thumbnail.startsWith('/') ? '' : '/'}${media.thumbnail}`}
+                                                        src={getFullUrl(media.thumbnail)}
                                                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                                                     />
                                                 ) : (
@@ -534,7 +512,7 @@ export default function MediaPage() {
 
                                         {/* Asset Name */}
                                         <TableCell className="px-6 py-3.5">
-                                            <div className="text-sm font-semibold text-foreground">{media.title || t('admin.unnamedMedia')}</div>
+                                            <div className="text-sm font-semibold text-foreground">{media.title || t('admin.unnamedMedia', '未命名媒体')}</div>
                                             <div className="text-xs text-muted-foreground">{media.duration ? formatDuration(media.duration) : ''}</div>
                                         </TableCell>
 
@@ -563,29 +541,38 @@ export default function MediaPage() {
                                             {formatDateTime(media.create_time)}
                                         </TableCell>
 
-                                        {/* Actions — prototype: edit for non-failed, delete for failed */}
+                                        {/* Actions: View, Edit, Delete */}
                                         <TableCell className="px-6 py-3.5 text-right">
-                                            {isFailed ? (
+                                            <div className="flex items-center justify-end gap-1">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
-                                                    className="text-red-400 hover:text-red-600 hover:bg-red-50"
-                                                    onClick={() => handleDeleteClick(media)}
-                                                    title={t('admin.delete', 'Delete')}
+                                                    className="text-muted-foreground hover:text-emerald-600 hover:bg-emerald-50"
+                                                    onClick={() => handleViewClick(media)}
+                                                    title={t('admin.view', '查看')}
+                                                    disabled={!media.short_token}
                                                 >
-                                                    <Trash2 className="w-4 h-4"/>
+                                                    <Play className="w-4 h-4"/>
                                                 </Button>
-                                            ) : (
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
                                                     className="text-muted-foreground hover:text-indigo-600 hover:bg-muted"
                                                     onClick={() => handleEditClick(media)}
-                                                    title={t('admin.edit', 'Edit')}
+                                                    title={t('admin.edit', '编辑')}
                                                 >
                                                     <Edit3 className="w-4 h-4"/>
                                                 </Button>
-                                            )}
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon-sm"
+                                                    className="text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                                                    onClick={() => handleDeleteClick(media)}
+                                                    title={t('admin.delete', '删除')}
+                                                >
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 );
@@ -597,7 +584,7 @@ export default function MediaPage() {
                 {/* Pagination */}
                 {total > 0 && (
                     <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-card">
-                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', `Showing ${startItem} to ${endItem} of ${total} items`)}</p>
+                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', {start: startItem, end: endItem, total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}</p>
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
@@ -650,7 +637,7 @@ export default function MediaPage() {
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
                 <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden">
                     <DialogHeader>
-                        <DialogTitle>{t('admin.uploadMediaFiles', 'Upload Assets')}</DialogTitle>
+                        <DialogTitle>{t('admin.uploadMediaFiles', '上传媒体')}</DialogTitle>
                     </DialogHeader>
                     <div className="p-6">
                         <UploadComponent
@@ -668,15 +655,15 @@ export default function MediaPage() {
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DialogContent className="sm:max-w-sm rounded-2xl shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="sr-only">
-                        <DialogTitle>{t('admin.confirmDelete', 'Delete Asset?')}</DialogTitle>
-                        <DialogDescription>{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</DialogDescription>
+                        <DialogTitle>{t('admin.confirmDelete', '确认删除？')}</DialogTitle>
+                        <DialogDescription>{t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}</DialogDescription>
                     </DialogHeader>
                     <div className="p-6 text-center">
                         <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                             <AlertCircle className="w-7 h-7"/>
                         </div>
-                        <h3 className="text-lg font-bold text-foreground">{t('admin.confirmDelete', 'Delete Asset?')}</h3>
-                        <p className="text-sm text-muted-foreground mt-2 mb-6">{t('admin.deleteMediaConfirm', 'This action cannot be undone. The file will be removed from storage clusters.')}</p>
+                        <h3 className="text-lg font-bold text-foreground">{t('admin.confirmDelete', '确认删除？')}</h3>
+                        <p className="text-sm text-muted-foreground mt-2 mb-6">{t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}</p>
                         <div className="flex gap-3">
                             <Button
                                 variant="secondary"
@@ -684,7 +671,7 @@ export default function MediaPage() {
                                 onClick={() => setDeleteDialogOpen(false)}
                                 disabled={deleteMutation.isPending}
                             >
-                                {t('admin.cancel', 'Cancel')}
+                                {t('admin.cancel', '取消')}
                             </Button>
                             <Button
                                 variant="destructive"
@@ -693,7 +680,7 @@ export default function MediaPage() {
                                 disabled={deleteMutation.isPending}
                             >
                                 {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
-                                {t('admin.confirmDeleteBtn', 'Delete')}
+                                {t('admin.confirmDeleteBtn', '确认删除')}
                             </Button>
                         </div>
                     </div>
@@ -705,7 +692,7 @@ export default function MediaPage() {
                 <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
-                            {t('admin.transcodingOverview', 'Transcoding Overview')}
+                            {t('admin.transcodingOverview', '转码概览')}
                             {variantData?.encoding_status && encBadge(variantData.encoding_status)}
                         </DialogTitle>
                     </DialogHeader>
@@ -716,23 +703,23 @@ export default function MediaPage() {
                                 <div className="grid grid-cols-5 gap-2 text-center">
                                     <div className="rounded-lg bg-yellow-50 p-3">
                                         <p className="text-lg font-bold text-yellow-600">{variantData.video_pending_count ?? 0}</p>
-                                        <p className="text-[11px] text-muted-foreground">{t('admin.queued', 'Queued')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.queuedStatus', '队列中')}</p>
                                     </div>
                                     <div className="rounded-lg bg-blue-50 p-3">
                                         <p className="text-lg font-bold text-blue-600">{variantData.video_processing_count ?? 0}</p>
-                                        <p className="text-[11px] text-muted-foreground">{t('admin.transcoding', 'Transcoding')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.transcoding', '转码中')}</p>
                                     </div>
                                     <div className="rounded-lg bg-green-50 p-3">
                                         <p className="text-lg font-bold text-emerald-600">{variantData.video_success_count}</p>
-                                        <p className="text-[11px] text-muted-foreground">{t('admin.success', 'Success')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.success', '成功')}</p>
                                     </div>
                                     <div className="rounded-lg bg-red-50 p-3">
                                         <p className="text-lg font-bold text-red-600">{variantData.video_failed_count}</p>
-                                        <p className="text-[11px] text-muted-foreground">{t('admin.failed', 'Failed')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.failed', '失败')}</p>
                                     </div>
                                     <div className="rounded-lg bg-muted p-3">
                                         <p className="text-lg font-bold text-card-foreground">{variantData.video_total_count}</p>
-                                        <p className="text-[11px] text-muted-foreground">{t('admin.total', 'Total')}</p>
+                                        <p className="text-[11px] text-muted-foreground">{t('admin.total', '总计')}</p>
                                     </div>
                                 </div>
 
@@ -747,10 +734,10 @@ export default function MediaPage() {
                                         )}
                                         {variantData.preview_file && (
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-medium text-muted-foreground">Preview:</span>
+                                                <span className="font-medium text-muted-foreground">预览:</span>
                                                 <img
                                                     src={resolvePreview(variantData.preview_file)}
-                                                    alt="preview"
+                                                    alt="预览"
                                                     className="h-12 rounded border"
                                                 />
                                             </div>
@@ -762,7 +749,7 @@ export default function MediaPage() {
                                 {variantData.variants && variantData.variants.length > 0 && (
                                     <div className="space-y-1.5">
                                         <p className="text-sm font-medium flex items-center gap-2">
-                                            {t('admin.variantTasks', 'Variant Tasks')}
+                                            {t('admin.variantTasks', '转码任务')}
                                             {variantData.video_failed_count > 0 && (
                                                 <Button
                                                     variant="outline"
@@ -776,7 +763,7 @@ export default function MediaPage() {
                                                     ) : (
                                                         <RotateCcw className="w-3 h-3"/>
                                                     )}
-                                                    {t('admin.retryAllFailed', 'Retry All Failed')}
+                                                    {t('admin.retryAllFailed', '重试所有失败')}
                                                 </Button>
                                             )}
                                         </p>
@@ -817,7 +804,7 @@ export default function MediaPage() {
                                         rel="noreferrer"
                                         className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 hover:underline"
                                     >
-                                        {t('admin.viewFullTaskList', 'View Full Task List')}
+                                        {t('admin.viewFullTaskList', '查看完整任务列表')}
                                         <ExternalLink className="w-3 h-3"/>
                                     </a>
                                 </div>
@@ -826,6 +813,6 @@ export default function MediaPage() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </AdminPageTemplate>
     );
 }

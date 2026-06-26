@@ -3,7 +3,7 @@
  */
 
 import {useEffect, useState, useCallback, useRef} from "react";
-import {mediaApi} from "@/lib/api/media";
+import {encodingApi} from "@/lib/api/media";
 
 interface TranscodingEvent {
     media_id: string;
@@ -52,15 +52,10 @@ export function useTranscoding(mediaId?: string): {
 
     const connect = useCallback(() => {
         if (!mountedRef.current) return;
-        // undefined = disabled; "" = global subscription; "uuid" = specific media
-        if (mediaId === undefined) {
-            disconnect();
-            return;
-        }
 
         disconnect();
 
-        const sseUrl = mediaApi.getSSEUrl(mediaId || undefined);
+        const sseUrl = encodingApi.getSSEUrl(mediaId);
         const eventSource = new EventSource(sseUrl);
         eventSourceRef.current = eventSource;
 

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+﻿import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -187,10 +187,10 @@ const Channels: React.FC = () => {
 
     const getCategoryLabel = (channel: Channel): string => {
         const map: Record<string, string> = {
-            tech: 'Tech',
-            cooking: 'Cooking',
-            music: 'Music',
-            gaming: 'Gaming',
+            tech: '科技',
+            cooking: '美食',
+            music: '音乐',
+            gaming: '游戏',
         };
         if (channel.tags && channel.tags.length > 0) {
             const tag = channel.tags[0].toLowerCase();
@@ -214,12 +214,12 @@ const Channels: React.FC = () => {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.channels')}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.channels', '频道')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -326,10 +326,10 @@ const Channels: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">{t('admin.category')}: {t('admin.allStatus')}</SelectItem>
-                            <SelectItem value="tech">Tech</SelectItem>
-                            <SelectItem value="cooking">Cooking</SelectItem>
-                            <SelectItem value="music">Music</SelectItem>
-                            <SelectItem value="gaming">Gaming</SelectItem>
+                            <SelectItem value="tech">科技</SelectItem>
+                            <SelectItem value="cooking">美食</SelectItem>
+                            <SelectItem value="music">音乐</SelectItem>
+                            <SelectItem value="gaming">游戏</SelectItem>
                         </SelectContent>
                     </Select>
                     <Select value={verificationFilter} onValueChange={setVerificationFilter}>

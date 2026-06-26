@@ -9,11 +9,18 @@ export interface Category {
     slug: string;
     description?: string;
     parent_id?: number;
-    order: number;
+    order?: number;
     status?: number;
-    media_count?: number;
-    create_time: string;
-    update_time: string;
+    media_count: number;
+    create_time?: string;
+    update_time?: string;
+}
+
+export interface CategoryListResponse {
+    items: Category[];
+    total: number;
+    page: number;
+    page_size: number;
 }
 
 // 宽松的 schema：接受字符串、数字、null、undefined 等各种可能的数据类型
@@ -89,27 +96,38 @@ const categoryListResponseSchema = z.object({
     page_size: toNumber,
 });
 
-function normalizeCategoryList(raw: unknown): unknown {
+function normalizeCategoryList(raw: unknown): CategoryListResponse {
     if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
-    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (Array.isArray(raw)) {
+        const items: Category[] = [];
+        for (const item of raw) {
+            const result = categorySchema.safeParse(item);
+            if (result.success) items.push(result.data);
+        }
+        return {items, total: items.length, page: 1, page_size: items.length};
+    }
     if (typeof raw === 'object') {
         const obj = raw as Record<string, unknown>;
-        const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.categories) ? obj.categories : [];
+        const rawItems = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.categories) ? obj.categories : [];
+        const items: Category[] = [];
+        for (const item of rawItems) {
+            const result = categorySchema.safeParse(item);
+            if (result.success) items.push(result.data);
+        }
         return {
             items,
-            total: obj.total ?? items.length,
-            page: obj.page ?? 1,
-            page_size: obj.page_size ?? items.length,
+            total: typeof obj.total === 'number' ? obj.total : items.length,
+            page: typeof obj.page === 'number' ? obj.page : 1,
+            page_size: typeof obj.page_size === 'number' ? obj.page_size : items.length,
         };
     }
     return {items: [], total: 0, page: 1, page_size: 0};
 }
 
 export const categoryApi = {
-    getAll: async (params?: {page?: number; page_size?: number}) => {
+    getAll: async (params?: {page?: number; page_size?: number}): Promise<CategoryListResponse> => {
         const response = await api.get<unknown>("/categories", params);
-        const normalized = normalizeCategoryList(response);
-        return normalized as any;
+        return normalizeCategoryList(response);
     },
     get: (id: number | string) => api.get<Category>(`/categories/${id}`),
     create: (data: Partial<Category>) => api.post<Category>("/categories", data),
@@ -120,10 +138,9 @@ export const categoryApi = {
 // ==================== Admin Category API (requires JWT + Admin) ====================
 export const adminCategoryApi = {
     // List all categories (Admin, includes all statuses)
-    list: async (params?: {page?: number; page_size?: number}) => {
+    list: async (params?: {page?: number; page_size?: number}): Promise<CategoryListResponse> => {
         const response = await api.get<unknown>("/admin/categories", params);
-        const normalized = normalizeCategoryList(response);
-        return normalized as any;
+        return normalizeCategoryList(response);
     },
 
     // Get category detail (Admin)

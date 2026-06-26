@@ -6,7 +6,7 @@
 import {useState, useEffect, useCallback} from 'react';
 import {Link} from '@tanstack/react-router';
 import {articleApi, type Article} from '@/lib/api/article';
-import {API_BASE_URL} from '@/lib/request';
+import {getFullUrl} from '@/lib/utils';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
@@ -22,16 +22,6 @@ import {
     Film,
 } from 'lucide-react';
 import {formatRelativeTime} from '@/lib/format';
-
-/**
- * Resolve a potentially relative URL to a full URL.
- */
-function resolveMediaUrl(url: string | undefined): string | undefined {
-    if (!url) return undefined;
-    if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    const base = API_BASE_URL || '';
-    return `${base}/${url.replace(/^\//, '')}`;
-}
 
 const PAGE_SIZE = 12;
 
@@ -111,9 +101,9 @@ export default function ArticleListPage() {
                                         className="bg-card rounded-lg border overflow-hidden transition-shadow hover:shadow-lg">
                                         {/* Thumbnail */}
                                         <div className="relative aspect-video bg-muted">
-                                            {resolveMediaUrl(article.thumbnail || article.media?.thumbnail) ? (
+                                            {getFullUrl(article.thumbnail || article.media?.thumbnail) ? (
                                                 <img
-                                                    src={resolveMediaUrl(article.thumbnail || article.media?.thumbnail)}
+                                                    src={getFullUrl(article.thumbnail || article.media?.thumbnail)}
                                                     alt={article.title}
                                                     className="w-full h-full object-cover"
                                                     loading="lazy"
@@ -209,9 +199,9 @@ export default function ArticleListPage() {
                                     className="bg-card rounded-lg border overflow-hidden transition-shadow hover:shadow-lg h-full">
                                     {/* Thumbnail */}
                                     <div className="relative aspect-video bg-muted">
-                                        {resolveMediaUrl(article.thumbnail || article.media?.thumbnail) ? (
+                                        {getFullUrl(article.thumbnail || article.media?.thumbnail) ? (
                                             <img
-                                                src={resolveMediaUrl(article.thumbnail || article.media?.thumbnail)}
+                                                src={getFullUrl(article.thumbnail || article.media?.thumbnail)}
                                                 alt={article.title}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"

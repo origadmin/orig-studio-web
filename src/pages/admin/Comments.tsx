@@ -221,12 +221,12 @@ const Comments: React.FC = () => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+              <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator/>
           <BreadcrumbItem>
-            <BreadcrumbPage>{t('admin.comments') || 'Comments'}</BreadcrumbPage>
+            <BreadcrumbPage>{t('admin.breadcrumb.comments', '评论')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

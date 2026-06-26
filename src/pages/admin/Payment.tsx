@@ -82,12 +82,12 @@ export default function PaymentPage() {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.payment', 'Payment')}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.payment', '支付管理')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -616,7 +616,7 @@ const OrdersTab: React.FC = () => {
             {total > 20 && (
                 <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                        {t('admin.showing', 'Showing')} {(page - 1) * 20 + 1} {t('admin.to', 'to')} {Math.min(page * 20, total)} {t('admin.of', 'of')} {total} {t('admin.items', 'items')}
+                        {t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="icon-sm" className="text-muted-foreground" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -699,7 +699,7 @@ const WalletsTab: React.FC = () => {
             {total > 20 && (
                 <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                        {t('admin.showing', 'Showing')} {(page - 1) * 20 + 1} {t('admin.to', 'to')} {Math.min(page * 20, total)} {t('admin.of', 'of')} {total} {t('admin.items', 'items')}
+                        {t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="icon-sm" className="text-muted-foreground" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>

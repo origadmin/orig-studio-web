@@ -138,7 +138,7 @@ export function normalizeMedia<T extends Media>(media: T): T {
  * normalizeMediaList normalizes an array of media items.
  */
 export function normalizeMediaList<T extends Media>(items: T[]): T[] {
-    if (!items) return items;
+    if (!items || !Array.isArray(items)) return [];
     return items.map(normalizeMedia);
 }
 
@@ -286,11 +286,17 @@ function normalizeMediaListResponse(raw: unknown): unknown {
     if (Array.isArray(raw)) return {items: normalizeMediaList(raw), total: raw.length, page: 1, page_size: raw.length};
     if (typeof raw === 'object') {
         const obj = raw as Record<string, unknown>;
-        const rawItems = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.media) ? obj.media : [];
+        const rawItems = Array.isArray(obj.items)
+            ? obj.items
+            : Array.isArray(obj.media)
+            ? obj.media
+            : Array.isArray(obj.medias)
+            ? obj.medias
+            : [];
         const items = normalizeMediaList(rawItems as Media[]);
         return {
             items,
-            total: obj.total ?? items.length,
+            total: obj.total ?? obj.total_count ?? items.length,
             page: obj.page ?? 1,
             page_size: obj.page_size ?? items.length,
         };
@@ -377,7 +383,10 @@ export interface EncodingTaskListResponse {
     total: number;
     page: number;
     page_size: number;
+    total_pages?: number;
     items: (EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string })[];
+    /** @deprecated Use items instead - kept for backward compatibility */
+    tasks?: (EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string })[];
 }
 
 // 点赞/收藏响应
@@ -446,12 +455,12 @@ export const encodingApi = {
         get: (id: number) => api.get<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`),
         create: (data: Partial<EncodeProfile>) => api.post<{
             profile: EncodeProfile
-        }>('/admin/encoding/profiles', data),
+        }>('/admin/encoding/profiles', {profile: data}),
         update: (id: number, data: Partial<EncodeProfile>) =>
-            api.put<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`, data),
+            api.put<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`, {profile: {...data, id}}),
         delete: (id: number) => api.del<void>(`/admin/encoding/profiles/${id}`),
         preview: (data: Partial<EncodeProfile>) =>
-            api.post<{ command: string }>('/admin/encoding/profiles/preview', data),
+            api.post<{ command: string }>('/admin/encoding/profiles/preview', {profile: data}),
     },
 };
 
@@ -661,9 +670,9 @@ export const legacyMediaApi = {
     // 旧版路径 - 已在 encodingApi 中统一
     listProfiles: () => api.get<{ profiles: EncodeProfile[] }>("/admin/encoding/profiles"),
     getProfile: (id: number) => api.get<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`),
-    createProfile: (data: Partial<EncodeProfile>) => api.post<{ profile: EncodeProfile }>("/admin/encoding/profiles", data),
+    createProfile: (data: Partial<EncodeProfile>) => api.post<{ profile: EncodeProfile }>("/admin/encoding/profiles", {profile: data}),
     updateProfile: (id: number, data: Partial<EncodeProfile>) =>
-        api.put<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`, data),
+        api.put<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`, {profile: {...data, id}}),
     deleteProfile: (id: number) => api.del<void>(`/admin/encoding/profiles/${id}`),
     getEncodingTasks: (params?: {
         status?: string;

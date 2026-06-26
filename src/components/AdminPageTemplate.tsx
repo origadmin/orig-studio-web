@@ -1,102 +1,210 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
+import { Link, useRouterState } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
-    Breadcrumb,
-    BreadcrumbList,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import {Link} from '@tanstack/react-router';
-import {useTranslation} from 'react-i18next';
-import {useRouterState} from '@tanstack/react-router';
 
-interface AdminPageTemplateProps {
-    title: string;
-    description?: string;
-    children: React.ReactNode;
-    actions?: React.ReactNode;
-    breadcrumbItems?: {label: string; href?: string}[];
+interface BreadcrumbItemType {
+  label: string;
+  path?: string;
+  isLast?: boolean;
 }
 
-const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
-    title,
-    description,
-    children,
-    actions,
-    breadcrumbItems = [],
-}) => {
-    const {t} = useTranslation();
-    const pathname = useRouterState({select: (s) => s.location.pathname});
-
-    const autoBreadcrumbs = React.useMemo(() => {
-        const parts = pathname.split('/').filter(p => p);
-        const items: {label: string; href: string}[] = [];
-        
-        if (parts.length > 0) {
-            let currentPath = '';
-            for (const part of parts) {
-                currentPath += `/${part}`;
-                let label = t(`admin.${part}`, part.charAt(0).toUpperCase() + part.slice(1));
-                
-                if (part === 'admin') {
-                    label = t('admin.dashboard', 'Dashboard');
-                } else if (part === 'media') {
-                    label = t('admin.media', 'Media');
-                } else if (part === 'articles') {
-                    label = t('admin.articles', 'Articles');
-                } else if (part === 'transcoding') {
-                    label = t('admin.transcodingProfiles', 'Transcoding');
-                }
-                
-                items.push({label, href: currentPath});
-            }
-        }
-        
-        return items;
-    }, [pathname, t]);
-
-    const breadcrumbs = breadcrumbItems.length > 0 ? breadcrumbItems : autoBreadcrumbs;
-
-    return (
-        <div className="p-8">
-            <Breadcrumb className="mb-6">
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.dashboard', 'Dashboard')}</Link>
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    {breadcrumbs.map((item, index) => (
-                        <React.Fragment key={index}>
-                            <BreadcrumbSeparator />
-                            <BreadcrumbItem>
-                                {item.href ? (
-                                    <BreadcrumbLink asChild>
-                                        <Link to={item.href}>{item.label}</Link>
-                                    </BreadcrumbLink>
-                                ) : (
-                                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                                )}
-                            </BreadcrumbItem>
-                        </React.Fragment>
-                    ))}
-                </BreadcrumbList>
-            </Breadcrumb>
-
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-800">{title}</h1>
-                    {description && (
-                        <p className="text-sm text-slate-500 mt-1">{description}</p>
-                    )}
-                </div>
-                {actions && <div className="flex items-center gap-2">{actions}</div>}
-            </div>
-
-            {children}
-        </div>
-    );
+const ROUTE_PATH_MAP: Record<string, string> = {
+  '/admin': '/admin',
+  '/admin/media': '/admin/media',
+  '/admin/users': '/admin/users',
+  '/admin/categories': '/admin/categories',
+  '/admin/channels': '/admin/channels',
+  '/admin/tags': '/admin/tags',
+  '/admin/comments': '/admin/comments',
+  '/admin/articles': '/admin/articles',
+  '/admin/playlists': '/admin/playlists',
+  '/admin/settings': '/admin/settings',
+  '/admin/transcoding/profiles': '/admin/transcoding/profiles',
+  '/admin/transcoding/status': '/admin/transcoding/status',
+  '/admin/notifications': '/admin/notifications',
+  '/admin/drm': '/admin/drm',
+  '/admin/permissions': '/admin/permissions',
+  '/admin/payment': '/admin/payment',
+  '/admin/promotion': '/admin/promotion',
+  '/admin/ads': '/admin/ads',
+  '/admin/live-rooms': '/admin/live-rooms',
+  '/admin/portal': '/admin/portal',
+  '/admin/pages': '/admin/pages',
+  '/admin/analytics': '/admin/analytics',
+  '/admin/content-structure': '/admin/content-structure',
 };
 
-export {AdminPageTemplate};
+function getRouteLabel(seg: string, t: TFunction): string {
+  const key = `admin.breadcrumb.${seg.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())}`;
+  const fallback = seg.charAt(0).toUpperCase() + seg.slice(1);
+  return t(key, fallback);
+}
+
+function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] {
+  if (pathname === '/admin') {
+    return [{ label: t('admin.breadcrumb.dashboard', '仪表盘'), path: '/admin', isLast: true }];
+  }
+
+  const segments = pathname.split('/').filter(Boolean);
+  const crumbs: BreadcrumbItemType[] = [];
+  
+  crumbs.push({ label: t('admin.breadcrumb.dashboard', '仪表盘'), path: '/admin', isLast: false });
+  
+  if (segments.length >= 2) {
+    const secondLevel = '/' + segments[1];
+    if (segments[1] === 'transcoding' && segments.length >= 3) {
+      crumbs.push({
+        label: getRouteLabel(segments[1], t),
+        path: secondLevel,
+        isLast: false,
+      });
+      const fullPath = '/' + segments.slice(0, 3).join('/');
+      const lastLabel = getRouteLabel(segments[2], t);
+      crumbs.push({
+        label: lastLabel,
+        path: fullPath,
+        isLast: true,
+      });
+    } else {
+      const label = getRouteLabel(segments[1], t);
+      crumbs.push({
+        label,
+        path: secondLevel,
+        isLast: segments.length === 2,
+      });
+      
+      if (segments.length > 2) {
+        for (let i = 2; i < segments.length; i++) {
+          const subPath = '/' + segments.slice(0, i + 1).join('/');
+          const isLast = i === segments.length - 1;
+          const isDynamic = segments[i].match(/^[0-9a-f]{8}-|[0-9]+$/);
+          if (isDynamic && isLast) {
+            crumbs.push({ label: t('admin.breadcrumb.details', '详情'), path: subPath, isLast: true });
+          } else {
+            const subLabel = getRouteLabel(segments[i], t);
+            crumbs.push({
+              label: subLabel,
+              path: subPath,
+              isLast,
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  return crumbs;
+}
+
+export interface AdminPageTemplateProps {
+  title: string;
+  description?: string;
+  actions?: React.ReactNode;
+  stats?: React.ReactNode;
+  searchPlaceholder?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  onSearchSubmit?: () => void;
+  filters?: React.ReactNode;
+  className?: string;
+  breadcrumbs?: BreadcrumbItemType[];
+  showBreadcrumbs?: boolean;
+  children?: React.ReactNode;
+}
+
+export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
+  title,
+  description,
+  actions,
+  stats,
+  searchPlaceholder,
+  searchValue,
+  onSearchChange,
+  onSearchSubmit,
+  filters,
+  className,
+  breadcrumbs: customBreadcrumbs,
+  showBreadcrumbs = true,
+  children,
+}) => {
+  const { t } = useTranslation();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hasSearchBar = onSearchChange || onSearchSubmit;
+
+  const autoBreadcrumbs = React.useMemo(() => buildBreadcrumbs(pathname, t), [pathname, t]);
+
+  const breadcrumbItems = customBreadcrumbs || autoBreadcrumbs;
+
+  return (
+    <div className={cn('space-y-6 p-4 md:p-6', className)}>
+      {showBreadcrumbs && (
+        <Breadcrumb className="mb-2">
+          <BreadcrumbList>
+            {breadcrumbItems.map((item, index) => {
+              const isLast = item.isLast !== undefined ? item.isLast : index === breadcrumbItems.length - 1;
+              return (
+              <React.Fragment key={index}>
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <Link to={item.path || '#'}>{item.label}</Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+                {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+              </React.Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-[28px] font-semibold leading-9 text-foreground">{title}</h2>
+          {description && (
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          )}
+        </div>
+        {actions && <div className="flex items-center gap-3">{actions}</div>}
+      </div>
+
+      {stats}
+
+      {hasSearchBar && (
+        <div className="rounded-2xl border shadow-sm bg-card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="relative flex-1 max-w-sm w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={searchPlaceholder || t('common.search', '搜索...')}
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit?.()}
+              className="pl-10 rounded-xl"
+            />
+          </div>
+          {filters && <div className="flex flex-wrap items-center gap-2">{filters}</div>}
+        </div>
+      )}
+
+      {children}
+    </div>
+  );
+};
+
+export default AdminPageTemplate;

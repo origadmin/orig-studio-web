@@ -9,7 +9,6 @@ import {useTranslation} from 'react-i18next';
 import {adminArticleApi, type Article, type CreateArticleRequest, type UpdateArticleRequest, type MediaBrief} from '@/lib/api/article';
 import {adminMediaApi, type Media} from '@/lib/api/media';
 import {useCategoryList} from '@/hooks/queries';
-import {API_BASE_URL} from '@/lib/request';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -32,18 +31,11 @@ import {
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
 import {toast} from 'sonner';
-import {cn} from '@/lib/utils';
+import {cn, getFullUrl} from '@/lib/utils';
 
 // ============================================================================
 // Helpers
 // ============================================================================
-
-function resolveMediaUrl(url: string | undefined): string | undefined {
-    if (!url) return undefined;
-    if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    const base = API_BASE_URL || '';
-    return `${base}/${url.replace(/^\//, '')}`;
-}
 
 function countWords(text: string): number {
     if (!text || !text.trim()) return 0;
@@ -154,7 +146,7 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
                                     <div className="aspect-video bg-muted relative">
                                         {media.thumbnail ? (
                                             <img
-                                                src={resolveMediaUrl(media.thumbnail)}
+                                                src={getFullUrl(media.thumbnail)}
                                                 alt={media.title}
                                                 className="w-full h-full object-cover"
                                                 loading="lazy"
@@ -613,7 +605,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
     // Resolve thumbnail for display
-    const displayThumbnail = resolveMediaUrl(form.thumbnail || selectedMedia?.thumbnail);
+    const displayThumbnail = getFullUrl(form.thumbnail || selectedMedia?.thumbnail);
 
     // Auto-save indicator text
     const autoSaveText = useMemo(() => {
@@ -700,18 +692,18 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                         <BreadcrumbList>
                             <BreadcrumbItem>
                                 <BreadcrumbLink asChild>
-                                    <RouterLink to="/admin">{t('admin.title', 'Admin')}</RouterLink>
+                                    <RouterLink to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</RouterLink>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator/>
                             <BreadcrumbItem>
                                 <BreadcrumbLink asChild>
-                                    <RouterLink to="/admin/articles">{t('admin.articles', 'Articles')}</RouterLink>
+                                    <RouterLink to="/admin/articles">{t('admin.breadcrumb.articles', '文章')}</RouterLink>
                                 </BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator/>
                             <BreadcrumbItem>
-                                <BreadcrumbPage>{t('admin.editArticle', 'Edit Article')}</BreadcrumbPage>
+                                <BreadcrumbPage>{t('admin.breadcrumb.editArticle', '编辑文章')}</BreadcrumbPage>
                             </BreadcrumbItem>
                         </BreadcrumbList>
                     </Breadcrumb>

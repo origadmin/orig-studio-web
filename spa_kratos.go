@@ -15,10 +15,10 @@ func RegisterKratosRoutes(srv *kratoshttp.Server) {
 	for _, route := range DefaultStaticRoutes {
 		prefix := route.Prefix
 		cc := route.CacheControl
-		srv.HandlePrefix(prefix+"/", http.StripPrefix(prefix, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srv.HandlePrefix(prefix+"/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", cc)
 			handler.fileServer.ServeHTTP(w, r)
-		})))
+		}))
 	}
 
 	for _, name := range DefaultRootFiles {

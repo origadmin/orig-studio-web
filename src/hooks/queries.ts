@@ -17,6 +17,7 @@ import {adminPromotionApi, type CreatePromotionRequest, type UpdatePromotionRequ
 import {adminAdsApi} from '@/lib/api/ads';
 import {spriteApi} from '@/lib/api/sprite';
 import {favoriteApi} from '@/lib/api/favorite';
+import {getFullUrl} from '@/lib/utils';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -879,17 +880,18 @@ export function useUpdatePermission() {
 // ==================== Sprite Hooks ====================
 
 /**
- * useSpriteList: Get sprite URLs for a media item
+ * useSpriteList: Get sprite URLs for a media item using storage paths
  */
-export function useSpriteList(mediaId: string | null) {
+export function useSpriteList(vttPath: string | null | undefined, spritePath: string | null | undefined) {
+    const enabled = !!vttPath && !!spritePath;
     return useQuery({
-        queryKey: ['sprite', mediaId],
+        queryKey: ['sprite', vttPath, spritePath],
         queryFn: async () => {
-            const vttUrl = spriteApi.getVttUrl(mediaId!);
-            const spriteUrl = spriteApi.getSpriteUrl(mediaId!);
+            const vttUrl = getFullUrl(vttPath!);
+            const spriteUrl = getFullUrl(spritePath!);
             return {vttUrl, spriteUrl};
         },
-        enabled: !!mediaId,
+        enabled,
     });
 }
 

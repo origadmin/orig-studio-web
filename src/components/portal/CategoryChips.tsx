@@ -1,13 +1,14 @@
 import React from 'react';
 import {Link, useLocation} from '@tanstack/react-router';
 import {useCategoryList} from '@/hooks/queries';
+import type {Category} from '@/lib/api/category';
 
 const CategoryChips: React.FC = () => {
-    const {data: categories} = useCategoryList();
+    const {data} = useCategoryList();
     const location = useLocation();
     const pathname = location.pathname;
 
-    const items = categories ?? [];
+    const items: Category[] = data?.items ?? [];
 
     if (items.length === 0) return null;
 
@@ -26,7 +27,7 @@ const CategoryChips: React.FC = () => {
                 >
                     All
                 </Link>
-                {items.map((cat: any) => (
+                {items.map((cat) => (
                     <Link
                         key={cat.id}
                         to="/c/$id"

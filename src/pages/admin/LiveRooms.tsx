@@ -34,6 +34,7 @@ import {
     useEndLiveRoom,
 } from '@/hooks/queries';
 import {type LiveRoom, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
+import {getFullUrl} from '@/lib/utils';
 
 /* ── Status helpers ─────────────────────────────────────────────── */
 const statusConfig: Record<string, {
@@ -135,12 +136,12 @@ export default function LiveRoomsPage() {
                 <BreadcrumbList>
                     <BreadcrumbItem>
                         <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
                         </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator/>
                     <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.liveRooms', 'Live Rooms')}</BreadcrumbPage>
+                        <BreadcrumbPage>{t('admin.breadcrumb.liveRooms', '直播间')}</BreadcrumbPage>
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
@@ -372,7 +373,7 @@ const LiveRoomsTab: React.FC = () => {
                                                     <div className="w-12 h-12 rounded-lg bg-secondary relative overflow-hidden flex-shrink-0">
                                                         {room.thumbnail ? (
                                                             <img
-                                                                src={room.thumbnail}
+                                                                src={getFullUrl(room.thumbnail)}
                                                                 alt=""
                                                                 className={`object-cover w-full h-full ${room.status === 'ended' || room.status === 'idle' ? 'opacity-40 grayscale' : 'opacity-60'}`}
                                                             />
@@ -503,7 +504,7 @@ const LiveRoomsTab: React.FC = () => {
                         {total > 20 && (
                             <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                                 <p className="text-xs text-muted-foreground">
-                                    {t('admin.showing', 'Showing')} {(page - 1) * 20 + 1} {t('admin.to', 'to')} {Math.min(page * 20, total)} {t('admin.of', 'of')} {total} {t('admin.items', 'items')}
+                                    {t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
                                 </p>
                                 <div className="flex items-center gap-1">
                                     <Button

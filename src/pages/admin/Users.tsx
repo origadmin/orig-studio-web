@@ -197,12 +197,12 @@ export default function UsersPage() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link to="/admin">{t('admin.title', 'Admin')}</Link>
+              <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator/>
           <BreadcrumbItem>
-            <BreadcrumbPage>{t('admin.users') || 'Users Management'}</BreadcrumbPage>
+            <BreadcrumbPage>{t('admin.breadcrumb.users', '用户')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

@@ -53,6 +53,21 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
     const performUpload = useCallback(async (fileItem: UploadFileItem) => {
         if (fileItem.status === 'success' || ['uploading', 'initiating', 'completing'].includes(fileItem.status)) return;
 
+        // checkAllDone: call onSuccess only when every file in the list is in a
+        // terminal state (success or error). This prevents the parent dialog from
+        // closing after the first file succeeds while others are still uploading.
+        const checkAllDone = () => {
+            setFiles((prev) => {
+                const allDone = prev.every(
+                    (f) => f.status === 'success' || f.status === 'error',
+                );
+                if (allDone) {
+                    onSuccess?.();
+                }
+                return prev;
+            });
+        };
+
         if (!shouldUseChunkedUpload(fileItem.file.size)) {
             updateFile(fileItem.id, {status: 'uploading', progress: 0});
             try {
@@ -62,10 +77,11 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                     updateFile(fileItem.id, {progress: percent});
                 });
                 updateFile(fileItem.id, {status: 'success', progress: 100});
-                onSuccess?.();
+                checkAllDone();
             } catch (err) {
                 const msg = err instanceof Error ? err.message : 'Upload failed';
                 updateFile(fileItem.id, {status: 'error', error: msg});
+                checkAllDone();
             }
             return;
         }
@@ -76,11 +92,12 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
             onSuccess: (taskId) => {
                 updateFile(taskId, {status: 'success', progress: 100, completedAt: Date.now()});
                 activeTasksRef.current.delete(taskId);
-                onSuccess?.();
+                checkAllDone();
             },
             onError: (taskId, error) => {
                 updateFile(taskId, {status: 'error', error});
                 activeTasksRef.current.delete(taskId);
+                checkAllDone();
             },
             onUploadId: (taskId, uploadId) => {
                 updateFile(taskId, {uploadId});

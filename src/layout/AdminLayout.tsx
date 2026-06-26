@@ -27,12 +27,12 @@ import {
     Tv2,
     Plus,
     Zap,
-    Home,
-    Globe,
+    PanelLeft,
     Search,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 
 interface NavItem {
     id: string;
@@ -61,23 +61,23 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
     const navSections: NavSection[] = useMemo(() => [
         {
             // Core video business features (always visible - primary focus)
-            header: t('admin.sectionCore', 'Core'),
+            header: t('admin.sectionCore', '核心功能'),
             items: [
                 {id: "dashboard", icon: LayoutDashboard, label: t('admin.dashboard'), path: "/admin"},
                 {id: "media", icon: Film, label: t('admin.media'), path: "/admin/media"},
-                {id: "transcoding-profiles", icon: Cpu, label: t('admin.transcodingProfiles', 'Transcoding'), path: "/admin/transcoding/profiles"},
-                {id: "transcoding-status", icon: Activity, label: t('admin.transcodingStatus', 'Transcoding Status'), path: "/admin/transcoding/status"},
+                {id: "transcoding-profiles", icon: Cpu, label: t('admin.transcodingProfiles', '转码预设'), path: "/admin/transcoding/profiles"},
+                {id: "transcoding-status", icon: Activity, label: t('admin.transcodingStatus', '转码状态'), path: "/admin/transcoding/status"},
             ],
         },
         {
-            header: t('admin.sectionDistribution', 'Distribution'),
+            header: t('admin.sectionDistribution', '分发'),
             items: [
                 {id: "channels", icon: Radio, label: t('admin.channels'), path: "/admin/channels"},
-                ...(featureFlags.liveRooms ? [{id: "live-rooms", icon: Tv2, label: t('admin.liveRooms', 'Live Rooms'), path: "/admin/live-rooms"}] : []),
+                ...(featureFlags.liveRooms ? [{id: "live-rooms", icon: Tv2, label: t('admin.liveRooms', '直播间'), path: "/admin/live-rooms"}] : []),
             ],
         },
         {
-            header: t('admin.sectionContent', 'Content'),
+            header: t('admin.sectionContent', '内容管理'),
             items: [
                 ...(featureFlags.playlists ? [{id: "playlists", icon: PlayCircle, label: t('admin.playlists'), path: "/admin/playlists"}] : []),
                 {id: "categories", icon: FolderTree, label: t('admin.categories'), path: "/admin/categories"},
@@ -87,25 +87,25 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             ],
         },
         {
-            header: t('admin.sectionSecurity', 'Security & Access'),
+            header: t('admin.sectionSecurity', '安全与权限'),
             items: [
-                ...(featureFlags.drm ? [{id: "drm", icon: Shield, label: t('admin.drm', 'DRM Management'), path: "/admin/drm"}] : []),
+                ...(featureFlags.drm ? [{id: "drm", icon: Shield, label: t('admin.drm', 'DRM保护'), path: "/admin/drm"}] : []),
                 ...(featureFlags.users ? [{id: "users", icon: Users, label: t('admin.users'), path: "/admin/users"}] : []),
-                ...(featureFlags.permissions ? [{id: "permissions", icon: Key, label: t('admin.permissions', 'Permissions'), path: "/admin/permissions"}] : []),
+                ...(featureFlags.permissions ? [{id: "permissions", icon: Key, label: t('admin.permissions', '权限管理'), path: "/admin/permissions"}] : []),
             ],
         },
         {
-            header: t('admin.sectionCommerce', 'Commerce'),
+            header: t('admin.sectionCommerce', '商业化'),
             items: [
-                ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', 'Payment'), path: "/admin/payment"}] : []),
-                ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', 'Promotion'), path: "/admin/promotion"}] : []),
-                ...(featureFlags.ads ? [{id: "ads", icon: Target, label: t('admin.ads', 'Ads'), path: "/admin/ads"}] : []),
+                ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', '付费管理'), path: "/admin/payment"}] : []),
+                ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', '推广管理'), path: "/admin/promotion"}] : []),
+                ...(featureFlags.ads ? [{id: "ads", icon: Target, label: t('admin.ads', '广告管理'), path: "/admin/ads"}] : []),
             ],
         },
         {
-            header: t('admin.sectionSystem', 'System'),
+            header: t('admin.sectionSystem', '系统'),
             items: [
-                ...(featureFlags.notifications ? [{id: "notifications", icon: Bell, label: t('admin.notifications', 'Notifications'), path: "/admin/notifications"}] : []),
+                ...(featureFlags.notifications ? [{id: "notifications", icon: Bell, label: t('admin.notifications', '通知管理'), path: "/admin/notifications"}] : []),
                 {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
             ],
         },
@@ -129,7 +129,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                     {!collapsed && (
                         <div>
                             <div className="font-black text-[20px] leading-tight text-sidebar-foreground">OrigStudio</div>
-                            <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">Enterprise Edition</div>
+                            <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">企业版</div>
                         </div>
                     )}
                 </Link>
@@ -192,8 +192,8 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                             <Zap size={16} className="text-sidebar-accent"/>
                         </div>
                         <div>
-                            <div className="text-[12px] font-bold text-sidebar-foreground">System Health</div>
-                            <div className="text-[10px] text-sidebar-accent">99.98% Operational</div>
+                            <div className="text-[12px] font-bold text-sidebar-foreground">{t('admin.systemHealth', '系统健康')}</div>
+                            <div className="text-[10px] text-sidebar-accent">99.98% {t('admin.operational', '运行正常')}</div>
                         </div>
                     </div>
                 </div>
@@ -210,7 +210,7 @@ interface TopBarProps {
 }
 
 const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: TopBarProps) {
-    const {t, i18n} = useTranslation();
+    const {t} = useTranslation();
     const pathname = useRouterState({select: (s) => s.location.pathname});
 
     // Derive current page label from pathname
@@ -219,19 +219,19 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
         if (pathname.startsWith('/admin/media')) return t('admin.media');
         if (pathname.startsWith('/admin/articles')) return t('admin.articles');
         if (pathname.startsWith('/admin/channels')) return t('admin.channels');
-        if (pathname.startsWith('/admin/live-rooms')) return t('admin.liveRooms', 'Live Rooms');
-        if (pathname.startsWith('/admin/drm')) return t('admin.drm', 'DRM Management');
+        if (pathname.startsWith('/admin/live-rooms')) return t('admin.liveRooms', '直播间');
+        if (pathname.startsWith('/admin/drm')) return t('admin.drm', 'DRM保护');
         if (pathname.startsWith('/admin/users')) return t('admin.users');
-        if (pathname.startsWith('/admin/permissions')) return t('admin.permissions', 'Permissions');
-        if (pathname.startsWith('/admin/payment')) return t('admin.payment', 'Payment');
-        if (pathname.startsWith('/admin/promotion')) return t('admin.promotion', 'Promotion');
-        if (pathname.startsWith('/admin/ads')) return t('admin.ads', 'Ads');
+        if (pathname.startsWith('/admin/permissions')) return t('admin.permissions', '权限管理');
+        if (pathname.startsWith('/admin/payment')) return t('admin.payment', '付费管理');
+        if (pathname.startsWith('/admin/promotion')) return t('admin.promotion', '推广管理');
+        if (pathname.startsWith('/admin/ads')) return t('admin.ads', '广告管理');
         if (pathname.startsWith('/admin/playlists')) return t('admin.playlists');
         if (pathname.startsWith('/admin/categories')) return t('admin.categories');
         if (pathname.startsWith('/admin/tags')) return t('admin.tags');
         if (pathname.startsWith('/admin/comments')) return t('admin.comments');
-        if (pathname.startsWith('/admin/transcoding')) return t('admin.transcodingProfiles', 'Transcoding');
-        if (pathname.startsWith('/admin/notifications')) return t('admin.notifications', 'Notifications');
+        if (pathname.startsWith('/admin/transcoding')) return t('admin.transcodingProfiles', '转码预设');
+        if (pathname.startsWith('/admin/notifications')) return t('admin.notifications', '通知管理');
         if (pathname.startsWith('/admin/settings')) return t('admin.settings');
         return t('admin.dashboard');
     }, [pathname, t]);
@@ -246,24 +246,18 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
                     <input
                         className="bg-muted/50 border-none rounded-full py-1.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary w-64 placeholder:text-muted-foreground"
-                        placeholder={t('admin.searchPlaceholder', 'Search...')}
+                        placeholder={t('admin.searchPlaceholder', '搜索...')}
                         type="text"
                     />
                 </div>
             </div>
             <div className="flex items-center gap-4">
-                <button
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => i18n.changeLanguage(i18n.language === 'zh' ? 'en' : 'zh')}
-                >
-                    <Globe className="w-4 h-4"/>
-                    <span>{i18n.language === 'zh' ? '中文' : 'EN'}</span>
-                </button>
+                <LanguageSwitcher variant="compact"/>
                 <button
                     onClick={onToggleCollapse}
                     className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground"
                 >
-                    <Home size={18}/>
+                    <PanelLeft size={18}/>
                 </button>
                 <button className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">
                     <Bell size={18}/>

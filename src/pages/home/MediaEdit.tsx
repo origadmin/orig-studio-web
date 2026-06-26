@@ -10,7 +10,7 @@ import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
 import {AlertTriangle, ArrowLeft, Play} from 'lucide-react';
 import {toast} from 'sonner';
-import {API_BASE_URL} from '@/lib/request';
+import {getFullUrl} from '@/lib/utils';
 
 /**
  * Normalize privacy value from backend to a numeric enum value.
@@ -80,13 +80,6 @@ function mapEncodingStatus(status: string | undefined): EncodingStatusConfig | u
     const validStatuses = ['success', 'processing', 'pending', 'failed'];
     if (!status || !validStatuses.includes(status)) return undefined;
     return {status: status as EncodingStatusConfig['status']};
-}
-
-function resolveMediaUrl(url: string | undefined): string | undefined {
-    if (!url) return undefined;
-    if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    const base = API_BASE_URL || '';
-    return `${base}/${url.replace(/^\//, '')}`;
 }
 
 export default function MediaEditPage() {
@@ -257,7 +250,7 @@ export default function MediaEditPage() {
                             <h3 className="font-medium mb-3">Preview</h3>
                             {media.thumbnail ? (
                                 <img
-                                    src={resolveMediaUrl(media.thumbnail)}
+                                    src={getFullUrl(media.thumbnail)}
                                     alt={media.title}
                                     className="w-full aspect-video object-cover rounded-md"
                                     onError={(e) => {

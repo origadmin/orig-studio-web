@@ -36,6 +36,8 @@ const NotificationBadge: React.FC = () => {
 
     if (!user) return null;
 
+    const notifications = Array.isArray(recentNotifications) ? recentNotifications : [];
+
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -64,7 +66,7 @@ const NotificationBadge: React.FC = () => {
                     )}
                 </div>
                 <Separator/>
-                {recentNotifications.length === 0 ? (
+                {notifications.length === 0 ? (
                     <div className="px-4 py-8 text-center">
                         <Bell className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2"/>
                         <p className="text-sm text-muted-foreground">{t('notifications.noNotifications')}</p>
@@ -72,7 +74,7 @@ const NotificationBadge: React.FC = () => {
                 ) : (
                     <ScrollArea className="max-h-[400px]">
                         <div className="divide-y divide-border">
-                            {recentNotifications.map(notification => (
+                            {notifications.map(notification => (
                                 <div
                                     key={notification.id}
                                     className={cn(

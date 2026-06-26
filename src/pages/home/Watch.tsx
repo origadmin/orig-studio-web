@@ -16,11 +16,11 @@ import {Skeleton} from '@/components/ui/skeleton';
 import {formatViews, formatDate, formatDuration} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {publicMediaApi, adminMediaApi, encodingApi} from '@/lib/api/media';
-import {spriteApi} from '@/lib/api/sprite';
 import {commentApi} from '@/lib/api/comment';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
+import {getFullUrl} from '@/lib/utils';
 import ErrorPage from '@/components/common/ErrorPage';
 import SubscribeButton from '@/components/common/SubscribeButton';
 import CommentSection from '@/components/common/CommentSection';
@@ -159,7 +159,7 @@ const WatchPage = () => {
                         hlsSrc={media.hls_file}
                         isProcessing={isProcessing}
                         poster={media.poster || media.thumbnail}
-                        spriteVttUrl={media.sprite_status === 'success' && media.short_token ? spriteApi.getVttUrl(media.short_token) : undefined}
+                        spriteVttUrl={media.type === 'video' && media.sprite_status === 'success' && media.vtt_path ? getFullUrl(media.vtt_path) : undefined}
                         enableSpritePreview={true}
                         onTimeUpdate={handleProgressTimeUpdate}
                         onPause={handleProgressPause}

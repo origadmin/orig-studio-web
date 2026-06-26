@@ -1,20 +1,16 @@
-/*
+﻿/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  *
- * Transcoding Status Page — Aligned with prototype design
+ * Transcoding Status Page
  * Real-time monitoring of active, queued, and completed transcoding jobs.
  */
 
 import {useEffect, useState, useCallback, useMemo, useRef, Fragment} from "react";
-import {useLocation, useNavigate, Link} from "@tanstack/react-router";
+import {useLocation, useNavigate} from "@tanstack/react-router";
 import {useTranslation} from "react-i18next";
 import {encodingApi, type EncodeProfile, type EncodingTask, type EncodingTaskListResponse} from "../../lib/api/media";
-import {useAuth} from "../../hooks/useAuth";
 import {useTranscoding} from "../../hooks/useTranscoding";
-import {Badge} from "../../components/ui/badge";
 import {Button} from "../../components/ui/button";
-import {Progress} from "../../components/ui/progress";
-import {Skeleton} from "../../components/ui/skeleton";
 import {
     Table, TableBody, TableCell, TableRow,
     TableHead, TableHeader
@@ -24,62 +20,76 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../
 import {Checkbox} from "../../components/ui/checkbox";
 import {AdminPageTemplate} from "../../components/AdminPageTemplate";
 import {
-    Activity, RefreshCw, Plus, Search, Clock, CheckCircle2, XCircle,
-    AlertCircle, Film, Trash2, RotateCcw, Eye
+    Activity, RefreshCw, Search, Clock, CheckCircle2, XCircle,
+    AlertCircle, Film, RotateCcw, Eye, ChevronLeft, ChevronRight, Loader2
 } from "lucide-react";
-import {TablePagination} from '@/components/common/TablePagination';
 import {PAGINATION_CONFIG} from '@/config/pagination';
-
-// ─── Types ─────────────────────────────────────────────
 
 type EncodingTaskWithMeta = EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string };
 
 type StatusFilter = "all" | "processing" | "queued" | "completed" | "failed";
 
-// ─── Status Badge Component ─────────────────────────────
+function extractTasks(res: EncodingTaskListResponse | null | undefined): EncodingTaskWithMeta[] {
+    if (!res) return [];
+    if (Array.isArray(res.items)) return res.items;
+    if (Array.isArray(res.tasks)) return res.tasks;
+    return [];
+}
+
+function shortenId(id: string | number): string {
+    if (typeof id === 'number') {
+        return `TRC-${String(id).padStart(5, '0')}`;
+    }
+    if (id.length > 12) {
+        return `${id.substring(0, 8)}...`;
+    }
+    return id;
+}
 
 function StatusBadge({status}: { status: string }) {
+    const {t} = useTranslation();
     const config: Record<string, { label: string; className: string }> = {
         processing: {
-            label: "Processing",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700"
+            label: t('admin.processing', '转码中'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 whitespace-nowrap"
         },
         queued: {
-            label: "Queued",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"
+            label: t('admin.queued', '排队中'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
         },
         completed: {
-            label: "Completed",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
+            label: t('admin.success', '成功'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap"
         },
         pending: {
-            label: "Queued",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"
+            label: t('admin.queued', '排队中'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
         },
         success: {
-            label: "Completed",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
+            label: t('admin.success', '成功'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap"
         },
         skipped: {
-            label: "Skipped",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
+            label: t('admin.skipped', '已跳过'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap"
         },
         partial: {
-            label: "Partial",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700"
+            label: t('admin.partialComplete', '部分完成'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap"
         },
         failed: {
-            label: "Failed",
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"
+            label: t('admin.failed', '失败'),
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 whitespace-nowrap"
         },
     };
 
-    const cfg = config[status] || {label: status, className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600"};
+    const cfg = config[status] || {
+        label: status,
+        className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
+    };
 
     return <span className={cfg.className}>{cfg.label}</span>;
 }
-
-// ─── Task Row Component ─────────────────────────────────
 
 function TaskRowCells({
                            task,
@@ -89,6 +99,7 @@ function TaskRowCells({
                            onToggleSelect,
                            showError,
                            onToggleError,
+                           onView,
                        }: {
     task: EncodingTaskWithMeta;
     onRetry: () => void;
@@ -97,11 +108,14 @@ function TaskRowCells({
     onToggleSelect: () => void;
     showError: boolean;
     onToggleError: () => void;
+    onView: () => void;
 }) {
+    const {t} = useTranslation();
     const isProcessing = task.status === "processing";
     const isFailed = task.status === "failed";
     const isSuccess = task.status === "success" || task.status === "completed";
     const canRetry = isFailed || task.status === "skipped";
+    const hasError = isFailed && !!task.error_message;
 
     const progressValue = isProcessing ? (task.progress || 0) :
         isSuccess ? 100 : 0;
@@ -112,16 +126,16 @@ function TaskRowCells({
                 <Checkbox
                     checked={isSelected}
                     onCheckedChange={onToggleSelect}
-                    aria-label={`Select task ${task.id}`}
+                    aria-label={`${t('admin.selectTask', '选择任务')} ${task.id}`}
                 />
             </TableCell>
             <TableCell>
                 <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-800">
-                        {typeof task.id === 'number' ? `TRC-${String(task.id).padStart(5, '0')}` : task.id}
+                    <span className="text-sm font-semibold text-slate-800 font-mono" title={String(task.id)}>
+                        {shortenId(task.id)}
                     </span>
-                    <span className="font-mono text-xs text-slate-500">
-                        {task.media_title || task.media_id || 'N/A'}
+                    <span className="text-xs text-slate-500 truncate max-w-[200px]" title={task.media_title || task.media_id}>
+                        {task.media_title || shortenId(task.media_id) || t('common.unknown', '未知')}
                     </span>
                 </div>
             </TableCell>
@@ -136,66 +150,61 @@ function TaskRowCells({
                             style={{width: `${progressValue}%`}}
                         />
                     </div>
-                    <span className={`font-mono text-xs ${isProcessing ? 'text-sky-600' : isSuccess ? 'text-emerald-600' : isFailed ? 'text-red-600' : 'text-slate-500'}`}>
+                    <span className={`font-mono text-xs w-10 text-right ${isProcessing ? 'text-sky-600' : isSuccess ? 'text-emerald-600' : isFailed ? 'text-red-600' : 'text-slate-500'}`}>
                         {progressValue}%
                     </span>
                 </div>
             </TableCell>
             <TableCell>
                 <span className="text-sm text-slate-700">
-                    {task.profile_name || task.profile_id || '-'}
+                    {task.profile_name || `#${task.profile_id}`}
                 </span>
             </TableCell>
             <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
+                    {hasError && (
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={onToggleError}
+                            title={t('admin.viewStacktrace', '查看错误堆栈')}
+                            className={showError ? "text-red-600 bg-red-50" : "text-slate-500 hover:text-red-600"}
+                        >
+                            <AlertCircle className="w-4 h-4"/>
+                        </Button>
+                    )}
                     {canRetry && (
-                        <>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onToggleError}
-                                title="Show Details"
-                            >
-                                <AlertCircle className="w-4 h-4"/>
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={onRetry}
-                                disabled={isRetrying}
-                                title="Retry"
-                            >
-                                {isRetrying ? (
-                                    <RefreshCw className="w-4 h-4 animate-spin"/>
-                                ) : (
-                                    <RotateCcw className="w-4 h-4"/>
-                                )}
-                            </Button>
-                        </>
+                        <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={onRetry}
+                            disabled={isRetrying}
+                            title={t('admin.retryJobNow', '立即重试')}
+                            className="text-slate-500 hover:text-amber-600"
+                        >
+                            {isRetrying ? (
+                                <RefreshCw className="w-4 h-4 animate-spin"/>
+                            ) : (
+                                <RotateCcw className="w-4 h-4"/>
+                            )}
+                        </Button>
                     )}
                     {isSuccess && (
                         <Button
                             variant="ghost"
-                            size="icon"
-                            title="View Output"
+                            size="icon-sm"
+                            onClick={onView}
+                            title={t('admin.viewOutput', '查看输出')}
+                            className="text-slate-500 hover:text-emerald-600"
                         >
                             <Eye className="w-4 h-4"/>
                         </Button>
                     )}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Delete"
-                    >
-                        <Trash2 className="w-4 h-4"/>
-                    </Button>
                 </div>
             </TableCell>
         </>
     );
 }
-
-// ─── Stat Card Component ────────────────────────────────
 
 function StatCard({
                       label,
@@ -235,30 +244,24 @@ function StatCard({
     );
 }
 
-// ─── Main Page ─────────────────────────────────────────
-
 export default function TranscodingStatus() {
     const {t} = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
     const urlMediaId = new URLSearchParams(location.search).get("media_id");
-    const {isAuthenticated} = useAuth();
 
-    // Data state
     const [filteredData, setFilteredData] = useState<EncodingTaskListResponse | null>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(1);
     const [retryingTaskId, setRetryingTaskId] = useState<number | string | null>(null);
 
-    // Filter state
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [profileFilter, setProfileFilter] = useState<string>('all');
 
-    // Selection state
     const [selectedRows, setSelectedRows] = useState<(string | number)[]>([]);
 
-    // Error visibility per task
     const [errorVisibleTasks, setErrorVisibleTasks] = useState<Set<string | number>>(new Set());
 
     const toggleErrorVisibility = (taskId: string | number) => {
@@ -273,7 +276,6 @@ export default function TranscodingStatus() {
         });
     };
 
-    // Stats
     const [stats, setStats] = useState<{
         active: number;
         queued: number;
@@ -281,12 +283,10 @@ export default function TranscodingStatus() {
         failed: number;
     }>({active: 0, queued: 0, completed: 0, failed: 0});
 
-    // Available profiles for filtering
     const [availableProfiles, setAvailableProfiles] = useState<string[]>([]);
 
     const {lastEvent, sseStatus} = useTranscoding(urlMediaId ?? "");
 
-    // Fetch encoding profiles for filter dropdown
     const fetchProfiles = useCallback(async () => {
         try {
             const response = await encodingApi.profiles.list();
@@ -302,17 +302,16 @@ export default function TranscodingStatus() {
         }
     }, []);
 
-    // Fetch tasks
     const fetchTasks = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
             const params: Record<string, string | number> = {
                 page: page,
                 page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
             };
 
             if (statusFilter !== 'all') {
-                // Map UI statuses to backend statuses
                 const map: Record<StatusFilter, string | null> = {
                     all: null,
                     processing: 'processing',
@@ -339,54 +338,53 @@ export default function TranscodingStatus() {
             const response = await encodingApi.getTasks(params);
             setFilteredData(response);
 
-            // Use backend global counts instead of current-page filtering
             setStats({
                 active: response?.processing_count || 0,
                 queued: response?.pending_count || 0,
                 completed: response?.success_count || 0,
                 failed: response?.failed_count || 0,
             });
-        } catch (error) {
-            console.error("Failed to fetch tasks:", error);
+        } catch (err: any) {
+            console.error("Failed to fetch tasks:", err);
+            setError(err?.message || t('admin.loadTasksFailed', '加载转码任务失败'));
         } finally {
             setLoading(false);
         }
-    }, [page, statusFilter, urlMediaId, profileFilter, searchQuery]);
+    }, [page, statusFilter, urlMediaId, profileFilter, searchQuery, t]);
 
     const fetchTasksRef = useRef(fetchTasks);
     useEffect(() => {
         fetchTasksRef.current = fetchTasks;
     }, [fetchTasks]);
 
-    // Initial load
     useEffect(() => {
         fetchTasks();
         fetchProfiles();
     }, [fetchTasks, fetchProfiles]);
 
-    // SSE event handling - update task status
     useEffect(() => {
         if (!lastEvent) return;
         if (urlMediaId && lastEvent.media_id !== urlMediaId) return;
 
         setFilteredData(prev => {
-            if (!prev || !prev.items) return prev;
+            if (!prev) return prev;
+            const tasks = extractTasks(prev);
+            if (tasks.length === 0) return prev;
 
-            const updatedItems = prev.items.map(task => {
+            const updatedItems = tasks.map(task => {
                 if (String(task.id) === String(lastEvent.task_id)) {
                     return {
                         ...task,
-                        status: lastEvent.status,
+                        status: lastEvent.status || task.status,
                         progress: lastEvent.progress !== undefined ? lastEvent.progress : task.progress,
                     };
                 }
                 return task;
             });
 
-            return {...prev, items: updatedItems};
+            return {...prev, items: updatedItems, tasks: updatedItems};
         });
 
-        // When task succeeds, refetch to get updated data
         if (lastEvent.status === 'success') {
             setTimeout(() => {
                 fetchTasksRef.current();
@@ -394,12 +392,10 @@ export default function TranscodingStatus() {
         }
     }, [lastEvent, urlMediaId]);
 
-    // Filtered task list
     const filteredTasks = useMemo(() => {
-        return filteredData?.items || [];
+        return extractTasks(filteredData);
     }, [filteredData]);
 
-    // Selection handlers
     const toggleSelectAll = () => {
         if (selectedRows.length === filteredTasks.length) {
             setSelectedRows([]);
@@ -414,17 +410,17 @@ export default function TranscodingStatus() {
         );
     };
 
-    // Retry handlers
     const handleBatchRetry = async () => {
         setFilteredData(prev => {
             if (!prev) return prev;
-            const updatedItems = prev.items.map(task => {
+            const tasks = extractTasks(prev);
+            const updatedItems = tasks.map(task => {
                 if (selectedRows.includes(task.id)) {
-                    return {...task, status: "pending", progress: 0};
+                    return {...task, status: "pending", progress: 0, error_message: ""};
                 }
                 return task;
             });
-            return {...prev, items: updatedItems};
+            return {...prev, items: updatedItems, tasks: updatedItems};
         });
 
         for (const id of selectedRows) {
@@ -437,17 +433,34 @@ export default function TranscodingStatus() {
         }
         setRetryingTaskId(null);
         setSelectedRows([]);
+        setTimeout(() => fetchTasksRef.current(), 500);
     };
 
     const handleRetryTask = async (taskId: string) => {
         setRetryingTaskId(taskId);
         try {
             await encodingApi.retryTask(taskId);
+            setFilteredData(prev => {
+                if (!prev) return prev;
+                const tasks = extractTasks(prev);
+                const updatedItems = tasks.map(task => {
+                    if (String(task.id) === taskId) {
+                        return {...task, status: "pending", progress: 0, error_message: ""};
+                    }
+                    return task;
+                });
+                return {...prev, items: updatedItems, tasks: updatedItems};
+            });
         } catch (err) {
             console.error("Retry task failed:", err);
         } finally {
             setRetryingTaskId(null);
         }
+        setTimeout(() => fetchTasksRef.current(), 500);
+    };
+
+    const handleViewMedia = (mediaId: string) => {
+        navigate({to: '/admin/media/$id', params: {id: mediaId}});
     };
 
     const handleResetFilters = () => {
@@ -461,28 +474,8 @@ export default function TranscodingStatus() {
         fetchTasks();
     };
 
-    // Loading skeleton
-    if (loading && !filteredData) {
-        return (
-            <AdminPageTemplate
-                title={t('admin.transcodingStatus', 'Transcoding Status')}
-                description="Loading transcoding jobs..."
-            >
-                <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map(i => (
-                            <Skeleton key={i} className="h-24 rounded-xl"/>
-                        ))}
-                    </div>
-                    <div className="bg-white rounded-xl border border-slate-200">
-                        <Skeleton className="h-64 rounded-xl"/>
-                    </div>
-                </div>
-            </AdminPageTemplate>
-        );
-    }
+    const totalPages = filteredData?.total_pages || Math.ceil((filteredData?.total || 0) / PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
 
-    // Page actions
     const pageActions = (
         <div className="flex items-center gap-2">
             <Button
@@ -491,59 +484,69 @@ export default function TranscodingStatus() {
                 disabled={selectedRows.length === 0}
             >
                 <RotateCcw className="w-4 h-4"/>
-                {selectedRows.length > 0 ? `Retry (${selectedRows.length})` : 'Batch Retry'}
+                {selectedRows.length > 0 ? `${t('admin.retry', '重试')} (${selectedRows.length})` : t('admin.batchRetry', '批量重试')}
             </Button>
             <Button onClick={handleRefresh}>
                 <RefreshCw className="w-4 h-4"/>
-                Refresh
+                {t('admin.refresh', '刷新')}
             </Button>
         </div>
     );
 
     return (
         <AdminPageTemplate
-            title={t('admin.transcodingStatus', 'Transcoding Status')}
-            description="Real-time monitoring of active, queued, and completed transcoding jobs."
+            title={t('admin.transcodingStatus', '转码状态')}
+            description={t('admin.transcodingStatusDesc', '实时监控活跃、排队和已完成的转码任务。')}
             actions={pageActions}
         >
-            {/* Live Status Badge - placed after title */}
             <div className="flex items-center gap-3 mb-8">
-                <Badge variant="secondary" className="bg-emerald-50 text-emerald-700">
-                    <span className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${sseStatus.connected ? 'animate-pulse' : ''}`}/>
-                    {sseStatus.connected ? 'Live Connection' : 'Disconnected'}
-                </Badge>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
+                    {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
+                </span>
             </div>
 
-            {/* ─── Statistics Cards ──────────────────────────── */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600"/>
+                        <p className="text-sm text-red-800">{error}</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleRefresh}>
+                        <RotateCcw className="w-3.5 h-3.5 mr-1"/>
+                        {t('admin.retry', '重试')}
+                    </Button>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <StatCard
-                    label="Active Jobs"
+                    label={t('admin.activeJobs', '活跃任务')}
                     value={stats.active}
                     icon={Activity}
                     color="sky"
-                    description={sseStatus.connected ? 'Real-time' : 'Latest snapshot'}
+                    description={sseStatus.connected ? t('admin.realTime', '实时') : t('admin.latestSnapshot', '最新快照')}
                 />
                 <StatCard
-                    label="In Queue"
+                    label={t('admin.inQueue', '排队中')}
                     value={stats.queued}
                     icon={Clock}
                     color="amber"
                 />
                 <StatCard
-                    label="Completed"
+                    label={t('admin.completed', '已完成')}
                     value={stats.completed}
                     icon={CheckCircle2}
                     color="emerald"
                 />
                 <StatCard
-                    label="Failed"
+                    label={t('admin.failed', '失败')}
                     value={stats.failed}
                     icon={XCircle}
                     color="red"
                 />
             </div>
 
-            {/* ─── Filter Toolbar ────────────────────────────── */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
@@ -556,7 +559,7 @@ export default function TranscodingStatus() {
                                 fetchTasks();
                             }
                         }}
-                        placeholder="Search jobs by media ID, profile..."
+                        placeholder={t('admin.searchJobs', '搜索任务（媒体ID、配置...）')}
                         className="pl-9"
                     />
                 </div>
@@ -568,14 +571,14 @@ export default function TranscodingStatus() {
                     }}
                 >
                     <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="All Status"/>
+                        <SelectValue placeholder={t('admin.allStatus', '全部状态')}/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="queued">Queued</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
+                        <SelectItem value="all">{t('admin.allStatus', '全部状态')}</SelectItem>
+                        <SelectItem value="processing">{t('admin.processing', '转码中')}</SelectItem>
+                        <SelectItem value="queued">{t('admin.queued', '排队中')}</SelectItem>
+                        <SelectItem value="completed">{t('admin.success', '成功')}</SelectItem>
+                        <SelectItem value="failed">{t('admin.failed', '失败')}</SelectItem>
                     </SelectContent>
                 </Select>
                 <Select
@@ -586,10 +589,10 @@ export default function TranscodingStatus() {
                     }}
                 >
                     <SelectTrigger className="w-[160px]">
-                        <SelectValue placeholder="All Profiles"/>
+                        <SelectValue placeholder={t('admin.allProfiles', '全部配置')}/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="all">All Profiles</SelectItem>
+                        <SelectItem value="all">{t('admin.allProfiles', '全部配置')}</SelectItem>
                         {availableProfiles.map(p => (
                             <SelectItem key={p} value={p}>{p}</SelectItem>
                         ))}
@@ -597,11 +600,10 @@ export default function TranscodingStatus() {
                 </Select>
                 <Button variant="ghost" size="sm" onClick={handleResetFilters}>
                     <RotateCcw className="w-3.5 h-3.5"/>
-                    Reset
+                    {t('admin.reset', '重置')}
                 </Button>
             </div>
 
-            {/* ─── Table Container ───────────────────────────── */}
             <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
                 <Table>
                     <TableHeader>
@@ -610,37 +612,43 @@ export default function TranscodingStatus() {
                                 <Checkbox
                                     checked={filteredTasks.length > 0 && selectedRows.length === filteredTasks.length}
                                     onCheckedChange={toggleSelectAll}
-                                    aria-label="Select all"
+                                    aria-label={t('admin.selectAll', '全选')}
                                 />
                             </TableHead>
                             <TableHead>
-                                Job ID / Filename
+                                {t('admin.jobIdFilename', '任务ID / 文件名')}
                             </TableHead>
                             <TableHead>
-                                Status
+                                {t('admin.status', '状态')}
                             </TableHead>
                             <TableHead>
-                                Progress
+                                {t('admin.progress', '进度')}
                             </TableHead>
                             <TableHead>
-                                Format
+                                {t('admin.format', '格式')}
                             </TableHead>
                             <TableHead className="text-right">
-                                Actions
+                                {t('admin.actions', '操作')}
                             </TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {!filteredTasks.length ? (
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="px-6 py-16 text-center">
+                                    <Loader2 className="w-6 h-6 text-slate-300 animate-spin mx-auto"/>
+                                </TableCell>
+                            </TableRow>
+                        ) : !filteredTasks.length ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="py-16 text-center">
                                     <div className="flex flex-col items-center gap-3">
                                         <Film className="w-12 h-12 text-slate-300"/>
-                                        <h3 className="text-lg font-medium text-slate-700">No transcoding jobs found</h3>
+                                        <h3 className="text-lg font-medium text-slate-700">{t('admin.noTranscodingJobs', '未找到转码任务')}</h3>
                                         <p className="text-sm text-slate-500 max-w-md">
                                             {searchQuery || statusFilter !== 'all' || profileFilter !== 'all'
-                                                ? 'No tasks match your current filters. Try adjusting them.'
-                                                : 'Upload a video file to start generating encoding tasks.'}
+                                                ? t('admin.noTasksMatchFilters', '没有任务匹配当前筛选条件，请尝试调整筛选条件。')
+                                                : t('admin.uploadVideoToStart', '上传视频文件以开始生成转码任务。')}
                                         </p>
                                     </div>
                                 </TableCell>
@@ -660,6 +668,7 @@ export default function TranscodingStatus() {
                                                 onToggleSelect={() => toggleSelectRow(task.id)}
                                                 showError={showError}
                                                 onToggleError={() => toggleErrorVisibility(task.id)}
+                                                onView={() => handleViewMedia(task.media_id)}
                                             />
                                         </TableRow>
                                         {showError && (
@@ -667,7 +676,7 @@ export default function TranscodingStatus() {
                                                 <TableCell colSpan={6} className="px-6 py-4">
                                                     <div className="bg-slate-900 rounded-lg p-4 font-mono text-xs text-red-400 overflow-x-auto max-h-48 overflow-y-auto">
                                                         <p className="text-slate-400 font-bold mb-2 uppercase tracking-wider text-[10px]">
-                                                            Error Log:
+                                                            {t('admin.viewStacktrace', '错误堆栈')}:
                                                         </p>
                                                         <pre className="whitespace-pre-wrap break-all">{task.error_message}</pre>
                                                     </div>
@@ -681,37 +690,30 @@ export default function TranscodingStatus() {
                     </TableBody>
                 </Table>
 
-                {/* ─── Pagination ─────────────────────────── */}
-                {filteredData && (
+                {filteredData && (filteredData.total || filteredTasks.length > 0) && (
                     <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
                         <p className="text-xs text-slate-500">
-                            Showing {filteredTasks.length} of {filteredData.total || filteredTasks.length} entries
+                            {t('admin.showingEntries', `显示 ${((page - 1) * PAGINATION_CONFIG.DEFAULT_PAGE_SIZE) + 1}-${Math.min(page * PAGINATION_CONFIG.DEFAULT_PAGE_SIZE, filteredData.total || filteredTasks.length)} 条，共 ${filteredData.total || filteredTasks.length} 条记录`)}
                         </p>
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
-                                size="icon"
+                                size="icon-sm"
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page <= 1}
                             >
-                                <span className="sr-only">Previous</span>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
-                                </svg>
+                                <ChevronLeft className="w-4 h-4"/>
                             </Button>
                             <span className="h-8 px-3 flex items-center justify-center text-sm font-medium text-slate-700">
-                                {page}
+                                {page} / {totalPages || 1}
                             </span>
                             <Button
                                 variant="outline"
-                                size="icon"
+                                size="icon-sm"
                                 onClick={() => setPage(p => p + 1)}
-                                disabled={!filteredData || (filteredData.items?.length || 0) < (filteredData.page_size || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE)}
+                                disabled={page >= totalPages}
                             >
-                                <span className="sr-only">Next</span>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-                                </svg>
+                                <ChevronRight className="w-4 h-4"/>
                             </Button>
                         </div>
                     </div>
