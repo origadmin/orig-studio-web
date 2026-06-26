@@ -52,7 +52,20 @@
     "optional": "optional",
     "deleted": "Deleted",
     "error": "Error",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "unknown": "Unknown",
+    "na": "N/A",
+    "status": {
+      "success": "Published",
+      "processing": "Processing",
+      "pending": "Queued",
+      "failed": "Failed",
+      "draft": "Draft",
+      "deleted": "Deleted",
+      "partial": "Partial",
+      "skipped": "Skipped",
+      "unknown": "Unknown"
+    }
   },
   "nav": {
     "home": "Home",
@@ -626,7 +639,33 @@
     "loadFailed": "Load failed: {{error}}",
     "retry": "Retry",
     "noMedia": "No media content found",
-    "editDesc": "Edit media information"
+    "editDesc": "Edit media information",
+    "editForm": {
+      "title": "Title",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your media...",
+      "category": "Category",
+      "selectCategory": "Select category",
+      "noCategory": "No category",
+      "tags": "Tags (comma separated)",
+      "tagsPlaceholder": "e.g. tutorial, coding, devops",
+      "technicalInfo": "Technical Info",
+      "resolution": "Resolution",
+      "duration": "Duration",
+      "mimeType": "MIME Type",
+      "fileSize": "File Size",
+      "extension": "Extension",
+      "privacy": "Privacy",
+      "state": "State",
+      "allowComments": "Allow Comments",
+      "allowCommentsDesc": "Users can leave comments",
+      "allowDownload": "Allow Download",
+      "allowDownloadDesc": "Users can download the original file",
+      "featured": "Featured",
+      "featuredDesc": "Show in featured section",
+      "listable": "Listable",
+      "listableDesc": "Show in video listings"
+    }
   },
   "auth": {
     "loginRequired": "Login Required",
@@ -768,6 +807,7 @@
     "mostActiveCreators": "Most active creators",
     "mostViewedContent": "Most viewed content",
     "noParent": "No parent",
+    "parentDisabled": "Parent category is disabled",
     "parentNotFound": "Parent not found",
     "parent": "Parent",
     "editCategory": "Edit Category",

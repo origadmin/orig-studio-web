@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
@@ -30,20 +31,22 @@ interface MediaEditFormProps {
 }
 
 export function MediaEditForm({form, setForm, media, categories, isAdmin, showAdminOnlyFields = true}: MediaEditFormProps) {
+    const {t} = useTranslation();
     const categoriesList = (categories as any)?.items
         ? (categories as any).items
         : Array.isArray(categories) ? categories : [];
 
-    const techResolution = media.width && media.height ? `${media.width} x ${media.height}` : 'N/A';
-    const techDuration = media.duration ? formatDuration(media.duration) : 'N/A';
-    const techMimeType = media.mime_type || 'N/A';
-    const techFileSize = media.size ? formatFileSize(Number(media.size)) : 'N/A';
-    const techExtension = media.extension || 'N/A';
+    const na = t('common.na', 'N/A');
+    const techResolution = media.width && media.height ? `${media.width} x ${media.height}` : na;
+    const techDuration = media.duration ? formatDuration(media.duration) : na;
+    const techMimeType = media.mime_type || na;
+    const techFileSize = media.size ? formatFileSize(Number(media.size)) : na;
+    const techExtension = media.extension || na;
 
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t('media.editForm.title', 'Title')}</Label>
                 <Input
                     id="title"
                     value={form.title}
@@ -52,27 +55,27 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('media.editForm.description', 'Description')}</Label>
                 <textarea
                     id="description"
                     className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     value={form.description}
                     onChange={e => setForm({...form, description: e.target.value})}
-                    placeholder="Describe your media..."
+                    placeholder={t('media.editForm.descriptionPlaceholder', 'Describe your media...')}
                 />
             </div>
 
             <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t('media.editForm.category', 'Category')}</Label>
                 <Select
                     value={form.category_id !== '' && form.category_id !== undefined ? String(form.category_id) : '_none_'}
                     onValueChange={val => setForm({...form, category_id: val === '_none_' ? '' : val})}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="Select category"/>
+                        <SelectValue placeholder={t('media.editForm.selectCategory', 'Select category')}/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="_none_">No category</SelectItem>
+                        <SelectItem value="_none_">{t('media.editForm.noCategory', 'No category')}</SelectItem>
                         {categoriesList.map((cat: any) => (
                             <SelectItem key={cat.id} value={String(cat.id)}>
                                 {cat.name}
@@ -83,12 +86,12 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="tags">Tags (comma separated)</Label>
+                <Label htmlFor="tags">{t('media.editForm.tags', 'Tags (comma separated)')}</Label>
                 <Input
                     id="tags"
                     value={form.tags}
                     onChange={e => setForm({...form, tags: e.target.value})}
-                    placeholder="e.g. tutorial, coding, devops"
+                    placeholder={t('media.editForm.tagsPlaceholder', 'e.g. tutorial, coding, devops')}
                 />
                 {form.tags && (
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -102,26 +105,26 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
             <Separator/>
 
             <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Technical Info</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{t('media.editForm.technicalInfo', 'Technical Info')}</h3>
                 <div className="grid grid-cols-2 gap-x-6 gap-y-3">
                     <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Resolution</Label>
+                        <Label className="text-xs text-muted-foreground">{t('media.editForm.resolution', 'Resolution')}</Label>
                         <p className="text-sm font-mono">{techResolution}</p>
                     </div>
                     <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Duration</Label>
+                        <Label className="text-xs text-muted-foreground">{t('media.editForm.duration', 'Duration')}</Label>
                         <p className="text-sm font-mono">{techDuration}</p>
                     </div>
                     <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">MIME Type</Label>
+                        <Label className="text-xs text-muted-foreground">{t('media.editForm.mimeType', 'MIME Type')}</Label>
                         <p className="text-sm font-mono">{techMimeType}</p>
                     </div>
                     <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">File Size</Label>
+                        <Label className="text-xs text-muted-foreground">{t('media.editForm.fileSize', 'File Size')}</Label>
                         <p className="text-sm font-mono">{techFileSize}</p>
                     </div>
                     <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Extension</Label>
+                        <Label className="text-xs text-muted-foreground">{t('media.editForm.extension', 'Extension')}</Label>
                         <p className="text-sm font-mono">{techExtension}</p>
                     </div>
                 </div>
@@ -131,7 +134,7 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label>Privacy</Label>
+                    <Label>{t('media.editForm.privacy', 'Privacy')}</Label>
                     <Select
                         value={String(form.privacy)}
                         onValueChange={val => setForm({...form, privacy: Number(val)})}
@@ -140,15 +143,15 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                             <SelectValue/>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="1">Public</SelectItem>
-                            <SelectItem value="3">Unlisted</SelectItem>
-                            <SelectItem value="2">Private</SelectItem>
+                            <SelectItem value="1">{t('common.public', 'Public')}</SelectItem>
+                            <SelectItem value="3">{t('common.unlisted', 'Unlisted')}</SelectItem>
+                            <SelectItem value="2">{t('common.private', 'Private')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 {isAdmin && (
                     <div className="space-y-2">
-                        <Label>State</Label>
+                        <Label>{t('media.editForm.state', 'State')}</Label>
                         <Select
                             value={form.state}
                             onValueChange={val => setForm({...form, state: val})}
@@ -157,9 +160,9 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                                 <SelectValue/>
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="draft">Draft</SelectItem>
-                                <SelectItem value="active">Published</SelectItem>
-                                <SelectItem value="deleted">Deleted</SelectItem>
+                                <SelectItem value="draft">{t('admin.draftStatus', 'Draft')}</SelectItem>
+                                <SelectItem value="active">{t('admin.publishedStatus', 'Published')}</SelectItem>
+                                <SelectItem value="deleted">{t('admin.deletedStatus', 'Deleted')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -178,8 +181,8 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                         className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                     />
                     <div>
-                        <Label htmlFor="enable_comments" className="cursor-pointer">Allow Comments</Label>
-                        <p className="text-xs text-muted-foreground">Users can leave comments</p>
+                        <Label htmlFor="enable_comments" className="cursor-pointer">{t('media.editForm.allowComments', 'Allow Comments')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('media.editForm.allowCommentsDesc', 'Users can leave comments')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -191,8 +194,8 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                         className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                     />
                     <div>
-                        <Label htmlFor="allow_download" className="cursor-pointer">Allow Download</Label>
-                        <p className="text-xs text-muted-foreground">Users can download the original file</p>
+                        <Label htmlFor="allow_download" className="cursor-pointer">{t('media.editForm.allowDownload', 'Allow Download')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('media.editForm.allowDownloadDesc', 'Users can download the original file')}</p>
                     </div>
                 </div>
             </div>
@@ -210,8 +213,8 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                                 className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                             />
                             <div>
-                                <Label htmlFor="featured" className="cursor-pointer">Featured</Label>
-                                <p className="text-xs text-muted-foreground">Show in featured section</p>
+                                <Label htmlFor="featured" className="cursor-pointer">{t('media.editForm.featured', 'Featured')}</Label>
+                                <p className="text-xs text-muted-foreground">{t('media.editForm.featuredDesc', 'Show in featured section')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -223,8 +226,8 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                                 className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
                             />
                             <div>
-                                <Label htmlFor="listable" className="cursor-pointer">Listable</Label>
-                                <p className="text-xs text-muted-foreground">Show in video listings</p>
+                                <Label htmlFor="listable" className="cursor-pointer">{t('media.editForm.listable', 'Listable')}</Label>
+                                <p className="text-xs text-muted-foreground">{t('media.editForm.listableDesc', 'Show in video listings')}</p>
                             </div>
                         </div>
                     </div>

@@ -51,7 +51,20 @@
     "optional": "オプション",
     "deleted": "削除済み",
     "error": "エラー",
-    "loadMore": "もっと読み込む"
+    "loadMore": "もっと読み込む",
+    "unknown": "不明",
+    "na": "なし",
+    "status": {
+      "success": "公開済み",
+      "processing": "処理中",
+      "pending": "待機中",
+      "failed": "失敗",
+      "draft": "下書き",
+      "deleted": "削除済み",
+      "partial": "部分的",
+      "skipped": "スキップ",
+      "unknown": "不明"
+    }
   },
   "nav": {
     "home": "ホーム",
@@ -623,7 +636,33 @@
     "loadFailed": "読み込みに失敗しました：{{error}}",
     "retry": "再試行",
     "noMedia": "メディアコンテンツが見つかりません",
-    "editDesc": "メディア情報を編集"
+    "editDesc": "メディア情報を編集",
+    "editForm": {
+      "title": "タイトル",
+      "description": "説明",
+      "descriptionPlaceholder": "メディアの説明を入力...",
+      "category": "カテゴリ",
+      "selectCategory": "カテゴリを選択",
+      "noCategory": "カテゴリなし",
+      "tags": "タグ（カンマ区切り）",
+      "tagsPlaceholder": "例：チュートリアル, プログラミング, devops",
+      "technicalInfo": "技術情報",
+      "resolution": "解像度",
+      "duration": "長さ",
+      "mimeType": "MIMEタイプ",
+      "fileSize": "ファイルサイズ",
+      "extension": "拡張子",
+      "privacy": "プライバシー",
+      "state": "ステータス",
+      "allowComments": "コメントを許可",
+      "allowCommentsDesc": "ユーザーがコメントを残せます",
+      "allowDownload": "ダウンロードを許可",
+      "allowDownloadDesc": "ユーザーが元のファイルをダウンロードできます",
+      "featured": "注目",
+      "featuredDesc": "注目セクションに表示",
+      "listable": "リスト表示",
+      "listableDesc": "動画一覧に表示"
+    }
   },
   "auth": {
     "loginRequired": "ログインが必要です",
@@ -765,6 +804,7 @@
     "mostActiveCreators": "最もアクティブなクリエイター",
     "mostViewedContent": "最も視聴されているコンテンツ",
     "noParent": "親カテゴリなし",
+    "parentDisabled": "親カテゴリは無効です",
     "parentNotFound": "親カテゴリが見つかりません",
     "parent": "親カテゴリ",
     "editCategory": "カテゴリを編集",
