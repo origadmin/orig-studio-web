@@ -1,5 +1,4 @@
 import {cn} from "@/lib/utils";
-import {Badge} from "@/components/ui/badge";
 import {useTranslation} from "react-i18next";
 
 export type StatusDotStatus =
@@ -19,107 +18,92 @@ export interface StatusDotProps {
     className?: string;
 }
 
-const STATUS_DOT_CONFIG: Record<
+const STATUS_CONFIG: Record<
     StatusDotStatus,
     {
         dotClass: string;
-        badgeVariant:
-            | "soft-success"
-            | "soft-info"
-            | "soft-warning"
-            | "soft-danger"
-            | "soft-neutral";
+        pillClass: string;
+        animate?: boolean;
         labelKey: string;
-        ariaLabelKey: string;
+        fallback: string;
     }
 > = {
     success: {
         dotClass: "bg-emerald-500",
-        badgeVariant: "soft-success",
+        pillClass: "bg-emerald-50 text-emerald-700",
         labelKey: "common.status.success",
-        ariaLabelKey: "common.status.success",
+        fallback: "Published",
     },
     processing: {
         dotClass: "bg-amber-500 animate-pulse",
-        badgeVariant: "soft-warning",
+        pillClass: "bg-amber-50 text-amber-700",
+        animate: true,
         labelKey: "common.status.processing",
-        ariaLabelKey: "common.status.processing",
+        fallback: "Processing",
     },
     pending: {
-        dotClass: "bg-sky-400",
-        badgeVariant: "soft-info",
+        dotClass: "bg-sky-500",
+        pillClass: "bg-sky-50 text-sky-700",
         labelKey: "common.status.pending",
-        ariaLabelKey: "common.status.pending",
+        fallback: "Queued",
     },
     failed: {
         dotClass: "bg-red-500",
-        badgeVariant: "soft-danger",
+        pillClass: "bg-red-50 text-red-700",
         labelKey: "common.status.failed",
-        ariaLabelKey: "common.status.failed",
+        fallback: "Failed",
     },
     draft: {
         dotClass: "bg-slate-400",
-        badgeVariant: "soft-neutral",
+        pillClass: "bg-slate-100 text-slate-600",
         labelKey: "common.status.draft",
-        ariaLabelKey: "common.status.draft",
+        fallback: "Draft",
     },
     deleted: {
         dotClass: "bg-red-500",
-        badgeVariant: "soft-danger",
+        pillClass: "bg-red-50 text-red-700",
         labelKey: "common.status.deleted",
-        ariaLabelKey: "common.status.deleted",
+        fallback: "Deleted",
     },
     partial: {
         dotClass: "bg-amber-500",
-        badgeVariant: "soft-warning",
+        pillClass: "bg-amber-50 text-amber-700",
         labelKey: "common.status.partial",
-        ariaLabelKey: "common.status.partial",
+        fallback: "Partial",
     },
     skipped: {
         dotClass: "bg-slate-400",
-        badgeVariant: "soft-neutral",
+        pillClass: "bg-slate-100 text-slate-600",
         labelKey: "common.status.skipped",
-        ariaLabelKey: "common.status.skipped",
+        fallback: "Skipped",
     },
     unknown: {
         dotClass: "bg-slate-400",
-        badgeVariant: "soft-neutral",
+        pillClass: "bg-slate-100 text-slate-600",
         labelKey: "common.status.unknown",
-        ariaLabelKey: "common.status.unknown",
+        fallback: "Unknown",
     },
-};
-
-const STATUS_FALLBACKS: Record<StatusDotStatus, {label: string; aria: string}> = {
-    success: {label: "Published", aria: "Status: success"},
-    processing: {label: "Processing", aria: "Status: processing"},
-    pending: {label: "Queued", aria: "Status: pending"},
-    failed: {label: "Failed", aria: "Status: failed"},
-    draft: {label: "Draft", aria: "Status: draft"},
-    deleted: {label: "Deleted", aria: "Status: deleted"},
-    partial: {label: "Partial", aria: "Status: partial"},
-    skipped: {label: "Skipped", aria: "Status: skipped"},
-    unknown: {label: "Unknown", aria: "Status: unknown"},
 };
 
 export function StatusDot({status, label, className}: StatusDotProps) {
     const {t} = useTranslation();
-    const config = STATUS_DOT_CONFIG[status] || STATUS_DOT_CONFIG.unknown;
-    const fallback = STATUS_FALLBACKS[status] || STATUS_FALLBACKS.unknown;
-    const displayLabel = label || t(config.labelKey, fallback.label);
-    const ariaLabel = t(config.ariaLabelKey, fallback.aria);
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.unknown;
+    const displayLabel = label || t(config.labelKey, config.fallback);
 
     return (
-        <Badge
-            variant={config.badgeVariant}
-            className={cn("gap-1.5", className)}
+        <span
+            className={cn(
+                "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium",
+                config.pillClass,
+                className
+            )}
             role="status"
-            aria-label={ariaLabel}
         >
             <span
                 className={cn("w-1.5 h-1.5 rounded-full shrink-0", config.dotClass)}
                 aria-hidden="true"
             />
             <span>{displayLabel}</span>
-        </Badge>
+        </span>
     );
 }

@@ -45,7 +45,6 @@ import {
     TableHead,
     TableCell,
 } from "@/components/ui/table";
-import {Badge} from "@/components/ui/badge";
 import {Input} from "@/components/ui/input";
 import {
     Select,
@@ -57,9 +56,10 @@ import {
 import {encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
 import {useAdminMediaList, useDeleteMedia} from '@/hooks/queries';
 import {UploadComponent} from '@/components/upload/UploadComponent';
-import {getFullUrl} from '@/lib/utils';
+import {getFullUrl, cn} from '@/lib/utils';
 import {formatFileSize, formatDateTime} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
+import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 
 export default function MediaPage() {
     const {t} = useTranslation();
@@ -182,114 +182,34 @@ export default function MediaPage() {
     const startItem = total > 0 ? (searchParams.page - 1) * searchParams.page_size + 1 : 0;
     const endItem = Math.min(searchParams.page * searchParams.page_size, total);
 
-    // Unified status badge — mirrors the prototype's single Status column.
-    // Priority: encoding failures → processing → queued → success/published → draft → deleted → fallback
-    const unifiedStatusBadge = (media: Media) => {
+    const getStatusFromMedia = (media: Media): StatusDotStatus => {
         const enc = media.encoding_status;
         const st = media.state;
-
-        if (enc === 'failed') {
-            return (
-                <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 shrink-0 inline-block"></span>{t('admin.failedStatus', '转码失败')}
-                </Badge>
-            );
-        }
-        if (enc === 'processing') {
-            return (
-                <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1 shrink-0 inline-block"></span>{t('admin.transcoding', '转码中')}
-                </Badge>
-            );
-        }
-        if (enc === 'pending') {
-            return (
-                <Badge variant="soft-info" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mr-1 shrink-0 inline-block"></span>{t('admin.queuedStatus', '队列中')}
-                </Badge>
-            );
-        }
-        if (enc === 'success' || st === 'active') {
-            return (
-                <Badge variant="soft-success" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 shrink-0 inline-block"></span>{t('admin.publishedStatus', '已发布')}
-                </Badge>
-            );
-        }
-        if (st === 'draft') {
-            return (
-                <Badge variant="soft-neutral" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1 shrink-0 inline-block"></span>{t('admin.draftStatus', '草稿')}
-                </Badge>
-            );
-        }
-        if (st === 'deleted') {
-            return (
-                <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 shrink-0 inline-block"></span>{t('admin.deletedStatus', '已删除')}
-                </Badge>
-            );
-        }
-        if (enc === 'partial') {
-            return (
-                <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 shrink-0 inline-block"></span>{t('admin.partialComplete', '部分完成')}
-                </Badge>
-            );
-        }
-        return <span className="text-xs text-muted-foreground">--</span>;
+        if (enc === 'failed') return 'failed';
+        if (enc === 'processing') return 'processing';
+        if (enc === 'pending') return 'pending';
+        if (enc === 'partial') return 'partial';
+        if (enc === 'success' || st === 'active') return 'success';
+        if (st === 'draft') return 'draft';
+        if (st === 'deleted') return 'deleted';
+        return 'unknown';
     };
 
-    // Encoding status badge helper (used in the variant details dialog header)
-    const encBadge = (status?: string) => {
-        switch (status) {
-            case 'success':
-                return (
-                    <Badge variant="soft-success" className="text-xs whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 inline-block"></span>{t('admin.complete', '完成')}
-                    </Badge>
-                );
-            case 'processing':
-                return (
-                    <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1 inline-block"></span>{t('admin.transcoding', '转码中')}
-                    </Badge>
-                );
-            case 'pending':
-                return (
-                    <Badge variant="soft-info" className="text-xs whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mr-1 inline-block"></span>{t('admin.queuedStatus', '队列中')}
-                    </Badge>
-                );
-            case 'failed':
-                return (
-                    <Badge variant="soft-danger" className="text-xs whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500 mr-1 inline-block"></span>{t('admin.failed', '失败')}
-                    </Badge>
-                );
-            case 'partial':
-                return (
-                    <Badge variant="soft-warning" className="text-xs whitespace-nowrap">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1 inline-block"></span>{t('admin.partialComplete', '部分完成')}
-                    </Badge>
-                );
-            default:
-                return <span className="text-xs text-muted-foreground">--</span>;
-        }
-    };
-
-    // Type badge helper
     const typeBadge = (type?: string) => {
-        switch (type) {
-            case 'video':
-                return <Badge variant="soft-primary" className="rounded text-[10px] font-bold">{t('admin.video', '视频')}</Badge>;
-            case 'image':
-                return <Badge variant="soft-success" className="rounded text-[10px] font-bold">{t('admin.image', '图片')}</Badge>;
-            case 'audio':
-                return <Badge variant="soft-info" className="rounded text-[10px] font-bold">{t('admin.audio', '音频')}</Badge>;
-            default:
-                return <Badge variant="soft-neutral" className="rounded text-[10px] font-bold">{type || t('common.unknown', '未知')}</Badge>;
+        const config: Record<string, {bg: string; text: string; label: string; key: string}> = {
+            video: {bg: 'bg-indigo-50', text: 'text-indigo-700', label: 'Video', key: 'admin.video'},
+            image: {bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Image', key: 'admin.image'},
+            audio: {bg: 'bg-sky-50', text: 'text-sky-700', label: 'Audio', key: 'admin.audio'},
+        };
+        const c = type ? config[type] : undefined;
+        if (!c) {
+            return <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase">{type || t('common.unknown', '未知')}</span>;
         }
+        return (
+            <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase", c.bg, c.text)}>
+                {t(c.key, c.label)}
+            </span>
+        );
     };
 
     const pageActions = (
@@ -533,7 +453,7 @@ export default function MediaPage() {
 
                                         {/* Status (unified: encoding + state) */}
                                         <TableCell className="px-6 py-3.5">
-                                            {unifiedStatusBadge(media)}
+                                            <StatusDot status={getStatusFromMedia(media)}/>
                                         </TableCell>
 
                                         {/* Date */}
@@ -584,7 +504,7 @@ export default function MediaPage() {
                 {/* Pagination */}
                 {total > 0 && (
                     <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-card">
-                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', {start: startItem, end: endItem, total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}</p>
+                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', {start: startItem, end: endItem, total, defaultValue: '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项'})}</p>
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
@@ -693,7 +613,9 @@ export default function MediaPage() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             {t('admin.transcodingOverview', '转码概览')}
-                            {variantData?.encoding_status && encBadge(variantData.encoding_status)}
+                            {variantData?.encoding_status && (
+                                <StatusDot status={variantData.encoding_status as StatusDotStatus}/>
+                            )}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="p-6 space-y-4">
@@ -783,7 +705,9 @@ export default function MediaPage() {
                                                     )}
                                                 </div>
                                                 <div className="flex items-center gap-2 shrink-0 ml-2">
-                                                    {encBadge(v.status)}
+                                                    {v.status && (
+                                                        <StatusDot status={v.status as StatusDotStatus}/>
+                                                    )}
                                                     {v.output_path && v.status === "success" && (
                                                         <code className="text-[10px] text-green-700 max-w-[150px] truncate block">{v.output_path}</code>
                                                     )}
