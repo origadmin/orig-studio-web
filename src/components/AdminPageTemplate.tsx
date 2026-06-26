@@ -187,18 +187,20 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
       {stats}
 
       {hasSearchBar && (
-        <div className="rounded-2xl border shadow-sm bg-card p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative flex-1 max-w-sm w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={searchPlaceholder || t('common.search', '搜索...')}
-              value={searchValue}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit?.()}
-              className="pl-10 rounded-xl"
-            />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[240px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={searchPlaceholder || t('common.search', '搜索...')}
+                value={searchValue}
+                onChange={(e) => onSearchChange?.(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && onSearchSubmit?.()}
+                className="pl-9"
+              />
+            </div>
+            {filters && <div className="flex flex-wrap items-center gap-2">{filters}</div>}
           </div>
-          {filters && <div className="flex flex-wrap items-center gap-2">{filters}</div>}
         </div>
       )}
 

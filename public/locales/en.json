@@ -1119,6 +1119,7 @@
     "success": "Success",
     "failed": "Failed",
     "total": "Total",
+    "showingItems": "Showing {{start}} to {{end}} of {{total}} items",
     "variantTasks": "Variant Tasks",
     "retryAllFailed": "Retry All Failed",
     "viewFullTaskList": "View full task list on the Transcoding Status page",

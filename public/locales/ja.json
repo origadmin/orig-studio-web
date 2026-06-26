@@ -1060,6 +1060,7 @@
     "success": "成功",
     "failed": "失敗",
     "total": "合計",
+    "showingItems": "{{start}}件目から{{end}}件目を表示中 / 合計{{total}}件",
     "variantTasks": "バリアントタスク",
     "retryAllFailed": "失敗したすべてを再試行",
     "viewFullTaskList": "トランスコード状況ページで完全なタスクリストを表示",
