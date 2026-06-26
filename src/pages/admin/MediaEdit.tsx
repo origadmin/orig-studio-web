@@ -92,6 +92,61 @@ const STATE_TO_STATUS_DOT: Record<string, StatusDotStatus> = {
     pending: 'pending',
 };
 
+interface StatusPillConfig {
+    bg: string;
+    text: string;
+    border: string;
+    labelKey: string;
+    fallback: string;
+}
+
+function getLifecyclePill(state?: string): StatusPillConfig {
+    switch (state) {
+        case 'active':
+        case 'published':
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'common.status.success', fallback: 'ACTIVE'};
+        case 'draft':
+            return {bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', labelKey: 'common.status.draft', fallback: 'DRAFT'};
+        case 'deleted':
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'common.status.deleted', fallback: 'DELETED'};
+        default:
+            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
+    }
+}
+
+function getReviewPill(status?: string): StatusPillConfig {
+    switch (status) {
+        case 'approved':
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.approved', fallback: 'APPROVED'};
+        case 'rejected':
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.rejected', fallback: 'REJECTED'};
+        case 'pending':
+        default:
+            return {bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', labelKey: 'mediaEdit.pendingReview', fallback: 'PENDING'};
+    }
+}
+
+function getEncodingPill(status?: string): StatusPillConfig {
+    switch (status) {
+        case 'success':
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'common.status.success', fallback: 'SUCCESS'};
+        case 'processing':
+            return {bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', labelKey: 'common.status.processing', fallback: 'PROCESSING'};
+        case 'failed':
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'common.status.failed', fallback: 'FAILED'};
+        case 'partial':
+            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'common.status.partial', fallback: 'PARTIAL'};
+        case 'pending':
+            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'common.status.pending', fallback: 'PENDING'};
+        default:
+            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
+    }
+}
+
+const IDLE_PILL: StatusPillConfig = {
+    bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'mediaEdit.idle', fallback: 'IDLE',
+};
+
 function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
@@ -929,24 +984,40 @@ export default function MediaEditPage() {
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="flex flex-col gap-1 items-center">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.state', 'State')}</span>
-                                        <StatusDot status={STATE_TO_STATUS_DOT[media.state] || 'unknown'} />
-                                    </div>
-                                    <div className="flex flex-col gap-1 items-center">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', 'Review')}</span>
-                                        <StatusDot
-                                            status={media.review_status === 'approved' ? 'success' : media.review_status === 'rejected' ? 'failed' : 'pending'}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col gap-1 items-center">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', 'Encoding')}</span>
-                                        <StatusDot status={encodingStatusDot(media.encoding_status)} />
-                                    </div>
-                                    <div className="flex flex-col gap-1 items-center">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprite', 'Sprite')}</span>
-                                        <StatusDot status="draft" label={t('mediaEdit.idle', 'Idle')} />
-                                    </div>
+                                    {(() => {
+                                        const lc = getLifecyclePill(media.state);
+                                        const rv = getReviewPill(media.review_status);
+                                        const enc = getEncodingPill(media.encoding_status);
+                                        const idle = IDLE_PILL;
+                                        return (
+                                            <>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.state', 'Lifecycle')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", lc.bg, lc.text, lc.border)}>
+                                                        {t(lc.labelKey, lc.fallback)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', 'Review')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", rv.bg, rv.text, rv.border)}>
+                                                        {t(rv.labelKey, rv.fallback)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', 'Encoding')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", enc.bg, enc.text, enc.border)}>
+                                                        {t(enc.labelKey, enc.fallback)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprite', 'Sprites')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", idle.bg, idle.text, idle.border)}>
+                                                        {t(idle.labelKey, idle.fallback)}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </CardContent>
                         </Card>
