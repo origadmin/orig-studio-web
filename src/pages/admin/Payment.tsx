@@ -616,7 +616,7 @@ const OrdersTab: React.FC = () => {
             {total > 20 && (
                 <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                        {t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
+                        {t('admin.showingItems', '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total})}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="icon-sm" className="text-muted-foreground" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -699,7 +699,7 @@ const WalletsTab: React.FC = () => {
             {total > 20 && (
                 <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
-                        {t('admin.showingItems', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
+                        {t('admin.showingItems', '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项', {start: (page - 1) * 20 + 1, end: Math.min(page * 20, total), total})}
                     </p>
                     <div className="flex items-center gap-1">
                         <Button variant="outline" size="icon-sm" className="text-muted-foreground" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>

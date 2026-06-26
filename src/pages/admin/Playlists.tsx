@@ -472,7 +472,7 @@ const Playlists: React.FC = () => {
                 {total > 0 && (
                     <div className="px-6 py-4 border-t border-border flex items-center justify-between">
                         <p className="text-xs text-muted-foreground">
-                            {t('admin.showingItems', {start: startItem, end: endItem, total}, '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项')}
+                            {t('admin.showingItems', '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项', {start: startItem, end: endItem, total})}
                         </p>
                         <div className="flex items-center gap-1">
                             <Button
