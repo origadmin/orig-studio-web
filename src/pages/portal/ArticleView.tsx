@@ -192,7 +192,7 @@ export default function ArticleViewPage() {
                             <VideoPlayer
                                 src={media.url || ''}
                                 hlsSrc={media.hls_file}
-                                poster={getFullUrl(media.poster || media.thumbnail)}
+                                poster={media.poster || media.thumbnail}
                                 isProcessing={isProcessing}
                             />
                         </div>

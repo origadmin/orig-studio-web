@@ -4,6 +4,7 @@ import {useParams, useNavigate, Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {useTranslation} from 'react-i18next';
 import type {TFunction} from 'i18next';
+import {cn} from '@/lib/utils';
 import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
 import {api} from '@/lib/request';
@@ -104,11 +105,11 @@ function getLifecyclePill(state?: string): StatusPillConfig {
     switch (state) {
         case 'active':
         case 'published':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'common.status.success', fallback: 'ACTIVE'};
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.lifecycleActive', fallback: 'ACTIVE'};
         case 'draft':
-            return {bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', labelKey: 'common.status.draft', fallback: 'DRAFT'};
+            return {bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', labelKey: 'mediaEdit.lifecycleDraft', fallback: 'DRAFT'};
         case 'deleted':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'common.status.deleted', fallback: 'DELETED'};
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.lifecycleDeleted', fallback: 'DELETED'};
         default:
             return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
     }
@@ -117,34 +118,34 @@ function getLifecyclePill(state?: string): StatusPillConfig {
 function getReviewPill(status?: string): StatusPillConfig {
     switch (status) {
         case 'approved':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.approved', fallback: 'APPROVED'};
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.reviewApproved', fallback: 'APPROVED'};
         case 'rejected':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.rejected', fallback: 'REJECTED'};
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.reviewRejected', fallback: 'REJECTED'};
         case 'pending':
         default:
-            return {bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', labelKey: 'mediaEdit.pendingReview', fallback: 'PENDING'};
+            return {bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', labelKey: 'mediaEdit.reviewPending', fallback: 'PENDING'};
     }
 }
 
 function getEncodingPill(status?: string): StatusPillConfig {
     switch (status) {
         case 'success':
-            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'common.status.success', fallback: 'SUCCESS'};
+            return {bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', labelKey: 'mediaEdit.encodingSuccess', fallback: 'SUCCESS'};
         case 'processing':
-            return {bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', labelKey: 'common.status.processing', fallback: 'PROCESSING'};
+            return {bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', labelKey: 'mediaEdit.encodingProcessing', fallback: 'PROCESSING'};
         case 'failed':
-            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'common.status.failed', fallback: 'FAILED'};
+            return {bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', labelKey: 'mediaEdit.encodingFailed', fallback: 'FAILED'};
         case 'partial':
-            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'common.status.partial', fallback: 'PARTIAL'};
+            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'mediaEdit.encodingPartial', fallback: 'PARTIAL'};
         case 'pending':
-            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'common.status.pending', fallback: 'PENDING'};
+            return {bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', labelKey: 'mediaEdit.encodingPending', fallback: 'QUEUED'};
         default:
-            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'UNKNOWN'};
+            return {bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'common.unknown', fallback: 'IDLE'};
     }
 }
 
 const IDLE_PILL: StatusPillConfig = {
-    bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'mediaEdit.idle', fallback: 'IDLE',
+    bg: 'bg-slate-100', text: 'text-slate-500', border: 'border-slate-200', labelKey: 'mediaEdit.spritesIdle', fallback: 'IDLE',
 };
 
 function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[] {
@@ -992,7 +993,7 @@ export default function MediaEditPage() {
                                         return (
                                             <>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.state', 'Lifecycle')}</span>
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
                                                     <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", lc.bg, lc.text, lc.border)}>
                                                         {t(lc.labelKey, lc.fallback)}
                                                     </span>
@@ -1010,7 +1011,7 @@ export default function MediaEditPage() {
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprite', 'Sprites')}</span>
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprites', 'Sprites')}</span>
                                                     <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold uppercase border", idle.bg, idle.text, idle.border)}>
                                                         {t(idle.labelKey, idle.fallback)}
                                                     </span>

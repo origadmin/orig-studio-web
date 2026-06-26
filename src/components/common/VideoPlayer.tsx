@@ -1356,7 +1356,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                     hoverRatio={hoverRatio}
                     progressBarRect={progressBarRect}
                     playerRect={playerRect}
-                    vttUrl={spriteVttUrl ?? null}
+                    vttUrl={spriteVttUrl ? (getFullUrl(spriteVttUrl) ?? null) : null}
                     duration={duration}
                 />
             )}
