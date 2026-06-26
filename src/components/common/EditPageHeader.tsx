@@ -24,7 +24,9 @@ export type SaveState = 'idle' | 'saving' | 'success' | 'error';
 
 export interface HeaderBadgeConfig {
   type: 'media-type' | 'state' | 'featured' | 'custom';
-  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+  statusDot?: StatusDotStatus;
+  pillClass?: string;
   label: string;
   ariaLabel: string;
   className?: string;
@@ -145,16 +147,37 @@ const TitleWithBadges = memo(function TitleWithBadges({
       </h1>
       {(visibleBadges.length > 0 || (showEncodingStatus && encodingStatus) || overflowCount > 0) && (
         <div className="flex items-center gap-1.5 shrink-0">
-          {visibleBadges.map((badge) => (
-            <Badge
-              key={badge.type}
-              variant={badge.variant}
-              className={cn('text-xs', badge.className)}
-              aria-label={badge.ariaLabel}
-            >
-              {badge.label}
-            </Badge>
-          ))}
+          {visibleBadges.map((badge) => {
+            if (badge.statusDot) {
+              return (
+                <StatusDot
+                  key={badge.type}
+                  status={badge.statusDot}
+                  label={badge.label}
+                  className={badge.className}
+                />
+              );
+            }
+            const typeColors: Record<string, string> = {
+              'media-type': 'bg-indigo-50 text-indigo-700',
+              'featured': 'bg-amber-50 text-amber-700 border border-amber-200',
+              'custom': badge.pillClass || 'bg-slate-100 text-slate-600',
+            };
+            const colorClass = typeColors[badge.type] || typeColors['custom'];
+            return (
+              <span
+                key={badge.type}
+                className={cn(
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase',
+                  colorClass,
+                  badge.className
+                )}
+                aria-label={badge.ariaLabel}
+              >
+                {badge.label}
+              </span>
+            );
+          })}
           {showEncodingStatus && encodingStatus && (
             <StatusDot
               status={encodingStatus.status}

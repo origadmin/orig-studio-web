@@ -3,6 +3,7 @@ import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useParams, useNavigate, Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {useTranslation} from 'react-i18next';
+import type {TFunction} from 'i18next';
 import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
 import {api} from '@/lib/request';
@@ -17,6 +18,7 @@ import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
+import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users} from 'lucide-react';
@@ -75,65 +77,48 @@ interface MediaStats {
     encoding_status: string;
 }
 
-/**
- * Map Media state to Badge variant
- */
-const STATE_BADGE_VARIANT_MAP: Record<string, HeaderBadgeConfig['variant']> = {
-    active: 'default',
-    draft: 'secondary',
-    deleted: 'destructive',
+const TYPE_I18N_KEYS: Record<string, string> = {
+    video: 'admin.video',
+    audio: 'admin.audio',
+    image: 'admin.image',
+    document: 'admin.document',
 };
 
-/**
- * Map Media to HeaderBadgeConfig[]
- */
-const TYPE_LABEL_MAP: Record<string, string> = {
-    video: '视频',
-    audio: '音频',
-    image: '图片',
-    document: '文档',
+const STATE_TO_STATUS_DOT: Record<string, StatusDotStatus> = {
+    active: 'success',
+    published: 'success',
+    draft: 'draft',
+    deleted: 'deleted',
+    pending: 'pending',
 };
 
-const STATE_LABEL_MAP: Record<string, string> = {
-    active: '已发布',
-    draft: '草稿',
-    deleted: '已删除',
-    pending: '待审核',
-};
-
-function mapMediaToHeaderBadges(media: Media, t: (key: string) => string): HeaderBadgeConfig[] {
+function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
-    // Type Badge — only show if type is meaningful
-    const typeLabel = TYPE_LABEL_MAP[media.type] || media.type;
+    const typeKey = TYPE_I18N_KEYS[media.type];
+    const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
     if (typeLabel) {
         badges.push({
             type: 'media-type',
-            variant: 'outline',
             label: typeLabel,
-            ariaLabel: `媒体类型: ${typeLabel}`,
+            ariaLabel: t('mediaEdit.mediaTypeAria', 'Media type') + ': ' + typeLabel,
         });
     }
 
-    // State Badge — only show if state is meaningful
-    const stateLabel = STATE_LABEL_MAP[media.state] || media.state;
-    if (stateLabel) {
-        badges.push({
-            type: 'state',
-            variant: STATE_BADGE_VARIANT_MAP[media.state] || 'outline' as const,
-            label: stateLabel,
-            ariaLabel: `状态: ${stateLabel}`,
-        });
-    }
+    const statusDot = STATE_TO_STATUS_DOT[media.state] || 'unknown';
+    const stateLabel = t(`common.status.${media.state}`, media.state || t('common.unknown', 'Unknown'));
+    badges.push({
+        type: 'state',
+        statusDot,
+        label: stateLabel,
+        ariaLabel: t('mediaEdit.stateAria', 'State') + ': ' + stateLabel,
+    });
 
-    // Featured Badge (conditional)
     if (media.featured) {
         badges.push({
             type: 'featured',
-            variant: 'outline',
-            label: t('mediaEdit.featured'),
-            ariaLabel: t('mediaEdit.featuredContent'),
-            className: 'text-warning border-amber-300',
+            label: t('mediaEdit.featured', 'Featured'),
+            ariaLabel: t('mediaEdit.featuredContent', 'Featured content'),
         });
     }
 
@@ -348,24 +333,14 @@ export default function MediaEditPage() {
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, t) : [], [media, t]);
     const encodingConfig = useMemo(() => media ? mapEncodingStatus(media.encoding_status) : undefined, [media]);
 
-    const encodingStatusBadge = (status: string | undefined): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" => {
+    const encodingStatusDot = (status: string | undefined): StatusDotStatus => {
         switch (status) {
             case 'success': return 'success';
-            case 'processing': return 'info';
-            case 'pending': return 'warning';
-            case 'failed': return 'destructive';
-            default: return 'secondary';
-        }
-    };
-
-    const encodingStatusLabel = (status: string | undefined) => {
-        switch (status) {
-            case 'success': return '完成';
-            case 'processing': return '转码中';
-            case 'pending': return '队列中';
-            case 'failed': return '失败';
-            case 'partial': return '部分完成';
-            default: return status || '--';
+            case 'processing': return 'processing';
+            case 'pending': return 'pending';
+            case 'failed': return 'failed';
+            case 'partial': return 'partial';
+            default: return 'unknown';
         }
     };
 
@@ -405,13 +380,13 @@ export default function MediaEditPage() {
     const taskSummaryText = useMemo(() => {
         if (tasks.length === 0) return '';
         const parts: string[] = [];
-        if (taskSummary.success > 0) parts.push(`${taskSummary.success} 完成`);
-        if (taskSummary.processing > 0) parts.push(`${taskSummary.processing} 转码中`);
-        if (taskSummary.pending > 0) parts.push(`${taskSummary.pending} 队列中`);
-        if (taskSummary.failed > 0) parts.push(`${taskSummary.failed} 失败`);
-        if (taskSummary.partial > 0) parts.push(`${taskSummary.partial} 部分完成`);
-        return parts.join('，');
-    }, [taskSummary, tasks.length]);
+        if (taskSummary.success > 0) parts.push(`${taskSummary.success} ${t('common.status.success', 'Completed')}`);
+        if (taskSummary.processing > 0) parts.push(`${taskSummary.processing} ${t('common.status.processing', 'Processing')}`);
+        if (taskSummary.pending > 0) parts.push(`${taskSummary.pending} ${t('common.status.pending', 'Queued')}`);
+        if (taskSummary.failed > 0) parts.push(`${taskSummary.failed} ${t('common.status.failed', 'Failed')}`);
+        if (taskSummary.partial > 0) parts.push(`${taskSummary.partial} ${t('common.status.partial', 'Partial')}`);
+        return parts.join(', ');
+    }, [taskSummary, tasks.length, t]);
 
     if (isLoading) {
         return (
@@ -635,14 +610,14 @@ export default function MediaEditPage() {
                             {/* Tab Content: Publishing */}
                             <TabsContent value="publishing" className="bg-card rounded-lg border p-6">
                                 <div className="mb-8">
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">隐私级别</h3>
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.privacyLevel', 'Privacy Level')}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {[
-                                            {value: '1', label: '公开', icon: 'public', desc: '所有人可见'},
-                                            {value: '2', label: '私密', icon: 'lock', desc: '只有你可以查看'},
-                                            {value: '3', label: '未列出', icon: 'visibility_off', desc: '任何有链接的人可查看'},
-                                            {value: '4', label: '付费观看', icon: 'paid', desc: '需要付费解锁'},
-                                            {value: '5', label: '仅订阅者', icon: 'subscribers', desc: '仅订阅粉丝可查看'},
+                                            {value: '1', labelKey: 'mediaEdit.privacyPublic', labelFb: 'Public', icon: 'public', descKey: 'mediaEdit.privacyPublicDesc', descFb: 'Visible to everyone'},
+                                            {value: '2', labelKey: 'mediaEdit.privacyPrivate', labelFb: 'Private', icon: 'lock', descKey: 'mediaEdit.privacyPrivateDesc', descFb: 'Only you can view'},
+                                            {value: '3', labelKey: 'mediaEdit.privacyUnlisted', labelFb: 'Unlisted', icon: 'visibility_off', descKey: 'mediaEdit.privacyUnlistedDesc', descFb: 'Anyone with the link can view'},
+                                            {value: '4', labelKey: 'mediaEdit.privacyPaid', labelFb: 'Paid', icon: 'paid', descKey: 'mediaEdit.privacyPaidDesc', descFb: 'Requires payment to unlock'},
+                                            {value: '5', labelKey: 'mediaEdit.privacySubscribers', labelFb: 'Subscribers Only', icon: 'subscribers', descKey: 'mediaEdit.privacySubscribersDesc', descFb: 'Only subscribers can view'},
                                         ].map(option => (
                                             <label key={option.value} className="cursor-pointer group relative">
                                                 <input type="radio" name="privacy" checked={String(form.privacy) === option.value}
@@ -661,8 +636,8 @@ export default function MediaEditPage() {
                                                             <div className={`w-2 h-2 rounded-full bg-primary ${String(form.privacy) === option.value ? 'opacity-100' : 'opacity-0'}`}/>
                                                         </div>
                                                     </div>
-                                                    <p className="font-bold text-sm">{option.label}</p>
-                                                    <p className="text-xs text-muted-foreground">{option.desc}</p>
+                                                    <p className="font-bold text-sm">{t(option.labelKey, option.labelFb)}</p>
+                                                    <p className="text-xs text-muted-foreground">{t(option.descKey, option.descFb)}</p>
                                                 </div>
                                             </label>
                                         ))}
@@ -670,31 +645,31 @@ export default function MediaEditPage() {
                                 </div>
 
                                 <div className="space-y-4 pt-6 border-t border-border/30">
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">配置开关</h3>
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.configSwitches', 'Configuration Switches')}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
-                                            <div><p className="text-sm font-bold">精选内容</p><p className="text-xs text-muted-foreground">在英雄滑块中展示</p></div>
+                                            <div><p className="text-sm font-bold">{t('mediaEdit.featuredContent', 'Featured')}</p><p className="text-xs text-muted-foreground">{t('mediaEdit.featuredContentDesc', 'Show in hero slider')}</p></div>
                                             <input type="checkbox" checked={form.featured}
                                                    onChange={e => setForm({...form, featured: e.target.checked})}
                                                    className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
                                         </div>
 
                                         <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
-                                            <div><p className="text-sm font-bold">允许评论</p><p className="text-xs text-muted-foreground">用户可以发表评论</p></div>
+                                            <div><p className="text-sm font-bold">{t('mediaEdit.allowComments', 'Allow Comments')}</p><p className="text-xs text-muted-foreground">{t('mediaEdit.allowCommentsDesc', 'Users can post comments')}</p></div>
                                             <input type="checkbox" checked={form.enable_comments}
                                                    onChange={e => setForm({...form, enable_comments: e.target.checked})}
                                                    className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
                                         </div>
 
                                         <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
-                                            <div><p className="text-sm font-bold">允许列表展示</p><p className="text-xs text-muted-foreground">在视频列表中展示</p></div>
+                                            <div><p className="text-sm font-bold">{t('mediaEdit.allowListable', 'List in Directory')}</p><p className="text-xs text-muted-foreground">{t('mediaEdit.allowListableDesc', 'Show in video listings')}</p></div>
                                             <input type="checkbox" checked={form.listable}
                                                    onChange={e => setForm({...form, listable: e.target.checked})}
                                                    className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
                                         </div>
 
                                         <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
-                                            <div><p className="text-sm font-bold">允许下载</p><p className="text-xs text-muted-foreground">启用离线查看</p></div>
+                                            <div><p className="text-sm font-bold">{t('mediaEdit.allowDownload', 'Allow Download')}</p><p className="text-xs text-muted-foreground">{t('mediaEdit.allowDownloadDesc', 'Enable offline viewing')}</p></div>
                                             <input type="checkbox" checked={form.allow_download}
                                                    onChange={e => setForm({...form, allow_download: e.target.checked})}
                                                    className="w-10 h-5 bg-muted rounded-full border-border text-primary focus-visible:ring-0 cursor-pointer"/>
@@ -706,36 +681,34 @@ export default function MediaEditPage() {
                             {/* Tab Content: Encoding */}
                             <TabsContent value="encoding" className="bg-card rounded-lg border p-6">
                                 <div className="flex items-center gap-2 mb-6 overflow-x-auto">
-                                    <Button variant="default" size="sm" className="rounded-full text-xs font-bold">全部 ({tasks.length})</Button>
-                                    {taskSummary.pending > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold">队列中 ({taskSummary.pending})</Button>}
-                                    {taskSummary.processing > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-primary bg-primary/20">转码中 ({taskSummary.processing})</Button>}
-                                    {taskSummary.success > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-success bg-success/20">完成 ({taskSummary.success})</Button>}
+                                    <Button variant="default" size="sm" className="rounded-full text-xs font-bold">{t('common.all', 'All')} ({tasks.length})</Button>
+                                    {taskSummary.pending > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold">{t('common.status.pending', 'Queued')} ({taskSummary.pending})</Button>}
+                                    {taskSummary.processing > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-primary bg-primary/20">{t('common.status.processing', 'Processing')} ({taskSummary.processing})</Button>}
+                                    {taskSummary.success > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-success bg-success/20">{t('common.status.success', 'Completed')} ({taskSummary.success})</Button>}
                                 </div>
 
                                 <div className="space-y-4 mb-8">
                                     {tasks.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground py-8 text-center">暂无编码任务</p>
+                                        <p className="text-sm text-muted-foreground py-8 text-center">{t('mediaEdit.noEncodingTasks', 'No encoding tasks')}</p>
                                     ) : (
                                         tasks.map(task => (
                                             <div key={task.id} className="p-4 bg-muted rounded-lg border border-border relative overflow-hidden">
                                                 <div className="flex justify-between items-start mb-3 relative z-10">
                                                     <div className="flex items-center gap-3">
-                                                        <Badge variant={encodingStatusBadge(task.status)} className="text-xs">
-                                                            {encodingStatusLabel(task.status)}
-                                                        </Badge>
+                                                        <StatusDot status={encodingStatusDot(task.status)} />
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <p className="font-bold text-sm">{getProfileName(task.profile_id)}</p>
                                                                 <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-mono rounded uppercase">
-                                                                    {getProfileInfo(task.profile_id).split(' / ')[1] || t('mediaEdit.codec', '编码')}
+                                                                    {getProfileInfo(task.profile_id).split(' / ')[1] || t('mediaEdit.codec', 'Codec')}
                                                                 </span>
                                                             </div>
-                                                            <p className="text-xs text-muted-foreground">创建: {formatDateTime(task.create_time)}</p>
+                                                            <p className="text-xs text-muted-foreground">{t('mediaEdit.created', 'Created')}: {formatDateTime(task.create_time)}</p>
                                                         </div>
                                                     </div>
                                                     {task.status === 'failed' && (
                                                         <Button variant="outline" size="sm" onClick={() => handleRetryTask(task.id)}>
-                                                            <RefreshCw className="w-3 h-3 mr-1"/>重试
+                                                            <RefreshCw className="w-3 h-3 mr-1"/>{t('common.retry', 'Retry')}
                                                         </Button>
                                                     )}
                                                 </div>
@@ -745,7 +718,7 @@ export default function MediaEditPage() {
                                 </div>
 
                                 <div className="border-t border-border/30 pt-6">
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">媒体变体</h3>
+                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.mediaVariants', 'Media Variants')}</h3>
                                     <div className="overflow-x-auto">
                                         <Table>
                                             <TableHeader className="text-muted-foreground border-b border-border/20 uppercase tracking-tighter">
@@ -952,33 +925,27 @@ export default function MediaEditPage() {
                         {/* Card 2: State & Status */}
                         <Card className="bg-card">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.stateStatus', '状态信息')}</CardTitle>
+                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.state', '生命周期')}</span>
-                                        <Badge variant="outline" className="justify-center border-success text-success bg-success/10 text-[10px] font-bold">
-                                            {STATE_LABEL_MAP[media.state] || t('admin.draftStatus', '草稿')}
-                                        </Badge>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.state', 'State')}</span>
+                                        <StatusDot status={STATE_TO_STATUS_DOT[media.state] || 'unknown'} />
                                     </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', '审核')}</span>
-                                        <Badge variant="outline" className="justify-center border-secondary text-secondary bg-secondary/10 text-[10px] font-bold">
-                                            {media.review_status === 'approved' ? t('mediaEdit.approved', '已通过') : media.review_status === 'rejected' ? t('mediaEdit.rejected', '已拒绝') : t('mediaEdit.pendingReview', '待审核')}
-                                        </Badge>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', 'Review')}</span>
+                                        <StatusDot
+                                            status={media.review_status === 'approved' ? 'success' : media.review_status === 'rejected' ? 'failed' : 'pending'}
+                                        />
                                     </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', '转码')}</span>
-                                        <Badge variant="outline" className="justify-center border-primary text-primary bg-primary/10 text-[10px] font-bold">
-                                            {encodingStatusLabel(media.encoding_status)}
-                                        </Badge>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', 'Encoding')}</span>
+                                        <StatusDot status={encodingStatusDot(media.encoding_status)} />
                                     </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprite', '雪碧图')}</span>
-                                        <Badge variant="outline" className="justify-center text-[10px] font-bold">
-                                            {t('mediaEdit.idle', '空闲')}
-                                        </Badge>
+                                    <div className="flex flex-col gap-1 items-center">
+                                        <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprite', 'Sprite')}</span>
+                                        <StatusDot status="draft" label={t('mediaEdit.idle', 'Idle')} />
                                     </div>
                                 </div>
                             </CardContent>
