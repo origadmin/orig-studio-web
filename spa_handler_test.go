@@ -59,10 +59,17 @@ func TestSPAHandler_ServeSPAFallback(t *testing.T) {
 		{"root returns index.html", "/", 200, true},
 		{"SPA route returns index.html", "/watch", 200, true},
 		{"SPA deep route returns index.html", "/admin/media", 200, true},
+		{"SPA nested route returns index.html", "/channel/my-channel", 200, true},
 		{"API route returns JSON 404", "/api/v1/something", 404, false},
 		{"Uploads route returns JSON 404", "/uploads/video.mp4", 404, false},
 		{"Thumbnails route returns JSON 404", "/thumbnails/thumb.jpg", 404, false},
 		{"HLS route returns JSON 404", "/hls/stream.m3u8", 404, false},
+		{"Files route returns JSON 404", "/files/thumbnails/abc.jpg", 404, false},
+		{"Vite dev client returns JSON 404 (not HTML!)", "/@vite/client", 404, false},
+		{"Vite env path returns JSON 404", "/@id/something", 404, false},
+		{"Arbitrary .js file returns 404 (not HTML)", "/some-chunk.js", 404, false},
+		{"Arbitrary .css file returns 404 (not HTML)", "/random.css", 404, false},
+		{"Arbitrary .map file returns 404", "/something.js.map", 404, false},
 	}
 
 	for _, tt := range tests {

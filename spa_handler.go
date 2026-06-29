@@ -54,10 +54,7 @@ func (h *SPAHandler) ServeRootFile(w http.ResponseWriter, r *http.Request, name 
 func (h *SPAHandler) ServeSPAFallback(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
-	if strings.HasPrefix(path, "/api/") ||
-		strings.HasPrefix(path, "/uploads/") ||
-		strings.HasPrefix(path, "/thumbnails/") ||
-		strings.HasPrefix(path, "/hls/") {
+	if isNonRoutePath(path) {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(`{"error":"not found"}`))
@@ -73,6 +70,25 @@ func (h *SPAHandler) ServeSPAFallback(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(h.indexHTML)
+}
+
+func isNonRoutePath(path string) bool {
+	if strings.HasPrefix(path, "/api/") ||
+		strings.HasPrefix(path, "/uploads/") ||
+		strings.HasPrefix(path, "/thumbnails/") ||
+		strings.HasPrefix(path, "/hls/") ||
+		strings.HasPrefix(path, "/files/") ||
+		strings.HasPrefix(path, "/@") {
+		return true
+	}
+	lastSlash := strings.LastIndex(path, "/")
+	if lastSlash >= 0 {
+		lastSegment := path[lastSlash:]
+		if strings.Contains(lastSegment, ".") && !strings.HasSuffix(path, ".html") {
+			return true
+		}
+	}
+	return false
 }
 
 type StaticRoute struct {
