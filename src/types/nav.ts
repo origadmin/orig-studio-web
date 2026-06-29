@@ -6,7 +6,7 @@ export interface NavItem {
   to: string;
   params?: Record<string, string>;
   icon?: LucideIcon;
-  module?: 'articles' | 'videos' | 'music';
+  module?: 'articles' | 'videos' | 'music' | 'live' | 'payment';
   badge?: string | number;
   badgeVariant?: 'default' | 'primary' | 'warning' | 'danger';
   disabled?: boolean;

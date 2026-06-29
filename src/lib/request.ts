@@ -204,6 +204,10 @@ function createRequest() {
             if (token && config.headers) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
+            // Ensure POST/PUT/PATCH with empty body still sends Content-Type: application/json
+            if (['post', 'put', 'patch'].includes(config.method?.toLowerCase() || '') && config.data === undefined) {
+                config.data = {};
+            }
             return config;
         },
         (error) => Promise.reject(error)

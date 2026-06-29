@@ -34,7 +34,7 @@ export const NAV_CONFIG: NavSection[] = [
         id: 'discover',
         title: 'nav.discover',
         items: [
-            {id: 'channels', label: 'nav.channels', to: '/explore', icon: Tv, module: 'videos'},
+            {id: 'channels', label: 'nav.channels', to: '/channels', icon: Tv, module: 'videos'},
             {id: 'categories', label: 'nav.categories', to: '/categories', icon: LayoutGrid},
             {id: 'tags', label: 'nav.tags', to: '/tags', icon: Tags},
             {id: 'explore', label: 'nav.explore', to: '/explore', icon: Compass},

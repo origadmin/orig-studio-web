@@ -416,7 +416,7 @@ export interface ShareResponse {
 // NOTE: 后端路径 /api/v1/medias/encoding/* (proto 生成路由)
 export const encodingApi = {
     // 获取转码事件流（SSE）
-    // 后端公共端点: /api/v1/medias/transcoding/events
+    // 后端端点: /api/v1/admin/medias/transcoding/events
     // EventSource 不支持自定义 header，因此通过 query parameter 传递 JWT token
     getSSEUrl: (mediaId?: string) => {
         const token = getAccessToken();
@@ -424,7 +424,7 @@ export const encodingApi = {
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", mediaId);
         const qs = params.toString();
-        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 
     // 获取所有转码任务（扁平列表）
@@ -437,7 +437,7 @@ export const encodingApi = {
         profile?: string;
         chunk?: string;
         search?: string;
-    }) => api.get<EncodingTaskListResponse>('/medias/encoding/tasks', params as Record<string, unknown>),
+    }) => api.get<EncodingTaskListResponse>('/admin/medias/encoding/tasks', params as Record<string, unknown>),
 
     // 重试单个任务
     retryTask: (taskId: string) => {
@@ -588,7 +588,7 @@ export const mediaApi = {
     }) => api.get<TranscodingStatusResponse>("/medias/transcoding/status", params as Record<string, unknown>),
 
     // 获取转码事件流（SSE）
-    // 后端公共端点: /api/v1/medias/transcoding/events
+    // 后端端点: /api/v1/admin/medias/transcoding/events
     // EventSource 不支持自定义 header，因此通过 query parameter 传递 JWT token
     getSSEUrl: (mediaId?: string) => {
         const token = getAccessToken();
@@ -596,7 +596,7 @@ export const mediaApi = {
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", mediaId);
         const qs = params.toString();
-        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 
     // ==================== 点赞/点踩 API (使用 short_token) ====================
@@ -696,13 +696,13 @@ export const legacyMediaApi = {
         api.get<MediaVariantSummary>(`/admin/medias/${mediaId}/variants`),
     /** @deprecated 使用 encodingApi.getSSEUrl() 代替 */
     getSSEUrl: (mediaId?: number) => {
-        // 后端公共端点: /api/v1/medias/transcoding/events
+        // 后端端点: /api/v1/admin/medias/transcoding/events
         const token = getAccessToken();
         const params = new URLSearchParams();
         if (token) params.set("token", token);
         if (mediaId) params.set("media_id", String(mediaId));
         const qs = params.toString();
-        return `/api/v1/medias/transcoding/events${qs ? `?${qs}` : ""}`;
+        return `/api/v1/admin/medias/transcoding/events${qs ? `?${qs}` : ""}`;
     },
 };
 
