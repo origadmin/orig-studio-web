@@ -197,13 +197,13 @@ export default function MediaPage() {
 
     const typeBadge = (type?: string) => {
         const config: Record<string, {bg: string; text: string; label: string; key: string}> = {
-            video: {bg: 'bg-indigo-50', text: 'text-indigo-700', label: 'Video', key: 'admin.video'},
-            image: {bg: 'bg-emerald-50', text: 'text-emerald-700', label: 'Image', key: 'admin.image'},
-            audio: {bg: 'bg-sky-50', text: 'text-sky-700', label: 'Audio', key: 'admin.audio'},
+            video: {bg: 'bg-primary/10', text: 'text-primary', label: 'Video', key: 'admin.video'},
+            image: {bg: 'bg-success/10', text: 'text-success', label: 'Image', key: 'admin.image'},
+            audio: {bg: 'bg-info/10', text: 'text-info', label: 'Audio', key: 'admin.audio'},
         };
         const c = type ? config[type] : undefined;
         if (!c) {
-            return <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">{type || t('common.unknown', '未知')}</span>;
+            return <span className="px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs font-medium">{type || t('common.unknown', '未知')}</span>;
         }
         return (
             <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", c.bg, c.text)}>

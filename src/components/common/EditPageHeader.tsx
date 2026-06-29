@@ -159,9 +159,9 @@ const TitleWithBadges = memo(function TitleWithBadges({
               );
             }
             const typeColors: Record<string, string> = {
-              'media-type': 'bg-indigo-50 text-indigo-700',
-              'featured': 'bg-amber-50 text-amber-700 border border-amber-200',
-              'custom': badge.pillClass || 'bg-slate-100 text-slate-600',
+              'media-type': 'bg-primary/10 text-primary',
+              'featured': 'bg-warning/10 text-warning border border-warning/30',
+              'custom': badge.pillClass || 'bg-muted text-muted-foreground',
             };
             const colorClass = typeColors[badge.type] || typeColors['custom'];
             return (
