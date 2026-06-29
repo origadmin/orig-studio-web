@@ -111,3 +111,15 @@ pnpm-workspace.yaml
 vite.config.*
 vitest.config.*
 vite-env.d.ts
+
+# ============================================================
+# GO FILES - FRONTEND PROJECT BOUNDARY
+# ============================================================
+# This is a frontend (React/Rsbuild/Bun) project.
+# The ONLY Go files allowed are embed.go and embed_dev.go,
+# which exist solely to expose the compiled dist/ via Go's embed.FS
+# to the backend. All other Go files (SPA handlers, server logic, etc.)
+# MUST live in the backend Go project, NOT in this frontend submodule.
+*.go
+!embed.go
+!embed_dev.go
