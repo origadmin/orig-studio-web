@@ -100,6 +100,7 @@ var DefaultStaticRoutes = []StaticRoute{
 	{Prefix: "/assets", CacheControl: "public, max-age=31536000, immutable"},
 	{Prefix: "/locales", CacheControl: "public, max-age=3600"},
 	{Prefix: "/static", CacheControl: "public, max-age=86400"},
+	{Prefix: "/themes", CacheControl: "public, max-age=86400"},
 }
 
 var DefaultRootFiles = []string{
@@ -129,7 +130,7 @@ func IsDistEmpty() bool {
 }
 
 func IsStaticAssetPath(path string) bool {
-	for _, prefix := range []string{"/assets/", "/static/", "/locales/"} {
+	for _, prefix := range []string{"/assets/", "/static/", "/locales/", "/themes/"} {
 		if strings.HasPrefix(path, prefix) {
 			return true
 		}
@@ -141,7 +142,9 @@ func IsAPIPath(path string) bool {
 	return strings.HasPrefix(path, "/api/") ||
 		strings.HasPrefix(path, "/uploads/") ||
 		strings.HasPrefix(path, "/thumbnails/") ||
-		strings.HasPrefix(path, "/hls/")
+		strings.HasPrefix(path, "/hls/") ||
+		strings.HasPrefix(path, "/files/") ||
+		strings.HasPrefix(path, "/@")
 }
 
 func IsRootFile(path string) bool {

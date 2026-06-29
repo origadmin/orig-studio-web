@@ -10,11 +10,13 @@ import (
 
 func testDistFS() fs.FS {
 	return fstest.MapFS{
-		"dist/index.html":      &fstest.MapFile{Data: []byte("<html>test</html>")},
-		"dist/favicon.ico":     &fstest.MapFile{Data: []byte("favicon")},
-		"dist/assets/test.js":  &fstest.MapFile{Data: []byte("js content")},
-		"dist/static/test.css": &fstest.MapFile{Data: []byte("css content")},
-		"dist/locales/en.json": &fstest.MapFile{Data: []byte(`{"key":"value"}`)},
+		"dist/index.html":            &fstest.MapFile{Data: []byte("<html>test</html>")},
+		"dist/favicon.ico":           &fstest.MapFile{Data: []byte("favicon")},
+		"dist/assets/test.js":        &fstest.MapFile{Data: []byte("js content")},
+		"dist/static/test.css":       &fstest.MapFile{Data: []byte("css content")},
+		"dist/locales/en.json":       &fstest.MapFile{Data: []byte(`{"key":"value"}`)},
+		"dist/themes/registry.json":  &fstest.MapFile{Data: []byte(`{"themes":[]}`)},
+		"dist/themes/default/index.css": &fstest.MapFile{Data: []byte("body{}")},
 	}
 }
 
@@ -141,6 +143,8 @@ func TestIsStaticAssetPath(t *testing.T) {
 		{"/assets/test.js", true},
 		{"/static/test.css", true},
 		{"/locales/en.json", true},
+		{"/themes/registry.json", true},
+		{"/themes/default/index.css", true},
 		{"/api/v1/test", false},
 		{"/watch", false},
 		{"/favicon.ico", false},
@@ -164,8 +168,11 @@ func TestIsAPIPath(t *testing.T) {
 		{"/uploads/video.mp4", true},
 		{"/thumbnails/thumb.jpg", true},
 		{"/hls/stream.m3u8", true},
+		{"/files/thumbnails/abc.jpg", true},
+		{"/@vite/client", true},
 		{"/watch", false},
 		{"/assets/test.js", false},
+		{"/themes/registry.json", false},
 	}
 
 	for _, tt := range tests {

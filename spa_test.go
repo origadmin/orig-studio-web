@@ -19,10 +19,12 @@ func setupTestRouter() *gin.Engine {
 
 func fakeDistFS() fs.FS {
 	return fstest.MapFS{
-		"dist/index.html":      &fstest.MapFile{Data: []byte("<html>test</html>")},
-		"dist/favicon.ico":     &fstest.MapFile{Data: []byte("favicon")},
-		"dist/assets/test.js":  &fstest.MapFile{Data: []byte("js content")},
-		"dist/static/test.css": &fstest.MapFile{Data: []byte("css content")},
+		"dist/index.html":            &fstest.MapFile{Data: []byte("<html>test</html>")},
+		"dist/favicon.ico":           &fstest.MapFile{Data: []byte("favicon")},
+		"dist/assets/test.js":        &fstest.MapFile{Data: []byte("js content")},
+		"dist/static/test.css":       &fstest.MapFile{Data: []byte("css content")},
+		"dist/themes/registry.json":  &fstest.MapFile{Data: []byte(`{"themes":[]}`)},
+		"dist/themes/default/index.css": &fstest.MapFile{Data: []byte("body{}")},
 	}
 }
 
@@ -195,6 +197,8 @@ func TestRegisterRoutesWithPopulatedDist(t *testing.T) {
 	routes := r.Routes()
 	hasAssets := false
 	hasStatic := false
+	hasLocales := false
+	hasThemes := false
 	hasFavicon := false
 	for _, route := range routes {
 		if route.Path == "/assets/*filepath" {
@@ -202,6 +206,12 @@ func TestRegisterRoutesWithPopulatedDist(t *testing.T) {
 		}
 		if route.Path == "/static/*filepath" {
 			hasStatic = true
+		}
+		if route.Path == "/locales/*filepath" {
+			hasLocales = true
+		}
+		if route.Path == "/themes/*filepath" {
+			hasThemes = true
 		}
 		if route.Path == "/favicon.ico" {
 			hasFavicon = true
@@ -213,6 +223,12 @@ func TestRegisterRoutesWithPopulatedDist(t *testing.T) {
 	}
 	if !hasStatic {
 		t.Error("expected /static/*filepath route to be registered")
+	}
+	if !hasLocales {
+		t.Error("expected /locales/*filepath route to be registered")
+	}
+	if !hasThemes {
+		t.Error("expected /themes/*filepath route to be registered")
 	}
 	if !hasFavicon {
 		t.Error("expected /favicon.ico route to be registered")
@@ -248,6 +264,76 @@ func TestNoRouteHandlerForAPIPaths(t *testing.T) {
 			ct := w.Header().Get("Content-Type")
 			if ct != "application/json; charset=utf-8" {
 				t.Errorf("path %s: got Content-Type %q, want JSON", path, ct)
+			}
+		})
+	}
+}
+
+func TestThemesRouteServesStaticFiles(t *testing.T) {
+	origFS := DistFS
+	DistFS = fakeDistFS()
+	defer func() { DistFS = origFS }()
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	RegisterRoutes(r)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/themes/registry.json", nil)
+	r.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Errorf("/themes/registry.json: got status %d, want 200", w.Code)
+	}
+	body := w.Body.String()
+	if body != `{"themes":[]}` {
+		t.Errorf("/themes/registry.json: got body %q, want %q", body, `{"themes":[]}`)
+	}
+	cc := w.Header().Get("Cache-Control")
+	if cc != "public, max-age=86400" {
+		t.Errorf("/themes/registry.json: got Cache-Control %q, want 86400", cc)
+	}
+}
+
+func TestThemesCSSRouteServesStaticFiles(t *testing.T) {
+	origFS := DistFS
+	DistFS = fakeDistFS()
+	defer func() { DistFS = origFS }()
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	RegisterRoutes(r)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/themes/default/index.css", nil)
+	r.ServeHTTP(w, req)
+
+	if w.Code != 200 {
+		t.Errorf("/themes/default/index.css: got status %d, want 200", w.Code)
+	}
+	body := w.Body.String()
+	if body != "body{}" {
+		t.Errorf("/themes/default/index.css: got body %q, want %q", body, "body{}")
+	}
+}
+
+func TestViteDevPathsReturn404(t *testing.T) {
+	origFS := DistFS
+	DistFS = fakeDistFS()
+	defer func() { DistFS = origFS }()
+
+	gin.SetMode(gin.TestMode)
+	r := gin.New()
+	RegisterRoutes(r)
+
+	vitePaths := []string{"/@vite/client", "/@id/x", "/@fs/something"}
+	for _, path := range vitePaths {
+		t.Run(path, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			req, _ := http.NewRequest("GET", path, nil)
+			r.ServeHTTP(w, req)
+			if w.Code != 404 {
+				t.Errorf("path %s: got status %d, want 404 (should not serve HTML for Vite dev paths)", path, w.Code)
 			}
 		})
 	}
