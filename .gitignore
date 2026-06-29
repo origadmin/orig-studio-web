@@ -59,13 +59,8 @@ bd-issues/
 .cody/
 .codex/
 
-# Team-flow session data (NOT the project config)
-.team/sessions/
-.team/tasks/
-.team/state/
-.team/.flow_update_cache.json
-.team/skills-resolved.yaml
-.team/tools.yaml
+# Team-flow (ALL team-flow data is local-only - NEVER commit any part of .team/)
+.team/
 
 # AI-generated docs/reports/analysis (MUST be in .gitignore)
 _docs/
