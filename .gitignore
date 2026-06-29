@@ -85,8 +85,19 @@ report*.md
 CLAUDE.md
 .aider.conf*
 skills-lock.json
-bun.lock
 admin-page-checklist.md
+
+# ============================================================
+# PACKAGE MANAGER LOCK FILES
+# ============================================================
+# This project uses BUN as its package manager.
+# bun.lock / bun.lockb are the CORRECT lock files and MUST be kept.
+# All other package manager lock files are FORBIDDEN (competing lock files
+# created by npm/yarn/pnpm when developers accidentally run wrong commands).
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+pnpm-workspace.yaml
 
 # Style backups
 .style-backups/
