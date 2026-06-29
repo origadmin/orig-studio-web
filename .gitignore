@@ -37,6 +37,7 @@ bd-issues/
 # Cursor
 .cursor/
 .cursorignore
+.cursorrules
 
 # Windsurf / Codeium
 .windsurfrules
@@ -82,11 +83,10 @@ report*.md
 
 # AI instruction files created by tools (NOT project-owned)
 CLAUDE.md
-.cursorrules
-.windsurfrules
 .aider.conf*
-.agents/
 skills-lock.json
+bun.lock
+admin-page-checklist.md
 
 # Style backups
 .style-backups/
