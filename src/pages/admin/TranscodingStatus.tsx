@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  *
  * Transcoding Status Page
@@ -15,13 +15,13 @@ import {
     Table, TableBody, TableCell, TableRow,
     TableHead, TableHeader
 } from "../../components/ui/table";
-import {Input} from "../../components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "../../components/ui/select";
 import {Checkbox} from "../../components/ui/checkbox";
+import {Input} from "../../components/ui/input";
 import {AdminPageTemplate} from "../../components/AdminPageTemplate";
 import {
-    Activity, RefreshCw, Search, Clock, CheckCircle2, XCircle,
-    AlertCircle, Film, RotateCcw, Eye, ChevronLeft, ChevronRight, Loader2
+    Activity, RefreshCw, Clock, CheckCircle2, XCircle,
+    AlertCircle, Film, RotateCcw, Eye, ChevronLeft, ChevronRight, Loader2, Search
 } from "lucide-react";
 import {PAGINATION_CONFIG} from '@/config/pagination';
 
@@ -499,15 +499,15 @@ export default function TranscodingStatus() {
             description={t('admin.transcodingStatusDesc', '实时监控活跃、排队和已完成的转码任务。')}
             actions={pageActions}
         >
-            <div className="flex items-center gap-3 mb-8">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            <div className="flex items-center gap-3">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
                     {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
                 </span>
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <AlertCircle className="w-5 h-5 text-red-600"/>
                         <p className="text-sm text-red-800">{error}</p>
@@ -519,7 +519,7 @@ export default function TranscodingStatus() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                     label={t('admin.activeJobs', '活跃任务')}
                     value={stats.active}
@@ -547,16 +547,15 @@ export default function TranscodingStatus() {
                 />
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-[240px] max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
                     <Input
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                                 setPage(1);
-                                fetchTasks();
                             }
                         }}
                         placeholder={t('admin.searchJobs', '搜索任务（媒体ID、配置...）')}
@@ -598,13 +597,13 @@ export default function TranscodingStatus() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Button variant="ghost" size="sm" onClick={handleResetFilters}>
+                <Button variant="outline" size="sm" onClick={handleResetFilters}>
                     <RotateCcw className="w-3.5 h-3.5"/>
                     {t('admin.reset', '重置')}
                 </Button>
             </div>
 
-            <div className="border border-slate-200 rounded-xl bg-white shadow-sm">
+            <div className="border border-border rounded-xl bg-card shadow-sm">
                 <Table>
                     <TableHeader>
                         <TableRow>

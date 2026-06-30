@@ -149,9 +149,9 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   const breadcrumbItems = customBreadcrumbs || autoBreadcrumbs;
 
   return (
-    <div className={cn('space-y-6 p-4 md:p-6', className)}>
+    <div className={cn('space-y-6 p-6', className)}>
       {showBreadcrumbs && (
-        <Breadcrumb className="mb-2">
+        <Breadcrumb className="mb-0">
           <BreadcrumbList>
             {breadcrumbItems.map((item, index) => {
               const isLast = item.isLast !== undefined ? item.isLast : index === breadcrumbItems.length - 1;
@@ -176,19 +176,19 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-[28px] font-semibold leading-9 text-foreground">{title}</h2>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
           {description && (
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-3">{actions}</div>}
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
 
       {stats}
 
       {hasSearchBar && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[240px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input

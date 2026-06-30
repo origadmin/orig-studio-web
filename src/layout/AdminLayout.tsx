@@ -33,6 +33,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import {Input} from '@/components/ui/input';
 
 interface NavItem {
     id: string;
@@ -243,9 +244,9 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
         >
             <div className="flex items-center gap-4">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-                    <input
-                        className="bg-muted/50 border-none rounded-full py-1.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary w-64 placeholder:text-muted-foreground"
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
+                    <Input
+                        className="w-64 pl-10 rounded-full bg-muted/50"
                         placeholder={t('admin.searchPlaceholder', '搜索...')}
                         type="text"
                     />
@@ -287,7 +288,7 @@ const AdminLayout = () => {
                     collapsed={sidebarCollapsed}
                     onToggleCollapse={() => setSidebarCollapsed(c => !c)}
                 />
-                <main className="flex-grow overflow-auto bg-muted/30 p-6">
+                <main className="flex-grow overflow-auto bg-muted/30">
                     <Outlet/>
                 </main>
             </div>

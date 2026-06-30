@@ -437,16 +437,16 @@ export const encodingApi = {
         profile?: string;
         chunk?: string;
         search?: string;
-    }) => api.get<EncodingTaskListResponse>('/admin/medias/encoding/tasks', params as Record<string, unknown>),
+    }) => api.get<EncodingTaskListResponse>('/admin/encoding/tasks', params as Record<string, unknown>),
 
     // 重试单个任务
     retryTask: (taskId: string) => {
-        return api.post<{ message: string; task: any }>('/medias/encoding/retry', { task_id: taskId });
+        return api.post<{ message: string; task: any }>('/admin/encoding/retry', { task_id: taskId });
     },
 
     // 重试所有失败任务
     retryAllFailed: (mediaId?: string) => {
-        return api.post<{ message: string; retried_count: number }>('/medias/encoding/retry-all-failed', { media_id: mediaId });
+        return api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-all-failed', { media_id: mediaId });
     },
 
     // 编码配置管理
