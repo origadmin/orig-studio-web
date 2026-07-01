@@ -443,12 +443,12 @@ export const encodingApi = {
 
     // 重试单个任务
     retryTask: (taskId: string) => {
-        return api.post<{ message: string; task: any }>('/admin/encoding/retry', { task_id: taskId });
+        return api.post<{ message: string; task: any }>(`/admin/encoding/tasks/${taskId}/retry`);
     },
 
     // 重试所有失败任务
     retryAllFailed: (mediaId?: string) => {
-        return api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-all-failed', { media_id: mediaId });
+        return api.post<{ message: string; retried_count: number }>('/admin/encoding/retry-failed', undefined, { params: mediaId ? { media_id: mediaId } : {} });
     },
 
     // 编码配置管理

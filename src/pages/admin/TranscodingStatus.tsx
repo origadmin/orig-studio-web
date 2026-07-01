@@ -478,6 +478,10 @@ export default function TranscodingStatus() {
 
     const pageActions = (
         <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
+                {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
+            </span>
             <Button
                 variant="outline"
                 onClick={handleBatchRetry}
@@ -487,7 +491,7 @@ export default function TranscodingStatus() {
                 {selectedRows.length > 0 ? `${t('admin.retry', '重试')} (${selectedRows.length})` : t('admin.batchRetry', '批量重试')}
             </Button>
             <Button onClick={handleRefresh}>
-                <RefreshCw className="w-4 h-4"/>
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}/>
                 {t('admin.refresh', '刷新')}
             </Button>
         </div>
@@ -499,13 +503,6 @@ export default function TranscodingStatus() {
             description={t('admin.transcodingStatusDesc', '实时监控活跃、排队和已完成的转码任务。')}
             actions={pageActions}
         >
-            <div className="flex items-center gap-3">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
-                    {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
-                </span>
-            </div>
-
             {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-3">

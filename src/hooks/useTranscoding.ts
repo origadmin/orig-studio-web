@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 OrigAdmin. All rights reserved.
- */
-
 import {useEffect, useState, useCallback, useRef} from "react";
 import {encodingApi} from "@/lib/api/media";
 
@@ -21,7 +17,9 @@ interface TranscodingSSEStatus {
     disabled: boolean;
 }
 
-const MAX_RECONNECT_ATTEMPTS = 3;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const INITIAL_RECONNECT_DELAY = 2000;
+const MAX_RECONNECT_DELAY = 30000;
 
 export function useTranscoding(mediaId?: string): {
     lastEvent: TranscodingEvent | null;
@@ -38,8 +36,38 @@ export function useTranscoding(mediaId?: string): {
     const eventSourceRef = useRef<EventSource | null>(null);
     const mountedRef = useRef(true);
     const reconnectAttemptsRef = useRef(0);
+    const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
+    const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const intentionalCloseRef = useRef(false);
+
+    const clearReconnectTimer = useCallback(() => {
+        if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+            reconnectTimerRef.current = null;
+        }
+    }, []);
+
+    const scheduleReconnect = useCallback(() => {
+        if (!mountedRef.current || intentionalCloseRef.current) return;
+        if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
+            setSseStatus({connected: false, reconnecting: false, disabled: true});
+            return;
+        }
+        setSseStatus({connected: false, reconnecting: true, disabled: false});
+        const delay = reconnectDelayRef.current;
+        reconnectTimerRef.current = setTimeout(() => {
+            reconnectTimerRef.current = null;
+            if (!mountedRef.current || intentionalCloseRef.current) return;
+            reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
+            connectRef.current?.();
+        }, delay);
+    }, []);
+
+    const connectRef = useRef<(() => void) | null>(null);
 
     const disconnect = useCallback(() => {
+        intentionalCloseRef.current = true;
+        clearReconnectTimer();
         if (eventSourceRef.current) {
             eventSourceRef.current.close();
             eventSourceRef.current = null;
@@ -48,38 +76,37 @@ export function useTranscoding(mediaId?: string): {
             setSseStatus({connected: false, reconnecting: false, disabled: false});
         }
         reconnectAttemptsRef.current = 0;
-    }, []);
+        reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+    }, [clearReconnectTimer]);
 
     const connect = useCallback(() => {
         if (!mountedRef.current) return;
 
-        disconnect();
+        intentionalCloseRef.current = false;
+        clearReconnectTimer();
+
+        if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+        }
 
         const sseUrl = encodingApi.getSSEUrl(mediaId);
         const eventSource = new EventSource(sseUrl);
         eventSourceRef.current = eventSource;
 
         eventSource.onopen = () => {
-            if (mountedRef.current) {
-                reconnectAttemptsRef.current = 0;
-                setSseStatus({connected: true, reconnecting: false, disabled: false});
-            }
+            if (!mountedRef.current) return;
+            reconnectAttemptsRef.current = 0;
+            reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
+            setSseStatus({connected: true, reconnecting: false, disabled: false});
         };
 
         eventSource.onerror = () => {
-            if (!mountedRef.current) return;
-
-            reconnectAttemptsRef.current += 1;
-
+            if (!mountedRef.current || intentionalCloseRef.current) return;
             eventSource.close();
             eventSourceRef.current = null;
-
-            if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-                setSseStatus({connected: false, reconnecting: false, disabled: true});
-                return;
-            }
-
-            setSseStatus({connected: false, reconnecting: true, disabled: false});
+            reconnectAttemptsRef.current += 1;
+            scheduleReconnect();
         };
 
         eventSource.addEventListener("transcoding_progress", (event) => {
@@ -92,25 +119,9 @@ export function useTranscoding(mediaId?: string): {
                 console.error("Failed to parse transcoding event:", err);
             }
         });
-    }, [mediaId, disconnect]);
+    }, [mediaId, clearReconnectTimer, scheduleReconnect]);
 
-    useEffect(() => {
-        if (!sseStatus.reconnecting) return;
-
-        let delay = 1000;
-        const maxDelay = 10000;
-        let timerId: ReturnType<typeof setTimeout>;
-
-        const attemptReconnect = () => {
-            if (!mountedRef.current || !sseStatus.reconnecting) return;
-            connect();
-            delay = Math.min(delay * 2, maxDelay);
-            timerId = setTimeout(attemptReconnect, delay);
-        };
-
-        timerId = setTimeout(attemptReconnect, delay);
-        return () => clearTimeout(timerId);
-    }, [sseStatus.reconnecting, connect]);
+    connectRef.current = connect;
 
     useEffect(() => {
         mountedRef.current = true;
