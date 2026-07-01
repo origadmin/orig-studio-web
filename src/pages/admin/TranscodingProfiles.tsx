@@ -49,10 +49,16 @@ const CODEC_OPTIONS = [
 ];
 
 const EXTENSION_OPTIONS = [
-    {value: 'mp4', label: 'MP4 (HLS)'},
-    {value: 'webm', label: 'WebM (DASH)'},
+    {value: 'mp4', label: 'MP4'},
+    {value: 'webm', label: 'WebM'},
     {value: 'gif', label: 'GIF (Preview)'},
 ];
+
+const CODEC_BY_EXT: Record<string, string[]> = {
+    mp4: ['h264', 'h265'],
+    webm: ['vp9'],
+    gif: ['-'],
+};
 
 const RESOLUTION_OPTIONS = [
     {value: '240', label: '240p (426×240)', width: '426', height: '240'},
@@ -110,44 +116,60 @@ function buildFfmpegCommand(profile: Partial<EncodeProfile>): string {
     const level = levelMap[res] || '4.1';
 
     if (ext === 'gif') {
-        return `# GIF preview generation (palette-based, first 3s)
-ffmpeg -i input_file \\
-  -vf "fps=5,scale=320:-1:flags=lanczos,palettegen" \\
-  -t 3 -y palette.png && \\
-ffmpeg -i input_file -i palette.png \\
-  -lavfi "fps=5,scale=320:-1:flags=lanczos[x];[x][1:v]paletteuse" \\
-  -t 3 -y preview.gif`;
+        return [
+            '# GIF Preview (first 3s, palette-based)',
+            `-vf  "fps=5,scale=320:-1:flags=lanczos,palettegen"`,
+            `-t   3`,
+            `-y   palette.png`,
+            '',
+            '# Then combine with palette:',
+            `-i   palette.png`,
+            `-lavfi "fps=5,scale=320:-1:flags=lanczos[x];[x][1:v]paletteuse"`,
+            `-t   3`,
+            `-y   preview.gif`,
+        ].join('\n');
     }
 
     const lines: string[] = [];
-    lines.push('ffmpeg -i input_file \\');
+    lines.push(`-c:v ${vcodec}`);
 
     if (vcodec === 'libx264') {
-        lines.push(`  -c:v libx264 \\`);
-        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
-        lines.push(`  -pix_fmt yuv420p -crf 23 -preset medium \\`);
-        lines.push(`  -profile:v main -level ${level} \\`);
-        lines.push(`  -force_key_frames "expr:gte(t,n_forced*4)" \\`);
-        lines.push(`  -x264-params keyint=240:keyint_min=120 \\`);
-        lines.push(`  -maxrate ${vb} -bufsize ${vb} \\`);
+        lines.push(`-filter:v  "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos"`);
+        lines.push(`-pix_fmt   yuv420p`);
+        lines.push(`-crf       23`);
+        lines.push(`-preset    medium`);
+        lines.push(`-profile:v main`);
+        lines.push(`-level     ${level}`);
+        lines.push(`-force_key_frames "expr:gte(t,n_forced*4)"`);
+        lines.push(`-x264-params   keyint=240:keyint_min=120`);
+        lines.push(`-maxrate   ${vb}`);
+        lines.push(`-bufsize   ${vb}`);
     } else if (vcodec === 'libx265') {
-        lines.push(`  -c:v libx265 \\`);
-        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
-        lines.push(`  -pix_fmt yuv420p -crf 28 -preset medium \\`);
-        lines.push(`  -profile:v main -level ${level} \\`);
-        lines.push(`  -force_key_frames "expr:gte(t,n_forced*4)" \\`);
-        lines.push(`  -x265-params keyint=240:keyint_min=120 \\`);
-        lines.push(`  -maxrate ${vb} -bufsize ${vb} \\`);
+        lines.push(`-filter:v  "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos"`);
+        lines.push(`-pix_fmt   yuv420p`);
+        lines.push(`-crf       28`);
+        lines.push(`-preset    medium`);
+        lines.push(`-profile:v main`);
+        lines.push(`-level     ${level}`);
+        lines.push(`-force_key_frames "expr:gte(t,n_forced*4)"`);
+        lines.push(`-x265-params   keyint=240:keyint_min=120`);
+        lines.push(`-maxrate   ${vb}`);
+        lines.push(`-bufsize   ${vb}`);
     } else {
-        lines.push(`  -c:v libvpx-vp9 \\`);
-        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
-        lines.push(`  -crf 31 -b:v 0 -quality good -cpu-used 2 \\`);
+        lines.push(`-filter:v  "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos"`);
+        lines.push(`-crf       31`);
+        lines.push(`-b:v       0`);
+        lines.push(`-quality   good`);
+        lines.push(`-cpu-used  2`);
     }
 
-    lines.push(`  -c:a ${acodec} -b:a ${ab} \\`);
-    lines.push(`  -f hls -hls_time 6 -hls_list_size 0 \\`);
-    lines.push(`  -hls_segment_filename "hls/{profile}/segment_%03d.ts" \\`);
-    lines.push(`  -y hls/{profile}/index.m3u8`);
+    lines.push(`-c:a ${acodec}`);
+    lines.push(`-b:a ${ab}`);
+    lines.push(`-f hls`);
+    lines.push(`-hls_time 6`);
+    lines.push(`-hls_list_size 0`);
+    lines.push(`-hls_segment_filename "hls/{profile}/segment_%03d.ts"`);
+    lines.push(`-y  hls/{profile}/index.m3u8`);
     return lines.join('\n');
 }
 
@@ -504,12 +526,19 @@ export default function TranscodingProfiles() {
                             <Select
                                 value={profile.extension || 'mp4'}
                                 onValueChange={(v) => {
-                                    const isGifNew = v === 'gif';
+                                    const allowedCodecs = CODEC_BY_EXT[v] || ['h264'];
+                                    const defaultCodec = allowedCodecs[0];
+                                    let audioCodec = 'aac';
+                                    if (v === 'webm' || defaultCodec === 'vp9') audioCodec = 'opus';
+                                    if (v === 'gif') audioCodec = '';
+                                    let newRes = profile.resolution;
+                                    if (v === 'gif') newRes = '-';
+                                    else if (!newRes || newRes === '-') newRes = '720';
                                     update({
                                         extension: v,
-                                        video_codec: isGifNew ? '-' : (currentVCodec === '-' ? 'h264' : currentVCodec),
-                                        audio_codec: isGifNew ? '' : (currentVCodec === '-' || currentVCodec === 'vp9' ? 'opus' : 'aac'),
-                                        resolution: isGifNew ? '-' : (profile.resolution === '-' ? '720' : (profile.resolution || '720')),
+                                        video_codec: defaultCodec,
+                                        audio_codec: audioCodec,
+                                        resolution: newRes,
                                     });
                                 }}
                             >
@@ -566,7 +595,10 @@ export default function TranscodingProfiles() {
                                             <SelectValue/>
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {CODEC_OPTIONS.map(o => (
+                                            {CODEC_OPTIONS.filter(o => {
+                                                const allowed = CODEC_BY_EXT[profile.extension || 'mp4'] || ['h264', 'h265'];
+                                                return allowed.includes(o.value);
+                                            }).map(o => (
                                                 <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                                             ))}
                                         </SelectContent>
