@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import {PAGINATION_CONFIG} from '@/config/pagination';
 
-type EncodingTaskWithMeta = EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string };
+type EncodingTaskWithMeta = EncodingTask & { profile_name?: string; media_title?: string; media_url?: string; thumbnail?: string };
 
 type StatusFilter = "all" | "processing" | "queued" | "completed" | "failed";
 
@@ -36,14 +36,67 @@ function extractTasks(res: EncodingTaskListResponse | null | undefined): Encodin
     return [];
 }
 
-function shortenId(id: string | number): string {
+function genDisplayId(id: string | number): string {
     if (typeof id === 'number') {
         return `TRC-${String(id).padStart(5, '0')}`;
     }
-    if (id.length > 12) {
-        return `${id.substring(0, 8)}...`;
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = ((hash << 5) - hash) + id.charCodeAt(i);
+        hash = hash & hash;
     }
-    return id;
+    const num = Math.abs(hash) % 100000;
+    return `TRC-${String(num).padStart(5, '0')}`;
+}
+
+function getFormatSuffix(task: EncodingTaskWithMeta): string {
+    if (task.profile_name) {
+        const ext = task.profile_name.split('-')[0]?.toLowerCase();
+        if (ext === 'h264' || ext === 'h265') return 'M';
+        if (ext === 'vp9') return 'W';
+        if (ext === 'av1') return 'A';
+        if (ext === 'preview') return 'G';
+    }
+    if (task.output_path) {
+        const ext = task.output_path.split('.').pop()?.toUpperCase();
+        if (ext === 'MP4') return 'M';
+        if (ext === 'WEBM') return 'W';
+        if (ext === 'GIF') return 'G';
+        if (ext === 'MOV') return 'V';
+        if (ext === 'AVI') return 'A';
+        if (ext) return ext.charAt(0);
+    }
+    return 'M';
+}
+
+function extractBasename(path: string): string {
+    if (!path) return '';
+    const parts = path.split(/[\\/]/);
+    return parts[parts.length - 1] || '';
+}
+
+function getFileName(task: EncodingTaskWithMeta, t: (key: string, fallback?: string) => string): string {
+    if (task.media_title && task.media_title.length > 2) {
+        return task.media_title;
+    }
+    if (task.media_url) {
+        const base = extractBasename(task.media_url);
+        if (base) return base;
+    }
+    if (task.output_path) {
+        const base = extractBasename(task.output_path);
+        if (base) return base;
+    }
+    return task.media_id ? String(task.media_id).substring(0, 8) : t('common.unknown', '未知');
+}
+
+function getFormatDisplay(task: EncodingTaskWithMeta): string {
+    if (task.profile_name) return task.profile_name;
+    if (task.output_path) {
+        const ext = task.output_path.split('.').pop()?.toUpperCase();
+        if (ext) return ext;
+    }
+    return '-';
 }
 
 function StatusBadge({status}: { status: string }) {
@@ -131,11 +184,11 @@ function TaskRowCells({
             </TableCell>
             <TableCell>
                 <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-800 font-mono" title={String(task.id)}>
-                        {shortenId(task.id)}
+                    <span className="text-sm font-semibold text-slate-800 font-mono whitespace-nowrap" title={String(task.id)}>
+                        {genDisplayId(task.id)}-{getFormatSuffix(task)}
                     </span>
-                    <span className="text-xs text-slate-500 truncate max-w-[200px]" title={task.media_title || task.media_id}>
-                        {task.media_title || shortenId(task.media_id) || t('common.unknown', '未知')}
+                    <span className="text-xs text-slate-500 truncate max-w-[240px]" title={getFileName(task, t)}>
+                        {getFileName(task, t)}
                     </span>
                 </div>
             </TableCell>
@@ -157,7 +210,7 @@ function TaskRowCells({
             </TableCell>
             <TableCell>
                 <span className="text-sm text-slate-700">
-                    {task.profile_name || `#${task.profile_id}`}
+                    {getFormatDisplay(task)}
                 </span>
             </TableCell>
             <TableCell className="text-right">
@@ -478,10 +531,6 @@ export default function TranscodingStatus() {
 
     const pageActions = (
         <div className="flex items-center gap-2">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
-                {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
-            </span>
             <Button
                 variant="outline"
                 onClick={handleBatchRetry}
@@ -545,6 +594,10 @@ export default function TranscodingStatus() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
+                    {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
+                </span>
                 <div className="relative flex-1 min-w-[240px] max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
                     <Input

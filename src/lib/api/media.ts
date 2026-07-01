@@ -386,9 +386,9 @@ export interface EncodingTaskListResponse {
     page: number;
     page_size: number;
     total_pages?: number;
-    items: (EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string })[];
+    items: (EncodingTask & { profile_name?: string; media_title?: string; media_url?: string; thumbnail?: string })[];
     /** @deprecated Use items instead - kept for backward compatibility */
-    tasks?: (EncodingTask & { profile_name?: string; media_title?: string; thumbnail?: string })[];
+    tasks?: (EncodingTask & { profile_name?: string; media_title?: string; media_url?: string; thumbnail?: string })[];
 }
 
 // 点赞/收藏响应
