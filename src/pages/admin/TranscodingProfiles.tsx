@@ -13,7 +13,6 @@ import {Label} from "../../components/ui/label";
 import {Badge} from "../../components/ui/badge";
 import {Switch} from "../../components/ui/switch";
 import {Checkbox} from "../../components/ui/checkbox";
-import {Textarea} from "../../components/ui/textarea";
 import {
     Table,
     TableHeader,
@@ -420,142 +419,129 @@ export default function TranscodingProfiles() {
     ) => {
         const update = (patch: Partial<EncodeProfile>) => setProfile({...profile, ...patch});
         return (
-            <div className="space-y-6 py-2">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2 space-y-2">
-                        <Label>{t('admin.profileName', 'Profile Name')} <span className="text-destructive">*</span></Label>
-                        <Input
-                            value={profile.name || ''}
-                            onChange={(e) => update({name: e.target.value})}
-                            placeholder="e.g. h264-720p"
-                        />
-                    </div>
-                    <div className="col-span-2 space-y-2">
-                        <Label>{t('admin.description', 'Description')}</Label>
-                        <Input
-                            value={profile.description || ''}
-                            onChange={(e) => update({description: e.target.value})}
-                            placeholder="Brief description of this profile"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>{t('admin.outputExtension', 'Output Extension')} <span className="text-destructive">*</span></Label>
-                        <Select
-                            value={profile.extension || 'mp4'}
-                            onValueChange={(v) => update({extension: v})}
-                        >
-                            <SelectTrigger>
-                                <SelectValue/>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {EXTENSION_OPTIONS.map(o => (
-                                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>{t('admin.resolution', 'Resolution')}</Label>
-                        <Input
-                            value={profile.resolution || ''}
-                            onChange={(e) => update({resolution: e.target.value})}
-                            placeholder={isGif ? "e.g. -" : "e.g. 720"}
-                            disabled={isGif}
-                        />
-                    </div>
-                    {!isGif && (
-                        <>
-                            <div className="space-y-2">
-                                <Label>{t('admin.videoCodec', 'Video Codec')}</Label>
-                                <Select
-                                    value={profile.video_codec || 'h264'}
-                                    onValueChange={(v) => update({video_codec: v})}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {CODEC_OPTIONS.map(o => (
-                                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>{t('admin.audioCodec', 'Audio Codec')}</Label>
-                                <Select
-                                    value={profile.audio_codec || 'aac'}
-                                    onValueChange={(v) => update({audio_codec: v})}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="aac">AAC</SelectItem>
-                                        <SelectItem value="flac">FLAC</SelectItem>
-                                        <SelectItem value="opus">Opus</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>{t('admin.videoBitrate', 'Video Bitrate')}</Label>
-                                <Input
-                                    value={profile.video_bitrate || ''}
-                                    onChange={(e) => update({video_bitrate: e.target.value})}
-                                    placeholder="e.g. 4000k"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label>{t('admin.audioBitrate', 'Audio Bitrate')}</Label>
-                                <Input
-                                    value={profile.audio_bitrate || ''}
-                                    onChange={(e) => update({audio_bitrate: e.target.value})}
-                                    placeholder="e.g. 128k"
-                                />
-                            </div>
-                        </>
-                    )}
-                    {isGif && (
-                        <div className="col-span-2 space-y-2">
-                            <Label>{t('admin.bentoParameters', 'GIF Parameters')}</Label>
+            <>
+                <div className="px-6 py-5 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2 space-y-2">
+                            <Label htmlFor={`profile-name-${profile.id || 'new'}`}>
+                                {t('admin.profileName', 'Profile Name')} <span className="text-destructive">*</span>
+                            </Label>
                             <Input
-                                value={profile.bento_parameters || ''}
-                                onChange={(e) => update({bento_parameters: e.target.value})}
-                                placeholder="--fps 10 --scale 320"
+                                id={`profile-name-${profile.id || 'new'}`}
+                                value={profile.name || ''}
+                                onChange={(e) => update({name: e.target.value})}
+                                placeholder="e.g. h264-720p"
+                                className="h-10"
                             />
                         </div>
-                    )}
-                    {!isGif && (
-                        <div className="col-span-2 space-y-2">
-                            <Label>{t('admin.bentoParameters', 'Bento4 Parameters')}</Label>
-                            <Textarea
-                                value={profile.bento_parameters || ''}
-                                onChange={(e) => update({bento_parameters: e.target.value})}
-                                placeholder="--video-bitrate 4000k --audio-bitrate 128k"
-                                rows={2}
+                        <div className="space-y-2">
+                            <Label htmlFor={`profile-ext-${profile.id || 'new'}`}>
+                                {t('admin.outputExtension', 'Output Extension')} <span className="text-destructive">*</span>
+                            </Label>
+                            <Select
+                                value={profile.extension || 'mp4'}
+                                onValueChange={(v) => update({extension: v})}
+                            >
+                                <SelectTrigger id={`profile-ext-${profile.id || 'new'}`} className="h-10">
+                                    <SelectValue/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {EXTENSION_OPTIONS.map(o => (
+                                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor={`profile-res-${profile.id || 'new'}`}>
+                                {t('admin.resolution', 'Resolution')}
+                            </Label>
+                            <Input
+                                id={`profile-res-${profile.id || 'new'}`}
+                                value={profile.resolution || ''}
+                                onChange={(e) => update({resolution: e.target.value})}
+                                placeholder={isGif ? "e.g. -" : "e.g. 720"}
+                                disabled={isGif}
+                                className="h-10"
                             />
                         </div>
-                    )}
-                    <div className="col-span-2 flex items-center gap-2">
-                        <Switch
-                            id={`active-${profile.id || 'new'}`}
-                            checked={profile.is_active ?? true}
-                            onCheckedChange={(checked) => update({is_active: checked === true})}
-                        />
-                        <Label htmlFor={`active-${profile.id || 'new'}`} className="text-sm font-medium cursor-pointer">
-                            {t('admin.enableProfile', 'Enable this profile')}
-                        </Label>
+                        {!isGif && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`profile-vcodec-${profile.id || 'new'}`}>
+                                        {t('admin.videoCodec', 'Video Codec')}
+                                    </Label>
+                                    <Select
+                                        value={profile.video_codec || 'h264'}
+                                        onValueChange={(v) => update({video_codec: v})}
+                                    >
+                                        <SelectTrigger id={`profile-vcodec-${profile.id || 'new'}`} className="h-10">
+                                            <SelectValue/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {CODEC_OPTIONS.map(o => (
+                                                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`profile-acodec-${profile.id || 'new'}`}>
+                                        {t('admin.audioCodec', 'Audio Codec')}
+                                    </Label>
+                                    <Select
+                                        value={profile.audio_codec || 'aac'}
+                                        onValueChange={(v) => update({audio_codec: v})}
+                                    >
+                                        <SelectTrigger id={`profile-acodec-${profile.id || 'new'}`} className="h-10">
+                                            <SelectValue/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="aac">AAC</SelectItem>
+                                            <SelectItem value="flac">FLAC</SelectItem>
+                                            <SelectItem value="opus">Opus</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </>
+                        )}
+                        {isGif && (
+                            <div className="sm:col-span-2 space-y-2">
+                                <Label htmlFor={`profile-bento-${profile.id || 'new'}`}>
+                                    {t('admin.bentoParameters', 'GIF Parameters')}
+                                </Label>
+                                <Input
+                                    id={`profile-bento-${profile.id || 'new'}`}
+                                    value={profile.bento_parameters || ''}
+                                    onChange={(e) => update({bento_parameters: e.target.value})}
+                                    placeholder="--fps 10 --scale 320"
+                                    className="h-10"
+                                />
+                            </div>
+                        )}
+                        <div className="sm:col-span-2 flex items-center gap-2.5 pt-1">
+                            <Switch
+                                id={`active-${profile.id || 'new'}`}
+                                checked={profile.is_active ?? true}
+                                onCheckedChange={(checked) => update({is_active: checked === true})}
+                            />
+                            <Label htmlFor={`active-${profile.id || 'new'}`} className="text-sm font-medium cursor-pointer">
+                                {t('admin.enableProfile', 'Enable this profile')}
+                            </Label>
+                        </div>
                     </div>
                 </div>
 
-                <div className="p-4 bg-zinc-900 rounded-lg font-mono text-xs text-indigo-300 leading-relaxed">
-                    <span className="text-zinc-500"># Generated FFmpeg Command</span>
-                    <br/>
-                    {ffmpegCmd.split('\n').map((line, i) => (
-                        <div key={i}>{line || '\u00A0'}</div>
-                    ))}
+                <div className="px-6 pb-5">
+                    <div className="p-4 bg-muted rounded-lg font-mono text-xs text-foreground/90 leading-relaxed border border-border/50">
+                        <span className="text-muted-foreground"># Generated FFmpeg Command</span>
+                        <br/>
+                        {ffmpegCmd.split('\n').map((line, i) => (
+                            <div key={i}>{line || '\u00A0'}</div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            </>
         );
     };
 
@@ -796,21 +782,24 @@ export default function TranscodingProfiles() {
             )}
 
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
                             {t('admin.newTranscodingProfile', 'New Transcoding Profile')}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {t('admin.newTranscodingProfileDesc', 'Define encoding parameters and processing commands.')}
                         </DialogDescription>
                     </DialogHeader>
                     {renderProfileForm(newProfile, setNewProfile, isGifNew, newProfileFfmpeg)}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                    <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setIsAddModalOpen(false)}
+                                className="rounded-lg h-10 px-5 border-border/60">
                             {t('admin.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleCreateNew}>
+                        <Button onClick={handleCreateNew}
+                                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium">
                             {t('admin.saveProfile', 'Save Profile')}
                         </Button>
                     </DialogFooter>
@@ -818,25 +807,28 @@ export default function TranscodingProfiles() {
             </Dialog>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary"/>
                             {editingProfile?.id
                                 ? t('admin.editProfile', 'Edit Profile')
                                 : t('admin.addProfile', 'Add Profile')}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {editingProfile?.id
                                 ? t('admin.editProfileDesc', 'Update the profile settings')
                                 : t('admin.addProfileDesc', 'Create a new transcoding profile')}
                         </DialogDescription>
                     </DialogHeader>
                     {editingProfile && renderProfileForm(editingProfile, setEditingProfile, isGifEdit, editingProfileFfmpeg)}
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}
+                                className="rounded-lg h-10 px-5 border-border/60">
                             {t('admin.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleSave}>
+                        <Button onClick={handleSave}
+                                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium">
                             {t('admin.save', 'Save')}
                         </Button>
                     </DialogFooter>
