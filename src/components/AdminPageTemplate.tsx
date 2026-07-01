@@ -111,6 +111,7 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
 export interface AdminPageTemplateProps {
   title: string;
   titleIcon?: React.ReactNode;
+  titleExtra?: React.ReactNode;
   subtitle?: string;
   description?: string;
   actions?: React.ReactNode;
@@ -129,6 +130,7 @@ export interface AdminPageTemplateProps {
 export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   title,
   titleIcon,
+  titleExtra,
   subtitle,
   description,
   actions,
@@ -184,7 +186,10 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+              {titleExtra}
+            </div>
             {subtitle && (
               <p className="text-sm font-medium text-foreground/80 mt-0.5">{subtitle}</p>
             )}

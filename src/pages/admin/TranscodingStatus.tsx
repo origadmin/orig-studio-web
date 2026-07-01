@@ -75,7 +75,7 @@ function extractBasename(path: string): string {
     return parts[parts.length - 1] || '';
 }
 
-function getFileName(task: EncodingTaskWithMeta, t: (key: string, fallback?: string) => string): string {
+function getFileName(task: EncodingTaskWithMeta): string {
     if (task.media_title && task.media_title.length > 2) {
         return task.media_title;
     }
@@ -87,7 +87,7 @@ function getFileName(task: EncodingTaskWithMeta, t: (key: string, fallback?: str
         const base = extractBasename(task.output_path);
         if (base) return base;
     }
-    return task.media_id ? String(task.media_id).substring(0, 8) : t('common.unknown', '未知');
+    return task.media_id ? String(task.media_id).substring(0, 8) : '未知';
 }
 
 function getFormatDisplay(task: EncodingTaskWithMeta): string {
@@ -187,8 +187,8 @@ function TaskRowCells({
                     <span className="text-sm font-semibold text-slate-800 font-mono whitespace-nowrap" title={String(task.id)}>
                         {genDisplayId(task.id)}-{getFormatSuffix(task)}
                     </span>
-                    <span className="text-xs text-slate-500 truncate max-w-[240px]" title={getFileName(task, t)}>
-                        {getFileName(task, t)}
+                    <span className="text-xs text-slate-500 truncate max-w-[240px]" title={getFileName(task)}>
+                        {getFileName(task)}
                     </span>
                 </div>
             </TableCell>
@@ -529,6 +529,13 @@ export default function TranscodingStatus() {
 
     const totalPages = filteredData?.total_pages || Math.ceil((filteredData?.total || 0) / PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
 
+    const titleExtra = (
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
+            {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
+        </span>
+    );
+
     const pageActions = (
         <div className="flex items-center gap-2">
             <Button
@@ -549,6 +556,7 @@ export default function TranscodingStatus() {
     return (
         <AdminPageTemplate
             title={t('admin.transcodingStatus', '转码状态')}
+            titleExtra={titleExtra}
             description={t('admin.transcodingStatusDesc', '实时监控活跃、排队和已完成的转码任务。')}
             actions={pageActions}
         >
@@ -594,10 +602,6 @@ export default function TranscodingStatus() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
-                    {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
-                </span>
                 <div className="relative flex-1 min-w-[240px] max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
                     <Input
