@@ -1,4 +1,4 @@
-﻿import {Spinner} from "@/components/ui/spinner"
+import {Spinner} from "@/components/ui/spinner"
 import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useParams, useNavigate, Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -11,6 +11,7 @@ import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Badge} from '@/components/ui/badge';
@@ -538,8 +539,8 @@ export default function MediaEditPage() {
                                 </div>
                                 <div className="mt-6">
                                     <Label htmlFor="description" className="text-xs text-muted-foreground block mb-2 uppercase font-bold tracking-wider">{t('mediaEdit.description', '描述')}</Label>
-                                    <textarea id="description"
-                                              className="w-full bg-card border border-input rounded-input p-4 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none min-h-[80px]"
+                                    <Textarea id="description"
+                                              className="min-h-[80px] resize-none bg-card"
                                               value={form.description}
                                               onChange={e => setForm({...form, description: e.target.value})}
                                               placeholder={t('mediaEdit.descriptionPlaceholder', '添加关于这个媒体文件的详细描述...')}/>
@@ -605,7 +606,7 @@ export default function MediaEditPage() {
                                         </div>
 
                                         <div className="space-y-3 pt-4">
-                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-1">资源链接</h4>
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border pb-1">资源链接</h4>
                                             <div className="grid grid-cols-1 gap-2">
                                                 <button className="flex items-center justify-between px-3 py-2 bg-card border border-border rounded-lg text-xs hover:bg-card/80 group">
                                                     <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-primary"/>{t('mediaEdit.hlsManifest', 'HLS 播放清单')}</span>
@@ -655,14 +656,14 @@ export default function MediaEditPage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-1">技术规格</h4>
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border pb-1">技术规格</h4>
                                             <div className="space-y-2 text-xs">
                                                 <div className="flex justify-between"><span className="text-muted-foreground">格式</span><span className="font-bold">{media.type?.toUpperCase() || t('mediaEdit.videoType', '视频')}</span></div>
                                                 <div className="flex justify-between"><span className="text-muted-foreground">分辨率</span><span className="font-bold">{media.width && media.height ? `${media.width}x${media.height}` : t('common.na', '无')}</span></div>
                                                 <div className="flex justify-between"><span className="text-muted-foreground">时长</span><span className="font-bold">{media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : t('common.na', '无')}</span></div>
                                                 <div className="flex justify-between"><span className="text-muted-foreground">大小</span><span className="font-bold">{media.size || t('common.na', '无')}</span></div>
-                                                <div className="mt-4 bg-muted px-2 py-1.5 rounded border border-border/30 flex items-center justify-between">
-                                                    <span className="text-[11px] font-mono text-primary truncate">MD5: {media.md5sum || t('common.na', '无')}</span>
+                                                <div className="mt-4 bg-muted px-2 py-1.5 rounded border border-border flex items-center justify-between">
+                                                    <span className="text-xs font-mono text-primary truncate">MD5: {media.md5sum || t('common.na', '无')}</span>
                                                     <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                                 </div>
                                             </div>
@@ -708,7 +709,7 @@ export default function MediaEditPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 pt-6 border-t border-border/30">
+                                <div className="space-y-4 pt-6 border-t border-border">
                                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.configSwitches', 'Configuration Switches')}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
@@ -763,7 +764,7 @@ export default function MediaEditPage() {
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <p className="font-bold text-sm">{getProfileName(task.profile_id)}</p>
-                                                                <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] font-mono rounded uppercase">
+                                                                <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-mono rounded uppercase">
                                                                     {getProfileInfo(task.profile_id).split(' / ')[1] || t('mediaEdit.codec', 'Codec')}
                                                                 </span>
                                                             </div>
@@ -781,11 +782,11 @@ export default function MediaEditPage() {
                                     )}
                                 </div>
 
-                                <div className="border-t border-border/30 pt-6">
+                                <div className="border-t border-border pt-6">
                                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.mediaVariants', 'Media Variants')}</h3>
                                     <div className="overflow-x-auto">
                                         <Table>
-                                            <TableHeader className="text-muted-foreground border-b border-border/20 uppercase tracking-tighter">
+                                            <TableHeader className="text-muted-foreground border-b border-border uppercase tracking-tighter">
                                                 <TableRow>
                                                     <TableHead className="pb-2 font-bold">变体</TableHead>
                                                     <TableHead className="pb-2 font-bold">分辨率</TableHead>
@@ -862,18 +863,18 @@ export default function MediaEditPage() {
                                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">添加字幕</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                                         <div className="space-y-1">
-                                            <Label className="text-[11px] font-bold uppercase">语言</Label>
+                                            <Label className="text-xs font-bold uppercase tracking-wider">语言</Label>
                                             <Input placeholder="例如 zh-CN"/>
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-[11px] font-bold uppercase">标签</Label>
+                                            <Label className="text-xs font-bold uppercase tracking-wider">标签</Label>
                                             <Input placeholder="简体中文"/>
                                         </div>
                                         <div className="space-y-1 lg:col-span-2">
-                                            <Label className="text-[11px] font-bold uppercase">文件 (VTT/SRT)</Label>
+                                            <Label className="text-xs font-bold uppercase tracking-wider">文件 (VTT/SRT)</Label>
                                             <div className="flex gap-2">
-                                                <Input type="file" className="flex-1 bg-card border border-input rounded-input text-sm text-[11px]"/>
-                                                <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-bold shrink-0">
+                                                <Input type="file" className="flex-1 bg-card"/>
+                                                <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-semibold shrink-0">
                                                     上传
                                                 </Button>
                                             </div>
@@ -887,7 +888,7 @@ export default function MediaEditPage() {
                                 <div>
                                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">当前字幕</h3>
                                     <Table>
-                                        <TableHeader className="text-muted-foreground border-b border-border/20 uppercase">
+                                        <TableHeader className="text-muted-foreground border-b border-border uppercase">
                                             <TableRow>
                                                 <TableHead className="pb-2 font-bold">语言</TableHead>
                                                 <TableHead className="pb-2 font-bold">标签</TableHead>
@@ -913,37 +914,37 @@ export default function MediaEditPage() {
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Eye className="text-primary text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">{(stats?.view_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.views', '播放量')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.views', '播放量')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <ThumbsUp className="text-success text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">{(stats?.like_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.likes', '点赞')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.likes', '点赞')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <XCircle className="text-destructive text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">{(stats?.dislike_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.dislikes', '踩')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.dislikes', '踩')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <MessageSquare className="text-secondary text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">{(stats?.comment_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.comments', '评论')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.comments', '评论')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Star className="text-amber-400 text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">{(stats?.favorite_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.favorites', '收藏')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.favorites', '收藏')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Share2 className="text-primary-container text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">0</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.shares', '分享')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.shares', '分享')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Download className="text-foreground text-2xl mb-2"/>
                                         <p className="text-2xl font-bold">0</p>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">{t('mediaEdit.downloads', '下载')}</p>
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.downloads', '下载')}</p>
                                     </div>
                                 </div>
                             </TabsContent>
@@ -954,32 +955,32 @@ export default function MediaEditPage() {
                     <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
                         {/* Card 1: Identity */}
                         <Card className="bg-card">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.identity', '身份信息')}</CardTitle>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.identity', '身份信息')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="pb-3 border-b border-border/10">
-                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">{t('mediaEdit.resourceId', '资源ID')}</Label>
+                                <div className="pb-3 border-b border-border">
+                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.resourceId', '资源ID')}</Label>
                                     <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{media.id}</code>
+                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.id}</code>
                                         <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                     </div>
                                 </div>
-                                <div className="pb-3 border-b border-border/10">
-                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
+                                <div className="pb-3 border-b border-border">
+                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
                                     <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
+                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
                                         <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                     </div>
                                 </div>
                                 <div className="pb-3">
-                                    <Label className="text-[9px] text-muted-foreground font-bold block uppercase mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
+                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
                                     <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-[11px] font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
+                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
                                         <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                     </div>
                                 </div>
-                                <div className="pt-2 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/20 mt-2">
+                                <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border mt-2">
                                     <p>{t('mediaEdit.createdAt', '创建')}: <span className="font-mono text-foreground">{formatDateTime(media.create_time)}</span></p>
                                     <p>{t('mediaEdit.updatedAt', '更新')}: <span className="font-mono text-foreground">{formatDateTime(media.update_time)}</span></p>
                                 </div>
@@ -988,8 +989,8 @@ export default function MediaEditPage() {
 
                         {/* Card 2: State & Status */}
                         <Card className="bg-card">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-2 gap-3">
@@ -1001,26 +1002,26 @@ export default function MediaEditPage() {
                                         return (
                                             <>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", lc.bg, lc.text, lc.border)}>
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", lc.bg, lc.text, lc.border)}>
                                                         {t(lc.labelKey, lc.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.review', 'Review')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", rv.bg, rv.text, rv.border)}>
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.review', 'Review')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", rv.bg, rv.text, rv.border)}>
                                                         {t(rv.labelKey, rv.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.encoding', 'Encoding')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", enc.bg, enc.text, enc.border)}>
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.encoding', 'Encoding')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", enc.bg, enc.text, enc.border)}>
                                                         {t(enc.labelKey, enc.fallback)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-[9px] text-muted-foreground uppercase font-bold">{t('mediaEdit.sprites', 'Sprites')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-[10px] font-bold border", idle.bg, idle.text, idle.border)}>
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.sprites', 'Sprites')}</span>
+                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", idle.bg, idle.text, idle.border)}>
                                                         {t(idle.labelKey, idle.fallback)}
                                                     </span>
                                                 </div>
@@ -1033,8 +1034,8 @@ export default function MediaEditPage() {
 
                         {/* Card 3: Ownership */}
                         <Card className="bg-card">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.ownership', '归属信息')}</CardTitle>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.ownership', '归属信息')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center gap-3 mb-4">
@@ -1043,17 +1044,17 @@ export default function MediaEditPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm">{t('mediaEdit.user', '用户')}</p>
-                                        <p className="text-[10px] text-muted-foreground">{t('mediaEdit.contentCreator', '内容创作者')}</p>
+                                        <p className="text-xs text-muted-foreground">{t('mediaEdit.contentCreator', '内容创作者')}</p>
                                     </div>
                                 </div>
-                                <div className="space-y-3 pt-3 border-t border-border/30">
-                                    <div className="flex justify-between items-center text-xs">
+                                <div className="space-y-3 pt-3 border-t border-border">
+                                    <div className="flex justify-between items-center text-sm">
                                         <span className="text-muted-foreground">{t('mediaEdit.channel', '频道')}</span>
-                                        <span className="font-bold">{t('mediaEdit.defaultChannel', '默认')}</span>
+                                        <span className="font-semibold">{t('mediaEdit.defaultChannel', '默认')}</span>
                                     </div>
-                                    <div className="flex justify-between items-center text-xs">
+                                    <div className="flex justify-between items-center text-sm">
                                         <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
-                                        <Badge variant="outline" className="text-[10px] font-bold">{media.category_id || t('mediaEdit.general', '通用')}</Badge>
+                                        <Badge variant="outline" className="text-xs font-semibold">{media.category_id || t('mediaEdit.general', '通用')}</Badge>
                                     </div>
                                 </div>
                             </CardContent>
@@ -1061,25 +1062,25 @@ export default function MediaEditPage() {
 
                         {/* Card 4: Workflow - Review */}
                         <Card className="bg-card">
-                            <CardHeader className="pb-2">
+                            <CardHeader className="pb-3">
                                 <div className="flex justify-between items-center">
-                                    <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('mediaEdit.workflow', '工作流')}</CardTitle>
-                                    <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-[9px] font-bold uppercase">
+                                    <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.workflow', '工作流')}</CardTitle>
+                                    <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-xs font-semibold uppercase">
                                         {t('mediaEdit.pendingReview', '待审核')}
                                     </Badge>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-3">
-                                <textarea className="w-full bg-muted border border-input rounded-input p-2 text-xs min-h-[50px] resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}></textarea>
+                                <Textarea className="min-h-[50px] resize-none bg-muted" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}/>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <Button className="py-2 bg-green-600 text-white rounded-lg font-bold text-[11px] hover:bg-green-700">
+                                    <Button className="py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700">
                                         {t('mediaEdit.approve', '通过')}
                                     </Button>
-                                    <Button className="py-2 bg-red-600 text-white rounded-lg font-bold text-[11px] hover:bg-red-700">
+                                    <Button className="py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700">
                                         {t('mediaEdit.reject', '拒绝')}
                                     </Button>
                                 </div>
-                                <Button variant="outline" className="w-full py-1.5 font-bold text-[10px]">
+                                <Button variant="outline" className="w-full py-1.5 font-semibold text-xs">
                                     {t('mediaEdit.requestChanges', '请求修改')}
                                 </Button>
                             </CardContent>
@@ -1107,7 +1108,7 @@ export default function MediaEditPage() {
                                             {t('mediaEdit.regenerateSprite', '重新生成雪碧图')}
                                         </Button>
                                     </div>
-                                    <div className="pt-3 border-t border-border/30 mt-2">
+                                    <div className="pt-3 border-t border-border mt-2">
                                         <Button variant="destructive" className="w-full py-2 bg-red-600/10 text-red-600 border border-red-600/30 hover:bg-red-600 hover:text-white flex items-center justify-center gap-2"
                                                 onClick={() => setDeleteDialogOpen(true)}>
                                             <Delete className="w-4 h-4"/> {t('mediaEdit.deleteMediaAsset', '删除媒体资源')}

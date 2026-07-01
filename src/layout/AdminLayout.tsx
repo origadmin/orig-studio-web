@@ -25,6 +25,7 @@ import {
     Megaphone,
     Target,
     Tv2,
+    Layers,
     Plus,
     Zap,
     PanelLeft,
@@ -107,6 +108,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             header: t('admin.sectionSystem', '系统'),
             items: [
                 ...(featureFlags.notifications ? [{id: "notifications", icon: Bell, label: t('admin.notifications', '通知管理'), path: "/admin/notifications"}] : []),
+                {id: "style-guide", icon: Layers, label: t('admin.styleGuide', '组件规范'), path: "/admin/style-guide"},
                 {id: "settings", icon: Settings, label: t('admin.settings'), path: "/admin/settings"},
             ],
         },

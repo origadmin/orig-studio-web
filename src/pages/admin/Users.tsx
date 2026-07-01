@@ -286,7 +286,7 @@ export default function UsersPage() {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
             <Input
-              className="pl-9 h-10"
+              className="pl-9"
               placeholder={t('admin.search') || 'Search by name, email or ID...'}
               type="text"
               value={searchParams.keyword}
@@ -298,7 +298,7 @@ export default function UsersPage() {
             value={searchParams.role}
             onValueChange={(value) => setSearchParams({...searchParams, role: value})}
           >
-            <SelectTrigger className="h-10 w-[140px]">
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder={t('admin.allRoles') || 'All Roles'}/>
             </SelectTrigger>
             <SelectContent>

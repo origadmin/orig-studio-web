@@ -343,6 +343,8 @@ export interface EncodeProfile {
     audio_bitrate: string;
     bento_parameters?: string;
     is_active: boolean;
+    create_time?: string;
+    update_time?: string;
 }
 
 export interface EncodingTask {
@@ -459,8 +461,8 @@ export const encodingApi = {
         update: (id: number, data: Partial<EncodeProfile>) =>
             api.put<{ profile: EncodeProfile }>(`/admin/encoding/profiles/${id}`, {profile: {...data, id}}),
         delete: (id: number) => api.del<void>(`/admin/encoding/profiles/${id}`),
-        preview: (data: Partial<EncodeProfile>) =>
-            api.post<{ command: string }>('/admin/encoding/profiles/preview', {profile: data}),
+        preview: (data: { codec?: string; resolution?: string; extension?: string; audio_codec?: string }) =>
+            api.post<{ full_command: string }>('/admin/encoding/profiles/preview', data),
     },
 };
 

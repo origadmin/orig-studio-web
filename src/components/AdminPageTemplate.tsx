@@ -1,6 +1,5 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
@@ -60,9 +59,9 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
 
   const segments = pathname.split('/').filter(Boolean);
   const crumbs: BreadcrumbItemType[] = [];
-  
+
   crumbs.push({ label: t('admin.breadcrumb.dashboard', '仪表盘'), path: '/admin', isLast: false });
-  
+
   if (segments.length >= 2) {
     const secondLevel = '/' + segments[1];
     if (segments[1] === 'transcoding' && segments.length >= 3) {
@@ -85,7 +84,7 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
         path: secondLevel,
         isLast: segments.length === 2,
       });
-      
+
       if (segments.length > 2) {
         for (let i = 2; i < segments.length; i++) {
           const subPath = '/' + segments.slice(0, i + 1).join('/');
@@ -105,12 +104,14 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
       }
     }
   }
-  
+
   return crumbs;
 }
 
 export interface AdminPageTemplateProps {
   title: string;
+  titleIcon?: React.ReactNode;
+  subtitle?: string;
   description?: string;
   actions?: React.ReactNode;
   stats?: React.ReactNode;
@@ -127,6 +128,8 @@ export interface AdminPageTemplateProps {
 
 export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   title,
+  titleIcon,
+  subtitle,
   description,
   actions,
   stats,
@@ -145,41 +148,50 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   const hasSearchBar = onSearchChange || onSearchSubmit;
 
   const autoBreadcrumbs = React.useMemo(() => buildBreadcrumbs(pathname, t), [pathname, t]);
-
   const breadcrumbItems = customBreadcrumbs || autoBreadcrumbs;
 
   return (
     <div className={cn('space-y-6 p-6', className)}>
       {showBreadcrumbs && (
-        <Breadcrumb className="mb-0">
+        <Breadcrumb className="mb-4">
           <BreadcrumbList>
             {breadcrumbItems.map((item, index) => {
               const isLast = item.isLast !== undefined ? item.isLast : index === breadcrumbItems.length - 1;
               return (
-              <React.Fragment key={index}>
-                <BreadcrumbItem>
-                  {isLast ? (
-                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink asChild>
-                      <Link to={item.path || '#'}>{item.label}</Link>
-                    </BreadcrumbLink>
-                  )}
-                </BreadcrumbItem>
-                {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
-              </React.Fragment>
+                <React.Fragment key={index}>
+                  <BreadcrumbItem>
+                    {isLast ? (
+                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                    ) : (
+                      <BreadcrumbLink asChild>
+                        <Link to={item.path || '#'}>{item.label}</Link>
+                      </BreadcrumbLink>
+                    )}
+                  </BreadcrumbItem>
+                  {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+                </React.Fragment>
               );
             })}
           </BreadcrumbList>
         </Breadcrumb>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {titleIcon && (
+            <div className="text-primary h-6 w-6 shrink-0 flex items-center justify-center">
+              {titleIcon}
+            </div>
           )}
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+            {subtitle && (
+              <p className="text-sm font-medium text-foreground/80 mt-0.5">{subtitle}</p>
+            )}
+            {description && (
+              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            )}
+          </div>
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>

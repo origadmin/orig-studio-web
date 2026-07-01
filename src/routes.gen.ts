@@ -43,6 +43,7 @@ import { Route as AuthenticatedSettingsAppearanceRouteImport } from "./routes/_a
 import { Route as AuthenticatedAdminUsersRouteImport } from "./routes/_authenticated/admin/users";
 import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_authenticated/admin/transcoding";
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
+import { Route as AuthenticatedAdminStyleGuideRouteImport } from "./routes/_authenticated/admin/style-guide";
 import { Route as AuthenticatedAdminSettingsRouteImport } from "./routes/_authenticated/admin/settings";
 import { Route as AuthenticatedAdminPromotionRouteImport } from "./routes/_authenticated/admin/promotion";
 import { Route as AuthenticatedAdminPortalRouteImport } from "./routes/_authenticated/admin/portal";
@@ -257,6 +258,12 @@ const AuthenticatedAdminTagsRoute = AuthenticatedAdminTagsRouteImport.update({
   path: "/tags",
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any);
+const AuthenticatedAdminStyleGuideRoute =
+  AuthenticatedAdminStyleGuideRouteImport.update({
+    id: "/style-guide",
+    path: "/style-guide",
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any);
 const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: "/settings",
@@ -539,6 +546,7 @@ export interface FileRoutesByFullPath {
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
+  "/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
@@ -609,6 +617,7 @@ export interface FileRoutesByTo {
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
+  "/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
@@ -686,6 +695,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/_authenticated/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
   "/_authenticated/admin/settings": typeof AuthenticatedAdminSettingsRoute;
+  "/_authenticated/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/_authenticated/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/_authenticated/admin/users": typeof AuthenticatedAdminUsersRoute;
@@ -762,6 +772,7 @@ export interface FileRouteTypes {
     | "/admin/portal"
     | "/admin/promotion"
     | "/admin/settings"
+    | "/admin/style-guide"
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | "/admin/portal"
     | "/admin/promotion"
     | "/admin/settings"
+    | "/admin/style-guide"
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
@@ -908,6 +920,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/portal"
     | "/_authenticated/admin/promotion"
     | "/_authenticated/admin/settings"
+    | "/_authenticated/admin/style-guide"
     | "/_authenticated/admin/tags"
     | "/_authenticated/admin/transcoding"
     | "/_authenticated/admin/users"
@@ -1190,6 +1203,13 @@ declare module "@tanstack/react-router" {
       path: "/tags";
       fullPath: "/admin/tags";
       preLoaderRoute: typeof AuthenticatedAdminTagsRouteImport;
+      parentRoute: typeof AuthenticatedAdminRoute;
+    };
+    "/_authenticated/admin/style-guide": {
+      id: "/_authenticated/admin/style-guide";
+      path: "/style-guide";
+      fullPath: "/admin/style-guide";
+      preLoaderRoute: typeof AuthenticatedAdminStyleGuideRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/admin/settings": {
@@ -1688,6 +1708,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute;
   AuthenticatedAdminPromotionRoute: typeof AuthenticatedAdminPromotionRoute;
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute;
+  AuthenticatedAdminStyleGuideRoute: typeof AuthenticatedAdminStyleGuideRoute;
   AuthenticatedAdminTagsRoute: typeof AuthenticatedAdminTagsRoute;
   AuthenticatedAdminTranscodingRoute: typeof AuthenticatedAdminTranscodingRouteWithChildren;
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute;
@@ -1714,6 +1735,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
   AuthenticatedAdminPromotionRoute: AuthenticatedAdminPromotionRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminStyleGuideRoute: AuthenticatedAdminStyleGuideRoute,
   AuthenticatedAdminTagsRoute: AuthenticatedAdminTagsRoute,
   AuthenticatedAdminTranscodingRoute:
     AuthenticatedAdminTranscodingRouteWithChildren,

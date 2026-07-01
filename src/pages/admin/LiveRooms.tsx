@@ -147,17 +147,19 @@ export default function LiveRoomsPage() {
             </Breadcrumb>
 
             {/* Page Header */}
-            <header className="flex justify-between items-end">
-                <div>
-                    <h1 className="text-[30px] font-bold leading-[38px] tracking-[-0.02em] text-foreground flex items-center gap-3">
-                        <Tv2 className="h-7 w-7 text-primary" />
-                        {t('admin.liveRoomsManagement', 'Live Rooms Management')}
-                    </h1>
-                    <p className="text-muted-foreground mt-1">
-                        {t('admin.liveRoomsDesc', 'Monitor, configure, and control your enterprise streaming channels in real-time.')}
-                    </p>
+            <header className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Tv2 className="h-6 w-6 text-primary" />
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                            {t('admin.liveRoomsManagement', 'Live Rooms Management')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {t('admin.liveRoomsDesc', 'Monitor, configure, and control your enterprise streaming channels in real-time.')}
+                        </p>
+                    </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex items-center gap-2">
                     <Button variant="outline" className="rounded-[18px]">
                         <RefreshCw className="w-4 h-4" />
                         {t('admin.refreshAll', 'Refresh All')}

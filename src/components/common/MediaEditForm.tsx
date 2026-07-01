@@ -1,6 +1,7 @@
 import {useTranslation} from 'react-i18next';
 import {Label} from '@/components/ui/label';
 import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
 import {Badge} from '@/components/ui/badge';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Separator} from '@/components/ui/separator';
@@ -56,9 +57,9 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
 
             <div className="space-y-2">
                 <Label htmlFor="description">{t('media.editForm.description', 'Description')}</Label>
-                <textarea
+                <Textarea
                     id="description"
-                    className="flex min-h-[120px] w-full rounded-input border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[120px] resize-none"
                     value={form.description}
                     onChange={e => setForm({...form, description: e.target.value})}
                     placeholder={t('media.editForm.descriptionPlaceholder', 'Describe your media...')}
