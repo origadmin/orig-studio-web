@@ -6,6 +6,7 @@ import {useEffect, useState, useMemo} from "react";
 import {useTranslation} from "react-i18next";
 import {Link} from "@tanstack/react-router";
 import {encodingApi, type EncodeProfile} from "../../lib/api/media";
+import {formatDateTime} from "../../lib/format";
 import {Button} from "../../components/ui/button";
 import {Input} from "../../components/ui/input";
 import {Label} from "../../components/ui/label";
@@ -52,8 +53,8 @@ export default function TranscodingProfiles() {
 
     // Filter / selection state
     const [searchQuery, setSearchQuery] = useState('');
-    const [codecFilter, setCodecFilter] = useState<string>('-');
-    const [resolutionFilter, setResolutionFilter] = useState<string>('-');
+    const [codecFilter, setCodecFilter] = useState<string>('all');
+    const [resolutionFilter, setResolutionFilter] = useState<string>('all');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
     // Pagination
@@ -108,18 +109,18 @@ export default function TranscodingProfiles() {
             const q = searchQuery.toLowerCase();
             result = result.filter(p =>
                 p.name.toLowerCase().includes(q) ||
-                p.video_codec.toLowerCase().includes(q) ||
-                p.resolution.toLowerCase().includes(q)
+                (p.video_codec || '').toLowerCase().includes(q) ||
+                (p.resolution || '').toLowerCase().includes(q)
             );
         }
 
-        if (codecFilter && codecFilter !== '-') {
+        if (codecFilter && codecFilter !== 'all') {
             result = result.filter(p => p.video_codec === codecFilter);
         }
 
-        if (resolutionFilter && resolutionFilter !== '-') {
+        if (resolutionFilter && resolutionFilter !== 'all') {
             result = result.filter(p => {
-                const height = p.resolution.split('x')[1] || p.resolution;
+                const height = (p.resolution || '').split('x')[1] || p.resolution;
                 return height === resolutionFilter;
             });
         }
@@ -282,8 +283,8 @@ export default function TranscodingProfiles() {
 
     const resetFilters = () => {
         setSearchQuery('');
-        setCodecFilter('-');
-        setResolutionFilter('-');
+        setCodecFilter('all');
+        setResolutionFilter('all');
     };
 
     // ffmpeg command preview
@@ -319,7 +320,7 @@ export default function TranscodingProfiles() {
                     <SelectValue placeholder={t('admin.allCodecs', 'All Codecs')}/>
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="-">{t('admin.allCodecs', 'All Codecs')}</SelectItem>
+                    <SelectItem value="all">{t('admin.allCodecs', 'All Codecs')}</SelectItem>
                     {availableCodecs.map(c => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
@@ -330,7 +331,7 @@ export default function TranscodingProfiles() {
                     <SelectValue placeholder={t('admin.allResolutions', 'All Resolutions')}/>
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="-">{t('admin.allResolutions', 'All Resolutions')}</SelectItem>
+                    <SelectItem value="all">{t('admin.allResolutions', 'All Resolutions')}</SelectItem>
                     {availableResolutions.map(r => (
                         <SelectItem key={r} value={r}>{r}p</SelectItem>
                     ))}
@@ -447,7 +448,7 @@ export default function TranscodingProfiles() {
                                         />
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-xs text-muted-foreground">
-                                        —
+                                        {p.update_time ? formatDateTime(p.update_time) : (p.create_time ? formatDateTime(p.create_time) : '—')}
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-right">
                                         <div className="flex items-center justify-end gap-1">
