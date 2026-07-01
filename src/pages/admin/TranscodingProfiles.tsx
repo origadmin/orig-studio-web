@@ -49,10 +49,33 @@ const CODEC_OPTIONS = [
 ];
 
 const EXTENSION_OPTIONS = [
-    {value: 'mp4', label: 'MP4'},
-    {value: 'webm', label: 'WebM'},
+    {value: 'mp4', label: 'MP4 (HLS)'},
+    {value: 'webm', label: 'WebM (DASH)'},
     {value: 'gif', label: 'GIF (Preview)'},
 ];
+
+const RESOLUTION_OPTIONS = [
+    {value: '240', label: '240p (426×240)', width: '426', height: '240'},
+    {value: '360', label: '360p (640×360)', width: '640', height: '360'},
+    {value: '480', label: '480p (854×480)', width: '854', height: '480'},
+    {value: '720', label: '720p (1280×720)', width: '1280', height: '720'},
+    {value: '1080', label: '1080p (1920×1080)', width: '1920', height: '1080'},
+    {value: '1440', label: '1440p (2560×1440)', width: '2560', height: '1440'},
+    {value: '2160', label: '2160p (3840×2160)', width: '3840', height: '2160'},
+];
+
+const VIDEO_BITRATE_MAP: Record<string, string> = {
+    '240': '700k', '360': '1200k', '480': '2000k',
+    '720': '4000k', '1080': '8000k', '1440': '16000k', '2160': '35000k',
+};
+const AUDIO_BITRATE_MAP: Record<string, string> = {
+    '240': '96k', '360': '96k', '480': '128k',
+    '720': '128k', '1080': '192k', '1440': '192k', '2160': '192k',
+};
+
+function defaultAudioCodec(videoCodec: string): string {
+    return videoCodec === 'vp9' ? 'opus' : 'aac';
+}
 
 function codecLabel(codec: string): string {
     const found = CODEC_OPTIONS.find(c => c.value === codec);
@@ -75,31 +98,57 @@ function buildFfmpegCommand(profile: Partial<EncodeProfile>): string {
     const ext = profile.extension || 'mp4';
     const codecShort = profile.video_codec || 'h264';
     const vcodecMap: Record<string, string> = {h264: 'libx264', h265: 'libx265', vp9: 'libvpx-vp9'};
-    const vcodec = vcodecMap[codecShort] || codecShort || 'libx264';
+    const vcodec = vcodecMap[codecShort] || 'libx264';
     const res = profile.resolution || '720';
-    const vb = profile.video_bitrate || '2500k';
-    const ab = profile.audio_bitrate || '128k';
-    const acodec = profile.audio_codec || 'aac';
+    const resOpt = RESOLUTION_OPTIONS.find(r => r.value === res);
+    const width = resOpt?.width || '1280';
+    const height = resOpt?.height || '720';
+    const vb = VIDEO_BITRATE_MAP[res] || profile.video_bitrate || '4000k';
+    const ab = AUDIO_BITRATE_MAP[res] || profile.audio_bitrate || '128k';
+    const acodec = profile.audio_codec || defaultAudioCodec(codecShort);
+    const levelMap: Record<string, string> = {'240': '3.0', '360': '3.0', '480': '3.0', '720': '4.1', '1080': '4.2', '1440': '5.1', '2160': '5.2'};
+    const level = levelMap[res] || '4.1';
 
     if (ext === 'gif') {
-        const fps = profile.bento_parameters?.match(/--fps\s+(\d+)/)?.[1] || '10';
-        const scale = profile.bento_parameters?.match(/--scale\s+(\d+)/)?.[1] || '320';
-        return `ffmpeg -i input_file \\
-  -vf "fps=${fps},scale=${scale}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \\
-  -loop 0 \\
-  output.gif`;
+        return `# GIF preview generation (palette-based, first 3s)
+ffmpeg -i input_file \\
+  -vf "fps=5,scale=320:-1:flags=lanczos,palettegen" \\
+  -t 3 -y palette.png && \\
+ffmpeg -i input_file -i palette.png \\
+  -lavfi "fps=5,scale=320:-1:flags=lanczos[x];[x][1:v]paletteuse" \\
+  -t 3 -y preview.gif`;
     }
 
-    const crfMap: Record<string, string> = {libx264: '23', libx265: '28', 'libvpx-vp9': '32'};
-    const crf = crfMap[vcodec] || '23';
-    const movflags = ext === 'mp4' ? ' -movflags +faststart' : '';
+    const lines: string[] = [];
+    lines.push('ffmpeg -i input_file \\');
 
-    return `ffmpeg -i input_file \\
-  -c:v ${vcodec} -preset medium -crf ${crf} -b:v ${vb} \\
-  -vf "scale=-2:${res}" \\
-  -c:a ${acodec} -b:a ${ab} \\
-  -pix_fmt yuv420p${movflags} \\
-  output.${ext}`;
+    if (vcodec === 'libx264') {
+        lines.push(`  -c:v libx264 \\`);
+        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
+        lines.push(`  -pix_fmt yuv420p -crf 23 -preset medium \\`);
+        lines.push(`  -profile:v main -level ${level} \\`);
+        lines.push(`  -force_key_frames "expr:gte(t,n_forced*4)" \\`);
+        lines.push(`  -x264-params keyint=240:keyint_min=120 \\`);
+        lines.push(`  -maxrate ${vb} -bufsize ${vb} \\`);
+    } else if (vcodec === 'libx265') {
+        lines.push(`  -c:v libx265 \\`);
+        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
+        lines.push(`  -pix_fmt yuv420p -crf 28 -preset medium \\`);
+        lines.push(`  -profile:v main -level ${level} \\`);
+        lines.push(`  -force_key_frames "expr:gte(t,n_forced*4)" \\`);
+        lines.push(`  -x265-params keyint=240:keyint_min=120 \\`);
+        lines.push(`  -maxrate ${vb} -bufsize ${vb} \\`);
+    } else {
+        lines.push(`  -c:v libvpx-vp9 \\`);
+        lines.push(`  -filter:v "scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos" \\`);
+        lines.push(`  -crf 31 -b:v 0 -quality good -cpu-used 2 \\`);
+    }
+
+    lines.push(`  -c:a ${acodec} -b:a ${ab} \\`);
+    lines.push(`  -f hls -hls_time 6 -hls_list_size 0 \\`);
+    lines.push(`  -hls_segment_filename "hls/{profile}/segment_%03d.ts" \\`);
+    lines.push(`  -y hls/{profile}/index.m3u8`);
+    return lines.join('\n');
 }
 
 export default function TranscodingProfiles() {
@@ -124,6 +173,7 @@ export default function TranscodingProfiles() {
         extension: 'mp4',
         video_codec: 'h264',
         audio_codec: 'aac',
+        resolution: '720',
     });
 
     const fetchProfiles = async () => {
@@ -154,9 +204,11 @@ export default function TranscodingProfiles() {
         profiles.forEach(p => {
             if (!p.resolution || p.resolution === '-') return;
             const height = p.resolution.split('x').pop() || p.resolution;
-            if (height && height !== '-') set.add(height);
+            if (height && height !== '-' && RESOLUTION_OPTIONS.find(r => r.value === height)) {
+                set.add(height);
+            }
         });
-        return Array.from(set).sort((a, b) => parseInt(a) - parseInt(b));
+        return RESOLUTION_OPTIONS.filter(r => set.has(r.value)).map(r => r.value);
     }, [profiles]);
 
     const filteredProfiles = useMemo(() => {
@@ -296,18 +348,33 @@ export default function TranscodingProfiles() {
         }
     };
 
+    const autoFillProfile = (p: Partial<EncodeProfile>): Partial<EncodeProfile> => {
+        const filled = {...p};
+        if (filled.extension === 'gif') {
+            filled.video_codec = '-';
+            filled.audio_codec = '';
+            filled.resolution = '-';
+            filled.video_bitrate = '';
+            filled.audio_bitrate = '';
+            filled.bento_parameters = '--fps 5 --scale 320';
+        } else {
+            const res = filled.resolution || '720';
+            filled.video_bitrate = VIDEO_BITRATE_MAP[res] || filled.video_bitrate || '4000k';
+            filled.audio_bitrate = AUDIO_BITRATE_MAP[res] || filled.audio_bitrate || '128k';
+            const vc = filled.video_codec || 'h264';
+            filled.audio_codec = filled.audio_codec || defaultAudioCodec(vc);
+            filled.bento_parameters = `--video-bitrate ${filled.video_bitrate} --audio-bitrate ${filled.audio_bitrate}`;
+        }
+        return filled;
+    };
+
     const handleSave = async () => {
         if (!editingProfile) return;
         if (!editingProfile.name || !editingProfile.extension) {
             alert("Name and Extension are required fields");
             return;
         }
-        const saveData = {...editingProfile};
-        if (saveData.extension === 'gif') {
-            saveData.video_codec = '-';
-            saveData.audio_codec = '';
-            saveData.resolution = saveData.resolution || '-';
-        }
+        const saveData = autoFillProfile(editingProfile);
         try {
             if (editingProfile.id) {
                 setProfiles(prev => prev.map(p =>
@@ -330,16 +397,11 @@ export default function TranscodingProfiles() {
             alert("Name and Extension are required fields");
             return;
         }
-        const saveData = {...newProfile};
-        if (saveData.extension === 'gif') {
-            saveData.video_codec = '-';
-            saveData.audio_codec = '';
-            saveData.resolution = saveData.resolution || '-';
-        }
+        const saveData = autoFillProfile(newProfile);
         try {
             await encodingApi.profiles.create(saveData);
             setIsAddModalOpen(false);
-            setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac'});
+            setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac', resolution: '720'});
             fetchProfiles();
         } catch (error) {
             console.error("Failed to create profile:", error);
@@ -366,7 +428,7 @@ export default function TranscodingProfiles() {
         <Button
             variant="outline"
             onClick={() => {
-                setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac'});
+                setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac', resolution: '720'});
                 setIsAddModalOpen(true);
             }}
             className="gap-2 h-9"
@@ -418,6 +480,7 @@ export default function TranscodingProfiles() {
         ffmpegCmd: string,
     ) => {
         const update = (patch: Partial<EncodeProfile>) => setProfile({...profile, ...patch});
+        const currentVCodec = profile.video_codec || 'h264';
         return (
             <>
                 <div className="px-6 py-5 space-y-4">
@@ -436,11 +499,19 @@ export default function TranscodingProfiles() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor={`profile-ext-${profile.id || 'new'}`}>
-                                {t('admin.outputExtension', 'Output Extension')} <span className="text-destructive">*</span>
+                                {t('admin.outputExtension', 'Format')} <span className="text-destructive">*</span>
                             </Label>
                             <Select
                                 value={profile.extension || 'mp4'}
-                                onValueChange={(v) => update({extension: v})}
+                                onValueChange={(v) => {
+                                    const isGifNew = v === 'gif';
+                                    update({
+                                        extension: v,
+                                        video_codec: isGifNew ? '-' : (currentVCodec === '-' ? 'h264' : currentVCodec),
+                                        audio_codec: isGifNew ? '' : (currentVCodec === '-' || currentVCodec === 'vp9' ? 'opus' : 'aac'),
+                                        resolution: isGifNew ? '-' : (profile.resolution === '-' ? '720' : (profile.resolution || '720')),
+                                    });
+                                }}
                             >
                                 <SelectTrigger id={`profile-ext-${profile.id || 'new'}`} className="h-10">
                                     <SelectValue/>
@@ -456,14 +527,27 @@ export default function TranscodingProfiles() {
                             <Label htmlFor={`profile-res-${profile.id || 'new'}`}>
                                 {t('admin.resolution', 'Resolution')}
                             </Label>
-                            <Input
-                                id={`profile-res-${profile.id || 'new'}`}
-                                value={profile.resolution || ''}
-                                onChange={(e) => update({resolution: e.target.value})}
-                                placeholder={isGif ? "e.g. -" : "e.g. 720"}
-                                disabled={isGif}
-                                className="h-10"
-                            />
+                            {isGif ? (
+                                <Input
+                                    value="GIF Preview (320px)"
+                                    disabled
+                                    className="h-10"
+                                />
+                            ) : (
+                                <Select
+                                    value={profile.resolution || '720'}
+                                    onValueChange={(v) => update({resolution: v})}
+                                >
+                                    <SelectTrigger id={`profile-res-${profile.id || 'new'}`} className="h-10">
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {RESOLUTION_OPTIONS.map(o => (
+                                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
                         </div>
                         {!isGif && (
                             <>
@@ -473,7 +557,10 @@ export default function TranscodingProfiles() {
                                     </Label>
                                     <Select
                                         value={profile.video_codec || 'h264'}
-                                        onValueChange={(v) => update({video_codec: v})}
+                                        onValueChange={(v) => update({
+                                            video_codec: v,
+                                            audio_codec: defaultAudioCodec(v),
+                                        })}
                                     >
                                         <SelectTrigger id={`profile-vcodec-${profile.id || 'new'}`} className="h-10">
                                             <SelectValue/>
@@ -490,7 +577,7 @@ export default function TranscodingProfiles() {
                                         {t('admin.audioCodec', 'Audio Codec')}
                                     </Label>
                                     <Select
-                                        value={profile.audio_codec || 'aac'}
+                                        value={profile.audio_codec || defaultAudioCodec(currentVCodec)}
                                         onValueChange={(v) => update({audio_codec: v})}
                                     >
                                         <SelectTrigger id={`profile-acodec-${profile.id || 'new'}`} className="h-10">
@@ -498,26 +585,11 @@ export default function TranscodingProfiles() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="aac">AAC</SelectItem>
-                                            <SelectItem value="flac">FLAC</SelectItem>
                                             <SelectItem value="opus">Opus</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </>
-                        )}
-                        {isGif && (
-                            <div className="sm:col-span-2 space-y-2">
-                                <Label htmlFor={`profile-bento-${profile.id || 'new'}`}>
-                                    {t('admin.bentoParameters', 'GIF Parameters')}
-                                </Label>
-                                <Input
-                                    id={`profile-bento-${profile.id || 'new'}`}
-                                    value={profile.bento_parameters || ''}
-                                    onChange={(e) => update({bento_parameters: e.target.value})}
-                                    placeholder="--fps 10 --scale 320"
-                                    className="h-10"
-                                />
-                            </div>
                         )}
                         <div className="sm:col-span-2 flex items-center gap-2.5 pt-1">
                             <Switch
@@ -533,11 +605,11 @@ export default function TranscodingProfiles() {
                 </div>
 
                 <div className="px-6 pb-5">
-                    <div className="p-4 bg-muted rounded-lg font-mono text-xs text-foreground/90 leading-relaxed border border-border/50">
-                        <span className="text-muted-foreground"># Generated FFmpeg Command</span>
-                        <br/>
+                    <div className="p-4 bg-muted rounded-lg font-mono text-[11px] text-foreground/90 leading-relaxed border border-border/50 overflow-x-auto">
                         {ffmpegCmd.split('\n').map((line, i) => (
-                            <div key={i}>{line || '\u00A0'}</div>
+                            <div key={i} className={line.startsWith('#') ? 'text-muted-foreground italic' : ''}>
+                                {line || '\u00A0'}
+                            </div>
                         ))}
                     </div>
                 </div>
