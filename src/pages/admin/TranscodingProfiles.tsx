@@ -3,8 +3,8 @@
  */
 
 import {useEffect, useState, useMemo} from "react";
+import type {ComponentProps} from "react";
 import {useTranslation} from "react-i18next";
-import {Link} from "@tanstack/react-router";
 import {encodingApi, type EncodeProfile} from "../../lib/api/media";
 import {formatDateTime} from "../../lib/format";
 import {Button} from "../../components/ui/button";
@@ -12,8 +12,8 @@ import {Input} from "../../components/ui/input";
 import {Label} from "../../components/ui/label";
 import {Badge} from "../../components/ui/badge";
 import {Switch} from "../../components/ui/switch";
-import {Card, CardContent} from "../../components/ui/card";
 import {Checkbox} from "../../components/ui/checkbox";
+import {Textarea} from "../../components/ui/textarea";
 import {
     Table,
     TableHeader,
@@ -38,10 +38,70 @@ import {
     SelectValue,
 } from "../../components/ui/select";
 import {
-    Sliders, Search, RotateCcw, Plus, Upload, Edit, Trash2, Copy,
+    Search, RotateCcw, Plus, Edit, Trash2, Copy,
     Play, Pause, ChevronRight, ChevronLeft, X
 } from "lucide-react";
 import {AdminPageTemplate} from "../../components/AdminPageTemplate";
+
+const CODEC_OPTIONS = [
+    {value: 'h264', label: 'H.264 (libx264)', badgeVariant: 'soft-success' as const},
+    {value: 'h265', label: 'H.265 (libx265)', badgeVariant: 'soft-info' as const},
+    {value: 'vp9', label: 'VP9 (libvpx-vp9)', badgeVariant: 'soft-warning' as const},
+];
+
+const EXTENSION_OPTIONS = [
+    {value: 'mp4', label: 'MP4'},
+    {value: 'webm', label: 'WebM'},
+    {value: 'gif', label: 'GIF (Preview)'},
+];
+
+function codecLabel(codec: string): string {
+    const found = CODEC_OPTIONS.find(c => c.value === codec);
+    return found ? found.label : codec;
+}
+
+function codecBadgeVariant(codec: string): ComponentProps<typeof Badge>['variant'] {
+    const found = CODEC_OPTIONS.find(c => c.value === codec);
+    if (found) return found.badgeVariant;
+    if (codec === '-' || codec === '') return 'soft-danger';
+    return 'soft-neutral';
+}
+
+function codecShortDisplay(codec: string): string {
+    const map: Record<string, string> = {h264: 'H.264', h265: 'H.265', vp9: 'VP9'};
+    return map[codec] || codec?.toUpperCase() || '-';
+}
+
+function buildFfmpegCommand(profile: Partial<EncodeProfile>): string {
+    const ext = profile.extension || 'mp4';
+    const codecShort = profile.video_codec || 'h264';
+    const vcodecMap: Record<string, string> = {h264: 'libx264', h265: 'libx265', vp9: 'libvpx-vp9'};
+    const vcodec = vcodecMap[codecShort] || codecShort || 'libx264';
+    const res = profile.resolution || '720';
+    const vb = profile.video_bitrate || '2500k';
+    const ab = profile.audio_bitrate || '128k';
+    const acodec = profile.audio_codec || 'aac';
+
+    if (ext === 'gif') {
+        const fps = profile.bento_parameters?.match(/--fps\s+(\d+)/)?.[1] || '10';
+        const scale = profile.bento_parameters?.match(/--scale\s+(\d+)/)?.[1] || '320';
+        return `ffmpeg -i input_file \\
+  -vf "fps=${fps},scale=${scale}:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" \\
+  -loop 0 \\
+  output.gif`;
+    }
+
+    const crfMap: Record<string, string> = {libx264: '23', libx265: '28', 'libvpx-vp9': '32'};
+    const crf = crfMap[vcodec] || '23';
+    const movflags = ext === 'mp4' ? ' -movflags +faststart' : '';
+
+    return `ffmpeg -i input_file \\
+  -c:v ${vcodec} -preset medium -crf ${crf} -b:v ${vb} \\
+  -vf "scale=-2:${res}" \\
+  -c:a ${acodec} -b:a ${ab} \\
+  -pix_fmt yuv420p${movflags} \\
+  output.${ext}`;
+}
 
 export default function TranscodingProfiles() {
     const {t} = useTranslation();
@@ -51,20 +111,20 @@ export default function TranscodingProfiles() {
     const [editingProfile, setEditingProfile] = useState<Partial<EncodeProfile> | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    // Filter / selection state
     const [searchQuery, setSearchQuery] = useState('');
     const [codecFilter, setCodecFilter] = useState<string>('all');
     const [resolutionFilter, setResolutionFilter] = useState<string>('all');
     const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
-    // Pagination
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
-    // Add Profile modal (matches prototype)
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newProfile, setNewProfile] = useState<Partial<EncodeProfile>>({
         is_active: true,
+        extension: 'mp4',
+        video_codec: 'h264',
+        audio_codec: 'aac',
     });
 
     const fetchProfiles = async () => {
@@ -82,11 +142,10 @@ export default function TranscodingProfiles() {
         fetchProfiles();
     }, []);
 
-    // Available filter options
     const availableCodecs = useMemo(() => {
         const set = new Set<string>();
         profiles.forEach(p => {
-            if (p.video_codec) set.add(p.video_codec);
+            if (p.video_codec && p.video_codec !== '-') set.add(p.video_codec);
         });
         return Array.from(set);
     }, [profiles]);
@@ -94,14 +153,13 @@ export default function TranscodingProfiles() {
     const availableResolutions = useMemo(() => {
         const set = new Set<string>();
         profiles.forEach(p => {
-            if (!p.resolution) return;
-            const height = p.resolution.split('x')[1] || p.resolution;
-            if (height) set.add(height);
+            if (!p.resolution || p.resolution === '-') return;
+            const height = p.resolution.split('x').pop() || p.resolution;
+            if (height && height !== '-') set.add(height);
         });
         return Array.from(set).sort((a, b) => parseInt(a) - parseInt(b));
     }, [profiles]);
 
-    // Filtering
     const filteredProfiles = useMemo(() => {
         let result = [...profiles];
 
@@ -109,6 +167,7 @@ export default function TranscodingProfiles() {
             const q = searchQuery.toLowerCase();
             result = result.filter(p =>
                 p.name.toLowerCase().includes(q) ||
+                (p.description || '').toLowerCase().includes(q) ||
                 (p.video_codec || '').toLowerCase().includes(q) ||
                 (p.resolution || '').toLowerCase().includes(q)
             );
@@ -120,7 +179,7 @@ export default function TranscodingProfiles() {
 
         if (resolutionFilter && resolutionFilter !== 'all') {
             result = result.filter(p => {
-                const height = (p.resolution || '').split('x')[1] || p.resolution;
+                const height = (p.resolution || '').split('x').pop() || p.resolution;
                 return height === resolutionFilter;
             });
         }
@@ -128,14 +187,12 @@ export default function TranscodingProfiles() {
         return result;
     }, [profiles, searchQuery, codecFilter, resolutionFilter]);
 
-    // Pagination
     const totalPages = Math.max(1, Math.ceil(filteredProfiles.length / pageSize));
     const safePage = Math.min(page, totalPages);
     const startIndex = (safePage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, filteredProfiles.length);
     const paginatedProfiles = filteredProfiles.slice(startIndex, endIndex);
 
-    // Selection
     const toggleSelectAll = () => {
         if (selectedRows.length === filteredProfiles.length) {
             setSelectedRows([]);
@@ -152,7 +209,6 @@ export default function TranscodingProfiles() {
 
     const clearSelection = () => setSelectedRows([]);
 
-    // Bulk actions
     const handleBulkEnable = async () => {
         try {
             setProfiles(prev => prev.map(p =>
@@ -203,14 +259,13 @@ export default function TranscodingProfiles() {
         }
     };
 
-    // Row actions
     const handleEdit = (p: EncodeProfile) => {
         setEditingProfile({...p});
         setIsDialogOpen(true);
     };
 
     const handleDuplicate = (p: EncodeProfile) => {
-        const {id: _id, ...rest} = p;
+        const {id: _id, create_time: _c, update_time: _u, ...rest} = p;
         const dup: Partial<EncodeProfile> = {
             ...rest,
             name: `${p.name} (Copy)`,
@@ -248,14 +303,20 @@ export default function TranscodingProfiles() {
             alert("Name and Extension are required fields");
             return;
         }
+        const saveData = {...editingProfile};
+        if (saveData.extension === 'gif') {
+            saveData.video_codec = '-';
+            saveData.audio_codec = '';
+            saveData.resolution = saveData.resolution || '-';
+        }
         try {
             if (editingProfile.id) {
                 setProfiles(prev => prev.map(p =>
-                    p.id === editingProfile.id ? {...p, ...editingProfile} as EncodeProfile : p
+                    p.id === editingProfile.id ? {...p, ...saveData} as EncodeProfile : p
                 ));
-                await encodingApi.profiles.update(editingProfile.id, editingProfile);
+                await encodingApi.profiles.update(editingProfile.id, saveData);
             } else {
-                await encodingApi.profiles.create(editingProfile);
+                await encodingApi.profiles.create(saveData);
                 fetchProfiles();
             }
             setIsDialogOpen(false);
@@ -270,10 +331,16 @@ export default function TranscodingProfiles() {
             alert("Name and Extension are required fields");
             return;
         }
+        const saveData = {...newProfile};
+        if (saveData.extension === 'gif') {
+            saveData.video_codec = '-';
+            saveData.audio_codec = '';
+            saveData.resolution = saveData.resolution || '-';
+        }
         try {
-            await encodingApi.profiles.create(newProfile);
+            await encodingApi.profiles.create(saveData);
             setIsAddModalOpen(false);
-            setNewProfile({is_active: true});
+            setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac'});
             fetchProfiles();
         } catch (error) {
             console.error("Failed to create profile:", error);
@@ -287,23 +354,20 @@ export default function TranscodingProfiles() {
         setResolutionFilter('all');
     };
 
-    // ffmpeg command preview
-    const ffmpegCommand = useMemo(() => {
-        const ext = newProfile.extension || 'mp4';
-        const codec = newProfile.video_codec || 'libx264';
-        const res = newProfile.resolution || '1920x1080';
-        return `ffmpeg -i input_file \\
-  -c:v ${codec} -crf 23 \\
-  -vf "scale=${res.replace('x', ':')}" \\
-  -c:a aac -b:a 192k \\
-  output.${ext}`;
-    }, [newProfile.extension, newProfile.video_codec, newProfile.resolution]);
+    const newProfileFfmpeg = useMemo(() => buildFfmpegCommand(newProfile), [newProfile]);
+    const editingProfileFfmpeg = useMemo(
+        () => editingProfile ? buildFfmpegCommand(editingProfile) : '',
+        [editingProfile]
+    );
+
+    const isGifNew = newProfile.extension === 'gif';
+    const isGifEdit = editingProfile?.extension === 'gif';
 
     const pageActions = (
         <Button
             variant="outline"
             onClick={() => {
-                setNewProfile({is_active: true});
+                setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac'});
                 setIsAddModalOpen(true);
             }}
             className="gap-2 h-9"
@@ -322,7 +386,7 @@ export default function TranscodingProfiles() {
                 <SelectContent>
                     <SelectItem value="all">{t('admin.allCodecs', 'All Codecs')}</SelectItem>
                     {availableCodecs.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>{codecShortDisplay(c)}</SelectItem>
                     ))}
                 </SelectContent>
             </Select>
@@ -348,6 +412,153 @@ export default function TranscodingProfiles() {
         </>
     );
 
+    const renderProfileForm = (
+        profile: Partial<EncodeProfile>,
+        setProfile: (p: Partial<EncodeProfile>) => void,
+        isGif: boolean,
+        ffmpegCmd: string,
+    ) => {
+        const update = (patch: Partial<EncodeProfile>) => setProfile({...profile, ...patch});
+        return (
+            <div className="space-y-6 py-2">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 space-y-2">
+                        <Label>{t('admin.profileName', 'Profile Name')} <span className="text-destructive">*</span></Label>
+                        <Input
+                            value={profile.name || ''}
+                            onChange={(e) => update({name: e.target.value})}
+                            placeholder="e.g. h264-720p"
+                        />
+                    </div>
+                    <div className="col-span-2 space-y-2">
+                        <Label>{t('admin.description', 'Description')}</Label>
+                        <Input
+                            value={profile.description || ''}
+                            onChange={(e) => update({description: e.target.value})}
+                            placeholder="Brief description of this profile"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>{t('admin.outputExtension', 'Output Extension')} <span className="text-destructive">*</span></Label>
+                        <Select
+                            value={profile.extension || 'mp4'}
+                            onValueChange={(v) => update({extension: v})}
+                        >
+                            <SelectTrigger>
+                                <SelectValue/>
+                            </SelectTrigger>
+                            <SelectContent>
+                                {EXTENSION_OPTIONS.map(o => (
+                                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>{t('admin.resolution', 'Resolution')}</Label>
+                        <Input
+                            value={profile.resolution || ''}
+                            onChange={(e) => update({resolution: e.target.value})}
+                            placeholder={isGif ? "e.g. -" : "e.g. 720"}
+                            disabled={isGif}
+                        />
+                    </div>
+                    {!isGif && (
+                        <>
+                            <div className="space-y-2">
+                                <Label>{t('admin.videoCodec', 'Video Codec')}</Label>
+                                <Select
+                                    value={profile.video_codec || 'h264'}
+                                    onValueChange={(v) => update({video_codec: v})}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {CODEC_OPTIONS.map(o => (
+                                            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t('admin.audioCodec', 'Audio Codec')}</Label>
+                                <Select
+                                    value={profile.audio_codec || 'aac'}
+                                    onValueChange={(v) => update({audio_codec: v})}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="aac">AAC</SelectItem>
+                                        <SelectItem value="flac">FLAC</SelectItem>
+                                        <SelectItem value="opus">Opus</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t('admin.videoBitrate', 'Video Bitrate')}</Label>
+                                <Input
+                                    value={profile.video_bitrate || ''}
+                                    onChange={(e) => update({video_bitrate: e.target.value})}
+                                    placeholder="e.g. 4000k"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>{t('admin.audioBitrate', 'Audio Bitrate')}</Label>
+                                <Input
+                                    value={profile.audio_bitrate || ''}
+                                    onChange={(e) => update({audio_bitrate: e.target.value})}
+                                    placeholder="e.g. 128k"
+                                />
+                            </div>
+                        </>
+                    )}
+                    {isGif && (
+                        <div className="col-span-2 space-y-2">
+                            <Label>{t('admin.bentoParameters', 'GIF Parameters')}</Label>
+                            <Input
+                                value={profile.bento_parameters || ''}
+                                onChange={(e) => update({bento_parameters: e.target.value})}
+                                placeholder="--fps 10 --scale 320"
+                            />
+                        </div>
+                    )}
+                    {!isGif && (
+                        <div className="col-span-2 space-y-2">
+                            <Label>{t('admin.bentoParameters', 'Bento4 Parameters')}</Label>
+                            <Textarea
+                                value={profile.bento_parameters || ''}
+                                onChange={(e) => update({bento_parameters: e.target.value})}
+                                placeholder="--video-bitrate 4000k --audio-bitrate 128k"
+                                rows={2}
+                            />
+                        </div>
+                    )}
+                    <div className="col-span-2 flex items-center gap-2">
+                        <Switch
+                            id={`active-${profile.id || 'new'}`}
+                            checked={profile.is_active ?? true}
+                            onCheckedChange={(checked) => update({is_active: checked === true})}
+                        />
+                        <Label htmlFor={`active-${profile.id || 'new'}`} className="text-sm font-medium cursor-pointer">
+                            {t('admin.enableProfile', 'Enable this profile')}
+                        </Label>
+                    </div>
+                </div>
+
+                <div className="p-4 bg-zinc-900 rounded-lg font-mono text-xs text-indigo-300 leading-relaxed">
+                    <span className="text-zinc-500"># Generated FFmpeg Command</span>
+                    <br/>
+                    {ffmpegCmd.split('\n').map((line, i) => (
+                        <div key={i}>{line || '\u00A0'}</div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <AdminPageTemplate
             title={t('admin.transcodingProfiles', '转码配置')}
@@ -358,7 +569,6 @@ export default function TranscodingProfiles() {
             onSearchChange={setSearchQuery}
             filters={pageFilters}
         >
-            {/* ═══ Table ════════════════════════════════ */}
             <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
@@ -380,6 +590,9 @@ export default function TranscodingProfiles() {
                                 {t('admin.codec', 'Codec')}
                             </TableHead>
                             <TableHead className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                {t('admin.extension', 'Extension')}
+                            </TableHead>
+                            <TableHead className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                                 {t('admin.resolution', 'Resolution')}
                             </TableHead>
                             <TableHead className="px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -399,13 +612,13 @@ export default function TranscodingProfiles() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                                <TableCell colSpan={9} className="px-4 py-8 text-center text-sm text-muted-foreground">
                                     {t('admin.loading', 'Loading profiles...')}
                                 </TableCell>
                             </TableRow>
                         ) : paginatedProfiles.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-4 py-8 text-center">
+                                <TableCell colSpan={9} className="px-4 py-8 text-center">
                                     <div className="flex flex-col items-center justify-center text-muted-foreground">
                                         <Search className="h-8 w-8 mb-2 opacity-30"/>
                                         <p className="text-sm font-medium">
@@ -431,12 +644,17 @@ export default function TranscodingProfiles() {
                                         {p.name}
                                     </TableCell>
                                     <TableCell className="px-4 py-3">
-                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
-                                            {p.video_codec}
-                                        </span>
+                                        <Badge variant={codecBadgeVariant(p.video_codec)} className="text-[11px] font-bold font-mono uppercase tracking-wider">
+                                            {codecShortDisplay(p.video_codec)}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="px-4 py-3">
+                                        <Badge variant="outline" className="text-[11px] font-bold font-mono uppercase">
+                                            {p.extension?.toUpperCase() || '-'}
+                                        </Badge>
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-xs font-mono text-muted-foreground">
-                                        {p.resolution}
+                                        {p.resolution === '-' ? '—' : (p.resolution ? `${p.resolution}p` : '—')}
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-sm text-muted-foreground font-mono">
                                         {p.video_bitrate || '—'}
@@ -487,7 +705,6 @@ export default function TranscodingProfiles() {
                     </TableBody>
                 </Table>
 
-                {/* ═══ Pagination ════════════════════════════════ */}
                 <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/30">
                     <p className="text-xs text-muted-foreground">
                         {t('admin.showing', 'Showing')} {filteredProfiles.length === 0 ? 0 : startIndex + 1}–
@@ -499,7 +716,7 @@ export default function TranscodingProfiles() {
                             size="icon"
                             className="h-8 w-8 border-border rounded-md"
                             disabled={safePage <= 1}
-                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            onClick={() => setPage(pg => Math.max(1, pg - 1))}
                         >
                             <ChevronLeft className="w-4 h-4"/>
                         </Button>
@@ -521,7 +738,7 @@ export default function TranscodingProfiles() {
                             size="icon"
                             className="h-8 w-8 border-border rounded-md"
                             disabled={safePage >= totalPages}
-                            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                            onClick={() => setPage(pg => Math.min(totalPages, pg + 1))}
                         >
                             <ChevronRight className="w-4 h-4"/>
                         </Button>
@@ -529,14 +746,13 @@ export default function TranscodingProfiles() {
                 </div>
             </div>
 
-            {/* ═══ Bulk Action Bar ════════════════════════════════ */}
             {selectedRows.length > 0 && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
                     <div className="bg-primary text-primary-foreground px-6 py-3 rounded-full flex items-center gap-6 shadow-2xl shadow-primary/40 border border-primary-foreground/10">
                         <span className="text-sm font-bold">
                             {selectedRows.length} {t('admin.itemsSelected', 'Items Selected')}
                         </span>
-                        <div className="h-6 w-px bg-primary-foreground/20" />
+                        <div className="h-6 w-px bg-primary-foreground/20"/>
                         <div className="flex gap-2">
                             <Button
                                 variant="ghost"
@@ -544,7 +760,7 @@ export default function TranscodingProfiles() {
                                 onClick={handleBulkEnable}
                                 className="flex items-center gap-2 hover:bg-primary-foreground/10 rounded-full text-sm font-semibold text-primary-foreground"
                             >
-                                <Play className="w-4 h-4" />
+                                <Play className="w-4 h-4"/>
                                 {t('admin.enable', 'Enable')}
                             </Button>
                             <Button
@@ -553,7 +769,7 @@ export default function TranscodingProfiles() {
                                 onClick={handleBulkDisable}
                                 className="flex items-center gap-2 hover:bg-primary-foreground/10 rounded-full text-sm font-semibold text-primary-foreground"
                             >
-                                <Pause className="w-4 h-4" />
+                                <Pause className="w-4 h-4"/>
                                 {t('admin.disable', 'Disable')}
                             </Button>
                             <Button
@@ -562,7 +778,7 @@ export default function TranscodingProfiles() {
                                 onClick={handleBulkDelete}
                                 className="flex items-center gap-2 rounded-full text-sm font-semibold"
                             >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4"/>
                                 {t('admin.delete', 'Delete')}
                             </Button>
                         </div>
@@ -573,13 +789,12 @@ export default function TranscodingProfiles() {
                             title={t('admin.clear', 'Clear')}
                             className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full"
                         >
-                            <X className="w-5 h-5" />
+                            <X className="w-5 h-5"/>
                         </Button>
                     </div>
                 </div>
             )}
 
-            {/* ═══ New Profile Modal ════════════════════════════════ */}
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
@@ -587,98 +802,10 @@ export default function TranscodingProfiles() {
                             {t('admin.newTranscodingProfile', 'New Transcoding Profile')}
                         </DialogTitle>
                         <DialogDescription>
-                            {t(
-                                'admin.newTranscodingProfileDesc',
-                                'Define encoding parameters and processing commands.'
-                            )}
+                            {t('admin.newTranscodingProfileDesc', 'Define encoding parameters and processing commands.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-6 py-2">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="col-span-2 space-y-2">
-                                <Label htmlFor="np-name">
-                                    {t('admin.profileName', 'Profile Name')}
-                                </Label>
-                                <Input
-                                    id="np-name"
-                                    value={newProfile.name || ''}
-                                    onChange={(e) => setNewProfile({...newProfile, name: e.target.value})}
-                                    placeholder="e.g. 1080p Main Performance"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="np-ext">
-                                    {t('admin.outputExtension', 'Output Extension')}
-                                </Label>
-                                <Select
-                                    value={newProfile.extension || 'mp4'}
-                                    onValueChange={(v) => setNewProfile({...newProfile, extension: v})}
-                                >
-                                    <SelectTrigger id="np-ext">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="mp4">.mp4</SelectItem>
-                                        <SelectItem value="mkv">.mkv</SelectItem>
-                                        <SelectItem value="webm">.webm</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="np-res">
-                                    {t('admin.resolution', 'Resolution')}
-                                </Label>
-                                <Input
-                                    id="np-res"
-                                    value={newProfile.resolution || ''}
-                                    onChange={(e) => setNewProfile({...newProfile, resolution: e.target.value})}
-                                    placeholder="1920x1080"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="np-vcodec">
-                                    {t('admin.videoCodec', 'Video Codec')}
-                                </Label>
-                                <Select
-                                    value={newProfile.video_codec || 'libx264'}
-                                    onValueChange={(v) => setNewProfile({...newProfile, video_codec: v})}
-                                >
-                                    <SelectTrigger id="np-vcodec">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="libx264">libx264 (H.264)</SelectItem>
-                                        <SelectItem value="libx265">libx265 (H.265/HEVC)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="np-acodec">
-                                    {t('admin.audioCodec', 'Audio Codec')}
-                                </Label>
-                                <Select
-                                    value={newProfile.audio_codec || 'aac'}
-                                    onValueChange={(v) => setNewProfile({...newProfile, audio_codec: v})}
-                                >
-                                    <SelectTrigger id="np-acodec">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="aac">aac (Advanced Audio Coding)</SelectItem>
-                                        <SelectItem value="flac">flac (Lossless)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        <div className="p-4 bg-zinc-900 rounded-lg font-mono text-xs text-indigo-300 leading-relaxed">
-                            <span className="text-zinc-500"># Generated FFmpeg Command</span>
-                            <br />
-                            {ffmpegCommand.split('\n').map((line, i) => (
-                                <div key={i}>{line || '\u00A0'}</div>
-                            ))}
-                        </div>
-                    </div>
+                    {renderProfileForm(newProfile, setNewProfile, isGifNew, newProfileFfmpeg)}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
                             {t('admin.cancel', 'Cancel')}
@@ -690,9 +817,8 @@ export default function TranscodingProfiles() {
                 </DialogContent>
             </Dialog>
 
-            {/* ═══ Edit Profile Dialog ════════════════════════════════ */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>
                             {editingProfile?.id
@@ -705,85 +831,7 @@ export default function TranscodingProfiles() {
                                 : t('admin.addProfileDesc', 'Create a new transcoding profile')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="ep-name" className="text-right">
-                                {t('admin.name', 'Name')} <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="ep-name"
-                                value={editingProfile?.name || ''}
-                                onChange={(e) => setEditingProfile({...editingProfile, name: e.target.value})}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="ep-ext" className="text-right">
-                                {t('admin.extension', 'Extension')} <span className="text-destructive">*</span>
-                            </Label>
-                            <Select
-                                value={editingProfile?.extension || ''}
-                                onValueChange={(v) => setEditingProfile({...editingProfile, extension: v})}
-                            >
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select extension" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="mp4">MP4</SelectItem>
-                                    <SelectItem value="webm">WebM</SelectItem>
-                                    <SelectItem value="mkv">MKV</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="ep-res" className="text-right">
-                                {t('admin.resolution', 'Resolution')}
-                            </Label>
-                            <Input
-                                id="ep-res"
-                                value={editingProfile?.resolution || ''}
-                                onChange={(e) => setEditingProfile({...editingProfile, resolution: e.target.value})}
-                                placeholder="1920x1080"
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="ep-vcodec" className="text-right">
-                                {t('admin.videoCodec', 'Video Codec')}
-                            </Label>
-                            <Select
-                                value={editingProfile?.video_codec || ''}
-                                onValueChange={(v) => setEditingProfile({...editingProfile, video_codec: v})}
-                            >
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select video codec" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="libx264">libx264 (H.264)</SelectItem>
-                                    <SelectItem value="libx265">libx265 (H.265/HEVC)</SelectItem>
-                                    <SelectItem value="libvpx-vp9">libvpx-vp9 (VP9)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="ep-active" className="text-right">
-                                {t('admin.active', 'Active')}
-                            </Label>
-                            <div className="col-span-3 flex items-center gap-2">
-                                <Switch
-                                    id="ep-active"
-                                    checked={editingProfile?.is_active ?? true}
-                                    onCheckedChange={(checked) => setEditingProfile({
-                                        ...editingProfile,
-                                        is_active: checked === true,
-                                    })}
-                                />
-                                <Label htmlFor="ep-active" className="text-sm font-medium leading-none cursor-pointer">
-                                    {t('admin.enableProfile', 'Enable this profile')}
-                                </Label>
-                            </div>
-                        </div>
-                    </div>
+                    {editingProfile && renderProfileForm(editingProfile, setEditingProfile, isGifEdit, editingProfileFfmpeg)}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                             {t('admin.cancel', 'Cancel')}
