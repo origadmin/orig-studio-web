@@ -24,7 +24,8 @@ export interface UseSubscribedChannelsReturn {
 const MAX_CHANNELS = 8;
 
 function toNavItems(channels: ChannelSummary[]): NavItem[] {
-    return channels.slice(0, MAX_CHANNELS).map((ch) => {
+    const safeChannels = Array.isArray(channels) ? channels : [];
+    return safeChannels.slice(0, MAX_CHANNELS).map((ch) => {
         const item: NavItem = {
             id: `ch-${ch.id}`,
             label: ch.name || ch.username,
@@ -65,7 +66,8 @@ export function useSubscribedChannels(): UseSubscribedChannelsReturn {
             .getSubscriptions({page_size: MAX_CHANNELS})
             .then((res: SubscriptionListResponse) => {
                 if (cancelled) return;
-                const items: ChannelSummary[] = (res?.items || []).map((item) => ({
+                const rawItems = Array.isArray(res?.items) ? res.items : [];
+                const items: ChannelSummary[] = rawItems.map((item) => ({
                     id: item.id,
                     name: item.name || item.username,
                     username: item.username,

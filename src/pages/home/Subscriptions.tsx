@@ -27,8 +27,9 @@ const SubscriptionsPage = () => {
             setLoading(true);
             setError(null);
             const response = await subscriptionApi.getSubscriptions({page: pageNum, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
-            setSubscriptions(prev => pageNum === 1 ? response.items : [...prev, ...response.items]);
-            setHasMore(response.items.length === PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
+            const items = Array.isArray(response?.items) ? response.items : [];
+            setSubscriptions(prev => pageNum === 1 ? items : [...prev, ...items]);
+            setHasMore(items.length === PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
         } catch (err) {
             setError('Failed to fetch data');
             console.error('Failed to fetch data:', err);

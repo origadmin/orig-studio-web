@@ -30,7 +30,8 @@ const NotificationCenter: React.FC = () => {
             setLoading(true);
             setError(null);
             const response = await notificationApi.getAll({page_size: 20});
-            setNotifications(response.items);
+            const items = Array.isArray(response?.items) ? response.items : [];
+            setNotifications(items);
         } catch (err) {
             setError('Failed to fetch notifications');
             console.error('Failed to fetch notifications:', err);

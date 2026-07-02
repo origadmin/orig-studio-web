@@ -27,7 +27,8 @@ interface RenderNavItem {
 const SUBS_DEFAULT_SHOW = 5;
 
 function toRenderItems(items: NavItem[], currentUser?: AuthUser | null): RenderNavItem[] {
-    return items.map((item) => {
+    const safeItems = Array.isArray(items) ? items : [];
+    return safeItems.map((item) => {
         let to = item.to;
         let params: Record<string, string> | undefined;
         // Resolve dynamic paths: replace __dynamic__ placeholder with current user's username
@@ -63,6 +64,9 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [subsExpanded, setSubsExpanded] = useState(false);
 
+    const safeChannelDetails = Array.isArray(channelDetails) ? channelDetails : [];
+    const safeSubChannels = Array.isArray(subChannels) ? subChannels : [];
+
     useEffect(() => {
         return () => {
             if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
@@ -72,11 +76,12 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     const isActive = (to: string) => pathname === to || pathname.startsWith(to + '/');
 
     const visibleSections = useMemo((): { section: NavSection; items: RenderNavItem[] }[] => {
-        return NAV_CONFIG.filter((section) => {
+        return (Array.isArray(NAV_CONFIG) ? NAV_CONFIG : []).filter((section) => {
             if (section.requiresAuth && !isAuthenticated) return false;
             return true;
         }).map((section) => {
-            const filteredItems = section.items.filter((item) => {
+            const sectionItems = Array.isArray(section.items) ? section.items : [];
+            const filteredItems = sectionItems.filter((item) => {
                 if (!item.module) return true;
                 return modules[item.module] === true;
             });
@@ -236,11 +241,11 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
 
     const FullNavSection = ({items, title, sectionId}: { items: RenderNavItem[]; title?: string; sectionId?: string }) => {
         const isSubscriptions = sectionId === 'subscriptions';
-        const hasChannels = isSubscriptions && channelDetails.length > 0;
+        const hasChannels = isSubscriptions && safeChannelDetails.length > 0;
         const displayedChannels = hasChannels
-            ? (subsExpanded ? channelDetails : channelDetails.slice(0, SUBS_DEFAULT_SHOW))
+            ? (subsExpanded ? safeChannelDetails : safeChannelDetails.slice(0, SUBS_DEFAULT_SHOW))
             : [];
-        const canExpand = hasChannels && channelDetails.length > SUBS_DEFAULT_SHOW;
+        const canExpand = hasChannels && safeChannelDetails.length > SUBS_DEFAULT_SHOW;
 
         return (
             <div className="py-0.5">
@@ -341,12 +346,12 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
                                     </span>
                                 </div>
                                 <div className="py-0.5">
-                                    {hoveredSection.id === 'subscriptions' && channelDetails.length > 0 ? (
+                                    {hoveredSection.id === 'subscriptions' && safeChannelDetails.length > 0 ? (
                                         <>
                                             {hoveredItems.map((item) => (
                                                 <PopupNavLink key={item.id} item={item}/>
                                             ))}
-                                            {channelDetails.map((channel) => (
+                                            {safeChannelDetails.map((channel) => (
                                                 <PopupSubsChannelLink key={`ch-${channel.id}`} channel={channel}/>
                                             ))}
                                         </>

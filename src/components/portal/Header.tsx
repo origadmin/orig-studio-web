@@ -86,9 +86,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     const {site} = useModuleState();
     const articlesEnabled = moduleConfig?.modules?.articles !== false;
 
-    const dynamicNavItems = (portalConfig?.navigation?.items || [])
+    const navItems = portalConfig?.navigation?.items;
+    const dynamicNavItems = (Array.isArray(navItems) ? navItems : [])
         .filter(item => item.is_visible !== false && item.type !== 'category')
-        .sort((a, b) => a.sequence - b.sequence);
+        .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 
     const quickLinks: QuickLink[] = dynamicNavItems.map(item => ({
         label: item.label_i18n?.[i18n.language] || item.label,

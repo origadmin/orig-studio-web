@@ -32,29 +32,19 @@ export default defineConfig({
         buildCache: false,
     },
     server: {
-        port: 18080,
-        historyApiFallback: true, // Ensure client-side routes correctly fallback to index.html
+        port: 3000,
+        host: '0.0.0.0',
+        historyApiFallback: true,
         proxy: {
             '/api': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
-                pathRewrite: {
-                    '^/api': '/api'
-                }
             },
-            '/thumbnails': {
+            '/files': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
             },
-            '/uploads': {
-                target: 'http://localhost:8080',
-                changeOrigin: true,
-            },
-            '/hls': {
-                target: 'http://localhost:8080',
-                changeOrigin: true,
-            },
-            '/sprites': {
+            '/healthz': {
                 target: 'http://localhost:8080',
                 changeOrigin: true,
             },
