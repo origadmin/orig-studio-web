@@ -47,6 +47,18 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
                 throw new Error('Failed to parse VTT content');
             }
 
+            const img = new Image();
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error('Failed to load sprite image'));
+                img.src = result.imageUrl;
+            });
+
+            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                result.totalWidth = img.naturalWidth;
+                result.totalHeight = img.naturalHeight;
+            }
+
             return result;
         },
         enabled: !!vttUrl,
