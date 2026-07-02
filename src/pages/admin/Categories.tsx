@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -379,7 +379,7 @@ const Categories: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.totalMedia') || 'Total Media'}
+                  {t('admin.subCategories', 'Sub Categories')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {stats.subCategories}
