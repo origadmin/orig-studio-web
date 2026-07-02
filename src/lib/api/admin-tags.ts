@@ -101,12 +101,8 @@ export const adminTagApi = {
 
   // Export tags
   export: async (params?: { status?: string }): Promise<Blob> => {
-    // Note: For blob responses, we need to use axios directly
-    // This is a temporary workaround - the current api wrapper doesn't support responseType
-    const response = await new Promise<Blob>((resolve) => {
-      resolve(new Blob());
-    });
-    return response;
+    // TODO: Implement export when backend supports it
+    throw new Error('Export functionality is not yet implemented on the server');
   },
 
   // Import tags

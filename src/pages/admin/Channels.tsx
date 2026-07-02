@@ -1,4 +1,4 @@
-﻿import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -245,10 +245,6 @@ const Channels: React.FC = () => {
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.channelTotal') || 'Total Channels'}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{total || channels.length}</h3>
-                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3"/>
-                                    +12% {t('admin.vsLastMonth') || 'vs last month'}
-                                </p>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Tv className="w-5 h-5"/>
@@ -262,10 +258,6 @@ const Channels: React.FC = () => {
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalSubscribers') || 'Subscribers'}</p>
                                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{formatNumber(totalSubscribers)}</h3>
-                                <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3"/>
-                                    +4.2% {t('admin.growth') || 'growth'}
-                                </p>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Users className="w-5 h-5"/>
