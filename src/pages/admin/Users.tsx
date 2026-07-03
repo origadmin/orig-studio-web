@@ -244,7 +244,7 @@ export default function UsersPage() {
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeUsers') || 'Active'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => getUserStatusLabel(u.status) === 'active').length}</h3>
               </div>
-              <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center">
                 <UserCheck className="w-5 h-5"/>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function UsersPage() {
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.admins') || 'Admins'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'admin').length}</h3>
               </div>
-              <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-indigo-50 text-indigo-400 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5"/>
               </div>
             </div>
@@ -272,7 +272,7 @@ export default function UsersPage() {
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.editors') || 'Editors'}</p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'editor').length}</h3>
               </div>
-              <div className="w-11 h-11 bg-muted text-muted-foreground rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-indigo-50 text-indigo-300 rounded-xl flex items-center justify-center">
                 <Edit3 className="w-5 h-5"/>
               </div>
             </div>

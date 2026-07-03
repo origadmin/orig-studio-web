@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  * Admin - Article Management Page
  */
@@ -172,7 +172,7 @@ export default function ArticlePage() {
                                     +12% vs last month
                                 </p>
                             </div>
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                 <FileText className="w-5 h-5" />
                             </div>
                         </div>
@@ -195,7 +195,7 @@ export default function ArticlePage() {
                                     +5.4%
                                 </p>
                             </div>
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="w-11 h-11 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                 <Eye className="w-5 h-5" />
                             </div>
                         </div>
@@ -217,7 +217,7 @@ export default function ArticlePage() {
                                     {t('admin.stable')}
                                 </p>
                             </div>
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="w-11 h-11 bg-emerald-50 text-emerald-400 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                 <Clock className="w-5 h-5" />
                             </div>
                         </div>
@@ -240,7 +240,7 @@ export default function ArticlePage() {
                                     -2%
                                 </p>
                             </div>
-                            <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                            <div className="w-11 h-11 bg-emerald-50 text-emerald-300 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                 <Calendar className="w-5 h-5" />
                             </div>
                         </div>

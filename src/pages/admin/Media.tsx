@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  * 管理端 - 媒体管理页面
  */
@@ -293,7 +293,7 @@ export default function MediaPage() {
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeTranscodes', '活跃转码')}</p>
                             <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{activeTranscodes}</h3>
                         </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                             <Cpu className="w-5 h-5"/>
                         </div>
                     </div>
@@ -310,7 +310,7 @@ export default function MediaPage() {
                                 <div className="h-full bg-indigo-600 w-[0%]"></div>
                             </div>
                         </div>
-                        <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <div className="w-11 h-11 bg-indigo-50 text-indigo-400 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                             <HardDrive className="w-5 h-5"/>
                         </div>
                     </div>
