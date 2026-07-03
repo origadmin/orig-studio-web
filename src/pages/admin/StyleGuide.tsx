@@ -219,6 +219,50 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.forbiddenDesc', '禁止使用 .c-xxx 遗留类名。禁止 window.alert/confirm。禁止内联样式设置颜色/尺寸。禁止引入 Vite/vitest 相关依赖。')}</p>
                 </CardContent>
               </Card>
+              <Card className="border-l-4 border-l-primary overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Layout className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.pageTitleIcon', '标题ICON')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-6 w-6。')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Square className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.primaryButtonBottom', '主按钮沉底')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.primaryButtonBottomDesc', '列表页主操作按钮（新建/创建）必须使用 primaryAction 属性，渲染在内容区底部（border-t 分隔）。标题栏仅保留 titleExtra 用于辅助操作。')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-amber-500 overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <Palette className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.pageThemeColor', '页面主题色')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageThemeColorDesc', '每个页面分配专属主题色（如 rose=通知、violet=频道、emerald=标签），通过 themeColor 属性统一管理标题ICON和卡片颜色。')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-sky-500 overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
+                      <Layers className="h-5 w-5 text-sky-500" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.statCardIcons', '统计卡片ICON')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.statCardIconsDesc', '统计卡片ICON使用页面主题色的不同色阶（600/500/400/300），保持统一又有视觉层次。禁止同一页面使用多种不同颜色。')}</p>
+                </CardContent>
+              </Card>
             </div>
           </CardContent>
         </Card>
@@ -331,6 +375,25 @@ export default function StyleGuidePage() {
                   </div>
                 }
               />
+              <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="h-6 w-6 text-rose-600 flex items-center justify-center">
+                      <Bell className="h-6 w-6" />
+                    </div>
+                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('styleGuide.notificationSample', '通知管理')}</h1>
+                  </div>
+                  <p className="text-sm text-muted-foreground ml-9">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                </div>
+              </SpecBox>
+              <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
+                <div className="flex justify-end pt-6 border-t border-border">
+                  <Button>
+                    <Plus className="h-4 w-4" />
+                    {t('styleGuide.compose', '编写通知')}
+                  </Button>
+                </div>
+              </SpecBox>
             </Section>
           </TabsContent>
 
