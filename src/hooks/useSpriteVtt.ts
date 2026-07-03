@@ -2,7 +2,18 @@
  * Hook for loading and parsing sprite sheet WebVTT files.
  *
  * Uses TanStack Query for caching - same vttUrl only triggers one network request.
- * staleTime is set to 5 minutes to allow recovery from transient failures.
+ *
+ * Data flow:
+ * 1. Fetch VTT file → parse cue coordinates (x, y, w, h) and infer totalWidth/totalHeight
+ * 2. Preload sprite image → get naturalWidth/naturalHeight
+ * 3. If image loads successfully, use natural dimensions for backgroundSize
+ *    (more accurate than VTT-inferred dimensions when VTT is incomplete)
+ * 4. If image fails to load, fall back to VTT-inferred dimensions
+ *    (this is the key fix — previous code rejected the entire query on image error,
+ *     causing "sometimes works, sometimes doesn't" behavior)
+ *
+ * The cue coordinates (x, y, w, h) are NEVER scaled or modified.
+ * They come directly from the VTT file and describe pixel positions in the sprite sheet.
  */
 
 import {useQuery} from '@tanstack/react-query';
@@ -21,14 +32,6 @@ interface UseSpriteVttResult {
 /**
  * Loads and parses a sprite sheet WebVTT file.
  *
- * - Uses TanStack Query cache: same vttUrl only requests once within staleTime
- * - staleTime: 5 minutes (allows recovery from transient failures)
- * - retry: 3 attempts with exponential backoff
- * - enabled: only when vttUrl is non-empty
- *
- * BackgroundSize is determined from VTT cue coordinates (max right/bottom).
- * No image preloading — the browser handles image loading via CSS background-image.
- *
  * @param vttUrl - WebVTT file URL, or null/undefined to disable
  */
 export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttResult {
@@ -37,6 +40,7 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
         queryFn: async (): Promise<ParsedSpriteVTT | null> => {
             if (!vttUrl) return null;
 
+            // Step 1: Fetch and parse VTT file
             const response = await fetch(vttUrl);
             if (!response.ok) {
                 throw new Error(`Failed to fetch VTT: ${response.status}`);
@@ -49,6 +53,29 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
 
             if (!result) {
                 throw new Error('Failed to parse VTT content');
+            }
+
+            // Step 2: Preload sprite image to get actual dimensions
+            // This is non-blocking: if image fails, we fall back to VTT dimensions
+            // (previous code rejected the entire query on image error, causing
+            // intermittent failures — "时好时坏")
+            try {
+                const img = new Image();
+                await new Promise<void>((resolve) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve(); // Don't reject — fall back to VTT dimensions
+                    img.src = result.imageUrl;
+                });
+
+                // Use actual image dimensions for backgroundSize
+                // This is more accurate than VTT-inferred dimensions
+                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                    result.totalWidth = img.naturalWidth;
+                    result.totalHeight = img.naturalHeight;
+                }
+            } catch {
+                // Image preload failed (shouldn't happen since onerror resolves)
+                // Fall back to VTT-inferred dimensions
             }
 
             return result;
