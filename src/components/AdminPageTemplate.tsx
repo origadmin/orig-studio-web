@@ -111,10 +111,15 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
 export interface AdminPageTemplateProps {
   title: string;
   titleIcon?: React.ReactNode;
+  /** Page-level theme color (Tailwind color name, e.g. "indigo", "rose"). Applied to titleIcon and primaryAction. */
+  themeColor?: string;
   titleExtra?: React.ReactNode;
   subtitle?: string;
   description?: string;
+  /** @deprecated Use primaryAction instead for bottom-positioned primary button */
   actions?: React.ReactNode;
+  /** Primary action button, rendered at the bottom of the page (after children) */
+  primaryAction?: React.ReactNode;
   stats?: React.ReactNode;
   searchPlaceholder?: string;
   searchValue?: string;
@@ -130,10 +135,12 @@ export interface AdminPageTemplateProps {
 export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   title,
   titleIcon,
+  themeColor,
   titleExtra,
   subtitle,
   description,
   actions,
+  primaryAction,
   stats,
   searchPlaceholder,
   searchValue,
@@ -151,6 +158,8 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
 
   const autoBreadcrumbs = React.useMemo(() => buildBreadcrumbs(pathname, t), [pathname, t]);
   const breadcrumbItems = customBreadcrumbs || autoBreadcrumbs;
+
+  const titleIconColor = themeColor ? `text-${themeColor}-600` : 'text-primary';
 
   return (
     <div className={cn('space-y-6 p-6', className)}>
@@ -181,7 +190,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {titleIcon && (
-            <div className="text-primary h-6 w-6 shrink-0 flex items-center justify-center">
+            <div className={cn('h-6 w-6 shrink-0 flex items-center justify-center', titleIconColor)}>
               {titleIcon}
             </div>
           )}
@@ -222,6 +231,12 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
       )}
 
       {children}
+
+      {primaryAction && (
+        <div className="flex justify-end pt-6 border-t border-border">
+          {primaryAction}
+        </div>
+      )}
     </div>
   );
 };
