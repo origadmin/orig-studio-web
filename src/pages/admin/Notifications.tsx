@@ -38,22 +38,22 @@ import {Checkbox} from '@/components/ui/checkbox';
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
 
-const channelLabels: Record<ChannelKey, string> = {
-    in_app: 'In-App',
-    email: 'Email',
-    push: 'Push',
-    webhook: 'Webhook',
-};
-
-const typeLabels: Record<string, string> = {
-    system: 'SYSTEM',
-    user: 'USER',
-    comment: 'COMMENT',
-    media: 'MEDIA',
-};
-
 const AdminNotifications: React.FC = () => {
     const {t} = useTranslation();
+
+    const channelLabels: Record<ChannelKey, string> = {
+        in_app: t('admin.notificationsChannelInApp', 'In-App'),
+        email: t('admin.notificationsChannelEmail', 'Email'),
+        push: t('admin.notificationsChannelPush', 'Push'),
+        webhook: t('admin.notificationsChannelWebhook', 'Webhook'),
+    };
+
+    const typeLabels: Record<string, string> = {
+        system: t('admin.notificationsTypeSystem', 'SYSTEM'),
+        user: t('admin.notificationsTypeUser', 'USER'),
+        comment: t('admin.notificationsTypeComment', 'COMMENT'),
+        media: t('admin.notificationsTypeMedia', 'MEDIA'),
+    };
 
     // Tab state
     const [activeTab, setActiveTab] = useState<TabKey>('send');
@@ -391,7 +391,7 @@ const AdminNotifications: React.FC = () => {
                                                                 className="rounded-full"
                                                                 onClick={() => setForm(f => ({...f, sendToAll: false}))}
                                                             >
-                                                                All Users <X className="w-3 h-3"/>
+                                                                {t('admin.notificationsAllUsers', 'All Users')} <X className="w-3 h-3"/>
                                                             </Button>
                                                         ) : (
                                                             <>
@@ -401,7 +401,7 @@ const AdminNotifications: React.FC = () => {
                                                                     className="rounded-full"
                                                                     onClick={() => setForm(f => ({...f, sendToAll: true}))}
                                                                 >
-                                                                    All Users <Plus className="w-3 h-3"/>
+                                                                    {t('admin.notificationsAllUsers', 'All Users')} <Plus className="w-3 h-3"/>
                                                                 </Button>
                                                                 {selectedUsers.map(user => (
                                                                     <Button
@@ -420,7 +420,7 @@ const AdminNotifications: React.FC = () => {
                                                                     className="rounded-full"
                                                                     onClick={handleOpenUserPicker}
                                                                 >
-                                                                    Add User <Plus className="w-3 h-3"/>
+                                                                    {t('admin.notificationsAddUser', 'Add User')} <Plus className="w-3 h-3"/>
                                                                 </Button>
                                                             </>
                                                         )}
@@ -436,7 +436,7 @@ const AdminNotifications: React.FC = () => {
                                                                         setUserSearch(e.target.value);
                                                                         fetchUsers(e.target.value);
                                                                     }}
-                                                                    placeholder="Search users..."
+                                                                    placeholder={t('admin.notificationsSearchUsers', 'Search users...')}
                                                                 />
                                                                 {loadingUsers ? (
                                                                     <div className="text-center py-2 text-sm text-muted-foreground">
@@ -467,7 +467,7 @@ const AdminNotifications: React.FC = () => {
                                                                     className="w-full"
                                                                     onClick={() => setShowUserPicker(false)}
                                                                 >
-                                                                    Close
+                                                                    {t('admin.notificationsClose', 'Close')}
                                                                 </Button>
                                                             </CardContent>
                                                         </Card>
@@ -635,7 +635,7 @@ const AdminNotifications: React.FC = () => {
                                                                             {notification.title}
                                                                         </div>
                                                                         <div className="text-xs font-mono text-muted-foreground">
-                                                                            ID: NT-{notification.id}
+                                                                            {t('admin.notificationsNotificationId', 'ID: NT-')}{notification.id}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -657,23 +657,23 @@ const AdminNotifications: React.FC = () => {
                                                                 {notification.read ? (
                                                                     <Badge variant="soft-success" className="flex items-center gap-1.5 w-fit">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
-                                                                        SENT
+                                                                        {t('admin.notificationsStatusSent', 'SENT')}
                                                                     </Badge>
                                                                 ) : unreadCount > 0 && notification.id <= notifications[0]?.id ? (
                                                                     <Badge variant="soft-warning" className="flex items-center gap-1.5 w-fit">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"/>
-                                                                        PENDING
+                                                                        {t('admin.notificationsStatusPending', 'PENDING')}
                                                                     </Badge>
                                                                 ) : (
                                                                     <Badge variant="soft-success" className="flex items-center gap-1.5 w-fit">
                                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
-                                                                        SENT
+                                                                        {t('admin.notificationsStatusSent', 'SENT')}
                                                                     </Badge>
                                                                 )}
                                                             </TableCell>
                                                             {/* Recipients */}
                                                             <TableCell className="text-sm text-card-foreground tabular-nums font-mono">
-                                                                {notification.user_id && notification.user_id !== 'all' ? '1' : 'ALL'}
+                                                                {notification.user_id && notification.user_id !== 'all' ? '1' : t('admin.notificationsRecipientAll', 'ALL')}
                                                             </TableCell>
                                                             {/* Sent At */}
                                                             <TableCell>
@@ -715,22 +715,22 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">Email SMTP</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigEmail', 'Email SMTP')}</h3>
                                                     <Switch
                                                         checked={config.emailEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, emailEnabled: !!checked}))}
                                                     />
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    Master switch for transactional and broadcast emails via SendGrid API.
+                                                    {t('admin.notificationsConfigEmailDesc', 'Master switch for transactional and broadcast emails via SendGrid API.')}
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">Rate Limit (per min)</span>
+                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigRateLimit', 'Rate Limit (per min)')}</span>
                                                         <Badge variant="soft-primary" className="font-mono text-xs">500</Badge>
                                                     </div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">Sender Identity</span>
+                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigSenderId', 'Sender Identity')}</span>
                                                         <span className="font-mono text-xs text-muted-foreground">noreply@origstudio.io</span>
                                                     </div>
                                                 </div>
@@ -746,22 +746,22 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">Firebase Push</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigPush', 'Firebase Push')}</h3>
                                                     <Switch
                                                         checked={config.pushEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, pushEnabled: !!checked}))}
                                                     />
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    Manage FCM tokens and delivery for iOS/Android native apps.
+                                                    {t('admin.notificationsConfigPushDesc', 'Manage FCM tokens and delivery for iOS/Android native apps.')}
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
                                                         <span className="text-muted-foreground">Badge Count Sync</span>
-                                                        <span className="text-xs font-semibold text-emerald-600">ENABLED</span>
+                                                        <span className="text-xs font-semibold text-emerald-600">{t('admin.notificationsConfigEnabled', 'ENABLED')}</span>
                                                     </div>
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">TTL (Hours)</span>
+                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigTTL', 'TTL (Hours)')}</span>
                                                         <span className="font-mono text-xs text-muted-foreground">48h</span>
                                                     </div>
                                                 </div>
@@ -777,18 +777,18 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">Webhooks</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigWebhook', 'Webhooks')}</h3>
                                                     <Switch
                                                         checked={config.webhookEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, webhookEnabled: !!checked}))}
                                                     />
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    Outbound HTTP calls to services like Slack or Microsoft Teams.
+                                                    {t('admin.notificationsConfigWebhookDesc', 'Outbound HTTP calls to services like Slack or Microsoft Teams.')}
                                                 </p>
                                                 <div className="space-y-3 border-t border-muted pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">Active Endpoints</span>
+                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigEndpoints', 'Active Endpoints')}</span>
                                                         <span className="font-mono text-xs text-muted-foreground">12</span>
                                                     </div>
                                                 </div>
@@ -804,18 +804,18 @@ const AdminNotifications: React.FC = () => {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">Twilio SMS</h3>
+                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigSMS', 'Twilio SMS')}</h3>
                                                     <Switch
                                                         checked={config.smsEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, smsEnabled: !!checked}))}
                                                     />
                                                 </div>
                                                 <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    Critical alert delivery via SMS. Global emergency coverage.
+                                                    {t('admin.notificationsConfigSMSDesc', 'Critical alert delivery via SMS. Global emergency coverage.')}
                                                 </p>
                                                 <div className="space-y-3 border-t border-slate-50 pt-4">
                                                     <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">Current Balance</span>
+                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigBalance', 'Current Balance')}</span>
                                                         <span className="font-mono text-xs text-emerald-600 font-bold">$412.00</span>
                                                     </div>
                                                 </div>
