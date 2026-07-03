@@ -45,6 +45,7 @@ const SpriteThumbnail: React.FC<SpriteThumbnailProps> = ({
             style={{
                 width: `${w}px`,
                 height: `${h}px`,
+                aspectRatio: `${w} / ${h}`,
                 backgroundImage: `url(${imageUrl})`,
                 backgroundSize: `${totalWidth}px ${totalHeight}px`,
                 backgroundPosition: `-${x}px -${y}px`,
