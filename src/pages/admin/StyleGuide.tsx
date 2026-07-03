@@ -360,40 +360,40 @@ export default function StyleGuidePage() {
                 <SpecBox label={t('styleGuide.auxText', '辅助文字')} value="text-xs text-muted-foreground">
                   <p className="text-xs text-muted-foreground">{t('styleGuide.auxTextSample', '时间戳、ID、帮助文本 — 使用 text-xs 搭配 muted-foreground')}</p>
                 </SpecBox>
+                <DoDont
+                  do={
+                    <div>
+                      <p className="text-lg font-semibold text-foreground mb-1">{t('styleGuide.correctTitle', '正确的卡片标题')}</p>
+                      <p className="text-sm text-muted-foreground">{t('styleGuide.correctDesc', '使用 CardTitle 组件，内置 text-lg font-semibold。字号在各语言间保持一致。')}</p>
+                    </div>
+                  }
+                  dont={
+                    <div>
+                      <p className="text-xl font-bold" style={{ color: '#1e293b' }}>{t('styleGuide.wrongTitle', '错误的卡片标题')}</p>
+                      <p className="text-sm" style={{ color: '#64748b' }}>{t('styleGuide.wrongDesc', '硬编码 text-xl/text-xl + slate 颜色会破坏深色模式和 i18n 字体渲染。')}</p>
+                    </div>
+                  }
+                />
+                <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                      <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
+                        <Bell className="h-8 w-8" />
+                      </span>
+                      {t('styleGuide.notificationSample', '通知管理')}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                  </div>
+                </SpecBox>
+                <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
+                  <div className="flex justify-end pt-6 border-t border-border">
+                    <Button>
+                      <Plus className="h-4 w-4" />
+                      {t('styleGuide.compose', '编写通知')}
+                    </Button>
+                  </div>
+                </SpecBox>
               </div>
-              <DoDont
-                do={
-                  <div>
-                    <p className="text-lg font-semibold text-foreground mb-1">{t('styleGuide.correctTitle', '正确的卡片标题')}</p>
-                    <p className="text-sm text-muted-foreground">{t('styleGuide.correctDesc', '使用 CardTitle 组件，内置 text-lg font-semibold。字号在各语言间保持一致。')}</p>
-                  </div>
-                }
-                dont={
-                  <div>
-                    <p className="text-xl font-bold" style={{ color: '#1e293b' }}>{t('styleGuide.wrongTitle', '错误的卡片标题')}</p>
-                    <p className="text-sm" style={{ color: '#64748b' }}>{t('styleGuide.wrongDesc', '硬编码 text-xl/text-xl + slate 颜色会破坏深色模式和 i18n 字体渲染。')}</p>
-                  </div>
-                }
-              />
-              <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="h-8 w-8 text-rose-600 flex items-center justify-center">
-                      <Bell className="h-8 w-8" />
-                    </span>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('styleGuide.notificationSample', '通知管理')}</h1>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
-                </div>
-              </SpecBox>
-              <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
-                <div className="flex justify-end pt-6 border-t border-border">
-                  <Button>
-                    <Plus className="h-4 w-4" />
-                    {t('styleGuide.compose', '编写通知')}
-                  </Button>
-                </div>
-              </SpecBox>
             </Section>
           </TabsContent>
 
