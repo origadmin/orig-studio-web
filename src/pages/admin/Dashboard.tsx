@@ -1,4 +1,4 @@
-﻿import {Spinner} from "@/components/ui/spinner"
+import {Spinner} from "@/components/ui/spinner"
 import React from 'react';
 import {
     Film,
@@ -105,6 +105,8 @@ const Dashboard = () => {
     return (
         <AdminPageTemplate
             title={t('admin.dashboardTitle', '系统概览')}
+            titleIcon={<BarChart3 className="h-8 w-8" />}
+            themeColor="indigo"
             description={t('admin.dashboardTitleDesc', '实时性能指标和内容分布分析。')}
             actions={pageActions}
         >

@@ -38,7 +38,7 @@ import {
 } from "../../components/ui/select";
 import {
     Search, RotateCcw, Plus, Edit, Trash2, Copy,
-    Play, Pause, ChevronRight, ChevronLeft, X
+    Play, Pause, ChevronRight, ChevronLeft, X, Settings
 } from "lucide-react";
 import {AdminPageTemplate} from "../../components/AdminPageTemplate";
 
@@ -652,6 +652,8 @@ export default function TranscodingProfiles() {
     return (
         <AdminPageTemplate
             title={t('admin.transcodingProfiles', '转码配置')}
+            titleIcon={<Settings className="h-8 w-8" />}
+            themeColor="violet"
             description={t('admin.transcodingProfilesDesc', '管理全局视频编码参数和分辨率预设。')}
             actions={pageActions}
             searchPlaceholder={t('admin.searchProfiles', '搜索配置...')}

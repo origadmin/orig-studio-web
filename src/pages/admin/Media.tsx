@@ -336,6 +336,8 @@ export default function MediaPage() {
     return (
         <AdminPageTemplate
             title={t('admin.mediaManagement', '媒体管理')}
+            titleIcon={<Film className="h-8 w-8" />}
+            themeColor="sky"
             description={t('admin.mediaManagementDesc', '在这里集中管理所有的视频与图片资源')}
             actions={pageActions}
             stats={pageStats}

@@ -556,6 +556,8 @@ export default function TranscodingStatus() {
     return (
         <AdminPageTemplate
             title={t('admin.transcodingStatus', '转码状态')}
+            titleIcon={<Activity className="h-8 w-8" />}
+            themeColor="teal"
             titleExtra={titleExtra}
             description={t('admin.transcodingStatusDesc', '实时监控活跃、排队和已完成的转码任务。')}
             actions={pageActions}
