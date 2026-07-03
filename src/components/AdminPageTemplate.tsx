@@ -201,24 +201,27 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
       )}
 
       <div className="flex justify-between items-end">
-        <div className="flex items-center gap-3">
+        <div>
           {titleIcon && (
-            <div className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
-              {titleIcon}
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              <span className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
+                {titleIcon}
+              </span>
+              {title}
+            </h1>
           )}
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-              {titleExtra}
-            </div>
-            {subtitle && (
-              <p className="text-sm font-medium text-foreground/80 mt-0.5">{subtitle}</p>
-            )}
-            {description && (
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
-            )}
-          </div>
+          {!titleIcon && (
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
+          )}
+          {titleExtra && (
+            <div className="mt-2">{titleExtra}</div>
+          )}
+          {subtitle && (
+            <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
+          )}
+          {description && (
+            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          )}
         </div>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
