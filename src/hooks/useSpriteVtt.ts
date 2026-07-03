@@ -5,15 +5,19 @@
  *
  * Data flow:
  * 1. Fetch VTT file → parse cue coordinates (x, y, w, h) and infer totalWidth/totalHeight
- * 2. Preload sprite image → get naturalWidth/naturalHeight
- * 3. If image loads successfully, use natural dimensions for backgroundSize
- *    (more accurate than VTT-inferred dimensions when VTT is incomplete)
- * 4. If image fails to load, fall back to VTT-inferred dimensions
- *    (this is the key fix — previous code rejected the entire query on image error,
- *     causing "sometimes works, sometimes doesn't" behavior)
+ * 2. Compute VTT content hash → append as `?_v=<hash>` to imageUrl (cache version binding)
+ * 3. Return parsed result with VTT-inferred dimensions (no image preload)
  *
- * The cue coordinates (x, y, w, h) are NEVER scaled or modified.
- * They come directly from the VTT file and describe pixel positions in the sprite sheet.
+ * Why no image preload:
+ * - VTT coordinates are the authoritative source (parsed from sprite sheet generator)
+ * - naturalWidth/Height from cached images can be stale, causing "1.5 frames" / "横竖不分"
+ * - Image preload adds latency without correctness benefit
+ *
+ * Cache version binding solves "时好时坏":
+ * - Backend serves sprite.jpg with `Cache-Control: max-age=3600`
+ * - If sprite sheet is regenerated (different dimensions), browser still serves old cached image
+ * - Old image dimensions don't match new VTT coordinates → broken rendering
+ * - By appending VTT content hash to imageUrl, new VTT forces fresh image fetch
  */
 
 import {useQuery} from '@tanstack/react-query';
@@ -27,6 +31,19 @@ interface UseSpriteVttResult {
     loading: boolean;
     /** Error if VTT loading/parsing failed */
     error: Error | null;
+}
+
+/**
+ * Computes a stable hash from VTT text content for cache busting.
+ * Uses djb2-like algorithm — fast and good enough distribution for cache keys.
+ */
+function hashVttContent(text: string): string {
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+        // Equivalent to: hash = hash * 31 + charCode, but uses bit ops for speed
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash).toString(36);
 }
 
 /**
@@ -55,28 +72,14 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
                 throw new Error('Failed to parse VTT content');
             }
 
-            // Step 2: Preload sprite image to get actual dimensions
-            // This is non-blocking: if image fails, we fall back to VTT dimensions
-            // (previous code rejected the entire query on image error, causing
-            // intermittent failures — "时好时坏")
-            try {
-                const img = new Image();
-                await new Promise<void>((resolve) => {
-                    img.onload = () => resolve();
-                    img.onerror = () => resolve(); // Don't reject — fall back to VTT dimensions
-                    img.src = result.imageUrl;
-                });
-
-                // Use actual image dimensions for backgroundSize
-                // This is more accurate than VTT-inferred dimensions
-                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                    result.totalWidth = img.naturalWidth;
-                    result.totalHeight = img.naturalHeight;
-                }
-            } catch {
-                // Image preload failed (shouldn't happen since onerror resolves)
-                // Fall back to VTT-inferred dimensions
-            }
+            // Step 2: Cache version binding
+            // Append VTT content hash to image URL so that:
+            // - Same VTT content → same image URL → browser cache hit (fast)
+            // - Different VTT content (regenerated sprite) → different URL → cache miss (fresh fetch)
+            // This guarantees VTT coordinates always match the fetched image dimensions.
+            const versionParam = hashVttContent(text);
+            const separator = result.imageUrl.includes('?') ? '&' : '?';
+            result.imageUrl = `${result.imageUrl}${separator}_v=${versionParam}`;
 
             return result;
         },
