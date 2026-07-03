@@ -94,7 +94,7 @@ const AdminNotifications: React.FC = () => {
             const response = await notificationApi.getAll({page_size: 50});
             const items = response?.items ?? [];
             setNotifications(items);
-            setUnreadCount(response?.unread_count ?? items.filter(n => !n.read).length);
+            setUnreadCount(response?.unread_count ?? items.filter((n: Notification) => !n.read).length);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
         } finally {
