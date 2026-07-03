@@ -53,7 +53,7 @@ export default function PortalConfigPage() {
                 </BreadcrumbList>
             </Breadcrumb>
             <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
+                <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
                     <Layout className="h-6 w-6"/>{t('admin.portalConfig')}
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">{t('admin.portalConfigDesc')}</p>

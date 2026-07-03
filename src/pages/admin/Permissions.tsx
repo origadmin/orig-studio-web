@@ -149,9 +149,9 @@ export default function PermissionsPage() {
             </Breadcrumb>
             <div className="flex items-center justify-between">
                 <div>
-                    <Typography variant="h2" as="h1" className="font-bold flex items-center gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <Shield className="h-6 w-6"/>{t('permissions.title')}
-                    </Typography>
+                    </h1>
                     <Typography variant="muted" as="p" className="mt-1">{t('permissions.description')}</Typography>
                 </div>
                 {view !== 'list' && (

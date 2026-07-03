@@ -233,9 +233,9 @@ const Comments: React.FC = () => {
       {/* 页面标题区 */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {t('admin.comments') || 'Comments Moderation'}
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t('admin.manageComments') || 'Review, approve, or reject user comments and replies.'}
           </p>

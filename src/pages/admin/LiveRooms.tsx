@@ -151,7 +151,7 @@ export default function LiveRoomsPage() {
                 <div className="flex items-center gap-3">
                     <Tv2 className="h-6 w-6 text-primary" />
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
                             {t('admin.liveRoomsManagement', 'Live Rooms Management')}
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">

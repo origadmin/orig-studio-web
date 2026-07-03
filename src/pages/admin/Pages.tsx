@@ -144,7 +144,7 @@ const Pages: React.FC = () => {
             </Breadcrumb>
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold">{t('admin.pages.title', 'Custom Pages')}</h2>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('admin.pages.title', 'Custom Pages')}</h1>
                     <p className="text-muted-foreground">{t('admin.pages.description', 'Manage custom pages and portal navigation')}</p>
                 </div>
                 <Button onClick={handleCreate}>

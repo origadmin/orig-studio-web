@@ -112,10 +112,10 @@ export default function PromotionPage() {
             {/* Page Header */}
             <div className="flex items-end justify-between">
                 <div className="space-y-1">
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <Megaphone className="h-7 w-7 text-primary" />
                         {t('admin.promotionCenter', 'Promotion Center')}
-                    </h2>
+                    </h1>
                     <p className="text-muted-foreground text-sm max-w-2xl">
                         {t('admin.promotionCenterDesc', 'Manage and monitor cross-platform promotional campaigns, social media distribution, and automated broadcasting tasks.')}
                     </p>

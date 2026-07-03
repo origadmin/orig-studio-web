@@ -301,9 +301,9 @@ const Categories: React.FC = () => {
             <FolderTree className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               {t('admin.categoriesManagement', '分类管理')}
-            </h2>
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">
               {t('admin.manageCategoriesDesc', '管理具有父子关系的分层内容分类。')}
             </p>

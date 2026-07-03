@@ -135,9 +135,9 @@ export default function ArticlePage() {
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         {t('admin.manageArticles')}
-                    </h2>
+                    </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.manageArticlesDesc', 'Manage, edit and publish your studio content across all distribution channels.')}
                     </p>

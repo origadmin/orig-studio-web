@@ -197,9 +197,9 @@ const Playlists: React.FC = () => {
                         <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
                             <Music2 className="w-4 h-4"/>
                         </div>
-                        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
                             {t('admin.playlistsManagement', 'Playlists Management')}
-                        </h2>
+                        </h1>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2 ml-[42px]">
                         {t('admin.playlistsDesc', 'Organize and distribute your media assets across global edge nodes.')}

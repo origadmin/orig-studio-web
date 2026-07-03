@@ -209,10 +209,10 @@ const Tags: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <TagsIcon className="w-6 h-6 text-indigo-600"/>
                         {t('admin.tagManagement', 'Tag Management')}
-                    </h2>
+                    </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.manageTags', 'Organize global metadata taxonomies and color schemes.')}
                     </p>

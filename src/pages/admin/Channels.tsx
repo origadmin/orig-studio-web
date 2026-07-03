@@ -226,7 +226,7 @@ const Channels: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">{t('admin.channels')}</h2>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('admin.channels')}</h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         {t('admin.manageChannels') || 'Manage content creator channels, subscribers, and verification status across the platform.'}
                     </p>

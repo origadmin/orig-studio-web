@@ -157,7 +157,7 @@ const SlotsTab: React.FC = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-6 pt-2">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
                         <LayoutGrid className="h-6 w-6 text-primary"/>
                         {t('admin.adSlots', 'Ad Slots')}
                     </h1>
