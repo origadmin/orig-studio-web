@@ -3,6 +3,11 @@
  *
  * Uses TanStack Query for caching - same vttUrl only triggers one network request.
  * staleTime is set to 5 minutes to allow recovery from transient failures.
+ *
+ * When the actual image dimensions differ from VTT-inferred dimensions,
+ * cue coordinates are scaled to match the image. This handles cases where
+ * the backend changes sprite sheet layout (e.g., different column count)
+ * or generates portrait sprite sheets with different frame sizes.
  */
 
 import {useQuery} from '@tanstack/react-query';
@@ -18,9 +23,6 @@ interface UseSpriteVttResult {
     error: Error | null;
 }
 
-/** Maximum allowed ratio deviation between image natural size and VTT-inferred size. */
-const MAX_SIZE_DEVIATION_RATIO = 1.2;
-
 /**
  * Loads and parses a sprite sheet WebVTT file.
  *
@@ -28,6 +30,8 @@ const MAX_SIZE_DEVIATION_RATIO = 1.2;
  * - staleTime: 5 minutes (allows recovery from transient failures)
  * - retry: 3 attempts with exponential backoff
  * - enabled: only when vttUrl is non-empty
+ * - When image natural dimensions differ from VTT-inferred dimensions,
+ *   cue coordinates are scaled to match the actual image
  *
  * @param vttUrl - WebVTT file URL, or null/undefined to disable
  */
@@ -59,16 +63,25 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
             });
 
             if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                // Only use natural dimensions if they are reasonably close to VTT-inferred values.
-                // Large deviations indicate the sprite sheet was generated with a different
-                // frame layout than what the VTT coordinates describe, which would cause
-                // background-position misalignment in SpriteThumbnail.
-                const ratioW = Math.max(img.naturalWidth, result.totalWidth) / Math.min(img.naturalWidth, result.totalWidth);
-                const ratioH = Math.max(img.naturalHeight, result.totalHeight) / Math.min(img.naturalHeight, result.totalHeight);
-                if (ratioW <= MAX_SIZE_DEVIATION_RATIO && ratioH <= MAX_SIZE_DEVIATION_RATIO) {
-                    result.totalWidth = img.naturalWidth;
-                    result.totalHeight = img.naturalHeight;
+                const scaleX = img.naturalWidth / result.totalWidth;
+                const scaleY = img.naturalHeight / result.totalHeight;
+
+                // When scale differs from 1.0, cue coordinates must be
+                // scaled to match the actual image dimensions. Otherwise
+                // backgroundSize/backgroundPosition will be misaligned,
+                // causing thumbnails to show 1.5+ frames (regression SPRITE-REG-001).
+                if (Math.abs(scaleX - 1) > 0.01 || Math.abs(scaleY - 1) > 0.01) {
+                    for (const cue of result.cues) {
+                        cue.x = Math.round(cue.x * scaleX);
+                        cue.y = Math.round(cue.y * scaleY);
+                        cue.w = Math.round(cue.w * scaleX);
+                        cue.h = Math.round(cue.h * scaleY);
+                    }
                 }
+
+                // Always use natural dimensions for backgroundSize
+                result.totalWidth = img.naturalWidth;
+                result.totalHeight = img.naturalHeight;
             }
 
             return result;
