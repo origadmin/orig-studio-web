@@ -55,13 +55,13 @@ function normalizeNotificationList(raw: unknown): unknown {
 
 export const notificationApi = {
     getAll: async (params?: { page?: number; page_size?: number; read?: boolean }) => {
-        const response = await api.get<unknown>('/notifications', params);
+        const response = await api.get<unknown>('/admin/notifications', params);
         const normalized = normalizeNotificationList(response);
         return normalized as any;
     },
 
     getUnreadCount: async (): Promise<number> => {
-        const response = await api.get<unknown>('/notifications/unread-count');
+        const response = await api.get<unknown>('/admin/notifications/unread-count');
         if (response && typeof response === 'object') {
             const obj = response as Record<string, unknown>;
             if (typeof obj.unread_count === 'number') return obj.unread_count;
@@ -71,14 +71,14 @@ export const notificationApi = {
     },
 
     create: (data: { action: string; title: string; body: string; user_id?: string; method?: string; notify?: boolean }) =>
-        api.post<Notification>('/notifications', data),
+        api.post<Notification>('/admin/notifications', data),
 
     markAsRead: (id: number) =>
-        api.post<Notification>(`/notifications/${id}/read`),
+        api.post<Notification>(`/admin/notifications/${id}/read`),
 
     markAllAsRead: () =>
-        api.post<{ success: boolean }>('/notifications/read-all'),
+        api.post<{ success: boolean }>('/admin/notifications/read-all'),
 
     delete: (id: number) =>
-        api.del<void>(`/notifications/${id}`),
+        api.del<void>(`/admin/notifications/${id}`),
 };
