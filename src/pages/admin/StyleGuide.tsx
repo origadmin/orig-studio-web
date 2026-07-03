@@ -108,7 +108,7 @@ export default function StyleGuidePage() {
     <TooltipProvider>
       <AdminPageTemplate
         title={t('styleGuide.title', '组件规范指南')}
-        titleIcon={<Palette className="h-6 w-6" />}
+        titleIcon={<Palette className="h-8 w-8" />}
         themeColor="indigo"
         description={t('styleGuide.description', '交互式组件规范与视觉验证')}
         actions={
@@ -376,14 +376,14 @@ export default function StyleGuidePage() {
                 }
               />
               <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-6 w-6 text-rose-600 flex items-center justify-center">
-                      <Bell className="h-6 w-6" />
-                    </div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('styleGuide.notificationSample', '通知管理')}</h1>
+                    <span className="h-8 w-8 text-rose-600 flex items-center justify-center">
+                      <Bell className="h-8 w-8" />
+                    </span>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('styleGuide.notificationSample', '通知管理')}</h1>
                   </div>
-                  <p className="text-sm text-muted-foreground ml-9">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
                 </div>
               </SpecBox>
               <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
