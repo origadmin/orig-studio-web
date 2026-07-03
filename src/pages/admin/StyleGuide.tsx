@@ -109,8 +109,9 @@ export default function StyleGuidePage() {
       <AdminPageTemplate
         title={t('styleGuide.title', '组件规范指南')}
         titleIcon={<Palette className="h-6 w-6" />}
+        themeColor="indigo"
         description={t('styleGuide.description', '交互式组件规范与视觉验证')}
-        actions={
+        titleExtra={
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-xs text-muted-foreground">{t('styleGuide.language', 'Language')}</p>
