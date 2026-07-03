@@ -152,7 +152,7 @@ export default function StyleGuidePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card className="border-l-4 border-l-primary">
+              <Card className="border-l-4 border-l-primary overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -163,7 +163,7 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.formHeightDesc', '所有 Input/Select/Button 默认使用 h-9 (36px)。紧凑场景（如表格操作）可使用 size="sm" (h-8)。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-emerald-500">
+              <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
@@ -174,7 +174,7 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.semanticColorsRule', '使用 bg-background、text-foreground、bg-muted、border-border 等语义化 token。禁止硬编码 text-slate-*、bg-slate-* 等颜色，会破坏深色模式。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-amber-500">
+              <Card className="border-l-4 border-l-amber-500 overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -185,7 +185,7 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.typographyRuleDesc', '使用 Tailwind 字体类：页面标题 text-2xl、卡片标题 text-lg、正文 text-sm、辅助文字 text-xs。禁止内联设置 font-size。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-sky-500">
+              <Card className="border-l-4 border-l-sky-500 overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-sky-500/10 flex items-center justify-center">
@@ -196,7 +196,7 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.i18nRuleDesc', '所有用户可见文字必须使用 t(\'key\', \'fallback\') 并提供英文后备文本。禁止在 JSX 中直接硬编码中/英/日文字符串。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-primary">
+              <Card className="border-l-4 border-l-primary overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -207,7 +207,7 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.pageTemplateDesc', '所有管理后台列表页必须使用 AdminPageTemplate 包裹。它提供统一的面包屑、标题、搜索栏和操作区。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-destructive">
+              <Card className="border-l-4 border-l-destructive overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
