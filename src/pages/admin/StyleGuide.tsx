@@ -183,7 +183,7 @@ export default function StyleGuidePage() {
                     </div>
                     <h4 className="font-semibold text-foreground">{t('styleGuide.typographyRule', '字体层级')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.typographyRuleDesc', '使用 Tailwind 字体类：页面标题 text-2xl、卡片标题 text-lg、正文 text-sm、辅助文字 text-xs。禁止内联设置 font-size。')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.typographyRuleDesc', '使用 Tailwind 字体类：页面标题 text-3xl font-bold、卡片标题 text-lg font-semibold、正文 text-sm、辅助文字 text-xs。禁止内联设置 font-size。')}</p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-sky-500 overflow-hidden">
@@ -345,8 +345,8 @@ export default function StyleGuidePage() {
           <TabsContent value="typography">
             <Section title={t('styleGuide.typeScale', '字体层级')} description={t('styleGuide.typeScaleDesc', '标准化字体排版层级 — 切换语言不会改变字号')}>
               <div className="space-y-6">
-                <SpecBox label={t('styleGuide.pageTitle', '页面标题')} value="text-2xl font-semibold">
-                  <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('styleGuide.pageTitleSample', '媒体管理')}</h1>
+                <SpecBox label={t('styleGuide.pageTitle', '页面标题')} value="text-3xl font-bold">
+                  <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('styleGuide.pageTitleSample', '媒体管理')}</h1>
                 </SpecBox>
                 <SpecBox label={t('styleGuide.cardTitle', '卡片/对话框标题')} value="text-lg font-semibold">
                   <h3 className="text-lg font-semibold tracking-tight text-foreground">{t('styleGuide.cardTitleSample', '用户信息')}</h3>
