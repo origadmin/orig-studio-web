@@ -111,13 +111,13 @@ export default function StyleGuidePage() {
         titleIcon={<Palette className="h-6 w-6" />}
         themeColor="indigo"
         description={t('styleGuide.description', '交互式组件规范与视觉验证')}
-        titleExtra={
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">{t('styleGuide.language', 'Language')}</p>
-              <p className="text-sm font-medium">{t('styleGuide.i18nEnabled', 'i18n Enabled')}</p>
-            </div>
-            <div className="flex items-center rounded-md border border-border p-1 gap-0.5">
+        actions={
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">{t('styleGuide.language', 'Language')}</p>
+                <p className="text-sm font-medium">{t('styleGuide.i18nEnabled', 'i18n Enabled')}</p>
+              </div>
+              <div className="flex items-center rounded-md border border-border p-1 gap-0.5">
               <Button
                 variant={colorMode === 'light' ? 'default' : 'ghost'}
                 size="icon-sm"

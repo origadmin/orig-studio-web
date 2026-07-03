@@ -159,7 +159,20 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   const autoBreadcrumbs = React.useMemo(() => buildBreadcrumbs(pathname, t), [pathname, t]);
   const breadcrumbItems = customBreadcrumbs || autoBreadcrumbs;
 
-  const titleIconColor = themeColor ? `text-${themeColor}-600` : 'text-primary';
+  // Static map — Tailwind JIT cannot detect dynamic template literals like `text-${themeColor}-600`
+  const THEME_COLOR_MAP: Record<string, string> = {
+    indigo: 'text-indigo-600',
+    rose: 'text-rose-600',
+    emerald: 'text-emerald-600',
+    amber: 'text-amber-600',
+    sky: 'text-sky-600',
+    violet: 'text-violet-600',
+    teal: 'text-teal-600',
+    cyan: 'text-cyan-600',
+    blue: 'text-blue-600',
+    orange: 'text-orange-600',
+  };
+  const titleIconColor = (themeColor && THEME_COLOR_MAP[themeColor]) ? THEME_COLOR_MAP[themeColor] : 'text-primary';
 
   return (
     <div className={cn('space-y-6 p-6', className)}>
@@ -187,16 +200,16 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </Breadcrumb>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-end">
         <div className="flex items-center gap-3">
           {titleIcon && (
-            <div className={cn('h-6 w-6 shrink-0 flex items-center justify-center', titleIconColor)}>
+            <div className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
               {titleIcon}
             </div>
           )}
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
               {titleExtra}
             </div>
             {subtitle && (
