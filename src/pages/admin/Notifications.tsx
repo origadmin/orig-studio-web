@@ -18,8 +18,6 @@ import {
     Inbox,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
-import {Link} from '@tanstack/react-router';
-import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {adminUserApi, type User} from '@/lib/api/user';
 import {formatDateTime} from '@/lib/format';
@@ -34,6 +32,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Switch} from '@/components/ui/switch';
 import {Checkbox} from '@/components/ui/checkbox';
+import {AdminPageTemplate} from '@/components/AdminPageTemplate';
 
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
@@ -204,40 +203,18 @@ const AdminNotifications: React.FC = () => {
     };
 
     return (
-        <div className="p-8 space-y-6">
-            <Breadcrumb className="mb-4">
-                <BreadcrumbList>
-                    <BreadcrumbItem>
-                        <BreadcrumbLink asChild>
-                            <Link to="/admin">{t('admin.breadcrumb.dashboard', '仪表盘')}</Link>
-                        </BreadcrumbLink>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator/>
-                    <BreadcrumbItem>
-                        <BreadcrumbPage>{t('admin.breadcrumb.notifications', '通知管理')}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-            {/* Page Header */}
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                        <Bell className="h-7 w-7 text-indigo-600"/>
-                        {t('admin.notifications', 'Notification Management')}
-                    </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {t('admin.notificationsDesc', 'Configure, broadcast, and audit system-wide alerts.')}
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button onClick={handleCompose}>
-                        <Plus className="w-4 h-4"/>
-                        {t('admin.notificationsCompose', 'Compose')}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Tab Navigation */}
+        <AdminPageTemplate
+            title={t('admin.notifications', 'Notification Management')}
+            titleIcon={<Bell className="h-6 w-6" />}
+            themeColor="rose"
+            description={t('admin.notificationsDesc', 'Configure, broadcast, and audit system-wide alerts.')}
+            primaryAction={
+                <Button onClick={handleCompose}>
+                    <Plus className="w-4 h-4"/>
+                    {t('admin.notificationsCompose', 'Compose')}
+                </Button>
+            }
+        >
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)}>
                 <TabsList>
                     <TabsTrigger value="send" className="flex items-center gap-2">
@@ -833,7 +810,7 @@ const AdminNotifications: React.FC = () => {
                     </>
                 )}
             </Tabs>
-        </div>
+        </AdminPageTemplate>
     );
 };
 
