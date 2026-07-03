@@ -58,7 +58,11 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
             if (!vttUrl) return null;
 
             // Step 1: Fetch and parse VTT file
-            const response = await fetch(vttUrl);
+            // CRITICAL: cache: 'no-store' bypasses browser HTTP cache.
+            // Backend serves VTT with Cache-Control: max-age=3600, which would
+            // cause the browser to return stale VTT content. Stale VTT → stale
+            // hash → stale image URL → "横竖不分" / "1.5 frames" rendering bugs.
+            const response = await fetch(vttUrl, { cache: 'no-store' });
             if (!response.ok) {
                 throw new Error(`Failed to fetch VTT: ${response.status}`);
             }
@@ -84,7 +88,10 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
             return result;
         },
         enabled: !!vttUrl,
-        staleTime: 5 * 60 * 1000,
+        // staleTime: 0 ensures TanStack Query refetches on every mount.
+        // Combined with cache: 'no-store' on fetch, this guarantees fresh
+        // VTT content after sprite regeneration (e.g., post-transcode).
+        staleTime: 0,
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
     });
