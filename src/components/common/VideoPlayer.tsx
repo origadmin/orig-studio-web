@@ -582,6 +582,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
 
     const handleEnded = useCallback(() => {
         setIsPlaying(false);
+        setIsBuffering(false);
         onPlayingChange?.(false);
         onEnded?.();
         if (autoPlayNext) {

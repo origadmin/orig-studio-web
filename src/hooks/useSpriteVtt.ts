@@ -3,11 +3,6 @@
  *
  * Uses TanStack Query for caching - same vttUrl only triggers one network request.
  * staleTime is set to 5 minutes to allow recovery from transient failures.
- *
- * When the actual image dimensions differ from VTT-inferred dimensions,
- * cue coordinates are scaled to match the image. This handles cases where
- * the backend changes sprite sheet layout (e.g., different column count)
- * or generates portrait sprite sheets with different frame sizes.
  */
 
 import {useQuery} from '@tanstack/react-query';
@@ -30,8 +25,9 @@ interface UseSpriteVttResult {
  * - staleTime: 5 minutes (allows recovery from transient failures)
  * - retry: 3 attempts with exponential backoff
  * - enabled: only when vttUrl is non-empty
- * - When image natural dimensions differ from VTT-inferred dimensions,
- *   cue coordinates are scaled to match the actual image
+ *
+ * BackgroundSize is determined from VTT cue coordinates (max right/bottom).
+ * No image preloading — the browser handles image loading via CSS background-image.
  *
  * @param vttUrl - WebVTT file URL, or null/undefined to disable
  */
@@ -53,35 +49,6 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
 
             if (!result) {
                 throw new Error('Failed to parse VTT content');
-            }
-
-            const img = new Image();
-            await new Promise<void>((resolve, reject) => {
-                img.onload = () => resolve();
-                img.onerror = () => reject(new Error('Failed to load sprite image'));
-                img.src = result.imageUrl;
-            });
-
-            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
-                const scaleX = img.naturalWidth / result.totalWidth;
-                const scaleY = img.naturalHeight / result.totalHeight;
-
-                // When scale differs from 1.0, cue coordinates must be
-                // scaled to match the actual image dimensions. Otherwise
-                // backgroundSize/backgroundPosition will be misaligned,
-                // causing thumbnails to show 1.5+ frames (regression SPRITE-REG-001).
-                if (Math.abs(scaleX - 1) > 0.01 || Math.abs(scaleY - 1) > 0.01) {
-                    for (const cue of result.cues) {
-                        cue.x = Math.round(cue.x * scaleX);
-                        cue.y = Math.round(cue.y * scaleY);
-                        cue.w = Math.round(cue.w * scaleX);
-                        cue.h = Math.round(cue.h * scaleY);
-                    }
-                }
-
-                // Always use natural dimensions for backgroundSize
-                result.totalWidth = img.naturalWidth;
-                result.totalHeight = img.naturalHeight;
             }
 
             return result;
