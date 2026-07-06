@@ -33,8 +33,8 @@ import {
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
-import {useNotificationState} from '@/contexts/NotificationContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import NotificationDropdown from '@/components/NotificationDropdown';
 import {Input} from '@/components/ui/input';
 
 interface NavItem {
@@ -216,7 +216,6 @@ interface TopBarProps {
 const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: TopBarProps) {
     const {t} = useTranslation();
     const pathname = useRouterState({select: (s) => s.location.pathname});
-    const {unreadCount} = useNotificationState();
 
     // Derive current page label from pathname
     const currentPageLabel = useMemo(() => {
@@ -264,14 +263,7 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
                 >
                     <PanelLeft size={18}/>
                 </button>
-                <button className="relative p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">
-                    <Bell size={18}/>
-                    {unreadCount > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
-                            {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                    )}
-                </button>
+                <NotificationDropdown/>
                 <button className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">
                     <Settings size={18}/>
                 </button>

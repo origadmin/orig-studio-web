@@ -746,134 +746,135 @@ const AdminNotifications: React.FC = () => {
                         {/* Tab 3: Configuration */}
                         <TabsContent value="config">
                             <section className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
-                                    {/* Email SMTP */}
+                                <div className="max-w-3xl">
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        {t('admin.notificationsConfigDesc', 'Configure which notification channels are enabled for system notifications.')}
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+                                    {/* In-App (always enabled - core channel) */}
                                     <Card>
-                                        <CardContent className="p-8 flex gap-6">
-                                            <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                                                <Mail className="w-6 h-6"/>
+                                        <CardContent className="p-6 flex gap-4">
+                                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                                                <Bell className="w-5 h-5"/>
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigEmail', 'Email SMTP')}</h3>
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-foreground">{t('admin.notificationsChannelInApp', 'In-App Notifications')}</h3>
+                                                        <Badge variant="soft-success" className="mt-1 text-[11px]">{t('admin.notificationsChannelActive', 'Active')}</Badge>
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    {t('admin.notificationsChannelInAppDesc', 'Browser bell icon notifications, always enabled for all users.')}
+                                                </p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Email */}
+                                    <Card>
+                                        <CardContent className="p-6 flex gap-4">
+                                            <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center shrink-0">
+                                                <Mail className="w-5 h-5"/>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-foreground">{t('admin.notificationsConfigEmail', 'Email SMTP')}</h3>
+                                                        <Badge variant="secondary" className="mt-1 text-[11px]">{t('admin.notificationsChannelComingSoon', 'Coming soon')}</Badge>
+                                                    </div>
                                                     <Switch
                                                         checked={config.emailEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, emailEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    {t('admin.notificationsConfigEmailDesc', 'Master switch for transactional and broadcast emails via SendGrid API.')}
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    {t('admin.notificationsConfigEmailDesc', 'Transactional and broadcast emails via SMTP.')}
                                                 </p>
-                                                <div className="space-y-3 border-t border-slate-50 pt-4">
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigRateLimit', 'Rate Limit (per min)')}</span>
-                                                        <Badge variant="soft-primary" className="font-mono text-xs">500</Badge>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigSenderId', 'Sender Identity')}</span>
-                                                        <span className="font-mono text-xs text-muted-foreground">noreply@origstudio.io</span>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
 
-                                    {/* Firebase Push */}
+                                    {/* Push */}
                                     <Card>
-                                        <CardContent className="p-8 flex gap-6">
-                                            <div className="w-14 h-14 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center shrink-0">
-                                                <BellRing className="w-6 h-6"/>
+                                        <CardContent className="p-6 flex gap-4">
+                                            <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center shrink-0">
+                                                <BellRing className="w-5 h-5"/>
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigPush', 'Firebase Push')}</h3>
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-foreground">{t('admin.notificationsConfigPush', 'Mobile Push')}</h3>
+                                                        <Badge variant="secondary" className="mt-1 text-[11px]">{t('admin.notificationsChannelComingSoon', 'Coming soon')}</Badge>
+                                                    </div>
                                                     <Switch
                                                         checked={config.pushEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, pushEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    {t('admin.notificationsConfigPushDesc', 'Manage FCM tokens and delivery for iOS/Android native apps.')}
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    {t('admin.notificationsConfigPushDesc', 'FCM/APNs push notifications for iOS/Android apps.')}
                                                 </p>
-                                                <div className="space-y-3 border-t border-slate-50 pt-4">
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">Badge Count Sync</span>
-                                                        <span className="text-xs font-semibold text-emerald-600">{t('admin.notificationsConfigEnabled', 'ENABLED')}</span>
-                                                    </div>
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigTTL', 'TTL (Hours)')}</span>
-                                                        <span className="font-mono text-xs text-muted-foreground">48h</span>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
 
                                     {/* Webhooks */}
                                     <Card>
-                                        <CardContent className="p-8 flex gap-6">
-                                            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0">
-                                                <Webhook className="w-6 h-6"/>
+                                        <CardContent className="p-6 flex gap-4">
+                                            <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center shrink-0">
+                                                <Webhook className="w-5 h-5"/>
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigWebhook', 'Webhooks')}</h3>
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-foreground">{t('admin.notificationsConfigWebhook', 'Webhooks')}</h3>
+                                                        <Badge variant="secondary" className="mt-1 text-[11px]">{t('admin.notificationsChannelComingSoon', 'Coming soon')}</Badge>
+                                                    </div>
                                                     <Switch
                                                         checked={config.webhookEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, webhookEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    {t('admin.notificationsConfigWebhookDesc', 'Outbound HTTP calls to services like Slack or Microsoft Teams.')}
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    {t('admin.notificationsConfigWebhookDesc', 'Outbound HTTP callbacks to Slack, Teams, or custom endpoints.')}
                                                 </p>
-                                                <div className="space-y-3 border-t border-muted pt-4">
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigEndpoints', 'Active Endpoints')}</span>
-                                                        <span className="font-mono text-xs text-muted-foreground">12</span>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
 
                                     {/* SMS */}
                                     <Card>
-                                        <CardContent className="p-8 flex gap-6">
-                                            <div className="w-14 h-14 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shrink-0">
-                                                <MessageSquareMore className="w-6 h-6"/>
+                                        <CardContent className="p-6 flex gap-4">
+                                            <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center shrink-0">
+                                                <MessageSquareMore className="w-5 h-5"/>
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <h3 className="text-lg font-semibold text-foreground">{t('admin.notificationsConfigSMS', 'Twilio SMS')}</h3>
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-foreground">{t('admin.notificationsConfigSMS', 'SMS (Twilio)')}</h3>
+                                                        <Badge variant="secondary" className="mt-1 text-[11px]">{t('admin.notificationsChannelComingSoon', 'Coming soon')}</Badge>
+                                                    </div>
                                                     <Switch
                                                         checked={config.smsEnabled}
                                                         onCheckedChange={(checked) => setConfig(c => ({...c, smsEnabled: !!checked}))}
                                                     />
                                                 </div>
-                                                <p className="text-sm text-muted-foreground mt-2 mb-6 leading-relaxed">
-                                                    {t('admin.notificationsConfigSMSDesc', 'Critical alert delivery via SMS. Global emergency coverage.')}
+                                                <p className="text-sm text-muted-foreground mt-2">
+                                                    {t('admin.notificationsConfigSMSDesc', 'Critical alert delivery via SMS for emergency notifications.')}
                                                 </p>
-                                                <div className="space-y-3 border-t border-slate-50 pt-4">
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span className="text-muted-foreground">{t('admin.notificationsConfigBalance', 'Current Balance')}</span>
-                                                        <span className="font-mono text-xs text-emerald-600 font-bold">$412.00</span>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
                                 </div>
-                                <div className="flex justify-end gap-3 pt-6 border-t border-border max-w-5xl">
-                                    <Button
-                                        variant="outline"
-                                        onClick={handleSendTest}
-                                        disabled={sendingTest}
-                                    >
-                                        {sendingTest ? <Loader2 className="w-4 h-4 animate-spin"/> : <BellRing className="w-4 h-4"/>}
+                                <div className="flex justify-end gap-3 pt-4 border-t border-border max-w-3xl">
+                                    <Button variant="outline" onClick={handleSendTest} disabled={sendingTest}>
+                                        {sendingTest ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <BellRing className="w-4 h-4 mr-2"/>}
                                         {t('admin.notificationsSendTest', 'Send Test Notification')}
                                     </Button>
                                     <Button onClick={saveConfig} disabled={savingConfig}>
-                                        {savingConfig ? <Loader2 className="w-4 h-4 animate-spin"/> : null}
+                                        {savingConfig ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : null}
                                         {t('admin.notificationsSaveSettings', 'Save Global Settings')}
                                     </Button>
                                 </div>
