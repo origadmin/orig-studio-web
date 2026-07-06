@@ -16,6 +16,7 @@ import {
     Webhook,
     Trash2,
     Inbox,
+    Smartphone,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
@@ -34,18 +35,20 @@ import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Switch} from '@/components/ui/switch';
 import {Checkbox} from '@/components/ui/checkbox';
 import {AdminPageTemplate} from '@/components/AdminPageTemplate';
+import {useNotificationState} from '@/contexts/NotificationContext';
 
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
 
 const AdminNotifications: React.FC = () => {
     const {t} = useTranslation();
+    const {refresh: refreshBell} = useNotificationState();
 
-    const channelLabels: Record<ChannelKey, string> = {
-        in_app: t('admin.notificationsChannelInApp', 'In-App'),
-        email: t('admin.notificationsChannelEmail', 'Email'),
-        push: t('admin.notificationsChannelPush', 'Push'),
-        webhook: t('admin.notificationsChannelWebhook', 'Webhook'),
+    const channelLabels: Record<ChannelKey, { label: string; desc: string; icon: React.ReactNode }> = {
+        in_app: { label: t('admin.notificationsChannelInApp', '站内通知'), desc: t('admin.notificationsChannelInAppDesc', '网页右上角铃铛显示'), icon: <Bell className="w-5 h-5"/> },
+        email: { label: t('admin.notificationsChannelEmail', '邮件通知'), desc: t('admin.notificationsChannelEmailDesc', '发送邮件到用户邮箱'), icon: <Mail className="w-5 h-5"/> },
+        push: { label: t('admin.notificationsChannelPush', '移动推送'), desc: t('admin.notificationsChannelPushDesc', '推送到手机App'), icon: <Smartphone className="w-5 h-5"/> },
+        webhook: { label: t('admin.notificationsChannelWebhook', 'Webhook回调'), desc: t('admin.notificationsChannelWebhookDesc', '通知第三方系统'), icon: <Webhook className="w-5 h-5"/> },
     };
 
     const typeLabels: Record<string, string> = {
@@ -148,6 +151,7 @@ const AdminNotifications: React.FC = () => {
         try {
             setSendingTest(true);
             await notificationApi.adminSendTest();
+            refreshBell();
         } catch (err) {
             console.error('Failed to send test notification:', err);
         } finally {
@@ -213,6 +217,7 @@ const AdminNotifications: React.FC = () => {
             setSelectedUserIds([]);
             setShowUserPicker(false);
             fetchData();
+            refreshBell();
         } catch (err) {
             console.error('Failed to send notification:', err);
         } finally {
@@ -227,10 +232,6 @@ const AdminNotifications: React.FC = () => {
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
-    };
-
-    const handleCompose = () => {
-        setActiveTab('send');
     };
 
     const selectedUsers = users.filter(u => selectedUserIds.includes(u.id));
@@ -251,12 +252,6 @@ const AdminNotifications: React.FC = () => {
             titleIcon={<Bell className="h-6 w-6" />}
             themeColor="rose"
             description={t('admin.notificationsDesc', 'Configure, broadcast, and audit system-wide alerts.')}
-            primaryAction={
-                <Button onClick={handleCompose}>
-                    <Plus className="w-4 h-4"/>
-                    {t('admin.notificationsCompose', 'Compose')}
-                </Button>
-            }
         >
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)}>
                 <TabsList>
@@ -495,23 +490,48 @@ const AdminNotifications: React.FC = () => {
                                                 </div>
                                                 <div className="pt-5 border-t border-border">
                                                     <Label className="block text-sm font-medium text-card-foreground mb-3">
-                                                        {t('admin.notificationsFieldChannels', 'DELIVERY CHANNELS')}
+                                                        {t('admin.notificationsFieldChannels', '发送渠道')}
                                                     </Label>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                                        {(['in_app', 'email', 'push', 'webhook'] as ChannelKey[]).map(channel => (
-                                                            <Label key={channel} className="flex items-center gap-3 cursor-pointer group">
-                                                                <Checkbox
-                                                                    checked={form.channels[channel]}
-                                                                    onCheckedChange={(checked) => setForm(f => ({
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                        {(['in_app', 'email', 'push', 'webhook'] as ChannelKey[]).map(channel => {
+                                                            const ch = channelLabels[channel];
+                                                            const selected = form.channels[channel];
+                                                            return (
+                                                                <div
+                                                                    key={channel}
+                                                                    onClick={() => setForm(f => ({
                                                                         ...f,
-                                                                        channels: {...f.channels, [channel]: !!checked},
+                                                                        channels: {...f.channels, [channel]: !f.channels[channel]},
                                                                     }))}
-                                                                />
-                                                                <span className="text-sm text-muted-foreground group-hover:text-indigo-600 transition-colors">
-                                                                    {channelLabels[channel]}
-                                                                </span>
-                                                            </Label>
-                                                        ))}
+                                                                    className={
+                                                                        'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ' +
+                                                                        (selected
+                                                                            ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                                                                            : 'border-border bg-card hover:border-indigo-200 hover:bg-indigo-50/30')
+                                                                    }
+                                                                >
+                                                                    <div className={
+                                                                        'w-10 h-10 rounded-lg flex items-center justify-center transition-colors ' +
+                                                                        (selected ? 'bg-indigo-500 text-white' : 'bg-muted text-muted-foreground')
+                                                                    }>
+                                                                        {ch.icon}
+                                                                    </div>
+                                                                    <span className={'text-sm font-medium ' + (selected ? 'text-indigo-700' : 'text-foreground')}>
+                                                                        {ch.label}
+                                                                    </span>
+                                                                    <span className="text-[11px] text-muted-foreground text-center leading-tight">
+                                                                        {ch.desc}
+                                                                    </span>
+                                                                    {selected && (
+                                                                        <div className="absolute top-2 right-2 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center">
+                                                                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
+                                                                            </svg>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             </div>
@@ -669,7 +689,7 @@ const AdminNotifications: React.FC = () => {
                                                             {/* Channel */}
                                                             <TableCell>
                                                                 <Badge variant="soft-info">
-                                                                    {channelLabels[channelKey]}
+                                                                    {channelLabels[channelKey].label}
                                                                 </Badge>
                                                             </TableCell>
                                                             {/* Status */}
