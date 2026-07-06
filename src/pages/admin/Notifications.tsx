@@ -20,6 +20,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {adminUserApi, type User} from '@/lib/api/user';
+import {settingsApi} from '@/lib/api/system';
 import {formatDateTime} from '@/lib/format';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
@@ -83,15 +84,18 @@ const AdminNotifications: React.FC = () => {
         webhookEnabled: false,
         smsEnabled: false,
     });
+    const [savingConfig, setSavingConfig] = useState(false);
+    const [sendingTest, setSendingTest] = useState(false);
 
     useEffect(() => {
         fetchData();
+        fetchConfig();
     }, []);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await notificationApi.getAll({page_size: 50});
+            const response = await notificationApi.adminGetAll({page_size: 50});
             const items = response?.items ?? [];
             setNotifications(items);
             setUnreadCount(response?.unread_count ?? items.filter((n: Notification) => !n.read).length);
@@ -99,6 +103,55 @@ const AdminNotifications: React.FC = () => {
             console.error('Failed to fetch notifications:', err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchConfig = async () => {
+        try {
+            const settings = await settingsApi.get();
+            const moduleSettings = settings.module || [];
+            const getBool = (key: string, fallback: boolean) => {
+                const item = moduleSettings.find((s: any) => s.key === key);
+                if (!item) return fallback;
+                return item.value === 'true' || item.value === '1';
+            };
+            setConfig({
+                emailEnabled: getBool('notification.email_enabled', true),
+                pushEnabled: getBool('notification.push_enabled', true),
+                webhookEnabled: getBool('notification.webhook_enabled', false),
+                smsEnabled: getBool('notification.sms_enabled', false),
+            });
+        } catch (err) {
+            console.error('Failed to fetch notification config:', err);
+        }
+    };
+
+    const saveConfig = async () => {
+        try {
+            setSavingConfig(true);
+            await settingsApi.update({
+                settings: [
+                    {key: 'notification.email_enabled', value: String(config.emailEnabled)},
+                    {key: 'notification.push_enabled', value: String(config.pushEnabled)},
+                    {key: 'notification.webhook_enabled', value: String(config.webhookEnabled)},
+                    {key: 'notification.sms_enabled', value: String(config.smsEnabled)},
+                ],
+            });
+        } catch (err) {
+            console.error('Failed to save notification config:', err);
+        } finally {
+            setSavingConfig(false);
+        }
+    };
+
+    const handleSendTest = async () => {
+        try {
+            setSendingTest(true);
+            await notificationApi.adminSendTest();
+        } catch (err) {
+            console.error('Failed to send test notification:', err);
+        } finally {
+            setSendingTest(false);
         }
     };
 
@@ -133,34 +186,24 @@ const AdminNotifications: React.FC = () => {
     const handleSend = async () => {
         if (!form.title || !form.body) return;
         if (!form.sendToAll && selectedUserIds.length === 0) return;
-        const enabledChannels = (Object.keys(form.channels) as ChannelKey[]).filter(c => form.channels[c]);
-        if (enabledChannels.length === 0) return;
 
         try {
             setSending(true);
-            const recipients = form.sendToAll ? [] : selectedUserIds;
-            for (const channel of enabledChannels) {
-                if (recipients.length === 0) {
-                    await notificationApi.create({
-                        action: 'system',
-                        title: form.title,
-                        body: form.body,
-                        method: channel,
-                        notify: channel !== 'in_app',
-                    });
-                } else {
-                    for (const userId of recipients) {
-                        await notificationApi.create({
-                            action: 'system',
-                            title: form.title,
-                            body: form.body,
-                            user_id: userId,
-                            method: channel,
-                            notify: channel !== 'in_app',
-                        });
-                    }
-                }
+            const primaryChannel = (Object.keys(form.channels) as ChannelKey[]).find(c => form.channels[c]) || 'in_app';
+            const data = {
+                action: 'system',
+                title: form.title,
+                body: form.body,
+                method: primaryChannel,
+                notify: primaryChannel !== 'in_app',
+            };
+
+            if (form.sendToAll) {
+                await notificationApi.adminBroadcast(data);
+            } else {
+                await notificationApi.adminSend({...data, user_ids: selectedUserIds});
             }
+
             setForm({
                 title: '',
                 body: '',
@@ -179,7 +222,7 @@ const AdminNotifications: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            await notificationApi.delete(id);
+            await notificationApi.adminDelete(id);
             setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) {
             console.error('Failed to delete notification:', err);
@@ -800,8 +843,17 @@ const AdminNotifications: React.FC = () => {
                                         </CardContent>
                                     </Card>
                                 </div>
-                                <div className="flex justify-end pt-6 border-t border-border max-w-5xl">
-                                    <Button>
+                                <div className="flex justify-end gap-3 pt-6 border-t border-border max-w-5xl">
+                                    <Button
+                                        variant="outline"
+                                        onClick={handleSendTest}
+                                        disabled={sendingTest}
+                                    >
+                                        {sendingTest ? <Loader2 className="w-4 h-4 animate-spin"/> : <BellRing className="w-4 h-4"/>}
+                                        {t('admin.notificationsSendTest', 'Send Test Notification')}
+                                    </Button>
+                                    <Button onClick={saveConfig} disabled={savingConfig}>
+                                        {savingConfig ? <Loader2 className="w-4 h-4 animate-spin"/> : null}
                                         {t('admin.notificationsSaveSettings', 'Save Global Settings')}
                                     </Button>
                                 </div>

@@ -70,9 +70,6 @@ export const notificationApi = {
         return 0;
     },
 
-    create: (data: { action: string; title: string; body: string; user_id?: string; method?: string; notify?: boolean }) =>
-        api.post<Notification>('/notifications', data),
-
     markAsRead: (id: number) =>
         api.post<Notification>(`/notifications/${id}/read`),
 
@@ -81,4 +78,23 @@ export const notificationApi = {
 
     delete: (id: number) =>
         api.del<void>(`/notifications/${id}`),
+
+    // Admin APIs
+    adminGetAll: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>('/admin/notifications', params);
+        const normalized = normalizeNotificationList(response);
+        return normalized as any;
+    },
+
+    adminSend: (data: { action: string; title: string; body: string; user_ids: string[]; method?: string; notify?: boolean }) =>
+        api.post<{ items: Notification[]; sent_count: number }>('/admin/notifications', data),
+
+    adminBroadcast: (data: { action: string; title: string; body: string; method?: string; notify?: boolean }) =>
+        api.post<{ items: Notification[]; sent_count: number }>('/admin/notifications/broadcast', data),
+
+    adminSendTest: () =>
+        api.post<Notification>('/admin/notifications/test'),
+
+    adminDelete: (id: number) =>
+        api.del<void>(`/admin/notifications/${id}`),
 };
