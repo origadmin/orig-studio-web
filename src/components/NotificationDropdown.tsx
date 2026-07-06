@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Bell, CheckCheck, Loader2} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
-import {useLocation, useNavigate} from '@tanstack/react-router';
+import {useLocation, Link} from '@tanstack/react-router';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {formatRelativeTime} from '@/lib/format';
 import {useNotificationState} from '@/contexts/NotificationContext';
@@ -9,7 +9,6 @@ import type {Notification} from '@/lib/api/notification';
 
 const NotificationDropdown: React.FC = () => {
     const {t} = useTranslation();
-    const navigate = useNavigate();
     const location = useLocation();
     const {unreadCount, recentNotifications, markAsRead, markAllAsRead, refresh} = useNotificationState();
     const [open, setOpen] = useState(false);
@@ -19,8 +18,7 @@ const NotificationDropdown: React.FC = () => {
         setOpen(false);
     }, [location.pathname]);
 
-    const handleMarkAll = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleMarkAll = async () => {
         try {
             setMarkingAll(true);
             await markAllAsRead();
@@ -34,12 +32,6 @@ const NotificationDropdown: React.FC = () => {
         if (!n.read) {
             markAsRead(n.id).catch(() => {});
         }
-        navigate({to: '/admin/notifications'});
-    };
-
-    const handleViewAll = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        navigate({to: '/admin/notifications'});
     };
 
     const handleOpenChange = (isOpen: boolean) => {
@@ -94,14 +86,15 @@ const NotificationDropdown: React.FC = () => {
                     ) : (
                         <div className="w-full">
                             {recentNotifications.map((n) => (
-                                <div
+                                <Link
                                     key={n.id}
-                                    className={`relative px-4 py-2 cursor-pointer transition-colors border-b border-border/30 last:border-b-0 w-full ${
+                                    to="/admin/notifications"
+                                    onClick={() => handleItemClick(n)}
+                                    className={`relative block px-4 py-2 cursor-pointer transition-colors border-b border-border/30 last:border-b-0 w-full ${
                                         !n.read
                                             ? 'bg-blue-50/50 dark:bg-blue-950/25 hover:bg-blue-50 dark:hover:bg-blue-950/40'
                                             : 'hover:bg-accent/50'
                                     }`}
-                                    onClick={() => handleItemClick(n)}
                                 >
                                     {!n.read && (
                                         <span className="absolute left-0 top-2 bottom-2 w-[3px] bg-blue-500 rounded-r-full"/>
@@ -128,17 +121,17 @@ const NotificationDropdown: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     )}
                 </div>
-                <button
-                    className="w-full py-2 text-sm text-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors font-medium border-t"
-                    onClick={handleViewAll}
+                <Link
+                    to="/admin/notifications"
+                    className="block w-full py-2 text-sm text-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors font-medium border-t"
                 >
                     {t('admin.viewAllNotifications', 'View all notifications')} →
-                </button>
+                </Link>
             </PopoverContent>
         </Popover>
     );
