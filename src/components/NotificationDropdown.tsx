@@ -28,6 +28,13 @@ const NotificationDropdown: React.FC = () => {
         }
     };
 
+    const getItemHref = (n: Notification): string => {
+        if (n.action && n.action.startsWith('/')) {
+            return n.action;
+        }
+        return '/me/notifications';
+    };
+
     const handleItemClick = (n: Notification) => {
         if (!n.read) {
             markAsRead(n.id).catch(() => {});
@@ -88,7 +95,7 @@ const NotificationDropdown: React.FC = () => {
                             {recentNotifications.map((n) => (
                                 <Link
                                     key={n.id}
-                                    to="/admin/notifications"
+                                    to={getItemHref(n)}
                                     onClick={() => handleItemClick(n)}
                                     className={`relative block px-4 py-2 cursor-pointer transition-colors border-b border-border/30 last:border-b-0 w-full ${
                                         !n.read
@@ -127,7 +134,7 @@ const NotificationDropdown: React.FC = () => {
                     )}
                 </div>
                 <Link
-                    to="/admin/notifications"
+                    to="/me/notifications"
                     className="block w-full py-2 text-sm text-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors font-medium border-t"
                 >
                     {t('admin.viewAllNotifications', 'View all notifications')} →
