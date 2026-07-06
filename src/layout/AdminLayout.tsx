@@ -34,7 +34,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
-import NotificationBadge from '@/components/common/NotificationBadge';
+import NotificationDropdown from '@/components/NotificationDropdown';
 import {Input} from '@/components/ui/input';
 
 interface NavItem {
@@ -263,7 +263,7 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
                 >
                     <PanelLeft size={18}/>
                 </button>
-                <NotificationBadge/>
+                <NotificationDropdown/>
                 <button className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">
                     <Settings size={18}/>
                 </button>

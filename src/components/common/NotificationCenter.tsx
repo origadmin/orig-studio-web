@@ -1,6 +1,6 @@
 import {Spinner} from "@/components/ui/spinner"
-import React, {useState, useEffect, useCallback} from 'react';
-import {Bell, Check, Trash2, Loader2, CheckSquare, X, ChevronLeft, ChevronRight} from 'lucide-react';
+import React, {useState, useEffect} from 'react';
+import {Bell, Check, Trash2, Loader2, CheckSquare, Square, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -8,13 +8,11 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {formatDate} from '@/lib/format';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useNotificationState} from '@/contexts/NotificationContext';
-import {usePagination} from '@/hooks/usePagination';
-import {cn} from '@/lib/utils';
 import ErrorPage from '@/components/common/ErrorPage';
 
 const NotificationCenter: React.FC = () => {
     const {t} = useTranslation();
-    const {unreadCount, markAsRead, markAllAsRead, refresh: refreshBell} = useNotificationState();
+    const {unreadCount, markAsRead, markAllAsRead, refresh} = useNotificationState();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,28 +21,24 @@ const NotificationCenter: React.FC = () => {
     const [batchMode, setBatchMode] = useState(false);
     const [batchLoading, setBatchLoading] = useState(false);
 
-    const {page, pageSize, total, totalPages, isFirstPage, isLastPage, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
 
-    const fetchNotifications = useCallback(async () => {
+    const fetchNotifications = async () => {
         try {
             setLoading(true);
             setError(null);
-            const params = getParams();
-            const response = await notificationApi.getAll(params);
+            const response = await notificationApi.getAll({page_size: 20});
             const items = Array.isArray(response?.items) ? response.items : [];
             setNotifications(items);
-            setTotal(response?.total ?? items.length);
         } catch (err) {
             setError('Failed to fetch notifications');
             console.error('Failed to fetch notifications:', err);
         } finally {
             setLoading(false);
         }
-    }, [getParams, setTotal]);
-
-    useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
+    };
 
     const handleMarkAsRead = async (id: number) => {
         try {
@@ -60,7 +54,6 @@ const NotificationCenter: React.FC = () => {
             setIsMarkingAllRead(true);
             await markAllAsRead();
             setNotifications(prev => prev.map(n => ({...n, read: true})));
-            refreshBell();
         } catch (err) {
             console.error('Failed to mark all notifications as read:', err);
         } finally {
@@ -71,8 +64,13 @@ const NotificationCenter: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             await notificationApi.delete(id);
-            fetchNotifications();
-            refreshBell();
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            setSelectedIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+            refresh();
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
@@ -102,7 +100,7 @@ const NotificationCenter: React.FC = () => {
             await Promise.all([...selectedIds].map(id => notificationApi.markAsRead(id)));
             setNotifications(prev => prev.map(n => selectedIds.has(n.id) ? {...n, read: true} : n));
             setSelectedIds(new Set());
-            refreshBell();
+            refresh();
         } catch (err) {
             console.error('Failed to batch mark as read:', err);
         } finally {
@@ -115,10 +113,9 @@ const NotificationCenter: React.FC = () => {
         try {
             setBatchLoading(true);
             await Promise.all([...selectedIds].map(id => notificationApi.delete(id)));
+            setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
             setSelectedIds(new Set());
-            setBatchMode(false);
-            fetchNotifications();
-            refreshBell();
+            refresh();
         } catch (err) {
             console.error('Failed to batch delete:', err);
         } finally {
@@ -142,8 +139,6 @@ const NotificationCenter: React.FC = () => {
     if (error) {
         return <ErrorPage message={error}/>;
     }
-
-    const showPagination = total > pageSize;
 
     return (
         <div className="space-y-4">
@@ -251,12 +246,11 @@ const NotificationCenter: React.FC = () => {
                                 {notifications.map(notification => (
                                     <div
                                         key={notification.id}
-                                        className={cn(
-                                            'p-4 rounded-lg border transition-colors',
+                                        className={`p-4 rounded-lg border transition-colors ${
                                             selectedIds.has(notification.id) ? 'border-primary bg-primary/5' :
                                             notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' :
                                             'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30'
-                                        )}
+                                        }`}
                                     >
                                         <div className="flex items-start gap-3">
                                             {batchMode && (
@@ -270,21 +264,14 @@ const NotificationCenter: React.FC = () => {
                                                 <h4 className="font-medium text-gray-900 dark:text-white">
                                                     {notification.title}
                                                 </h4>
-                                                {notification.body && (
-                                                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                                                        {notification.body}
-                                                    </p>
-                                                )}
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                                    {notification.body}
+                                                </p>
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-xs text-gray-500 dark:text-muted-foreground">
                                                         {formatDate(notification.create_time)}
                                                     </span>
-                                                    <span className={cn(
-                                                        'text-xs font-medium px-2 py-0.5 rounded-full',
-                                                        notification.read
-                                                            ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                                                            : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200'
-                                                    )}>
+                                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${notification.read ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200'}`}>
                                                         {notification.read ? t('notifications.read') : t('notifications.unread')}
                                                     </span>
                                                 </div>
@@ -320,37 +307,6 @@ const NotificationCenter: React.FC = () => {
                         </>
                     )}
                 </CardContent>
-                {showPagination && (
-                    <div className="flex items-center justify-between px-6 py-3 border-t text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <span className="tabular-nums">
-                                {t('common.pageInfo', 'Page {{page}} of {{totalPages}} · {{total}} total', {page, totalPages, total})}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-3"
-                                disabled={isFirstPage}
-                                onClick={() => setPage(page - 1)}
-                            >
-                                <ChevronLeft className="h-4 w-4 mr-1"/>
-                                {t('common.previous', 'Previous')}
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-8 px-3"
-                                disabled={isLastPage}
-                                onClick={() => setPage(page + 1)}
-                            >
-                                {t('common.next', 'Next')}
-                                <ChevronRight className="h-4 w-4 ml-1"/>
-                            </Button>
-                        </div>
-                    </div>
-                )}
             </Card>
         </div>
     );

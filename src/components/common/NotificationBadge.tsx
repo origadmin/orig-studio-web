@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {Bell, Check, ExternalLink, Mail, MessageSquare, AtSign, Heart, UserPlus, CheckCheck, Loader2} from 'lucide-react';
-import {Link, useLocation} from '@tanstack/react-router';
+import React from 'react';
+import {Bell, Check, ExternalLink, Mail, MessageSquare, AtSign, Heart, UserPlus} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
@@ -9,9 +8,8 @@ import {Separator} from '@/components/ui/separator';
 import {useNotificationState} from '@/contexts/NotificationContext';
 import {useAuth} from '@/hooks/useAuth';
 import {useTranslation} from 'react-i18next';
-import {formatRelativeTime} from '@/lib/format';
+import {formatDate} from '@/lib/format';
 import {cn} from '@/lib/utils';
-import type {Notification} from '@/lib/api/notification';
 
 const actionIcons: Record<string, React.ReactNode> = {
     system: <MessageSquare className="w-4 h-4"/>,
@@ -31,54 +29,17 @@ const actionColors: Record<string, string> = {
     email: 'bg-violet-100 text-violet-600 dark:bg-violet-900 dark:text-violet-400',
 };
 
-const getItemHref = (n: Notification): string => {
-    if (n.action && n.action.startsWith('/')) {
-        return n.action;
-    }
-    return '/me/notifications';
-};
-
 const NotificationBadge: React.FC = () => {
     const {user} = useAuth();
     const {t} = useTranslation();
-    const location = useLocation();
-    const {unreadCount, recentNotifications, markAsRead, markAllAsRead, refresh} = useNotificationState();
-    const [open, setOpen] = useState(false);
-    const [markingAll, setMarkingAll] = useState(false);
-
-    useEffect(() => {
-        setOpen(false);
-    }, [location.pathname]);
+    const {unreadCount, recentNotifications, markAsRead} = useNotificationState();
 
     if (!user) return null;
 
     const notifications = Array.isArray(recentNotifications) ? recentNotifications : [];
 
-    const handleOpenChange = (isOpen: boolean) => {
-        setOpen(isOpen);
-        if (isOpen) {
-            refresh();
-        }
-    };
-
-    const handleMarkAll = async () => {
-        try {
-            setMarkingAll(true);
-            await markAllAsRead();
-            refresh();
-        } finally {
-            setMarkingAll(false);
-        }
-    };
-
-    const handleMarkAsRead = (e: React.MouseEvent, id: number) => {
-        e.preventDefault();
-        e.stopPropagation();
-        markAsRead(id).catch(() => {});
-    };
-
     return (
-        <Popover open={open} onOpenChange={handleOpenChange}>
+        <Popover>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full hover:bg-accent">
                     <Bell className="h-[18px] w-[18px]"/>
@@ -96,54 +57,30 @@ const NotificationBadge: React.FC = () => {
                 <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-900 rounded-t-xl">
                     <div className="flex items-center gap-2">
                         <Bell className="w-4 h-4 text-muted-foreground"/>
-                        <span className="font-semibold text-sm">{t('notifications.title', 'Notifications')}</span>
+                        <span className="font-semibold text-sm">{t('notifications.title')}</span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                        {unreadCount > 0 && (
-                            <Badge variant="soft-danger" className="text-xs font-medium">
-                                {unreadCount}
-                            </Badge>
-                        )}
-                        {unreadCount > 0 && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 w-7 p-0 rounded-full hover:bg-accent"
-                                onClick={handleMarkAll}
-                                disabled={markingAll}
-                                title={t('notifications.markAllAsRead', 'Mark all as read')}
-                            >
-                                {markingAll ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin"/>
-                                ) : (
-                                    <CheckCheck className="w-3.5 h-3.5"/>
-                                )}
-                            </Button>
-                        )}
-                    </div>
+                    {unreadCount > 0 && (
+                        <Badge variant="soft-danger" className="text-xs font-medium">
+                            {unreadCount}
+                        </Badge>
+                    )}
                 </div>
                 <Separator/>
                 {notifications.length === 0 ? (
                     <div className="px-4 py-8 text-center">
                         <Bell className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2"/>
-                        <p className="text-sm text-muted-foreground">{t('notifications.noNotifications', 'No notifications')}</p>
+                        <p className="text-sm text-muted-foreground">{t('notifications.noNotifications')}</p>
                     </div>
                 ) : (
                     <ScrollArea className="max-h-[400px]">
                         <div className="divide-y divide-border">
                             {notifications.map(notification => (
-                                <Link
+                                <div
                                     key={notification.id}
-                                    to={getItemHref(notification)}
                                     className={cn(
-                                        'block px-4 py-3 flex items-start gap-3 transition-colors hover:bg-accent/50 cursor-pointer',
+                                        'px-4 py-3 flex items-start gap-3 transition-colors hover:bg-accent/50',
                                         !notification.read && 'bg-blue-50/50 dark:bg-blue-950/30',
                                     )}
-                                    onClick={() => {
-                                        if (!notification.read) {
-                                            markAsRead(notification.id).catch(() => {});
-                                        }
-                                    }}
                                 >
                                     <div className={cn('mt-0.5 p-1.5 rounded-lg flex-shrink-0', actionColors[notification.action] || actionColors.system)}>
                                         {actionIcons[notification.action] || actionIcons.system}
@@ -154,19 +91,17 @@ const NotificationBadge: React.FC = () => {
                                                 <span className="h-1.5 w-1.5 rounded-full bg-blue-500 flex-shrink-0"/>
                                             )}
                                             <p className={cn(
-                                                'text-sm leading-tight truncate',
+                                                'text-sm leading-tight',
                                                 notification.read ? 'text-muted-foreground' : 'font-medium text-foreground',
                                             )}>
                                                 {notification.title}
                                             </p>
                                         </div>
-                                        {notification.body && (
-                                            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                                                {notification.body}
-                                            </p>
-                                        )}
-                                        <p className="text-[11px] text-muted-foreground/70 tabular-nums">
-                                            {formatRelativeTime(notification.create_time)}
+                                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                                            {notification.body}
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground/70">
+                                            {formatDate(notification.create_time)}
                                         </p>
                                     </div>
                                     {!notification.read && (
@@ -174,26 +109,29 @@ const NotificationBadge: React.FC = () => {
                                             variant="outline"
                                             size="sm"
                                             className="h-6 px-2 text-[10px] flex-shrink-0 mt-1 rounded-full border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950"
-                                            onClick={(e) => handleMarkAsRead(e, notification.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                markAsRead(notification.id);
+                                            }}
                                         >
                                             <Check className="w-3 h-3 mr-0.5"/>
-                                            {t('notifications.markAsRead', 'Read')}
+                                            {t('notifications.markAsRead')}
                                         </Button>
                                     )}
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     </ScrollArea>
                 )}
                 <Separator/>
                 <div className="p-2">
-                    <Link
-                        to="/me/notifications"
+                    <a
+                        href="/me/notifications"
                         className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 py-1.5 rounded-lg hover:bg-accent/50 transition-colors"
                     >
-                        {t('notifications.viewAll', 'View all notifications')}
+                        {t('notifications.viewAll')}
                         <ExternalLink className="w-3.5 h-3.5"/>
-                    </Link>
+                    </a>
                 </div>
             </PopoverContent>
         </Popover>

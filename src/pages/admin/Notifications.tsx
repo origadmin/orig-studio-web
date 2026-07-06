@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Bell,
     Send,
@@ -17,8 +17,6 @@ import {
     Trash2,
     Inbox,
     Smartphone,
-    ChevronLeft,
-    ChevronRight,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
@@ -38,7 +36,6 @@ import {Switch} from '@/components/ui/switch';
 import {Checkbox} from '@/components/ui/checkbox';
 import {AdminPageTemplate} from '@/components/AdminPageTemplate';
 import {useNotificationState} from '@/contexts/NotificationContext';
-import {usePagination} from '@/hooks/usePagination';
 
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
@@ -70,9 +67,6 @@ const AdminNotifications: React.FC = () => {
     const [sending, setSending] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    // History pagination
-    const {page, pageSize, total: historyTotal, totalPages, isFirstPage, isLastPage, setPage, setTotal: setHistoryTotal, getParams} = usePagination({initialPageSize: 20});
-
     // Compose form state
     const [form, setForm] = useState({
         title: '',
@@ -97,31 +91,23 @@ const AdminNotifications: React.FC = () => {
     const [sendingTest, setSendingTest] = useState(false);
 
     useEffect(() => {
+        fetchData();
         fetchConfig();
-        fetchHistory();
     }, []);
 
-    const fetchHistory = useCallback(async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const params = getParams();
-            const response = await notificationApi.adminGetAll(params);
+            const response = await notificationApi.adminGetAll({page_size: 50});
             const items = response?.items ?? [];
             setNotifications(items);
-            setHistoryTotal(response?.total ?? items.length);
             setUnreadCount(response?.unread_count ?? items.filter((n: Notification) => !n.read).length);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
         } finally {
             setLoading(false);
         }
-    }, [getParams, setHistoryTotal]);
-
-    useEffect(() => {
-        if (activeTab === 'history') {
-            fetchHistory();
-        }
-    }, [activeTab, page, pageSize, fetchHistory]);
+    };
 
     const fetchConfig = async () => {
         try {
@@ -230,10 +216,7 @@ const AdminNotifications: React.FC = () => {
             });
             setSelectedUserIds([]);
             setShowUserPicker(false);
-            setPage(1);
-            if (activeTab === 'history') {
-                fetchHistory();
-            }
+            fetchData();
             refreshBell();
         } catch (err) {
             console.error('Failed to send notification:', err);
@@ -245,8 +228,7 @@ const AdminNotifications: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             await notificationApi.adminDelete(id);
-            fetchHistory();
-            refreshBell();
+            setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
@@ -255,15 +237,13 @@ const AdminNotifications: React.FC = () => {
     const selectedUsers = users.filter(u => selectedUserIds.includes(u.id));
 
     // ── Stats (Sent / Delivered / Opened / Clicked) ──
-    const pageCount = notifications.length;
-    const pageRead = notifications.filter(n => n.read).length;
-    const totalRead = Math.max(0, historyTotal - unreadCount);
+    const total = notifications.length;
+    const read = notifications.filter(n => n.read).length;
     const stats = {
-        sent: historyTotal,
-        delivered: historyTotal,
-        opened: totalRead,
-        clicked: totalRead,
-        openRate: historyTotal > 0 ? (totalRead / historyTotal) * 100 : 0,
+        sent: total,
+        delivered: total > 0 ? total : 0,
+        opened: read,
+        clicked: read,
     };
 
     return (
@@ -344,7 +324,7 @@ const AdminNotifications: React.FC = () => {
                                     <div className="mt-2 w-24 h-1.5 bg-muted rounded-full overflow-hidden">
                                         <div
                                             className="h-full bg-indigo-600"
-                                            style={{width: `${stats.openRate}%`}}
+                                            style={{width: `${total > 0 ? (stats.opened / total) * 100 : 0}%`}}
                                         />
                                     </div>
                                 </div>
@@ -759,37 +739,6 @@ const AdminNotifications: React.FC = () => {
                                             )}
                                         </TableBody>
                                     </Table>
-                                    {historyTotal > pageSize && (
-                                        <div className="flex items-center justify-between px-6 py-3 border-t text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-2">
-                                                <span className="tabular-nums">
-                                                    {t('common.pageInfo', 'Page {{page}} of {{totalPages}} · {{total}} total', {page, totalPages, total: historyTotal})}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 px-3"
-                                                    disabled={isFirstPage}
-                                                    onClick={() => setPage(page - 1)}
-                                                >
-                                                    <ChevronLeft className="h-4 w-4 mr-1"/>
-                                                    {t('common.previous', 'Previous')}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-8 px-3"
-                                                    disabled={isLastPage}
-                                                    onClick={() => setPage(page + 1)}
-                                                >
-                                                    {t('common.next', 'Next')}
-                                                    <ChevronRight className="h-4 w-4 ml-1"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
                                 </Card>
                             </section>
                         </TabsContent>
