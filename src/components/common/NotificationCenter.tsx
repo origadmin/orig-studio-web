@@ -1,6 +1,6 @@
 import {Spinner} from "@/components/ui/spinner"
 import React, {useState, useEffect} from 'react';
-import {Bell, Check, Trash2, Loader2, CheckSquare, Square, X} from 'lucide-react';
+import {Bell, Check, Trash2, Loader2, CheckSquare, X} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
