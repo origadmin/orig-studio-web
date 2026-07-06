@@ -595,7 +595,10 @@
     "batchSendDesc": "Send notifications to multiple users at once",
     "selectUsers": "Select Users",
     "allUsers": "All Users",
-    "preview": "Preview"
+    "preview": "Preview",
+    "batchSelect": "Batch Select",
+    "selectAll": "Select All",
+    "selectedCount": "{{count}}/{{total}} selected"
   },
   "history": {
     "title": "History",

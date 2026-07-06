@@ -595,7 +595,10 @@
     "batchSendDesc": "複数のユーザーに一度に通知を送信",
     "selectUsers": "ユーザーを選択",
     "allUsers": "すべてのユーザー",
-    "preview": "プレビュー"
+    "preview": "プレビュー",
+    "batchSelect": "一括選択",
+    "selectAll": "すべて選択",
+    "selectedCount": "{{count}}/{{total}} 件選択"
   },
   "history": {
     "title": "視聴履歴",

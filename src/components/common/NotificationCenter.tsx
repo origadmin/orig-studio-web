@@ -195,7 +195,7 @@ const NotificationCenter: React.FC = () => {
                                                 onClick={() => setBatchMode(true)}
                                             >
                                                 <CheckSquare className="w-4 h-4 mr-1"/>
-                                                {t('notifications.selectUsers') || 'Select'}
+                                                {t('notifications.batchSelect')}
                                             </Button>
                                             <Button
                                                 variant="ghost"
@@ -237,8 +237,9 @@ const NotificationCenter: React.FC = () => {
                                     />
                                     <span className="text-sm text-muted-foreground">
                                         {selectedIds.size > 0
-                                            ? t('notifications.selectUsers') + ` (${selectedIds.size}/${notifications.length})`
-                                            : t('notifications.allUsers') || 'Select all'}
+                                            ? t('notifications.selectedCount', {count: selectedIds.size, total: notifications.length})
+                                            : t('notifications.selectAll')
+                                        }
                                     </span>
                                 </div>
                             )}

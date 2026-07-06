@@ -595,7 +595,10 @@
     "batchSendDesc": "一次向多个用户发送通知",
     "selectUsers": "选择用户",
     "allUsers": "所有用户",
-    "preview": "预览"
+    "preview": "预览",
+    "batchSelect": "批量选择",
+    "selectAll": "全选",
+    "selectedCount": "已选择 ({{count}}/{{total}})"
   },
   "history": {
     "title": "历史记录",
