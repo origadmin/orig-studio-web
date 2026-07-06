@@ -15,20 +15,10 @@ const NotificationDropdown: React.FC = () => {
     const {unreadCount, recentNotifications, markAsRead, markAllAsRead, refresh} = useNotificationState();
     const [open, setOpen] = useState(false);
     const [markingAll, setMarkingAll] = useState(false);
-    const [markingId, setMarkingId] = useState<number | null>(null);
 
     useEffect(() => {
         setOpen(false);
     }, [location.pathname]);
-
-    const handleMarkAsRead = async (id: number) => {
-        try {
-            setMarkingId(id);
-            await markAsRead(id);
-        } finally {
-            setMarkingId(null);
-        }
-    };
 
     const handleMarkAll = async () => {
         try {
@@ -40,18 +30,14 @@ const NotificationDropdown: React.FC = () => {
         }
     };
 
-    const handleItemClick = async (n: Notification, e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const handleItemClick = (n: Notification) => {
         if (!n.read) {
             markAsRead(n.id).catch(() => {});
         }
         navigate({to: '/admin/notifications'});
     };
 
-    const handleViewAll = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const handleViewAll = () => {
         navigate({to: '/admin/notifications'});
     };
 
@@ -74,19 +60,19 @@ const NotificationDropdown: React.FC = () => {
                     )}
                 </button>
             </PopoverTrigger>
-            <PopoverContent className="w-[360px] p-0 shadow-lg rounded-xl overflow-hidden" align="end" sideOffset={8}>
-                <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/30">
+            <PopoverContent className="w-80 p-0 shadow-lg rounded-xl overflow-hidden border border-border/60" align="end" sideOffset={8}>
+                <div className="flex items-center justify-between px-4 py-2.5 border-b">
                     <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-foreground">{t('admin.notifications', 'Notifications')}</h3>
                         {unreadCount > 0 && (
-                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                                 {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                         )}
                     </div>
                     {unreadCount > 0 && (
                         <button
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent disabled:opacity-50"
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 rounded-md hover:bg-accent disabled:opacity-50"
                             onClick={handleMarkAll}
                             disabled={markingAll}
                         >
@@ -95,68 +81,51 @@ const NotificationDropdown: React.FC = () => {
                             ) : (
                                 <CheckCheck className="w-3.5 h-3.5"/>
                             )}
-                            {t('notifications.markAllAsRead', 'Mark all read')}
                         </button>
                     )}
                 </div>
-                <ScrollArea className="max-h-[360px]">
+                <ScrollArea className="max-h-[320px]">
                     {recentNotifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                            <Bell className="w-9 h-9 mb-2.5 opacity-20"/>
+                        <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                            <Bell className="w-9 h-9 mb-2 opacity-20"/>
                             <p className="text-sm">{t('notifications.noNotifications', 'No notifications')}</p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-border/50">
+                        <div>
                             {recentNotifications.map((n) => (
                                 <div
                                     key={n.id}
-                                    className={`relative px-4 py-2 cursor-pointer transition-colors group ${
+                                    className={`relative px-4 py-2 cursor-pointer transition-colors border-b border-border/30 last:border-b-0 ${
                                         !n.read
-                                            ? 'bg-blue-50/40 dark:bg-blue-950/20 hover:bg-blue-50/70 dark:hover:bg-blue-950/30'
-                                            : 'hover:bg-accent/40'
+                                            ? 'bg-blue-50/50 dark:bg-blue-950/25 hover:bg-blue-50 dark:hover:bg-blue-950/40'
+                                            : 'hover:bg-accent/50'
                                     }`}
-                                    onClick={(e) => handleItemClick(n, e)}
+                                    onClick={() => handleItemClick(n)}
                                 >
                                     {!n.read && (
-                                        <span className="absolute left-0 top-0 bottom-0 w-[3px] bg-blue-500 rounded-r-full"/>
+                                        <span className="absolute left-0 top-2 bottom-2 w-[3px] bg-blue-500 rounded-r-full"/>
                                     )}
-                                    <div className="flex items-start gap-2 pl-1">
+                                    <div className="flex items-start gap-2 pl-1 min-w-0">
+                                        {!n.read && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-[7px]"/>
+                                        )}
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                {!n.read && (
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-0.5"/>
-                                                )}
-                                                <p className={`text-sm leading-snug truncate ${!n.read ? 'font-semibold text-foreground' : 'font-medium text-foreground/80'}`}>
-                                                    {n.title}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 mt-0.5 min-w-0">
-                                                {n.body && (
-                                                    <p className="text-xs text-muted-foreground truncate flex-1 leading-snug">
+                                            <p className={`text-sm leading-tight truncate ${!n.read ? 'font-semibold text-foreground' : 'font-normal text-foreground/75'}`}>
+                                                {n.title}
+                                            </p>
+                                            <div className="flex items-center mt-0.5 gap-2 min-w-0">
+                                                {n.body ? (
+                                                    <p className="text-xs text-muted-foreground truncate min-w-0 flex-1 leading-tight">
                                                         {n.body}
                                                     </p>
+                                                ) : (
+                                                    <span className="flex-1"/>
                                                 )}
-                                                <span className="text-[11px] text-muted-foreground/60 shrink-0">
+                                                <span className="text-[11px] text-muted-foreground/60 shrink-0 leading-tight tabular-nums">
                                                     {formatRelativeTime(n.create_time)}
                                                 </span>
                                             </div>
                                         </div>
-                                        {!n.read && markingId !== n.id && (
-                                            <button
-                                                className="opacity-0 group-hover:opacity-100 text-[10px] text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-opacity px-1 py-0.5 shrink-0 self-center"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    e.preventDefault();
-                                                    handleMarkAsRead(n.id);
-                                                }}
-                                                title={t('notifications.markAsRead', 'Mark as read')}
-                                            >
-                                                ✓
-                                            </button>
-                                        )}
-                                        {markingId === n.id && (
-                                            <Loader2 className="w-3 h-3 animate-spin text-muted-foreground shrink-0 self-center"/>
-                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -164,7 +133,7 @@ const NotificationDropdown: React.FC = () => {
                     )}
                 </ScrollArea>
                 <button
-                    className="w-full py-2.5 text-sm text-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors font-medium border-t"
+                    className="w-full py-2 text-sm text-center text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors font-medium border-t"
                     onClick={handleViewAll}
                 >
                     {t('admin.viewAllNotifications', 'View all notifications')} →
