@@ -557,7 +557,7 @@ export default function MediaPage() {
 
             {/* Upload Modal */}
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden">
+                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl py-0 overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>{t('admin.uploadMediaFiles', '上传媒体')}</DialogTitle>
                     </DialogHeader>
@@ -575,7 +575,7 @@ export default function MediaPage() {
 
             {/* Delete Modal */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent className="sm:max-w-sm rounded-2xl shadow-2xl p-0 overflow-hidden">
+                <DialogContent className="sm:max-w-sm rounded-2xl shadow-2xl py-0 overflow-hidden">
                     <DialogHeader className="sr-only">
                         <DialogTitle>{t('admin.confirmDelete', '确认删除？')}</DialogTitle>
                         <DialogDescription>{t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}</DialogDescription>
@@ -611,7 +611,7 @@ export default function MediaPage() {
 
             {/* Transcoding Detail Dialog */}
             <Dialog open={variantDetailOpen} onOpenChange={setVariantDetailOpen}>
-                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden max-h-[80vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl py-0 overflow-hidden max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             {t('admin.transcodingOverview', '转码概览')}
