@@ -200,21 +200,22 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </Breadcrumb>
       )}
 
-      <div className="flex justify-between items-end">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
           {titleIcon && (
             <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
               <span className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
                 {titleIcon}
               </span>
-              {title}
+              <span className="shrink-0">{title}</span>
+              {titleExtra}
             </h1>
           )}
           {!titleIcon && (
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
-          )}
-          {titleExtra && (
-            <div className="mt-2">{titleExtra}</div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              <span className="shrink-0">{title}</span>
+              {titleExtra}
+            </h1>
           )}
           {subtitle && (
             <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
@@ -223,7 +224,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 shrink-0 pt-1">{actions}</div>}
       </div>
 
       {stats}
