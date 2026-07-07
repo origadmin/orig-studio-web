@@ -446,8 +446,9 @@ export default function TranscodingProfiles() {
     const isGifNew = newProfile.extension === 'gif';
     const isGifEdit = editingProfile?.extension === 'gif';
 
-    const primaryAction = (
+    const pageActions = (
         <Button
+            variant="outline"
             onClick={() => {
                 setNewProfile({is_active: true, extension: 'mp4', video_codec: 'h264', audio_codec: 'aac', resolution: '720'});
                 setIsAddModalOpen(true);
@@ -658,7 +659,7 @@ export default function TranscodingProfiles() {
             searchValue={searchQuery}
             onSearchChange={setSearchQuery}
             filters={pageFilters}
-            primaryAction={primaryAction}
+            actions={pageActions}
         >
             <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
                 <Table>
