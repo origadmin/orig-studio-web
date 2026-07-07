@@ -24,7 +24,7 @@ import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save} from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {toast} from 'sonner';
 import type {Media} from '@/lib/api/media';
@@ -475,6 +475,165 @@ export default function MediaEditPage() {
         );
     }
 
+    const sidebarCards = (
+        <div className="col-span-12 lg:col-span-4 space-y-6">
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.identity', '身份信息')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="pb-3 border-b border-border">
+                        <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.resourceId', '资源ID')}</Label>
+                        <div className="flex items-center gap-2">
+                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.id}</code>
+                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                        </div>
+                    </div>
+                    <div className="pb-3 border-b border-border">
+                        <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
+                        <div className="flex items-center gap-2">
+                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
+                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                        </div>
+                    </div>
+                    <div className="pb-3">
+                        <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
+                        <div className="flex items-center gap-2">
+                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
+                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                        </div>
+                    </div>
+                    <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border mt-2">
+                        <p>{t('mediaEdit.createdAt', '创建')}: <span className="font-mono text-foreground">{formatDateTime(media.create_time)}</span></p>
+                        <p>{t('mediaEdit.updatedAt', '更新')}: <span className="font-mono text-foreground">{formatDateTime(media.update_time)}</span></p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 gap-3">
+                        {(() => {
+                            const lc = getLifecyclePill(media.state);
+                            const rv = getReviewPill(media.review_status);
+                            const enc = getEncodingPill(media.encoding_status);
+                            const idle = IDLE_PILL;
+                            return (
+                                <>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", lc.bg, lc.text, lc.border)}>
+                                            {t(lc.labelKey, lc.fallback)}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.review', 'Review')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", rv.bg, rv.text, rv.border)}>
+                                            {t(rv.labelKey, rv.fallback)}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.encoding', 'Encoding')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", enc.bg, enc.text, enc.border)}>
+                                            {t(enc.labelKey, enc.fallback)}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.sprites', 'Sprites')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", idle.bg, idle.text, idle.border)}>
+                                            {t(idle.labelKey, idle.fallback)}
+                                        </span>
+                                    </div>
+                                </>
+                            );
+                        })()}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.ownership', '归属信息')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-primary/20 flex items-center justify-center">
+                            <span className="text-primary font-bold text-sm">U</span>
+                        </div>
+                        <div>
+                            <p className="font-bold text-sm">{t('mediaEdit.user', '用户')}</p>
+                            <p className="text-xs text-muted-foreground">{t('mediaEdit.contentCreator', '内容创作者')}</p>
+                        </div>
+                    </div>
+                    <div className="space-y-3 pt-3 border-t border-border">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">{t('mediaEdit.channel', '频道')}</span>
+                            <span className="font-semibold">{t('mediaEdit.defaultChannel', '默认')}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
+                            <Badge variant="outline" className="text-xs font-semibold">{media.category_id || t('mediaEdit.general', '通用')}</Badge>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center">
+                        <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.workflow', '工作流')}</CardTitle>
+                        <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-xs font-semibold uppercase">
+                            {t('mediaEdit.pendingReview', '待审核')}
+                        </Badge>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <Textarea className="min-h-[50px] resize-none bg-muted" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}/>
+                    <div className="grid grid-cols-2 gap-2">
+                        <Button className="py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700">
+                            {t('mediaEdit.approve', '通过')}
+                        </Button>
+                        <Button className="py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700">
+                            {t('mediaEdit.reject', '拒绝')}
+                        </Button>
+                    </div>
+                    <Button variant="outline" className="w-full py-1.5 font-semibold text-xs">
+                        {t('mediaEdit.requestChanges', '请求修改')}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-semibold">{t('mediaEdit.actions', '操作')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                    <Button variant="outline" className="w-full"
+                            onClick={() => setRegenThumbnailConfirmOpen(true)}
+                            disabled={isRegenerating}>
+                        <Image className="w-4 h-4 mr-2"/>
+                        {t('mediaEdit.regenerateThumbnail', '重新生成缩略图')}
+                    </Button>
+                    <Button variant="outline" className="w-full"
+                            onClick={() => setRegenSpriteConfirmOpen(true)}
+                            disabled={isRegenerating}>
+                        <Film className="w-4 h-4 mr-2"/>
+                        {t('mediaEdit.regenerateSprite', '重新生成雪碧图')}
+                    </Button>
+                    <div className="pt-2 border-t border-border mt-2">
+                        <Button variant="destructive" className="w-full"
+                                onClick={() => setDeleteDialogOpen(true)}>
+                            <Delete className="w-4 h-4 mr-2"/> {t('mediaEdit.deleteMediaAsset', '删除媒体资源')}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+
     return (
         <div className="p-8">
             <Breadcrumb className="mb-4">
@@ -496,85 +655,105 @@ export default function MediaEditPage() {
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-            <EditPageHeader
-                title={media.title || t('mediaEdit.unnamedMedia', '未命名媒体')}
-                isDirty={isDirty}
-                isSaving={isSaving}
-                saveState={saveState}
-                onBack={handleBack}
-                onSave={handleSave}
-                onPreview={media.short_token ? handlePreview : undefined}
-                onDelete={() => setDeleteDialogOpen(true)}
-                badges={headerBadges}
-            />
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                        <Film className="w-8 h-8 text-primary"/>
+                        {media.title || t('mediaEdit.unnamedMedia', '未命名媒体')}
+                        {headerBadges.map((badge, i) => {
+                            if (badge.type === 'state') {
+                                return (
+                                    <StatusDot key={i} status={badge.statusDot || 'unknown'} label={badge.label}/>
+                                );
+                            }
+                            if (badge.type === 'featured') {
+                                return <Badge key={i} variant="secondary" className="text-xs font-semibold">{badge.label}</Badge>;
+                            }
+                            return <Badge key={i} variant="outline" className="text-xs font-semibold">{badge.label}</Badge>;
+                        })}
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={handleBack}>
+                        <ArrowLeft className="w-4 h-4 mr-2"/>
+                        {t('common.back', '返回')}
+                    </Button>
+                    {media.short_token && (
+                        <Button variant="outline" onClick={handlePreview}>
+                            <Eye className="w-4 h-4 mr-2"/>
+                            {t('common.preview', '预览')}
+                        </Button>
+                    )}
+                    <Button onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Save className="w-4 h-4 mr-2"/>}
+                        {t('common.save', '保存')}
+                    </Button>
+                </div>
+            </div>
 
-            <div className="py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* LEFT COLUMN (8/12) */}
-                    <div className="col-span-12 lg:col-span-8 space-y-6">
-                        {/* Hero Card - Thumbnail + Title + Description */}
-                        <Card>
-                            <CardContent className="p-6">
-                                <div className="space-y-6">
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="media-title" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.title', '标题')}</Label>
-                                        <Input id="media-title" value={form.title}
-                                               onChange={e => setForm({...form, title: e.target.value})}
-                                               placeholder={t('mediaEdit.titlePlaceholder', '输入媒体标题...')}/>
-                                    </div>
-                                    <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors">
-                                        {media.thumbnail && !thumbnailError ? (
-                                            <img src={getFullUrl(media.thumbnail)} alt={media.title}
-                                                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
-                                                 onError={() => setThumbnailError(true)}/>
-                                        ) : null}
-                                        <div className="relative z-10 flex flex-col items-center gap-3 text-foreground">
-                                            <Upload className="w-10 h-10"/>
-                                            <p className="font-semibold">{t('mediaEdit.dragOrClickThumbnail', '拖拽或点击更换缩略图')}</p>
-                                            <p className="text-xs text-muted-foreground uppercase tracking-widest">{t('mediaEdit.thumbnailRecommended', '推荐: 1920x1080 (16:9)')}</p>
-                                        </div>
-                                        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2">
-                                            <Edit className="w-4 h-4"/>{t('mediaEdit.change', '更换')}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label htmlFor="description" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.description', '描述')}</Label>
-                                        <Textarea id="description"
-                                                  className="min-h-[80px] resize-none"
-                                                  value={form.description}
-                                                  onChange={e => setForm({...form, description: e.target.value})}
-                                                  placeholder={t('mediaEdit.descriptionPlaceholder', '添加关于这个媒体文件的详细描述...')}/>
-                                    </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-card p-0 h-auto">
+                    {[
+                        {key: 'metadata', label: t('mediaEdit.tabMetadata', '元数据')},
+                        {key: 'publishing', label: t('mediaEdit.tabPublishing', '发布设置')},
+                        {key: 'encoding', label: t('mediaEdit.tabEncoding', '编码任务')},
+                        {key: 'subtitles', label: t('mediaEdit.tabSubtitles', '字幕')},
+                        {key: 'stats', label: t('mediaEdit.tabStats', '统计信息')}
+                    ].map(tab => (
+                        <TabsTrigger
+                            key={tab.key}
+                            value={tab.key}
+                            className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none font-medium text-muted-foreground border-b-2 border-transparent hover:text-card-foreground hover:border-border transition-colors"
+                        >
+                            {tab.label}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+
+                <div className="space-y-6 mt-6">
+                    <TabsContent value="metadata">
+                        <div className="grid grid-cols-12 gap-8">
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <div className="space-y-6">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="media-title" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.title', '标题')}</Label>
+                                                <Input id="media-title" value={form.title}
+                                                       onChange={e => setForm({...form, title: e.target.value})}
+                                                       placeholder={t('mediaEdit.titlePlaceholder', '输入媒体标题...')}/>
+                                            </div>
+                                            <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors">
+                                                {media.thumbnail && !thumbnailError ? (
+                                                    <img src={getFullUrl(media.thumbnail)} alt={media.title}
+                                                         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                                                         onError={() => setThumbnailError(true)}/>
+                                                ) : null}
+                                                <div className="relative z-10 flex flex-col items-center gap-3 text-foreground">
+                                                    <Upload className="w-10 h-10"/>
+                                                    <p className="font-semibold">{t('mediaEdit.dragOrClickThumbnail', '拖拽或点击更换缩略图')}</p>
+                                                    <p className="text-xs text-muted-foreground uppercase tracking-widest">{t('mediaEdit.thumbnailRecommended', '推荐: 1920x1080 (16:9)')}</p>
+                                                </div>
+                                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2">
+                                                    <Edit className="w-4 h-4"/>{t('mediaEdit.change', '更换')}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="description" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.description', '描述')}</Label>
+                                                <Textarea id="description"
+                                                          className="min-h-[80px] resize-none"
+                                                          value={form.description}
+                                                          onChange={e => setForm({...form, description: e.target.value})}
+                                                          placeholder={t('mediaEdit.descriptionPlaceholder', '添加关于这个媒体文件的详细描述...')}/>
+                                            </div>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Tabs Navigation */}
-                        <Tabs value={activeTab} onValueChange={setActiveTab}>
-                            <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-card p-0 h-auto">
-                                {[
-                                    {key: 'metadata', label: t('mediaEdit.tabMetadata', '元数据')},
-                                    {key: 'publishing', label: t('mediaEdit.tabPublishing', '发布设置')},
-                                    {key: 'encoding', label: t('mediaEdit.tabEncoding', '编码任务')},
-                                    {key: 'subtitles', label: t('mediaEdit.tabSubtitles', '字幕')},
-                                    {key: 'stats', label: t('mediaEdit.tabStats', '统计信息')}
-                                ].map(tab => (
-                                    <TabsTrigger
-                                        key={tab.key}
-                                        value={tab.key}
-                                        className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none font-medium text-muted-foreground border-b-2 border-transparent hover:text-card-foreground hover:border-border transition-colors"
-                                    >
-                                        {tab.label}
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-
-                            <div className="space-y-6 mt-6">
-                            {/* Tab Content: Metadata */}
-                            <TabsContent value="metadata" className="space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('mediaEdit.metadata', '元数据')}</CardTitle>
+                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.metadata', '元数据')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -694,13 +873,17 @@ export default function MediaEditPage() {
                                 </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            {sidebarCards}
+                        </div>
+                    </TabsContent>
 
-                            {/* Tab Content: Publishing */}
-                            <TabsContent value="publishing" className="space-y-6">
+                    <TabsContent value="publishing">
+                        <div className="grid grid-cols-12 gap-8">
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('mediaEdit.publishingSettings', '发布设置')}</CardTitle>
+                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.publishingSettings', '发布设置')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                 <div className="mb-8">
@@ -780,13 +963,17 @@ export default function MediaEditPage() {
                                 </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            {sidebarCards}
+                        </div>
+                    </TabsContent>
 
-                            {/* Tab Content: Encoding */}
-                            <TabsContent value="encoding" className="space-y-6">
+                    <TabsContent value="encoding">
+                        <div className="grid grid-cols-12 gap-8">
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('mediaEdit.encodingTasks', '编码任务')}</CardTitle>
+                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.encodingTasks', '编码任务')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                 <div className="flex items-center gap-2 mb-6 overflow-x-auto">
@@ -877,36 +1064,19 @@ export default function MediaEditPage() {
                                     </div>
                                 </div>
 
-                                {/* Regenerate Thumbnail Confirmation */}
-                                <DeleteConfirmDialog
-                                    open={regenThumbnailConfirmOpen}
-                                    onOpenChange={setRegenThumbnailConfirmOpen}
-                                    title={t('mediaEdit.regenerateThumbnail')}
-                                    isDeleting={isRegenerating}
-                                    onConfirm={handleRegenerateThumbnail}
-                                    confirmLabel={t('mediaEdit.confirmRegenerate')}
-                                    description={t('mediaEdit.confirmRegenerateThumbnailDesc')}
-                                />
-
-                                {/* Regenerate Sprite Confirmation */}
-                                <DeleteConfirmDialog
-                                    open={regenSpriteConfirmOpen}
-                                    onOpenChange={setRegenSpriteConfirmOpen}
-                                    title={t('mediaEdit.regenerateSprite')}
-                                    isDeleting={isRegenerating}
-                                    onConfirm={handleRegenerateSprite}
-                                    confirmLabel={t('mediaEdit.confirmRegenerate')}
-                                    description={t('mediaEdit.confirmRegenerateSpriteDesc')}
-                                />
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            {sidebarCards}
+                        </div>
+                    </TabsContent>
 
-                            {/* Tab Content: Subtitles */}
-                            <TabsContent value="subtitles" className="space-y-6">
+                    <TabsContent value="subtitles">
+                        <div className="grid grid-cols-12 gap-8">
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('mediaEdit.subtitles', '字幕管理')}</CardTitle>
+                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.subtitles', '字幕管理')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                 {/* Add Subtitle Form — top section */}
@@ -958,13 +1128,17 @@ export default function MediaEditPage() {
                                 </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
+                            </div>
+                            {sidebarCards}
+                        </div>
+                    </TabsContent>
 
-                            {/* Tab Content: Stats */}
-                            <TabsContent value="stats" className="space-y-6">
+                    <TabsContent value="stats">
+                        <div className="grid grid-cols-12 gap-8">
+                            <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>{t('mediaEdit.performanceMetrics', '性能指标')}</CardTitle>
+                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.performanceMetrics', '性能指标')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -1006,175 +1180,32 @@ export default function MediaEditPage() {
                                 </div>
                                     </CardContent>
                                 </Card>
-                            </TabsContent>
                             </div>
-                        </Tabs>
-                    </div>
-
-                    {/* RIGHT COLUMN (4/12) */}
-                    <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-                        {/* Card 1: Identity */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.identity', '身份信息')}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="pb-3 border-b border-border">
-                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.resourceId', '资源ID')}</Label>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.id}</code>
-                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
-                                    </div>
-                                </div>
-                                <div className="pb-3 border-b border-border">
-                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
-                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
-                                    </div>
-                                </div>
-                                <div className="pb-3">
-                                    <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
-                                    <div className="flex items-center gap-2">
-                                        <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
-                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
-                                    </div>
-                                </div>
-                                <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border mt-2">
-                                    <p>{t('mediaEdit.createdAt', '创建')}: <span className="font-mono text-foreground">{formatDateTime(media.create_time)}</span></p>
-                                    <p>{t('mediaEdit.updatedAt', '更新')}: <span className="font-mono text-foreground">{formatDateTime(media.update_time)}</span></p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Card 2: State & Status */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {(() => {
-                                        const lc = getLifecyclePill(media.state);
-                                        const rv = getReviewPill(media.review_status);
-                                        const enc = getEncodingPill(media.encoding_status);
-                                        const idle = IDLE_PILL;
-                                        return (
-                                            <>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.lifecycle', 'Lifecycle')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", lc.bg, lc.text, lc.border)}>
-                                                        {t(lc.labelKey, lc.fallback)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.review', 'Review')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", rv.bg, rv.text, rv.border)}>
-                                                        {t(rv.labelKey, rv.fallback)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.encoding', 'Encoding')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", enc.bg, enc.text, enc.border)}>
-                                                        {t(enc.labelKey, enc.fallback)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.sprites', 'Sprites')}</span>
-                                                    <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", idle.bg, idle.text, idle.border)}>
-                                                        {t(idle.labelKey, idle.fallback)}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Card 3: Ownership */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.ownership', '归属信息')}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-primary/20 flex items-center justify-center">
-                                        <span className="text-primary font-bold text-sm">U</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-sm">{t('mediaEdit.user', '用户')}</p>
-                                        <p className="text-xs text-muted-foreground">{t('mediaEdit.contentCreator', '内容创作者')}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-3 pt-3 border-t border-border">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-muted-foreground">{t('mediaEdit.channel', '频道')}</span>
-                                        <span className="font-semibold">{t('mediaEdit.defaultChannel', '默认')}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
-                                        <Badge variant="outline" className="text-xs font-semibold">{media.category_id || t('mediaEdit.general', '通用')}</Badge>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Card 4: Workflow - Review */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <div className="flex justify-between items-center">
-                                    <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.workflow', '工作流')}</CardTitle>
-                                    <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-xs font-semibold uppercase">
-                                        {t('mediaEdit.pendingReview', '待审核')}
-                                    </Badge>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                <Textarea className="min-h-[50px] resize-none bg-muted" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}/>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button className="py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700">
-                                        {t('mediaEdit.approve', '通过')}
-                                    </Button>
-                                    <Button className="py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700">
-                                        {t('mediaEdit.reject', '拒绝')}
-                                    </Button>
-                                </div>
-                                <Button variant="outline" className="w-full py-1.5 font-semibold text-xs">
-                                    {t('mediaEdit.requestChanges', '请求修改')}
-                                </Button>
-                            </CardContent>
-                        </Card>
-
-                        {/* Card 5: Actions */}
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-semibold">{t('mediaEdit.actions', '操作')}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <Button variant="outline" className="w-full"
-                                        onClick={() => setRegenThumbnailConfirmOpen(true)}
-                                        disabled={isRegenerating}>
-                                    <Image className="w-4 h-4 mr-2"/>
-                                    {t('mediaEdit.regenerateThumbnail', '重新生成缩略图')}
-                                </Button>
-                                <Button variant="outline" className="w-full"
-                                        onClick={() => setRegenSpriteConfirmOpen(true)}
-                                        disabled={isRegenerating}>
-                                    <Film className="w-4 h-4 mr-2"/>
-                                    {t('mediaEdit.regenerateSprite', '重新生成雪碧图')}
-                                </Button>
-                                <div className="pt-2 border-t border-border mt-2">
-                                    <Button variant="destructive" className="w-full"
-                                            onClick={() => setDeleteDialogOpen(true)}>
-                                        <Delete className="w-4 h-4 mr-2"/> {t('mediaEdit.deleteMediaAsset', '删除媒体资源')}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                            {sidebarCards}
+                        </div>
+                    </TabsContent>
                 </div>
-            </div>
+            </Tabs>
+
+            <DeleteConfirmDialog
+                open={regenThumbnailConfirmOpen}
+                onOpenChange={setRegenThumbnailConfirmOpen}
+                title={t('mediaEdit.regenerateThumbnail', '重新生成缩略图')}
+                isDeleting={isRegenerating}
+                onConfirm={handleRegenerateThumbnail}
+                confirmLabel={t('mediaEdit.confirmRegenerate', '确认重新生成')}
+                description={t('mediaEdit.confirmRegenerateThumbnailDesc', '这将重新生成媒体文件的缩略图，此操作可能需要一些时间。')}
+            />
+
+            <DeleteConfirmDialog
+                open={regenSpriteConfirmOpen}
+                onOpenChange={setRegenSpriteConfirmOpen}
+                title={t('mediaEdit.regenerateSprite', '重新生成雪碧图')}
+                isDeleting={isRegenerating}
+                onConfirm={handleRegenerateSprite}
+                confirmLabel={t('mediaEdit.confirmRegenerate', '确认重新生成')}
+                description={t('mediaEdit.confirmRegenerateSpriteDesc', '这将重新生成媒体文件的雪碧图，此操作可能需要一些时间。')}
+            />
 
             <DeleteConfirmDialog
                 open={deleteDialogOpen}
