@@ -374,24 +374,35 @@ export default function StyleGuidePage() {
                     </div>
                   }
                 />
-                <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
-                  <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                      <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
-                        <Bell className="h-8 w-8" />
-                      </span>
-                      {t('styleGuide.notificationSample', '通知管理')}
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
-                  </div>
+                <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate 真实渲染">
+                  <AdminPageTemplate
+                    showBreadcrumbs={false}
+                    title={t('styleGuide.notificationSample', '通知管理')}
+                    titleIcon={<Bell className="h-8 w-8" />}
+                    themeColor="rose"
+                    description={t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}
+                    className="p-0 space-y-0"
+                  />
                 </SpecBox>
-                <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
-                  <div className="flex justify-end pt-6 border-t border-border">
-                    <Button className="gap-2 h-9">
-                      <Plus className="h-4 w-4" />
-                      {t('styleGuide.compose', '编写通知')}
-                    </Button>
-                  </div>
+                <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop 真实渲染">
+                  <AdminPageTemplate
+                    showBreadcrumbs={false}
+                    title={t('styleGuide.notificationSample', '通知管理')}
+                    titleIcon={<Bell className="h-8 w-8" />}
+                    themeColor="rose"
+                    description={t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}
+                    primaryAction={
+                      <Button className="gap-2 h-9">
+                        <Plus className="h-4 w-4" />
+                        {t('styleGuide.compose', '编写通知')}
+                      </Button>
+                    }
+                    className="p-0"
+                  >
+                    <div className="text-sm text-muted-foreground py-8 text-center border border-dashed border-border rounded-md">
+                      {t('styleGuide.contentArea', '内容区域（表格/表单等）')}
+                    </div>
+                  </AdminPageTemplate>
                 </SpecBox>
               </div>
             </Section>
