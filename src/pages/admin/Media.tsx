@@ -565,7 +565,7 @@ export default function MediaPage() {
                 }
             }}>
                 <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
-                    <DialogHeader className="px-6 py-5 border-b border-border">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary"/>
                             {t('admin.uploadMediaFiles', '上传媒体文件')}
@@ -588,7 +588,7 @@ export default function MediaPage() {
                             }}
                         />
                     </div>
-                    <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" onClick={() => setUploadDialogOpen(false)}
                                 className="rounded-lg h-10 px-5 border-border/60">
                             {t('admin.cancel', '取消')}
