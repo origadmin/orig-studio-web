@@ -31,11 +31,11 @@ interface UploadFileItem {
 }
 
 export interface UploadComponentProps {
-    onSuccess?: () => void;
+    onComplete?: (result: { successCount: number; errorCount: number }) => void;
     onCancel?: () => void;
 }
 
-export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
+export function UploadComponent({onComplete, onCancel}: UploadComponentProps) {
     const {t} = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,11 +55,11 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
 
         const checkAllDone = () => {
             setFiles((prev) => {
-                const allDone = prev.every(
-                    (f) => f.status === 'success' || f.status === 'error',
-                );
-                if (allDone) {
-                    onSuccess?.();
+                const done = prev.filter((f) => f.status === 'success' || f.status === 'error');
+                if (done.length === prev.length) {
+                    const successCount = prev.filter((f) => f.status === 'success').length;
+                    const errorCount = prev.filter((f) => f.status === 'error').length;
+                    onComplete?.({successCount, errorCount});
                 }
                 return prev;
             });
@@ -114,7 +114,7 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
 
         startMultipartUpload(task, callbacks).catch(() => {
         });
-    }, [updateFile, onSuccess]);
+    }, [updateFile, onComplete]);
 
     const handleFiles = (newFiles: File[]) => {
         const validTypes = ['video/', 'image/', 'audio/'];

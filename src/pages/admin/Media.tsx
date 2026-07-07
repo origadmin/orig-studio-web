@@ -69,6 +69,8 @@ export default function MediaPage() {
 
     // 弹窗状态
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'done'>('idle');
+    const [uploadResult, setUploadResult] = useState<{ successCount: number; errorCount: number } | null>(null);
 
     // 删除状态
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -555,9 +557,14 @@ export default function MediaPage() {
                 )}
             </div>
 
-            {/* Upload Modal */}
-            <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-                <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
+                setUploadDialogOpen(open);
+                if (open) {
+                    setUploadStatus('idle');
+                    setUploadResult(null);
+                }
+            }}>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
                     <DialogHeader className="px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary"/>
@@ -569,9 +576,15 @@ export default function MediaPage() {
                     </DialogHeader>
                     <div className="px-6 py-5">
                         <UploadComponent
-                            onSuccess={() => {
-                                setUploadDialogOpen(false);
-                                loadMedia();
+                            onComplete={(result) => {
+                                setUploadStatus('done');
+                                setUploadResult(result);
+                                if (result.errorCount === 0) {
+                                    setTimeout(() => {
+                                        setUploadDialogOpen(false);
+                                        loadMedia();
+                                    }, 800);
+                                }
                             }}
                         />
                     </div>
@@ -579,6 +592,16 @@ export default function MediaPage() {
                         <Button variant="outline" onClick={() => setUploadDialogOpen(false)}
                                 className="rounded-lg h-10 px-5 border-border/60">
                             {t('admin.cancel', '取消')}
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                setUploadDialogOpen(false);
+                                loadMedia();
+                            }}
+                            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium">
+                            {uploadStatus === 'done' && uploadResult && uploadResult.errorCount > 0
+                                ? t('admin.close', '关闭')
+                                : t('admin.done', '完成')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
