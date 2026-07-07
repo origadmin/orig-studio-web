@@ -40,14 +40,6 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { useTheme } from '@/themes';
 import AdminPageTemplate from '@/components/AdminPageTemplate';
 import { toast } from 'sonner';
@@ -157,7 +149,7 @@ export default function StyleGuidePage() {
               <Layers className="h-5 w-5 text-primary" />
               {t('styleGuide.quickSpec', '规范速查')}
             </CardTitle>
-            <CardDescription>{t('styleGuide.quickSpecDesc', '所有页面必须遵守的8条核心规范')}</CardDescription>
+            <CardDescription>{t('styleGuide.quickSpecDesc', '所有页面必须遵守的6条核心规范')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -205,6 +197,17 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.i18nRuleDesc', '所有用户可见文字必须使用 t(\'key\', \'fallback\') 并提供英文后备文本。禁止在 JSX 中直接硬编码中/英/日文字符串。')}</p>
                 </CardContent>
               </Card>
+              <Card className="border-l-4 border-l-primary overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Layout className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.pageTemplate', 'AdminPageTemplate')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTemplateDesc', '所有管理后台列表页必须使用 AdminPageTemplate 包裹。它提供统一的面包屑、标题、搜索栏和操作区。')}</p>
+                </CardContent>
+              </Card>
               <Card className="border-l-4 border-l-destructive overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
@@ -216,15 +219,26 @@ export default function StyleGuidePage() {
                   <p className="text-sm text-muted-foreground">{t('styleGuide.forbiddenDesc', '禁止使用 .c-xxx 遗留类名。禁止 window.alert/confirm。禁止内联样式设置颜色/尺寸。禁止引入 Vite/vitest 相关依赖。')}</p>
                 </CardContent>
               </Card>
-              <Card className="border-l-4 border-l-violet-500 overflow-hidden">
+              <Card className="border-l-4 border-l-primary overflow-hidden">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                      <Layout className="h-5 w-5 text-violet-500" />
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Layout className="h-5 w-5 text-primary" />
                     </div>
-                    <h4 className="font-semibold text-foreground">{t('styleGuide.pageHeader', '页面头部规范')}</h4>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.pageTitleIcon', '标题ICON')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageHeaderDesc', '必须使用 AdminPageTemplate：面包屑(mb-4) → 标题栏(flex items-start, ICON h-8 w-8 与标题同行，Badge通过titleExtra同行) + 描述(text-sm text-muted-foreground, mt-1) → 搜索栏+筛选器(列表页，由space-y-6自动间距) → 内容区 → 主操作按钮（新建/创建）通过 primaryAction 沉底在内容区底部（border-t 分隔，pt-6 右对齐，间距由外层space-y-6自动处理）。')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-6 w-6。')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Square className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <h4 className="font-semibold text-foreground">{t('styleGuide.primaryButtonBottom', '主按钮沉底')}</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.primaryButtonBottomDesc', '列表页主操作按钮（新建/创建）必须使用 primaryAction 属性，渲染在内容区底部（border-t 分隔）。标题栏仅保留 titleExtra 用于辅助操作。')}</p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-amber-500 overflow-hidden">
@@ -360,126 +374,25 @@ export default function StyleGuidePage() {
                     </div>
                   }
                 />
-                <SpecBox label={t('styleGuide.pageLayout', '完整页面布局（标题+ICON+描述+主按钮沉底）')} value="AdminPageTemplate">
-                  <div className="rounded-lg border border-border overflow-hidden bg-background">
-                    <div className="space-y-6 p-6">
-                      <Breadcrumb className="mb-4">
-                        <BreadcrumbList>
-                          <BreadcrumbItem>
-                            <BreadcrumbLink href="#" onClick={e => e.preventDefault()}>{t('admin.breadcrumb.dashboard', '仪表盘')}</BreadcrumbLink>
-                          </BreadcrumbItem>
-                          <BreadcrumbSeparator />
-                          <BreadcrumbItem>
-                            <BreadcrumbLink href="#" onClick={e => e.preventDefault()}>{t('styleGuide.exampleModule', '模块')}</BreadcrumbLink>
-                          </BreadcrumbItem>
-                          <BreadcrumbSeparator />
-                          <BreadcrumbItem>
-                            <BreadcrumbPage>{t('styleGuide.examplePage', '页面')}</BreadcrumbPage>
-                          </BreadcrumbItem>
-                        </BreadcrumbList>
-                      </Breadcrumb>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                            <span className="h-8 w-8 shrink-0 flex items-center justify-center text-primary">
-                              <Layout className="h-8 w-8" />
-                            </span>
-                            <span className="shrink-0">{t('styleGuide.exampleTitle', '页面标题')}</span>
-                          </h1>
-                          <p className="text-sm text-muted-foreground mt-1">{t('styleGuide.exampleDesc', '页面描述文字，简要说明该页面的功能和用途。')}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="relative flex-1 min-w-[240px] max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input className="pl-9" placeholder={t('common.search', '搜索...')} readOnly />
-                          </div>
-                          <div className="flex h-9 items-center justify-between whitespace-nowrap rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm w-[140px] text-muted-foreground">
-                            <span>{t('styleGuide.allFilter', '全部筛选')}</span>
-                            <ChevronRight className="h-4 w-4 opacity-50 rotate-90" />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
-                        <div className="px-4 py-3 border-b border-border bg-muted/30">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-4 bg-muted rounded"></div>
-                            <div className="flex-1 h-4 bg-muted rounded"></div>
-                            <div className="w-16 h-4 bg-muted rounded"></div>
-                            <div className="w-20 h-4 bg-muted rounded"></div>
-                          </div>
-                        </div>
-                        {[1,2,3].map(i => (
-                          <div key={i} className="px-4 py-3 border-b border-border last:border-b-0 flex items-center gap-4">
-                            <div className="w-10 h-4 bg-muted/70 rounded"></div>
-                            <div className="flex-1 h-4 bg-muted/50 rounded"></div>
-                            <div className="w-16 h-4 bg-muted/50 rounded"></div>
-                            <div className="w-20 h-4 bg-muted/50 rounded"></div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex justify-end pt-6 border-t border-border">
-                        <Button className="gap-2 h-9">
-                          <Plus className="w-4 h-4" />
-                          {t('styleGuide.newItem', '新建')}
-                        </Button>
-                      </div>
-                    </div>
+                <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                      <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
+                        <Bell className="h-8 w-8" />
+                      </span>
+                      {t('styleGuide.notificationSample', '通知管理')}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
                   </div>
                 </SpecBox>
-                <DoDont
-                  do={
-                    <div>
-                      <div className="rounded border border-border/60 overflow-hidden mb-2 bg-background">
-                        <div className="p-4">
-                          <Breadcrumb className="mb-2">
-                            <BreadcrumbList>
-                              <BreadcrumbItem><span className="text-xs text-muted-foreground">仪表盘</span></BreadcrumbItem>
-                              <BreadcrumbSeparator />
-                              <BreadcrumbItem><span className="text-xs text-foreground">页面</span></BreadcrumbItem>
-                            </BreadcrumbList>
-                          </Breadcrumb>
-                          <div className="space-y-0.5">
-                            <h1 className="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                              <span className="h-5 w-5 shrink-0 flex items-center justify-center text-primary">
-                                <Layout className="h-5 w-5" />
-                              </span>
-                              页面标题
-                            </h1>
-                            <p className="text-xs text-muted-foreground">页面描述文字</p>
-                          </div>
-                          <div className="mt-3 h-7 bg-muted rounded flex items-center px-2">
-                            <div className="w-32 h-3 bg-muted-foreground/20 rounded"></div>
-                          </div>
-                          <div className="mt-3 rounded border border-border/50 bg-muted/10 p-4">
-                            <p className="text-xs text-muted-foreground text-center">内容区域</p>
-                          </div>
-                          <div className="flex justify-end pt-3 border-t border-border/50 mt-3">
-                            <Button size="sm" className="gap-1.5 h-7 text-xs"><Plus className="w-3 h-3" />新建</Button>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{t('styleGuide.correctTitleDesc', 'ICON h-8 w-8 与标题同行(gap-3，titleIcon包裹在h-8 w-8容器中)，标题左区用flex-1 min-w-0，描述使用 text-sm text-muted-foreground mt-1，标题栏用items-start对齐，外层容器space-y-6自动管理各区块间距，主操作按钮通过 primaryAction 沉底在内容区底部(border-t分隔，pt-6 右对齐，无mt-6)。')}</p>
-                    </div>
-                  }
-                  dont={
-                    <div>
-                      <div className="rounded border border-border/60 overflow-hidden mb-2 bg-background">
-                        <div className="p-4">
-                          <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
-                            <Bell className="h-4 w-4 text-rose-600" />
-                            页面标题
-                            <Button size="sm" className="h-7 text-xs"><Plus className="w-3 h-3" />新建</Button>
-                          </h1>
-                          <div className="mt-1"><Badge variant="secondary" className="text-xs">标签</Badge></div>
-                          <p className="text-xs mt-1" style={{color:'#64748b'}}>描述文字硬编码颜色</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{t('styleGuide.wrongTitleDesc', 'ICON h-4 w-4 太小、Badge 换行、描述使用硬编码 slate 颜色、主按钮（新建）错误地放在标题栏中而非沉底。')}</p>
-                    </div>
-                  }
-                />
+                <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
+                  <div className="flex justify-end pt-6 border-t border-border">
+                    <Button>
+                      <Plus className="h-4 w-4" />
+                      {t('styleGuide.compose', '编写通知')}
+                    </Button>
+                  </div>
+                </SpecBox>
               </div>
             </Section>
           </TabsContent>
