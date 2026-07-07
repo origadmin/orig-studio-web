@@ -46,12 +46,9 @@ const DialogContent = React.forwardRef<
             )}
             {...props}
         >
-            <DialogPrimitive.Description className="sr-only">
-                {props["aria-describedby"] || "Dialog"}
-            </DialogPrimitive.Description>
             {children}
             <DialogPrimitive.Close
-                className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+                className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground opacity-70 ring-offset-background transition-opacity hover:opacity-100 hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
                 <X className="h-5 w-5"/>
                 <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
@@ -66,7 +63,7 @@ const DialogHeader = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col space-y-1.5 -mx-6 px-6 py-5 border-b border-slate-100 text-left",
+            "flex flex-col space-y-1.5 -mx-6 px-6 py-5 border-b border-border text-left",
             className
         )}
         {...props}
@@ -103,7 +100,7 @@ const DialogTitle = React.forwardRef<
     <DialogPrimitive.Title
         ref={ref}
         className={cn(
-            "text-lg font-semibold leading-none tracking-tight text-slate-800",
+            "text-lg font-semibold leading-none tracking-tight text-foreground",
             className
         )}
         {...props}
@@ -117,7 +114,7 @@ const DialogDescription = React.forwardRef<
 >(({className, ...props}, ref) => (
     <DialogPrimitive.Description
         ref={ref}
-        className={cn("text-sm text-slate-500", className)}
+        className={cn("text-sm text-muted-foreground", className)}
         {...props}
     />
 ))

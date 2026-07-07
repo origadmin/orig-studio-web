@@ -361,11 +361,11 @@ export default function MediaPage() {
                             <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">{t('admin.actions', '操作')}</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody className="divide-y divide-slate-50">
+                    <TableBody className="divide-y divide-border">
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={8} className="px-6 py-16 text-center">
-                                    <Loader2 className="w-6 h-6 text-slate-300 animate-spin mx-auto"/>
+                                    <Loader2 className="w-6 h-6 text-muted-foreground animate-spin mx-auto"/>
                                 </TableCell>
                             </TableRow>
                         ) : error ? (
@@ -382,7 +382,7 @@ export default function MediaPage() {
                             <TableRow>
                                 <TableCell colSpan={8} className="px-6 py-16 text-center">
                                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Film className="w-8 h-8 text-slate-300"/>
+                                        <Film className="w-8 h-8 text-muted-foreground"/>
                                     </div>
                                     <h3 className="text-base font-semibold text-card-foreground mb-1">{t('admin.noMediaFound', '未找到媒体')}</h3>
                                     <p className="text-sm text-muted-foreground max-w-sm mx-auto">{t('admin.uploadFirstMedia', '上传您的第一个媒体资源开始使用。')}</p>
@@ -419,9 +419,9 @@ export default function MediaPage() {
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
-                                                        {media.type === 'video' ? <Video className="w-5 h-5 text-slate-300"/> :
-                                                         media.type === 'audio' ? <Music className="w-5 h-5 text-slate-300"/> :
-                                                         <ImageIcon className="w-5 h-5 text-slate-300"/>}
+                                                        {media.type === 'video' ? <Video className="w-5 h-5 text-muted-foreground"/> :
+                                                         media.type === 'audio' ? <Music className="w-5 h-5 text-muted-foreground"/> :
+                                                         <ImageIcon className="w-5 h-5 text-muted-foreground"/>}
                                                     </div>
                                                 )}
                                                 {media.type === 'video' && (
@@ -557,19 +557,30 @@ export default function MediaPage() {
 
             {/* Upload Modal */}
             <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.uploadMediaFiles', '上传媒体')}</DialogTitle>
+                <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('admin.uploadMediaFiles', '上传媒体文件')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.uploadMediaFilesDesc', '支持视频、图片和音频文件，拖拽或点击选择文件上传。')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6">
+                    <div className="px-6 py-5">
                         <UploadComponent
                             onSuccess={() => {
                                 setUploadDialogOpen(false);
                                 loadMedia();
                             }}
-                            onCancel={() => setUploadDialogOpen(false)}
                         />
                     </div>
+                    <DialogFooter className="px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setUploadDialogOpen(false)}
+                                className="rounded-lg h-10 px-5 border-border/60">
+                            {t('admin.cancel', '取消')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 

@@ -109,7 +109,7 @@ function StatusBadge({status}: { status: string }) {
         },
         queued: {
             label: t('admin.queued', '排队中'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
         },
         completed: {
             label: t('admin.success', '成功'),
@@ -117,7 +117,7 @@ function StatusBadge({status}: { status: string }) {
         },
         pending: {
             label: t('admin.queued', '排队中'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
         },
         success: {
             label: t('admin.success', '成功'),
@@ -139,7 +139,7 @@ function StatusBadge({status}: { status: string }) {
 
     const cfg = config[status] || {
         label: status,
-        className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 whitespace-nowrap"
+        className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
     };
 
     return <span className={cfg.className}>{cfg.label}</span>;
@@ -185,10 +185,10 @@ function TaskRowCells({
             </TableCell>
             <TableCell>
                 <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-slate-800 font-mono whitespace-nowrap" title={String(task.id)}>
+                    <span className="text-sm font-semibold text-foreground font-mono whitespace-nowrap" title={String(task.id)}>
                         {genDisplayId(task.id)}-{getFormatSuffix(task)}
                     </span>
-                    <span className="text-xs text-slate-500 truncate max-w-[240px]" title={getFileName(task)}>
+                    <span className="text-xs text-muted-foreground truncate max-w-[240px]" title={getFileName(task)}>
                         {getFileName(task)}
                     </span>
                 </div>
@@ -198,19 +198,19 @@ function TaskRowCells({
             </TableCell>
             <TableCell>
                 <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-muted h-1.5 rounded-full overflow-hidden">
                         <div
-                            className={`h-full transition-all ${isProcessing ? 'bg-sky-500 animate-pulse' : isSuccess ? 'bg-emerald-500' : isFailed ? 'bg-red-500' : 'bg-slate-300'}`}
+                            className={`h-full transition-all ${isProcessing ? 'bg-sky-500 animate-pulse' : isSuccess ? 'bg-emerald-500' : isFailed ? 'bg-red-500' : 'bg-muted-foreground/30'}`}
                             style={{width: `${progressValue}%`}}
                         />
                     </div>
-                    <span className={`font-mono text-xs w-10 text-right ${isProcessing ? 'text-sky-600' : isSuccess ? 'text-emerald-600' : isFailed ? 'text-red-600' : 'text-slate-500'}`}>
+                    <span className={`font-mono text-xs w-10 text-right ${isProcessing ? 'text-sky-600' : isSuccess ? 'text-emerald-600' : isFailed ? 'text-red-600' : 'text-muted-foreground'}`}>
                         {progressValue}%
                     </span>
                 </div>
             </TableCell>
             <TableCell>
-                <span className="text-sm text-slate-700">
+                <span className="text-sm text-foreground">
                     {getFormatDisplay(task)}
                 </span>
             </TableCell>
@@ -222,7 +222,7 @@ function TaskRowCells({
                             size="icon-sm"
                             onClick={onToggleError}
                             title={t('admin.viewStacktrace', '查看错误堆栈')}
-                            className={showError ? "text-red-600 bg-red-50" : "text-slate-500 hover:text-red-600"}
+                            className={showError ? "text-red-600 bg-red-50" : "text-muted-foreground hover:text-red-600"}
                         >
                             <AlertCircle className="w-4 h-4"/>
                         </Button>
@@ -234,7 +234,7 @@ function TaskRowCells({
                             onClick={onRetry}
                             disabled={isRetrying}
                             title={t('admin.retryJobNow', '立即重试')}
-                            className="text-slate-500 hover:text-amber-600"
+                            className="text-muted-foreground hover:text-amber-600"
                         >
                             {isRetrying ? (
                                 <RefreshCw className="w-4 h-4 animate-spin"/>
@@ -249,7 +249,7 @@ function TaskRowCells({
                             size="icon-sm"
                             onClick={onView}
                             title={t('admin.viewOutput', '查看输出')}
-                            className="text-slate-500 hover:text-emerald-600"
+                            className="text-muted-foreground hover:text-emerald-600"
                         >
                             <Eye className="w-4 h-4"/>
                         </Button>
@@ -281,13 +281,13 @@ function StatCard({
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+        <div className="bg-card p-6 rounded-xl border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
             <div className="flex items-start justify-between">
                 <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-                    <h3 className="text-3xl font-extrabold tabular-nums mt-1 text-slate-800">{value}</h3>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{label}</p>
+                    <h3 className="text-3xl font-extrabold tabular-nums mt-1 text-foreground">{value}</h3>
                     {description && (
-                        <p className="text-xs font-semibold text-slate-500 mt-2">{description}</p>
+                        <p className="text-xs font-semibold text-muted-foreground mt-2">{description}</p>
                     )}
                 </div>
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${iconColorClasses[color]}`}>
@@ -692,16 +692,16 @@ export default function TranscodingStatus() {
                         {loading ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="px-6 py-16 text-center">
-                                    <Loader2 className="w-6 h-6 text-slate-300 animate-spin mx-auto"/>
+                                    <Loader2 className="w-6 h-6 text-muted-foreground animate-spin mx-auto"/>
                                 </TableCell>
                             </TableRow>
                         ) : !filteredTasks.length ? (
                             <TableRow>
                                 <TableCell colSpan={6} className="py-16 text-center">
                                     <div className="flex flex-col items-center gap-3">
-                                        <Film className="w-12 h-12 text-slate-300"/>
-                                        <h3 className="text-lg font-medium text-slate-700">{t('admin.noTranscodingJobs', '未找到转码任务')}</h3>
-                                        <p className="text-sm text-slate-500 max-w-md">
+                                        <Film className="w-12 h-12 text-muted-foreground"/>
+                                        <h3 className="text-lg font-medium text-foreground">{t('admin.noTranscodingJobs', '未找到转码任务')}</h3>
+                                        <p className="text-sm text-muted-foreground max-w-md">
                                             {searchQuery || statusFilter !== 'all' || profileFilter !== 'all'
                                                 ? t('admin.noTasksMatchFilters', '没有任务匹配当前筛选条件，请尝试调整筛选条件。')
                                                 : t('admin.uploadVideoToStart', '上传视频文件以开始生成转码任务。')}
@@ -747,8 +747,8 @@ export default function TranscodingStatus() {
                 </Table>
 
                 {filteredData && (filteredData.total || filteredTasks.length > 0) && (
-                    <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50/50">
-                        <p className="text-xs text-slate-500">
+                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/30">
+                        <p className="text-xs text-muted-foreground">
                             {t('admin.showingEntries', `显示 ${((page - 1) * PAGINATION_CONFIG.DEFAULT_PAGE_SIZE) + 1}-${Math.min(page * PAGINATION_CONFIG.DEFAULT_PAGE_SIZE, filteredData.total || filteredTasks.length)} 条，共 ${filteredData.total || filteredTasks.length} 条记录`)}
                         </p>
                         <div className="flex items-center gap-1">
@@ -760,7 +760,7 @@ export default function TranscodingStatus() {
                             >
                                 <ChevronLeft className="w-4 h-4"/>
                             </Button>
-                            <span className="h-8 px-3 flex items-center justify-center text-sm font-medium text-slate-700">
+                            <span className="h-8 px-3 flex items-center justify-center text-sm font-medium text-foreground">
                                 {page} / {totalPages || 1}
                             </span>
                             <Button

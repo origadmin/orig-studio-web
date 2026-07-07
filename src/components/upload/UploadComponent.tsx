@@ -295,18 +295,10 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                 {files.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground text-sm">
                         <FileVideo className="w-8 h-8 mx-auto mb-2 opacity-40"/>
-                        {t('upload.noFilesSelected', 'No files selected')}
+                        {t('upload.noFilesSelected', '未选择文件')}
                     </div>
                 )}
             </div>
-
-            {onCancel && (
-                <div className="flex justify-end pt-2 border-t border-border">
-                    <Button variant="ghost" className="text-muted-foreground" onClick={onCancel}>
-                        {t('common.cancel')}
-                    </Button>
-                </div>
-            )}
         </div>
     );
 }
