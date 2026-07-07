@@ -227,7 +227,7 @@ export default function StyleGuidePage() {
                     </div>
                     <h4 className="font-semibold text-foreground">{t('styleGuide.pageTitleIcon', '标题ICON')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-6 w-6。')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-8 w-8，由组件内部 h-8 w-8 容器包裹。')}</p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
@@ -375,19 +375,19 @@ export default function StyleGuidePage() {
                   }
                 />
                 <SpecBox label={t('styleGuide.pageTitleIconSample', '页面标题+ICON+描述')} value="AdminPageTemplate props">
-                  <div className="space-y-1">
+                  <div>
                     <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
                       <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
                         <Bell className="h-8 w-8" />
                       </span>
                       {t('styleGuide.notificationSample', '通知管理')}
                     </h1>
-                    <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
                   </div>
                 </SpecBox>
                 <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
                   <div className="flex justify-end pt-6 border-t border-border">
-                    <Button>
+                    <Button className="gap-2 h-9">
                       <Plus className="h-4 w-4" />
                       {t('styleGuide.compose', '编写通知')}
                     </Button>
