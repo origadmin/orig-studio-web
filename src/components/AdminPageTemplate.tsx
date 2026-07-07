@@ -111,14 +111,14 @@ function buildBreadcrumbs(pathname: string, t: TFunction): BreadcrumbItemType[] 
 export interface AdminPageTemplateProps {
   title: string;
   titleIcon?: React.ReactNode;
-  /** Page-level theme color (Tailwind color name, e.g. "indigo", "rose"). Applied to titleIcon and primaryAction. */
+  /** Page-level theme color (Tailwind color name, e.g. "indigo", "rose"). Applied to titleIcon. */
   themeColor?: string;
   titleExtra?: React.ReactNode;
   subtitle?: string;
   description?: string;
-  /** @deprecated Use primaryAction instead for bottom-positioned primary button */
+  /** Action buttons rendered in the title header area (top-right, aligned with title via flex justify-between items-end). Used by ALL list pages for primary buttons like 新建/创建. */
   actions?: React.ReactNode;
-  /** Primary action button, rendered at the bottom of the page (after children) */
+  /** Optional action button rendered at the bottom of the page content (after children), with pt-6 border-t separator. NOT used by any existing list page as of 2026-07-08; reserved for form/edit page submit actions. */
   primaryAction?: React.ReactNode;
   stats?: React.ReactNode;
   searchPlaceholder?: string;
