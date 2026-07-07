@@ -175,7 +175,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   const titleIconColor = (themeColor && THEME_COLOR_MAP[themeColor]) ? THEME_COLOR_MAP[themeColor] : 'text-primary';
 
   return (
-    <div className={cn('space-y-6 p-6', className)}>
+    <div className={cn('p-8', className)}>
       {showBreadcrumbs && (
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
@@ -200,22 +200,20 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </Breadcrumb>
       )}
 
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          {titleIcon && (
-            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              <span className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
-                {titleIcon}
-              </span>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          {titleIcon || titleExtra ? (
+            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3 overflow-hidden">
+              {titleIcon && (
+                <span className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
+                  {titleIcon}
+                </span>
+              )}
               <span className="shrink-0">{title}</span>
-              {titleExtra}
+              {titleExtra && <span className="shrink-0">{titleExtra}</span>}
             </h1>
-          )}
-          {!titleIcon && (
-            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              <span className="shrink-0">{title}</span>
-              {titleExtra}
-            </h1>
+          ) : (
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
           )}
           {subtitle && (
             <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
@@ -224,13 +222,13 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
             <p className="text-sm text-muted-foreground mt-1">{description}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2 shrink-0 pt-1">{actions}</div>}
+        {actions && <div className="flex items-center gap-3">{actions}</div>}
       </div>
 
-      {stats}
+      {stats && <div className="mb-6">{stats}</div>}
 
       {hasSearchBar && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[240px] max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -247,10 +245,12 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </div>
       )}
 
-      {children}
+      <div className="space-y-6">
+        {children}
+      </div>
 
       {primaryAction && (
-        <div className="flex justify-end pt-6 border-t border-border">
+        <div className="flex justify-end pt-6 border-t border-border mt-6">
           {primaryAction}
         </div>
       )}

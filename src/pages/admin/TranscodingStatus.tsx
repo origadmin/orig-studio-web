@@ -24,6 +24,7 @@ import {
     AlertCircle, Film, RotateCcw, Eye, ChevronLeft, ChevronRight, Loader2, Search
 } from "lucide-react";
 import {PAGINATION_CONFIG} from '@/config/pagination';
+import {StatusDot} from "@/components/common/StatusDot";
 
 type EncodingTaskWithMeta = EncodingTask & { profile_name?: string; media_title?: string; media_url?: string; thumbnail?: string };
 
@@ -530,14 +531,14 @@ export default function TranscodingStatus() {
     const totalPages = filteredData?.total_pages || Math.ceil((filteredData?.total || 0) / PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
 
     const titleExtra = (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${sseStatus.connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${sseStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}/>
-            {sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
-        </span>
+        <StatusDot
+            status={sseStatus.connected ? "processing" : "unknown"}
+            label={sseStatus.connected ? t('admin.liveConnection', '实时连接') : t('admin.disconnected', '已断开')}
+        />
     );
 
     const pageActions = (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
             <Button
                 variant="outline"
                 onClick={handleBatchRetry}
