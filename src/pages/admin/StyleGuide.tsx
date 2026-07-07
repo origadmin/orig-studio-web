@@ -224,7 +224,7 @@ export default function StyleGuidePage() {
                     </div>
                     <h4 className="font-semibold text-foreground">{t('styleGuide.pageHeader', '页面头部规范')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageHeaderDesc', '必须使用 AdminPageTemplate：面包屑 → ICON(h-8 w-8)+标题（Badge可选，通过titleExtra同行显示）+ 描述（text-sm text-muted-foreground） → 搜索栏+筛选器（列表页） → 内容区（space-y-6） → 主操作按钮（新建/创建）通过 primaryAction 沉底在内容区底部（border-t 分隔，pt-6 mt-6 右对齐）。')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageHeaderDesc', '必须使用 AdminPageTemplate：面包屑(mb-4) → 标题栏(flex items-start, ICON h-8 w-8 与标题同行，Badge通过titleExtra同行) + 描述(text-sm text-muted-foreground, mt-1) → 搜索栏+筛选器(列表页，由space-y-6自动间距) → 内容区 → 主操作按钮（新建/创建）通过 primaryAction 沉底在内容区底部（border-t 分隔，pt-6 右对齐，间距由外层space-y-6自动处理）。')}</p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-amber-500 overflow-hidden">
@@ -362,7 +362,7 @@ export default function StyleGuidePage() {
                 />
                 <SpecBox label={t('styleGuide.pageLayout', '完整页面布局（标题+ICON+描述+主按钮沉底）')} value="AdminPageTemplate">
                   <div className="rounded-lg border border-border overflow-hidden bg-background">
-                    <div className="p-8">
+                    <div className="space-y-6 p-6">
                       <Breadcrumb className="mb-4">
                         <BreadcrumbList>
                           <BreadcrumbItem>
@@ -378,18 +378,18 @@ export default function StyleGuidePage() {
                           </BreadcrumbItem>
                         </BreadcrumbList>
                       </Breadcrumb>
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="space-y-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
                           <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
                             <span className="h-8 w-8 shrink-0 flex items-center justify-center text-primary">
                               <Layout className="h-8 w-8" />
                             </span>
-                            {t('styleGuide.exampleTitle', '页面标题')}
+                            <span className="shrink-0">{t('styleGuide.exampleTitle', '页面标题')}</span>
                           </h1>
-                          <p className="text-sm text-muted-foreground">{t('styleGuide.exampleDesc', '页面描述文字，简要说明该页面的功能和用途。')}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{t('styleGuide.exampleDesc', '页面描述文字，简要说明该页面的功能和用途。')}</p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="relative flex-1 min-w-[240px] max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -401,27 +401,25 @@ export default function StyleGuidePage() {
                           </div>
                         </div>
                       </div>
-                      <div className="space-y-6">
-                        <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
-                          <div className="px-4 py-3 border-b border-border bg-muted/30">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-4 bg-muted rounded"></div>
-                              <div className="flex-1 h-4 bg-muted rounded"></div>
-                              <div className="w-16 h-4 bg-muted rounded"></div>
-                              <div className="w-20 h-4 bg-muted rounded"></div>
-                            </div>
+                      <div className="border border-border rounded-xl bg-card shadow-sm overflow-hidden">
+                        <div className="px-4 py-3 border-b border-border bg-muted/30">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-4 bg-muted rounded"></div>
+                            <div className="flex-1 h-4 bg-muted rounded"></div>
+                            <div className="w-16 h-4 bg-muted rounded"></div>
+                            <div className="w-20 h-4 bg-muted rounded"></div>
                           </div>
-                          {[1,2,3].map(i => (
-                            <div key={i} className="px-4 py-3 border-b border-border last:border-b-0 flex items-center gap-4">
-                              <div className="w-10 h-4 bg-muted/70 rounded"></div>
-                              <div className="flex-1 h-4 bg-muted/50 rounded"></div>
-                              <div className="w-16 h-4 bg-muted/50 rounded"></div>
-                              <div className="w-20 h-4 bg-muted/50 rounded"></div>
-                            </div>
-                          ))}
                         </div>
+                        {[1,2,3].map(i => (
+                          <div key={i} className="px-4 py-3 border-b border-border last:border-b-0 flex items-center gap-4">
+                            <div className="w-10 h-4 bg-muted/70 rounded"></div>
+                            <div className="flex-1 h-4 bg-muted/50 rounded"></div>
+                            <div className="w-16 h-4 bg-muted/50 rounded"></div>
+                            <div className="w-20 h-4 bg-muted/50 rounded"></div>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex justify-end pt-6 border-t border-border mt-6">
+                      <div className="flex justify-end pt-6 border-t border-border">
                         <Button className="gap-2 h-9">
                           <Plus className="w-4 h-4" />
                           {t('styleGuide.newItem', '新建')}
@@ -462,7 +460,7 @@ export default function StyleGuidePage() {
                           </div>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">{t('styleGuide.correctTitleDesc', 'ICON h-8 w-8 与标题同行（gap-3），描述使用 text-sm text-muted-foreground，列表页搜索栏在标题栏下方（mb-6），主操作按钮通过 primaryAction 沉底在内容区底部（border-t 分隔，pt-6 mt-6 右对齐）。')}</p>
+                      <p className="text-xs text-muted-foreground">{t('styleGuide.correctTitleDesc', 'ICON h-8 w-8 与标题同行(gap-3，titleIcon包裹在h-8 w-8容器中)，标题左区用flex-1 min-w-0，描述使用 text-sm text-muted-foreground mt-1，标题栏用items-start对齐，外层容器space-y-6自动管理各区块间距，主操作按钮通过 primaryAction 沉底在内容区底部(border-t分隔，pt-6 右对齐，无mt-6)。')}</p>
                     </div>
                   }
                   dont={
