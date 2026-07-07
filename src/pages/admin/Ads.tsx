@@ -28,10 +28,6 @@ import {
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Switch} from '@/components/ui/switch';
@@ -276,14 +272,17 @@ const SlotsTab: React.FC = () => {
 
             {/* Create Dialog */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.createSlot', 'Create Slot')}</DialogTitle>
-                        <DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-lg">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('admin.createSlot', 'Create Slot')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {t('admin.createSlotDesc', 'Create a new ad placement slot')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 px-6">
+                    <div className="px-6 py-5 grid gap-4">
                         <div>
                             <Label>{t('admin.slotName', 'Slot Name')}</Label>
                             <Input
@@ -340,11 +339,11 @@ const SlotsTab: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleCreate}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate}>
                             {t('common.create', 'Create')}
                         </Button>
                     </DialogFooter>
@@ -353,14 +352,17 @@ const SlotsTab: React.FC = () => {
 
             {/* Edit Dialog */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editSlot', 'Edit Slot')}</DialogTitle>
-                        <DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-lg">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary"/>
+                            {t('admin.editSlot', 'Edit Slot')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {t('admin.editSlotDesc', 'Edit ad placement slot details')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 px-6">
+                    <div className="px-6 py-5 grid gap-4">
                         <div>
                             <Label>{t('admin.slotName', 'Slot Name')}</Label>
                             <Input
@@ -421,11 +423,11 @@ const SlotsTab: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleUpdate}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>
                             {t('common.save', 'Save')}
                         </Button>
                     </DialogFooter>
@@ -433,20 +435,27 @@ const SlotsTab: React.FC = () => {
             </Dialog>
 
             {/* Delete Dialog */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogTitle>{t('admin.deleteSlot', 'Delete Slot')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {t('admin.deleteSlotConfirm', 'Are you sure you want to delete this ad slot?')}
-                    </AlertDialogDescription>
-                    <div className="flex justify-end gap-2 pt-4">
-                        <AlertDialogCancel>{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.deleteSlot', 'Delete Slot')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteSlotConfirm', 'Are you sure you want to delete this ad slot? This action cannot be undone.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDeleteDialogOpen(false)}>
+                            {t('common.cancel', 'Cancel')}
+                        </Button>
+                        <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete}>
                             {t('common.delete', 'Delete')}
-                        </AlertDialogAction>
-                    </div>
-                </AlertDialogContent>
-            </AlertDialog>
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

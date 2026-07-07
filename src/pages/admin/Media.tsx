@@ -609,52 +609,63 @@ export default function MediaPage() {
 
             {/* Delete Modal */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent className="sm:max-w-sm rounded-2xl shadow-2xl p-0 overflow-hidden">
-                    <DialogHeader className="sr-only">
-                        <DialogTitle>{t('admin.confirmDelete', '确认删除？')}</DialogTitle>
-                        <DialogDescription>{t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}</DialogDescription>
+                <DialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-red-500"/>
+                            {t('admin.confirmDelete', '确认删除？')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 text-center">
-                        <div className="w-14 h-14 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <AlertCircle className="w-7 h-7"/>
-                        </div>
-                        <h3 className="text-lg font-bold text-foreground">{t('admin.confirmDelete', '确认删除？')}</h3>
-                        <p className="text-sm text-muted-foreground mt-2 mb-6">{t('admin.deleteMediaConfirm', '此操作无法撤销。文件将从存储集群中移除。')}</p>
-                        <div className="flex gap-3">
-                            <Button
-                                variant="secondary"
-                                className="flex-1"
-                                onClick={() => setDeleteDialogOpen(false)}
-                                disabled={deleteMutation.isPending}
-                            >
-                                {t('admin.cancel', '取消')}
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                className="flex-1"
-                                onClick={handleConfirmDelete}
-                                disabled={deleteMutation.isPending}
-                            >
-                                {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
-                                {t('admin.confirmDeleteBtn', '确认删除')}
-                            </Button>
+                    <div className="px-6 py-5">
+                        <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-red-50 text-red-600 rounded-full flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-5 h-5"/>
+                            </div>
+                            <div>
+                                <p className="text-sm text-foreground">{t('admin.deleteMediaWarning', '删除后相关的转码任务、HLS流和预览文件都将被清除。')}</p>
+                            </div>
                         </div>
                     </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteDialogOpen(false)}
+                            disabled={deleteMutation.isPending}
+                            className="rounded-lg h-10 px-5 border-border/60"
+                        >
+                            {t('admin.cancel', '取消')}
+                        </Button>
+                        <Button
+                            onClick={handleConfirmDelete}
+                            disabled={deleteMutation.isPending}
+                            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium"
+                        >
+                            {deleteMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
+                            {t('admin.confirmDeleteBtn', '确认删除')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Transcoding Detail Dialog */}
             <Dialog open={variantDetailOpen} onOpenChange={setVariantDetailOpen}>
-                <DialogContent className="sm:max-w-2xl rounded-2xl shadow-2xl p-0 overflow-hidden max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Cpu className="w-5 h-5 text-primary"/>
                             {t('admin.transcodingOverview', '转码概览')}
                             {variantData?.encoding_status && (
                                 <StatusDot status={variantData.encoding_status as StatusDotStatus}/>
                             )}
                         </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.transcodingOverviewDesc', '查看该媒体文件的转码任务状态、输出路径和错误信息。')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         {variantData && (
                             <>
                                 {/* Summary stats */}
@@ -771,6 +782,15 @@ export default function MediaPage() {
                             </>
                         )}
                     </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => setVariantDetailOpen(false)}
+                            className="rounded-lg h-10 px-5 border-border/60"
+                        >
+                            {t('admin.close', '关闭')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </AdminPageTemplate>

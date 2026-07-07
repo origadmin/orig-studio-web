@@ -13,6 +13,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogFooter,
 } from '@/components/ui/dialog';
 import {
@@ -212,13 +213,17 @@ const Pages: React.FC = () => {
             </Card>
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto max-w-2xl">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            {editingPage ? <Pencil className="w-5 h-5 text-primary"/> : <Plus className="w-5 h-5 text-primary"/>}
                             {editingPage ? t('admin.pages.edit', 'Edit Page') : t('admin.pages.create', 'New Page')}
                         </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {editingPage ? t('admin.pages.editDesc', 'Update page content, settings and SEO information') : t('admin.pages.createDesc', 'Create a new custom page for your portal')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label>{t('admin.pages.form.title', 'Title')}</Label>
@@ -293,11 +298,11 @@ const Pages: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDialogOpen(false)}>
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleSave} disabled={!form.title || !form.slug}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleSave} disabled={!form.title || !form.slug}>
                             {t('common.save', 'Save')}
                         </Button>
                     </DialogFooter>

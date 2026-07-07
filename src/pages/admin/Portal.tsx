@@ -16,7 +16,7 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -214,9 +214,17 @@ const NavigationTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[450px]">
-                    <DialogHeader><DialogTitle>{t('admin.addNavItemTitle')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary" />
+                            {t('admin.addNavItemTitle', 'Add Navigation Item')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.addNavItemDesc', 'Create a new navigation menu item with link type and display order.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.navLabel')}</Label><Input value={createForm.label} onChange={e => setCreateForm({...createForm, label: e.target.value})} placeholder={t('admin.navLabel')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.navType')}</Label>
                             <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v as any})}>
@@ -231,17 +239,25 @@ const NavigationTab: React.FC = () => {
                         <div className="grid gap-2"><Label>URL</Label><Input value={createForm.url} onChange={e => setCreateForm({...createForm, url: e.target.value})} placeholder="/featured or https://..."/></div>
                         <div className="grid gap-2"><Label>{t('admin.navSort')}</Label><Input type="number" value={createForm.sequence} onChange={e => setCreateForm({...createForm, sequence: Number(e.target.value)})}/></div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.label || !createForm.url}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.label || !createForm.url}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[450px]">
-                    <DialogHeader><DialogTitle>{t('admin.editNavItem')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary" />
+                            {t('admin.editNavItem', 'Edit Navigation Item')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editNavItemDesc', 'Update navigation item label, link type, and target URL.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.navLabel')}</Label><Input value={editForm.label} onChange={e => setEditForm({...editForm, label: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.navType')}</Label>
                             <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v as any})}>
@@ -255,19 +271,27 @@ const NavigationTab: React.FC = () => {
                         </div>
                         <div className="grid gap-2"><Label>URL</Label><Input value={editForm.url} onChange={e => setEditForm({...editForm, url: e.target.value})}/></div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleUpdate}>{t('common.save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteNavItemConfirm', {label: editingItem?.label})}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete')}</AlertDialogAction>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500" />
+                            {t('admin.confirmDelete', 'Confirm Delete')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteNavItemConfirm', {label: editingItem?.label})}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -418,9 +442,17 @@ const BannersTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>{t('admin.createBanner')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary" />
+                            {t('admin.createBanner', 'Create Banner')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.createBannerDesc', 'Create a new homepage banner with image, title, and call-to-action buttons.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.bannerTitle')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={createForm.subtitle || ''} onChange={e => setCreateForm({...createForm, subtitle: e.target.value})} placeholder={t('admin.bannerSubtitle')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT, NEW"/></div>
@@ -438,17 +470,25 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={createForm.secondary_btn_url || ''} onChange={e => setCreateForm({...createForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>{t('admin.editBanner')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary" />
+                            {t('admin.editBanner', 'Edit Banner')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editBannerDesc', 'Update banner content, imagery, and call-to-action settings.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={editForm.subtitle} onChange={e => setEditForm({...editForm, subtitle: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={editForm.badge_text} onChange={e => setEditForm({...editForm, badge_text: e.target.value})}/></div>
@@ -466,19 +506,27 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={editForm.secondary_btn_url} onChange={e => setEditForm({...editForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleUpdate}>{t('common.save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteBannerConfirm', {title: editingBanner?.title})}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete')}</AlertDialogAction>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500" />
+                            {t('admin.confirmDelete', 'Confirm Delete')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteBannerConfirm', {title: editingBanner?.title})}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -627,9 +675,17 @@ const AdPlacementsTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader><DialogTitle>{t('admin.addAdPlacementTitle')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary" />
+                            {t('admin.addAdPlacementTitle', 'Add Ad Placement')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.addAdPlacementDesc', 'Create a new ad placement slot with dimensions and display limits.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.placementName')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={createForm.slug} onChange={e => setCreateForm({...createForm, slug: e.target.value})} placeholder="home-banner"/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
@@ -649,17 +705,25 @@ const AdPlacementsTab: React.FC = () => {
                         </div>
                         <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={createForm.max_ads || 1} onChange={e => setCreateForm({...createForm, max_ads: Number(e.target.value)})}/></div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.name || !createForm.slug}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.name || !createForm.slug}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader><DialogTitle>{t('admin.editAdPlacement')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary" />
+                            {t('admin.editAdPlacement', 'Edit Ad Placement')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editAdPlacementDesc', 'Update ad placement dimensions, limits, and active status.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
@@ -686,19 +750,27 @@ const AdPlacementsTab: React.FC = () => {
                             <Label htmlFor="edit-placement-active">{t('admin.enabled')}</Label>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.name || !editForm.slug}>{t('common.save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.name || !editForm.slug}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteAdPlacementConfirm', {name: deletingItem?.name})}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete')}</AlertDialogAction>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500" />
+                            {t('admin.confirmDelete', 'Confirm Delete')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteAdPlacementConfirm', {name: deletingItem?.name})}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -853,9 +925,17 @@ const AdsTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>{t('admin.addAdTitle')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary" />
+                            {t('admin.addAdTitle', 'Add Advertisement')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.addAdDesc', 'Create a new advertisement with creative assets, target link, and priority.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.adTitle')}/></div>
                         <ImageUploadField
                             value={createForm.image_url || ''}
@@ -873,17 +953,25 @@ const AdsTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.adPriority')}</Label><Input type="number" value={createForm.priority || 0} onChange={e => setCreateForm({...createForm, priority: Number(e.target.value)})}/></div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[550px] max-h-[85vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>{t('admin.editAd')}</DialogTitle></DialogHeader>
-                    <div className="space-y-4 py-4">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary" />
+                            {t('admin.editAd', 'Edit Advertisement')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editAdDesc', 'Update advertisement creative, targeting, and scheduling settings.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <ImageUploadField
                             value={editForm.image_url || ''}
@@ -903,19 +991,27 @@ const AdsTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.adEndAt')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.title}>{t('common.save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.title}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader><AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle><AlertDialogDescription>{t('admin.deleteAdConfirm')}</AlertDialogDescription></AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete')}</AlertDialogAction>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500" />
+                            {t('admin.confirmDelete', 'Confirm Delete')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteAdConfirm', 'Are you sure you want to delete this advertisement? This action cannot be undone.')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

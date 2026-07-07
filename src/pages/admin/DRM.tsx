@@ -3,7 +3,7 @@ import {
     Shield, Edit, Trash2, Key, FileCheck, ChevronLeft, ChevronRight,
     Download, ShieldPlus, Verified, Lock, ShieldAlert,
     Search, ListFilter, RefreshCw, ArrowRight, BarChart3, Monitor,
-    LockOpen,
+    LockOpen, Plus,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
@@ -11,7 +11,7 @@ import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPa
 import {Spinner} from '@/components/ui/spinner';
 import {Input} from '@/components/ui/input';
 import {Button} from '@/components/ui/button';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -323,11 +323,12 @@ const PoliciesTab: React.FC = () => {
 
             {/* Create Dialog */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
-                    <DialogHeader className="px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-lg font-semibold text-foreground">{t('admin.addDrmPolicyTitle', 'Add DRM Policy')}</DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2"><Plus className="w-5 h-5 text-primary"/>{t('admin.addDrmPolicyTitle', 'Add DRM Policy')}</DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.addDrmPolicyDesc', 'Create a new digital rights management policy to protect your content.')}</DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyName', 'Name')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.drmPolicyName', 'Name')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyType', 'Type')}</Label>
                             <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
@@ -347,20 +348,21 @@ const PoliciesTab: React.FC = () => {
                             <Label htmlFor="create-policy-default">{t('admin.drmPolicyDefault', 'Default')}</Label>
                         </div>
                     </div>
-                    <DialogFooter className="px-6 py-4 bg-muted flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.name}>{t('common.add', 'Add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.name}>{t('common.add', 'Add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Edit Dialog */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
-                    <DialogHeader className="px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-lg font-semibold text-foreground">{t('admin.editDrmPolicy', 'Edit DRM Policy')}</DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2"><Edit className="w-5 h-5 text-primary"/>{t('admin.editDrmPolicy', 'Edit DRM Policy')}</DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.editDrmPolicyDesc', 'Modify the settings for this DRM policy. Changes will take effect immediately.')}</DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyName', 'Name')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmPolicyType', 'Type')}</Label>
                             <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
@@ -382,23 +384,23 @@ const PoliciesTab: React.FC = () => {
                             <Label htmlFor="edit-policy-default">{t('admin.drmPolicyDefault', 'Default')}</Label>
                         </div>
                     </div>
-                    <DialogFooter className="px-6 py-4 bg-muted flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.name}>{t('common.save', 'Save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.name}>{t('common.save', 'Save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
-                    <AlertDialogHeader className="px-6 py-5 border-b border-border">
-                        <AlertDialogTitle className="text-lg font-semibold text-foreground">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.deleteDrmPolicyConfirm', 'Are you sure you want to delete this DRM policy?')}</AlertDialogDescription>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2"><Trash2 className="w-5 h-5 text-red-500"/>{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.deleteDrmPolicyConfirm', 'Are you sure you want to delete this DRM policy? This action cannot be undone.')}</AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="px-6 py-4 bg-muted flex-row justify-end gap-3">
-                        <AlertDialogCancel className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-semibold hover:bg-destructive/90 border-0">{t('admin.delete', 'Delete')}</AlertDialogAction>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete', 'Delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -541,31 +543,32 @@ const KeysTab: React.FC = () => {
 
             {/* Generate Dialog */}
             <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
-                <DialogContent className="sm:max-w-[450px] p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
-                    <DialogHeader className="px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-lg font-semibold text-foreground">{t('admin.generateDrmKeyTitle', 'Generate DRM Key')}</DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2"><Key className="w-5 h-5 text-primary"/>{t('admin.generateDrmKeyTitle', 'Generate DRM Key')}</DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.generateDrmKeyDesc', 'Generate a new encryption key for a specific content asset.')}</DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.drmKeyContentId', 'Content ID')}</Label><Input value={generateForm.content_id} onChange={e => setGenerateForm({...generateForm, content_id: e.target.value})} placeholder="media-uuid"/></div>
                         <div className="grid gap-2"><Label>{t('admin.drmKeyExpiresAt', 'Expires At')}</Label><Input type="datetime-local" value={generateForm.expires_at || ''} onChange={e => setGenerateForm({...generateForm, expires_at: e.target.value})}/></div>
                     </div>
-                    <DialogFooter className="px-6 py-4 bg-muted flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setGenerateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
-                        <Button onClick={handleGenerate} disabled={!generateForm.content_id}>{t('admin.generate', 'Generate')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setGenerateDialogOpen(false)}>{t('common.cancel', 'Cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleGenerate} disabled={!generateForm.content_id}>{t('admin.generate', 'Generate')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             {/* Delete Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-2xl shadow-2xl overflow-hidden">
-                    <AlertDialogHeader className="px-6 py-5 border-b border-border">
-                        <AlertDialogTitle className="text-lg font-semibold text-foreground">{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.deleteDrmKeyConfirm', 'Are you sure you want to delete this DRM key?')}</AlertDialogDescription>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2"><Trash2 className="w-5 h-5 text-red-500"/>{t('admin.confirmDelete', 'Confirm Delete')}</AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">{t('admin.deleteDrmKeyConfirm', 'Are you sure you want to delete this DRM key? This action cannot be undone.')}</AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="px-6 py-4 bg-muted flex-row justify-end gap-3">
-                        <AlertDialogCancel className="px-4 py-2 border border-border rounded-lg text-sm font-medium text-foreground hover:bg-accent">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-semibold hover:bg-destructive/90 border-0">{t('admin.delete', 'Delete')}</AlertDialogAction>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60">{t('common.cancel', 'Cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete', 'Delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

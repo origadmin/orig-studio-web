@@ -513,14 +513,17 @@ const Playlists: React.FC = () => {
 
             {/* Create Playlist Dialog */}
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.createPlaylist', 'Create Playlist')}</DialogTitle>
-                        <DialogDescription className="sr-only">
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
                             {t('admin.createPlaylist', 'Create Playlist')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.createPlaylistDesc', 'Create a new playlist to organize your media content')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="space-y-1.5">
                             <Label>{t('admin.playlistTitle', 'Playlist Title')}</Label>
                             <Input
@@ -566,11 +569,12 @@ const Playlists: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
                             {t('admin.cancel', 'Cancel')}
                         </Button>
                         <Button
+                            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium"
                             onClick={handleCreate}
                             disabled={!createTitle.trim() || !createUserId.trim() || isCreating}
                         >
@@ -583,14 +587,17 @@ const Playlists: React.FC = () => {
 
             {/* Edit Playlist Dialog */}
             <Dialog open={!!editTarget} onOpenChange={(open) => { if (!open) setEditTarget(null); }}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editPlaylist', 'Edit Playlist')}</DialogTitle>
-                        <DialogDescription className="sr-only">
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit3 className="w-5 h-5 text-primary"/>
                             {t('admin.editPlaylist', 'Edit Playlist')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editPlaylistDesc', 'Update playlist information and settings')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="space-y-1.5">
                             <Label>{t('admin.playlistTitle', 'Playlist Title')}</Label>
                             <Input
@@ -623,11 +630,11 @@ const Playlists: React.FC = () => {
                             </Select>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditTarget(null)} disabled={isUpdating}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditTarget(null)} disabled={isUpdating}>
                             {t('admin.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleSaveEdit} disabled={isUpdating}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleSaveEdit} disabled={isUpdating}>
                             {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
                             {t('admin.saveChanges', 'Save Changes')}
                         </Button>
@@ -637,21 +644,24 @@ const Playlists: React.FC = () => {
 
             {/* Delete Playlist Dialog */}
             <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.deletePlaylist', 'Delete Playlist')}</DialogTitle>
-                        <DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.deletePlaylist', 'Delete Playlist')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {t(
                                 'admin.deletePlaylistConfirm',
                                 'Are you sure you want to delete this playlist? This action cannot be undone.',
                             )}
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
                             {t('admin.cancel', 'Cancel')}
                         </Button>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                        <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete} disabled={isDeleting}>
                             {isDeleting ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
                             {t('admin.delete', 'Delete')}
                         </Button>

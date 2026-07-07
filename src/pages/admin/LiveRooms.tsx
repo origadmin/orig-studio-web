@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import {
     AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogTitle,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {Label} from '@/components/ui/label';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
@@ -672,13 +672,17 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Create Dialog ─────────────────────────────────── */}
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary" />
                             {t('admin.createLiveRoom', 'Create Live Room')}
                         </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.createLiveRoomDesc', 'Configure a new live streaming room with RTMP ingest and HLS playback settings.')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.liveRoomTitle', 'Title')}</Label>
                             <Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.liveRoomTitlePlaceholder', 'Live Room Title')}/>
@@ -707,11 +711,11 @@ const LiveRoomsTab: React.FC = () => {
                             <Input value={createForm.hls_url || ''} onChange={e => setCreateForm({...createForm, hls_url: e.target.value})} placeholder="https://.../stream.m3u8"/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title}>
                             {t('common.add', 'Add')}
                         </Button>
                     </DialogFooter>
@@ -720,13 +724,17 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Edit Dialog ───────────────────────────────────── */}
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
-                    <DialogHeader>
-                        <DialogTitle>
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-primary" />
                             {t('admin.editLiveRoom', 'Edit Live Room')}
                         </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editLiveRoomDesc', 'Modify live room settings, streaming URLs, and viewer limits.')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.liveRoomTitle', 'Title')}</Label>
                             <Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/>
@@ -755,11 +763,11 @@ const LiveRoomsTab: React.FC = () => {
                             <Input value={editForm.hls_url} onChange={e => setEditForm({...editForm, hls_url: e.target.value})}/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>
                             {t('common.cancel', 'Cancel')}
                         </Button>
-                        <Button onClick={handleUpdate} disabled={!editForm.title}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.title}>
                             {t('common.save', 'Save')}
                         </Button>
                     </DialogFooter>
@@ -768,26 +776,27 @@ const LiveRoomsTab: React.FC = () => {
 
             {/* ── Delete Dialog ─────────────────────────────────── */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="p-0 gap-0 rounded-lg shadow-2xl overflow-hidden">
-                    <DialogHeader>
-                        <AlertDialogTitle className="text-lg font-semibold text-foreground">
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500" />
                             {t('admin.confirmDelete', 'Confirm Delete')}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
                             {t('admin.deleteLiveRoomConfirm', 'Are you sure you want to delete this live room? This action cannot be undone.')}
                         </AlertDialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <AlertDialogCancel>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">
                             {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 border-0"
+                            className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium"
                         >
                             {t('admin.delete', 'Delete')}
                         </AlertDialogAction>
-                    </DialogFooter>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </>

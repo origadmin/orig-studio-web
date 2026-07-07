@@ -467,12 +467,17 @@ export default function UsersPage() {
 
       {/* Add User Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t('admin.addUser') || 'Add New User'}</DialogTitle>
-            <DialogDescription>{t('admin.addUser') || 'Add New User'}</DialogDescription>
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary"/>
+              {t('admin.addUser') || 'Add New User'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
+              {t('admin.addUserDesc') || 'Create a new user account with specified role and permissions.'}
+            </DialogDescription>
           </DialogHeader>
-          <div className="p-6 space-y-4">
+          <div className="px-6 py-5 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label>{t('admin.username') || 'Username'}</Label>
@@ -528,11 +533,11 @@ export default function UsersPage() {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+          <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+            <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowCreateDialog(false)}>
               {t('admin.cancel') || 'Cancel'}
             </Button>
-            <Button onClick={handleCreate}>
+            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate}>
               {t('admin.createUser') || 'Create User'}
             </Button>
           </DialogFooter>
@@ -541,12 +546,17 @@ export default function UsersPage() {
 
       {/* Edit User Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t('admin.editUser') || 'Edit User'}</DialogTitle>
-            <DialogDescription>{t('admin.editUser') || 'Edit User'}</DialogDescription>
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-primary"/>
+              {t('admin.editUser') || 'Edit User'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
+              {t('admin.editUserDesc') || 'Update user information, role, and account status.'}
+            </DialogDescription>
           </DialogHeader>
-          <div className="p-6 space-y-4">
+          <div className="px-6 py-5 space-y-4">
             <div className="space-y-1">
               <Label>{t('admin.username') || 'Username'}</Label>
               <Input
@@ -602,11 +612,11 @@ export default function UsersPage() {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+          <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+            <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowEditDialog(false)}>
               {t('admin.cancel') || 'Cancel'}
             </Button>
-            <Button onClick={handleUpdate}>
+            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>
               {t('admin.save') || 'Save Changes'}
             </Button>
           </DialogFooter>
@@ -615,18 +625,21 @@ export default function UsersPage() {
 
       {/* Delete User Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('admin.deleteUser') || 'Delete User'}</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden">
+          <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-500"/>
+              {t('admin.deleteUser') || 'Delete User'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
               {t('admin.deleteUserConfirm') || 'Are you sure you want to delete this user? This action cannot be undone.'}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+          <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+            <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowDeleteDialog(false)}>
               {t('admin.cancel') || 'Cancel'}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete}>
               {t('admin.delete') || 'Delete'}
             </Button>
           </DialogFooter>

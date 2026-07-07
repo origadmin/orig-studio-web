@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {
     Shield, Plus, Edit, Trash2, Users, ToggleLeft, ToggleRight,
-    Search, ArrowLeft,
+    Search, ArrowLeft, UserPlus,
 } from 'lucide-react';
 import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
@@ -15,10 +15,6 @@ import {
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
-import {
-    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {Label} from '@/components/ui/label';
 import {Textarea} from '@/components/ui/textarea';
 import {Separator} from '@/components/ui/separator';
@@ -373,12 +369,17 @@ export default function PermissionsPage() {
             )}
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>{t('permissions.createGroup')}</DialogTitle>
-                        <DialogDescription>{t('permissions.createGroupDesc')}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-[500px]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('permissions.createGroup')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('permissions.createGroupDesc') || 'Create a new permission group with specified access rights'}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.name')}</Label>
                             <Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('permissions.groupNamePlaceholder')}/>
@@ -396,20 +397,25 @@ export default function PermissionsPage() {
                             <Input value={(createForm.category_scope || []).join(', ')} onChange={e => setCreateForm({...createForm, category_scope: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})} placeholder="category1, category2"/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.name}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.name}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                        <DialogTitle>{t('permissions.editGroup')}</DialogTitle>
-                        <DialogDescription>{t('permissions.editGroupDesc', {name: editingGroup?.name})}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-[500px]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary"/>
+                            {t('permissions.editGroup')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('permissions.editGroupDesc', {name: editingGroup?.name}) || 'Update permission group settings and access rights'}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2">
                             <Label>{t('admin.name')}</Label>
                             <Input value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})}/>
@@ -427,38 +433,48 @@ export default function PermissionsPage() {
                             <Input value={(editForm.category_scope || []).join(', ')} onChange={e => setEditForm({...editForm, category_scope: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}/>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleUpdate}>{t('common.save')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{t('admin.confirmDelete')}</AlertDialogTitle>
-                        <AlertDialogDescription>{t('permissions.deleteGroupConfirm', {name: editingGroup?.name})}</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">{t('admin.delete')}</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.confirmDelete')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('permissions.deleteGroupConfirm', {name: editingGroup?.name}) || 'This action cannot be undone. The permission group will be permanently removed.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDeleteDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete}>{t('admin.delete')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
-                <DialogContent className="sm:max-w-[400px]">
-                    <DialogHeader>
-                        <DialogTitle>{t('permissions.addMember')}</DialogTitle>
-                        <DialogDescription>{t('permissions.addMemberDesc')}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto sm:max-w-[400px]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <UserPlus className="w-5 h-5 text-primary"/>
+                            {t('permissions.addMember')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('permissions.addMemberDesc') || 'Enter user IDs separated by commas to add multiple members at once'}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="py-4">
+                    <div className="px-6 py-5">
                         <Textarea value={addMemberIds} onChange={e => setAddMemberIds(e.target.value)} placeholder="user_id_1, user_id_2" rows={3}/>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setAddMemberDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button onClick={handleAddMembers} disabled={!addMemberIds.trim()}>{t('common.add')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setAddMemberDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleAddMembers} disabled={!addMemberIds.trim()}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

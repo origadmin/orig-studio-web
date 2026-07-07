@@ -4,6 +4,8 @@ import {Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
     Plus,
+    Edit2,
+    Trash2,
     Search,
     Tv,
     Users,
@@ -545,12 +547,17 @@ const Channels: React.FC = () => {
 
             {/* Create Channel Modal */}
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.newChannel') || 'Create New Channel'}</DialogTitle>
-                        <DialogDescription>{t('admin.createChannel') || 'Create Channel'}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('admin.newChannel') || 'Create New Channel'}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.createChannelDesc', 'Fill in the information to create a new content creator channel')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="space-y-1.5">
                             <Label>{t('admin.channelName') || 'Channel Name'}</Label>
                             <Input
@@ -602,11 +609,11 @@ const Channels: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowCreateDialog(false)}>
                             {t('admin.cancel')}
                         </Button>
-                        <Button onClick={handleCreate}>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate}>
                             {t('admin.createChannel') || 'Create Channel'}
                         </Button>
                     </DialogFooter>
@@ -615,12 +622,17 @@ const Channels: React.FC = () => {
 
             {/* Edit Channel Modal */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.editChannel')}</DialogTitle>
-                        <DialogDescription>{t('admin.editChannel')}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit2 className="w-5 h-5 text-primary"/>
+                            {t('admin.editChannel')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.editChannelDesc', 'Update channel information and settings')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="p-6 space-y-4">
+                    <div className="px-6 py-5 space-y-4">
                         <div className="space-y-1.5">
                             <Label>{t('admin.name')} *</Label>
                             <Input
@@ -680,14 +692,14 @@ const Channels: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                            {t('admin.delete')}
-                        </Button>
-                        <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowEditDialog(false)}>
                             {t('admin.cancel')}
                         </Button>
-                        <Button onClick={handleUpdate}>
+                        <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={() => setShowDeleteDialog(true)}>
+                            {t('admin.delete')}
+                        </Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>
                             {t('admin.save')}
                         </Button>
                     </DialogFooter>
@@ -696,16 +708,21 @@ const Channels: React.FC = () => {
 
             {/* Delete Channel Modal */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('admin.deleteChannel')}</DialogTitle>
-                        <DialogDescription>{t('admin.deleteChannelConfirm')}</DialogDescription>
+                <DialogContent className="p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.deleteChannel')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteChannelConfirm', 'This action cannot be undone. The channel and all associated data will be permanently deleted.')}
+                        </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowDeleteDialog(false)}>
                             {t('admin.cancel')}
                         </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
+                        <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete}>
                             {t('admin.delete')}
                         </Button>
                     </DialogFooter>

@@ -584,25 +584,27 @@ const Categories: React.FC = () => {
 
       {/* Create / Edit / AddChild Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {t('admin.categoryDetails') ||
-                (dialogMode === 'create'
-                  ? t('admin.newCategory') || 'Create Category'
-                  : dialogMode === 'edit'
-                    ? t('admin.editCategory') || 'Edit Category'
-                    : t('admin.addChildCategory') || 'Add Child Category')}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
+        <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              {dialogMode === 'create' && <Plus className="w-5 h-5 text-primary"/>}
+              {dialogMode === 'edit' && <Edit3 className="w-5 h-5 text-primary"/>}
+              {dialogMode === 'addChild' && <PlusSquare className="w-5 h-5 text-primary"/>}
               {dialogMode === 'create'
-                ? 'Create a new category'
+                ? t('admin.newCategory') || 'Create Category'
                 : dialogMode === 'edit'
-                  ? 'Edit category details'
-                  : 'Add a child category'}
+                  ? t('admin.editCategory') || 'Edit Category'
+                  : t('admin.addChildCategory') || 'Add Child Category'}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
+              {dialogMode === 'create'
+                ? t('admin.createCategoryDesc') || 'Create a new top-level category for organizing content.'
+                : dialogMode === 'edit'
+                  ? t('admin.editCategoryDesc') || 'Update category name, parent, slug, and status.'
+                  : t('admin.addChildCategoryDesc') || `Add a sub-category under "${currentCategory?.name || ''}".`}
             </DialogDescription>
           </DialogHeader>
-          <div className="p-6 space-y-4">
+          <div className="px-6 py-5 space-y-4">
             <div>
               <Label className="text-card-foreground block mb-1">
                 {t('admin.categoryName') || t('admin.name') || 'Category Name'}
@@ -687,11 +689,11 @@ const Categories: React.FC = () => {
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+          <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+            <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDialogOpen(false)}>
               {t('admin.cancel') || 'Cancel'}
             </Button>
-            <Button onClick={handleDialogSubmit}>
+            <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleDialogSubmit}>
               {t('admin.saveChanges') || 'Save Changes'}
             </Button>
           </DialogFooter>
@@ -700,20 +702,21 @@ const Categories: React.FC = () => {
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-md p-0 gap-0 overflow-hidden">
+          <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-500"/>
               {t('admin.deleteCategory') || 'Delete Category'}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm text-muted-foreground mt-1">
               {deleteWarningText}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+          <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+            <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDeleteDialogOpen(false)}>
               {t('admin.cancel') || 'Cancel'}
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
+            <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete}>
               {t('admin.delete') || 'Delete'}
             </Button>
           </DialogFooter>
