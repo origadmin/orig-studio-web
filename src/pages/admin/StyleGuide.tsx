@@ -40,6 +40,14 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { useTheme } from '@/themes';
 import AdminPageTemplate from '@/components/AdminPageTemplate';
 import { toast } from 'sonner';
@@ -354,33 +362,46 @@ export default function StyleGuidePage() {
                 />
                 <SpecBox label={t('styleGuide.pageLayout', '完整页面布局（标题+ICON+描述+主按钮沉底）')} value="AdminPageTemplate">
                   <div className="rounded-lg border border-border overflow-hidden bg-background">
-                    <AdminPageTemplate
-                      breadcrumbs={[
-                        { label: t('admin.breadcrumb.dashboard', '仪表盘'), path: '/admin', isLast: false },
-                        { label: t('styleGuide.notificationSample', '通知管理'), isLast: true },
-                      ]}
-                      title={t('styleGuide.notificationSample', '通知管理')}
-                      titleIcon={<Bell className="h-8 w-8" />}
-                      themeColor="rose"
-                      titleExtra={<Badge variant="secondary">{t('styleGuide.realTime', '实时')}</Badge>}
-                      description={t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}
-                      actions={
-                        <>
+                    <div className="p-8">
+                      <Breadcrumb className="mb-4">
+                        <BreadcrumbList>
+                          <BreadcrumbItem>
+                            <BreadcrumbLink href="#" onClick={e => e.preventDefault()}>{t('admin.breadcrumb.dashboard', '仪表盘')}</BreadcrumbLink>
+                          </BreadcrumbItem>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbPage>{t('styleGuide.notificationSample', '通知管理')}</BreadcrumbPage>
+                          </BreadcrumbItem>
+                        </BreadcrumbList>
+                      </Breadcrumb>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="space-y-1">
+                          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                            <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
+                              <Bell className="h-8 w-8" />
+                            </span>
+                            {t('styleGuide.notificationSample', '通知管理')}
+                            <span className="shrink-0"><Badge variant="secondary">{t('styleGuide.realTime', '实时')}</Badge></span>
+                          </h1>
+                          <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
                           <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />{t('styleGuide.export', '导出')}</Button>
                           <Button variant="outline" size="icon-sm"><Settings className="h-4 w-4" /></Button>
-                        </>
-                      }
-                      primaryAction={
+                        </div>
+                      </div>
+                      <div className="space-y-6">
+                        <div className="rounded border border-dashed border-border bg-muted/20 p-8 text-center">
+                          <p className="text-sm text-muted-foreground">{t('styleGuide.contentArea', '（表格/统计/列表等内容区域）')}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-end pt-6 border-t border-border mt-6">
                         <Button>
                           <Plus className="h-4 w-4" />
                           {t('styleGuide.compose', '编写通知')}
                         </Button>
-                      }
-                    >
-                      <div className="rounded border border-dashed border-border bg-muted/20 p-8 text-center">
-                        <p className="text-sm text-muted-foreground">{t('styleGuide.contentArea', '（表格/统计/列表等内容区域）')}</p>
                       </div>
-                    </AdminPageTemplate>
+                    </div>
                   </div>
                 </SpecBox>
                 <DoDont
