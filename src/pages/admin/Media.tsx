@@ -212,7 +212,7 @@ export default function MediaPage() {
         );
     };
 
-    const pageActions = (
+    const primaryAction = (
         <Button
             onClick={() => setUploadDialogOpen(true)}
         >
@@ -339,12 +339,12 @@ export default function MediaPage() {
             titleIcon={<Film className="h-8 w-8" />}
             themeColor="sky"
             description={t('admin.mediaManagementDesc', '在这里集中管理所有的视频与图片资源')}
-            actions={pageActions}
             stats={pageStats}
             searchPlaceholder={t('admin.searchAssets', '搜索媒体资源...')}
             searchValue={searchParams.keyword}
             onSearchChange={(value) => setSearchParams({...searchParams, keyword: value})}
             filters={pageFilters}
+            primaryAction={primaryAction}
         >
             {/* Data Table */}
             <div className="bg-card rounded-lg border border-border shadow-sm">
