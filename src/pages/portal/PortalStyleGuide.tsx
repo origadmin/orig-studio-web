@@ -32,6 +32,7 @@ import {
     Sun,
     Moon,
     Monitor,
+    Activity,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -286,12 +287,14 @@ export default function PortalStyleGuide() {
                                     <Type className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                                 </div>
                                 <h4 className="font-semibold text-foreground">
-                                    {t('portalStyleGuide.ruleType', '字体层级')}
+                                    {t('portalStyleGuide.ruleType', '排版与布局')}
                                 </h4>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                页面标题 text-3xl font-bold，卡片标题 text-base font-semibold，正文 text-sm，辅助文字 text-xs。
-                            </p>
+                            <ul className="text-sm text-muted-foreground space-y-1.5">
+                                <li><strong>字体层级</strong>：页面标题 text-3xl font-bold，卡片标题 text-base font-semibold，正文 text-sm，辅助文字 text-xs。</li>
+                                <li><strong>主按钮沉底</strong>：主要CTA按钮放在内容区底部，border-t分隔，右对齐。不悬浮、不放在标题栏。</li>
+                                <li><strong>状态Badge</strong>：状态标签（如"已断开"、"转码中"）放在页面标题右侧同行，与标题文字 vertically centered，使用 whitespace-nowrap 防止换行。</li>
+                            </ul>
                         </CardContent>
                     </Card>
                     <Card className="border-l-4 border-l-sky-500 border-border/60">
@@ -355,7 +358,7 @@ export default function PortalStyleGuide() {
                     </TabsList>
 
                     <TabsContent value="template">
-                        <Section title={t('portalStyleGuide.pageHeader', '页面标题区 (Page Header)')} description={t('portalStyleGuide.pageHeaderDesc', '统一的标题+ICON+主题色+描述+操作区布局')}>
+                        <Section title={t('portalStyleGuide.pageHeader', '页面标题区 (Page Header)')} description={t('portalStyleGuide.pageHeaderDesc', '标题+ICON+状态Badge+主题色+描述+操作区布局。Badge与标题同行右侧，whitespace-nowrap防换行')}>
                             <div className="border border-dashed border-border rounded-2xl p-6 bg-muted/20">
                                 <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                                     <div>
@@ -364,6 +367,10 @@ export default function PortalStyleGuide() {
                                                 <Bell className="h-8 w-8" />
                                             </span>
                                             {t('portalStyleGuide.demoTitle', '通知中心')}
+                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive whitespace-nowrap">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                                                {t('portalStyleGuide.badgeDisconnected', '已断开')}
+                                            </span>
                                         </h1>
                                         <p className="text-sm font-medium text-foreground/80 mt-1">
                                             {t('portalStyleGuide.demoSubtitle', '管理您的所有系统通知和消息')}
@@ -407,6 +414,42 @@ export default function PortalStyleGuide() {
                                         <Upload className="w-4 h-4 mr-1.5" />
                                         {t('portalStyleGuide.uploadVideo', '上传视频')}
                                     </Button>
+                                </div>
+                            </div>
+                        </Section>
+
+                        <Section title={t('portalStyleGuide.statusBadge', '状态Badge (Status Badge)')} description={t('portalStyleGuide.statusBadgeDesc', '页面状态标签放在标题右侧同行，使用不同颜色表示不同状态')}>
+                            <div className="space-y-4">
+                                <div className="border border-dashed border-border rounded-2xl p-6 bg-muted/20">
+                                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3 flex-wrap">
+                                        <span className="h-8 w-8 shrink-0 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                                            <Activity className="h-8 w-8" />
+                                        </span>
+                                        {t('portalStyleGuide.transcodingStatus', '转码状态')}
+                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive whitespace-nowrap">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                                            {t('portalStyleGuide.badgeDisconnected', '已断开')}
+                                        </span>
+                                    </h1>
+                                    <p className="text-sm text-muted-foreground mt-1">Badge 使用 whitespace-nowrap 防止标题文字和Badge之间换行</p>
+                                </div>
+                                <div className="flex flex-wrap gap-3">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive whitespace-nowrap">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
+                                        {t('portalStyleGuide.badgeDisconnected', '已断开')}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 whitespace-nowrap">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                        {t('portalStyleGuide.badgeConnected', '已连接')}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 whitespace-nowrap">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                        {t('portalStyleGuide.badgeTranscoding', '转码中')}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-3 py-1 text-xs font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-400 whitespace-nowrap">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+                                        {t('portalStyleGuide.badgeCompleted', '已完成')}
+                                    </span>
                                 </div>
                             </div>
                         </Section>

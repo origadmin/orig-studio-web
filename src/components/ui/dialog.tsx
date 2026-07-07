@@ -41,7 +41,7 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content
             ref={ref}
             className={cn(
-                "fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-2xl overflow-hidden",
+                "fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background px-6 py-0 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-2xl overflow-hidden",
                 className
             )}
             {...props}
@@ -66,7 +66,7 @@ const DialogHeader = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col space-y-1.5 px-6 py-5 border-b border-slate-100 text-left",
+            "flex flex-col space-y-1.5 -mx-6 px-6 py-5 border-b border-slate-100 text-left",
             className
         )}
         {...props}
@@ -80,13 +80,21 @@ const DialogFooter = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col-reverse px-6 py-4 bg-muted/50 sm:flex-row sm:justify-end sm:space-x-3",
+            "flex flex-col-reverse -mx-6 px-6 py-4 bg-muted/50 sm:flex-row sm:justify-end sm:space-x-3",
             className
         )}
         {...props}
     />
 )
 DialogFooter.displayName = "DialogFooter"
+
+const DialogBody = ({
+                        className,
+                        ...props
+                    }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div className={cn("py-5", className)} {...props} />
+)
+DialogBody.displayName = "DialogBody"
 
 const DialogTitle = React.forwardRef<
     React.ElementRef<typeof DialogPrimitive.Title>,
@@ -124,6 +132,7 @@ export {
     DialogContent,
     DialogHeader,
     DialogFooter,
+    DialogBody,
     DialogTitle,
     DialogDescription,
 }

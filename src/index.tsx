@@ -56,7 +56,7 @@ createRoot(rootElement).render(
                         <InnerApp/>
                     </NotificationProvider>
                 </AuthProvider>
-                <Toaster position="top-right" richColors closeButton/>
+                <Toaster position="bottom-right" richColors closeButton/>
             </ThemeProvider>
         </QueryClientProvider>
     </StrictMode>
