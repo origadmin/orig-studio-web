@@ -227,7 +227,7 @@ export default function StyleGuidePage() {
                     </div>
                     <h4 className="font-semibold text-foreground">{t('styleGuide.pageTitleIcon', '标题ICON')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-6 w-6。')}</p>
+                  <p className="text-sm text-muted-foreground">{t('styleGuide.pageTitleIconDesc', '页面标题必须带 Lucide ICON，使用 AdminPageTemplate 的 titleIcon + themeColor 属性。ICON颜色由页面主题色控制，尺寸为 h-8 w-8，与 text-3xl 标题对齐。')}</p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-emerald-500 overflow-hidden">
@@ -381,12 +381,44 @@ export default function StyleGuidePage() {
                         <Bell className="h-8 w-8" />
                       </span>
                       {t('styleGuide.notificationSample', '通知管理')}
+                      <Badge variant="secondary" className="shrink-0">{t('styleGuide.realTime', '实时')}</Badge>
                     </h1>
                     <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
                   </div>
                 </SpecBox>
+                <DoDont
+                  do={
+                    <div>
+                      <div className="space-y-1 mb-2">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                          <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
+                            <Bell className="h-8 w-8" />
+                          </span>
+                          {t('styleGuide.notificationSample', '通知管理')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t('styleGuide.correctTitleDesc', 'ICON h-8 w-8 与标题同行，使用 space-y-1 控制标题与描述间距，描述使用 text-sm text-muted-foreground。')}</p>
+                    </div>
+                  }
+                  dont={
+                    <div>
+                      <div className="mb-2">
+                        <h1 className="text-3xl font-bold text-foreground">
+                          <Bell className="h-6 w-6 text-rose-600 inline mr-2" />
+                          {t('styleGuide.notificationSample', '通知管理')}
+                        </h1>
+                        <div>
+                          <Badge variant="secondary" className="mt-1">{t('styleGuide.realTime', '实时')}</Badge>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-2">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t('styleGuide.wrongTitleDesc', 'ICON 尺寸 h-6 w-6 太小、Badge 换行到标题下方、描述使用硬编码 slate 颜色且间距错误。')}</p>
+                    </div>
+                  }
+                />
                 <SpecBox label={t('styleGuide.primaryButtonSample', '主按钮沉底')} value="primaryAction prop">
-                  <div className="flex justify-end pt-6 border-t border-border">
+                  <div className="flex justify-end pt-6 border-t border-border mt-6">
                     <Button>
                       <Plus className="h-4 w-4" />
                       {t('styleGuide.compose', '编写通知')}

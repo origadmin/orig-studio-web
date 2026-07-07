@@ -249,7 +249,7 @@ const AdminNotifications: React.FC = () => {
     return (
         <AdminPageTemplate
             title={t('admin.notifications', 'Notification Management')}
-            titleIcon={<Bell className="h-6 w-6" />}
+            titleIcon={<Bell className="h-8 w-8" />}
             themeColor="rose"
             description={t('admin.notificationsDesc', 'Configure, broadcast, and audit system-wide alerts.')}
         >
