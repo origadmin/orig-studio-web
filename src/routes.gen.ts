@@ -72,6 +72,7 @@ import { Route as AuthenticatedAdminMediaIdRouteImport } from "./routes/_authent
 import { Route as AuthenticatedAdminArticlesNewRouteImport } from "./routes/_authenticated/admin/articles/new";
 import { Route as AuthenticatedPortalMeVideosRouteImport } from "./routes/_authenticated/_portal/me/videos";
 import { Route as AuthenticatedPortalMeUploadRouteImport } from "./routes/_authenticated/_portal/me/upload";
+import { Route as AuthenticatedPortalMeStyleGuideRouteImport } from "./routes/_authenticated/_portal/me/style-guide";
 import { Route as AuthenticatedPortalMePlaylistsRouteImport } from "./routes/_authenticated/_portal/me/playlists";
 import { Route as AuthenticatedPortalMeNotificationsRouteImport } from "./routes/_authenticated/_portal/me/notifications";
 import { Route as AuthenticatedPortalMeHistoryRouteImport } from "./routes/_authenticated/_portal/me/history";
@@ -429,6 +430,12 @@ const AuthenticatedPortalMeUploadRoute =
     path: "/upload",
     getParentRoute: () => AuthenticatedPortalMeRoute,
   } as any);
+const AuthenticatedPortalMeStyleGuideRoute =
+  AuthenticatedPortalMeStyleGuideRouteImport.update({
+    id: "/style-guide",
+    path: "/style-guide",
+    getParentRoute: () => AuthenticatedPortalMeRoute,
+  } as any);
 const AuthenticatedPortalMePlaylistsRoute =
   AuthenticatedPortalMePlaylistsRouteImport.update({
     id: "/playlists",
@@ -568,6 +575,7 @@ export interface FileRoutesByFullPath {
   "/me/history": typeof AuthenticatedPortalMeHistoryRoute;
   "/me/notifications": typeof AuthenticatedPortalMeNotificationsRoute;
   "/me/playlists": typeof AuthenticatedPortalMePlaylistsRoute;
+  "/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/me/videos": typeof AuthenticatedPortalMeVideosRoute;
   "/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
@@ -638,6 +646,7 @@ export interface FileRoutesByTo {
   "/me/history": typeof AuthenticatedPortalMeHistoryRoute;
   "/me/notifications": typeof AuthenticatedPortalMeNotificationsRoute;
   "/me/playlists": typeof AuthenticatedPortalMePlaylistsRoute;
+  "/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/me/videos": typeof AuthenticatedPortalMeVideosRoute;
   "/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
@@ -717,6 +726,7 @@ export interface FileRoutesById {
   "/_authenticated/_portal/me/history": typeof AuthenticatedPortalMeHistoryRoute;
   "/_authenticated/_portal/me/notifications": typeof AuthenticatedPortalMeNotificationsRoute;
   "/_authenticated/_portal/me/playlists": typeof AuthenticatedPortalMePlaylistsRoute;
+  "/_authenticated/_portal/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/_authenticated/_portal/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/_authenticated/_portal/me/videos": typeof AuthenticatedPortalMeVideosRoute;
   "/_authenticated/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
@@ -794,6 +804,7 @@ export interface FileRouteTypes {
     | "/me/history"
     | "/me/notifications"
     | "/me/playlists"
+    | "/me/style-guide"
     | "/me/upload"
     | "/me/videos"
     | "/admin/articles/new"
@@ -864,6 +875,7 @@ export interface FileRouteTypes {
     | "/me/history"
     | "/me/notifications"
     | "/me/playlists"
+    | "/me/style-guide"
     | "/me/upload"
     | "/me/videos"
     | "/admin/articles/new"
@@ -942,6 +954,7 @@ export interface FileRouteTypes {
     | "/_authenticated/_portal/me/history"
     | "/_authenticated/_portal/me/notifications"
     | "/_authenticated/_portal/me/playlists"
+    | "/_authenticated/_portal/me/style-guide"
     | "/_authenticated/_portal/me/upload"
     | "/_authenticated/_portal/me/videos"
     | "/_authenticated/admin/articles/new"
@@ -1408,6 +1421,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedPortalMeUploadRouteImport;
       parentRoute: typeof AuthenticatedPortalMeRoute;
     };
+    "/_authenticated/_portal/me/style-guide": {
+      id: "/_authenticated/_portal/me/style-guide";
+      path: "/style-guide";
+      fullPath: "/me/style-guide";
+      preLoaderRoute: typeof AuthenticatedPortalMeStyleGuideRouteImport;
+      parentRoute: typeof AuthenticatedPortalMeRoute;
+    };
     "/_authenticated/_portal/me/playlists": {
       id: "/_authenticated/_portal/me/playlists";
       path: "/playlists";
@@ -1596,6 +1616,7 @@ interface AuthenticatedPortalMeRouteChildren {
   AuthenticatedPortalMeHistoryRoute: typeof AuthenticatedPortalMeHistoryRoute;
   AuthenticatedPortalMeNotificationsRoute: typeof AuthenticatedPortalMeNotificationsRoute;
   AuthenticatedPortalMePlaylistsRoute: typeof AuthenticatedPortalMePlaylistsRoute;
+  AuthenticatedPortalMeStyleGuideRoute: typeof AuthenticatedPortalMeStyleGuideRoute;
   AuthenticatedPortalMeUploadRoute: typeof AuthenticatedPortalMeUploadRoute;
   AuthenticatedPortalMeVideosRoute: typeof AuthenticatedPortalMeVideosRoute;
 }
@@ -1610,6 +1631,7 @@ const AuthenticatedPortalMeRouteChildren: AuthenticatedPortalMeRouteChildren = {
   AuthenticatedPortalMeNotificationsRoute:
     AuthenticatedPortalMeNotificationsRoute,
   AuthenticatedPortalMePlaylistsRoute: AuthenticatedPortalMePlaylistsRoute,
+  AuthenticatedPortalMeStyleGuideRoute: AuthenticatedPortalMeStyleGuideRoute,
   AuthenticatedPortalMeUploadRoute: AuthenticatedPortalMeUploadRoute,
   AuthenticatedPortalMeVideosRoute: AuthenticatedPortalMeVideosRoute,
 };
