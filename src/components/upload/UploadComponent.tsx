@@ -53,9 +53,6 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
     const performUpload = useCallback(async (fileItem: UploadFileItem) => {
         if (fileItem.status === 'success' || ['uploading', 'initiating', 'completing'].includes(fileItem.status)) return;
 
-        // checkAllDone: call onSuccess only when every file in the list is in a
-        // terminal state (success or error). This prevents the parent dialog from
-        // closing after the first file succeeds while others are still uploading.
         const checkAllDone = () => {
             setFiles((prev) => {
                 const allDone = prev.every(
@@ -177,14 +174,13 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
 
     return (
         <div className="w-full space-y-6">
-            {/* Drop zone — Stitch media_library pattern */}
             <div
                 className={cn(
-                    'group border-2 border-dashed border-slate-200 rounded-xl p-8',
+                    'group border-2 border-dashed border-border rounded-xl p-8',
                     'text-center transition-colors cursor-pointer',
-                    'hover:border-indigo-400 outline-none',
+                    'hover:border-primary outline-none',
                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                    isDragging && 'border-indigo-400 bg-indigo-50/40',
+                    isDragging && 'border-primary bg-primary/5',
                 )}
                 onDragOver={(e) => {
                     e.preventDefault();
@@ -214,20 +210,19 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                 />
                 <div
                     className={cn(
-                        'w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full',
+                        'w-12 h-12 bg-primary/10 text-primary rounded-full',
                         'flex items-center justify-center mx-auto mb-3',
                         'group-hover:scale-110 transition-transform',
                     )}
                 >
                     <Upload className="w-6 h-6"/>
                 </div>
-                <p className="text-sm font-semibold text-slate-800">{t('upload.dropzoneTitle')}</p>
-                <p className="text-xs text-slate-400 mt-1">{t('upload.supportedFormats')}</p>
+                <p className="text-sm font-semibold text-foreground">{t('upload.dropzoneTitle')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('upload.supportedFormats')}</p>
             </div>
 
-            {/* File list — Stitch list rows */}
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 sticky top-0 bg-white/95 backdrop-blur py-2 z-10">
+                <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground sticky top-0 bg-background/95 backdrop-blur py-2 z-10">
                     {t('upload.selectedFiles', {count: files.length})}
                 </h3>
                 {files.map((fileItem) => (
@@ -237,11 +232,11 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                         className={cn(
                             'flex items-center gap-4 p-3 rounded-xl transition-all border cursor-pointer',
                             selectedFileId === fileItem.id
-                                ? 'border-indigo-500 bg-indigo-50/40 shadow-sm'
-                                : 'border-slate-100 bg-white hover:bg-slate-50',
+                                ? 'border-primary bg-primary/5 shadow-sm'
+                                : 'border-border bg-card hover:bg-accent',
                         )}
                     >
-                        <div className="w-12 h-12 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-12 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                             {fileItem.preview ? (
                                 <img src={fileItem.preview} alt="" className="w-full h-full object-cover"/>
                             ) : (
@@ -254,19 +249,19 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-start">
-                                <p className="font-medium text-sm text-slate-800 truncate">{fileItem.file.name}</p>
+                                <p className="font-medium text-sm text-foreground truncate">{fileItem.file.name}</p>
                                 <span
-                                    className="text-[10px] text-slate-400 font-mono">{formatFileSize(fileItem.file.size)}</span>
+                                    className="text-[10px] text-muted-foreground font-mono">{formatFileSize(fileItem.file.size)}</span>
                             </div>
 
                             {['uploading', 'initiating', 'completing'].includes(fileItem.status) ? (
                                 <div className="mt-1.5 space-y-1">
-                                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-indigo-600 transition-all"
+                                    <div className="h-1 bg-muted rounded-full overflow-hidden">
+                                        <div className="h-full bg-primary transition-all"
                                              style={{width: `${fileItem.progress}%`}}/>
                                     </div>
-                                    <div className="flex justify-between text-[10px] text-slate-500">
-                                        <span>{fileItem.status === 'completing' ? 'merging...' : `${fileItem.progress}%`}</span>
+                                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                                        <span>{fileItem.status === 'completing' ? t('upload.statusCompleting') : `${fileItem.progress}%`}</span>
                                         {fileItem.speed && <span className="font-mono">{formatFileSize(fileItem.speed)}/s</span>}
                                     </div>
                                 </div>
@@ -286,7 +281,7 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                             <Button
                                 variant="ghost"
                                 size="icon-sm"
-                                className="text-slate-400 hover:text-destructive"
+                                className="text-muted-foreground hover:text-destructive"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     removeFile(fileItem.id);
@@ -300,13 +295,13 @@ export function UploadComponent({onSuccess, onCancel}: UploadComponentProps) {
                 {files.length === 0 && (
                     <div className="text-center py-8 text-muted-foreground text-sm">
                         <FileVideo className="w-8 h-8 mx-auto mb-2 opacity-40"/>
-                        No files selected
+                        {t('upload.noFilesSelected', 'No files selected')}
                     </div>
                 )}
             </div>
 
             {onCancel && (
-                <div className="flex justify-end pt-2 border-t border-slate-100">
+                <div className="flex justify-end pt-2 border-t border-border">
                     <Button variant="ghost" className="text-muted-foreground" onClick={onCancel}>
                         {t('common.cancel')}
                     </Button>
