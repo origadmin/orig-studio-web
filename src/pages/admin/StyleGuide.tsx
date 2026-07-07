@@ -354,38 +354,33 @@ export default function StyleGuidePage() {
                 />
                 <SpecBox label={t('styleGuide.pageLayout', '完整页面布局（标题+ICON+描述+主按钮沉底）')} value="AdminPageTemplate">
                   <div className="rounded-lg border border-border overflow-hidden bg-background">
-                    <nav className="px-4 py-2 text-xs text-muted-foreground flex items-center gap-1 border-b border-border/50 bg-muted/20">
-                      <span>{t('admin.breadcrumb.dashboard', '仪表盘')}</span>
-                      <ChevronRight className="h-3 w-3" />
-                      <span className="text-foreground font-medium">{t('styleGuide.notificationSample', '通知管理')}</span>
-                    </nav>
-                    <div className="p-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="space-y-1">
-                          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                            <span className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-600">
-                              <Bell className="h-8 w-8" />
-                            </span>
-                            {t('styleGuide.notificationSample', '通知管理')}
-                            <Badge variant="secondary" className="shrink-0">{t('styleGuide.realTime', '实时')}</Badge>
-                          </h1>
-                          <p className="text-sm text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
+                    <AdminPageTemplate
+                      breadcrumbs={[
+                        { label: t('admin.breadcrumb.dashboard', '仪表盘'), path: '/admin', isLast: false },
+                        { label: t('styleGuide.notificationSample', '通知管理'), isLast: true },
+                      ]}
+                      title={t('styleGuide.notificationSample', '通知管理')}
+                      titleIcon={<Bell className="h-8 w-8" />}
+                      themeColor="rose"
+                      titleExtra={<Badge variant="secondary">{t('styleGuide.realTime', '实时')}</Badge>}
+                      description={t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}
+                      actions={
+                        <>
                           <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />{t('styleGuide.export', '导出')}</Button>
                           <Button variant="outline" size="icon-sm"><Settings className="h-4 w-4" /></Button>
-                        </div>
-                      </div>
-                      <div className="rounded border border-dashed border-border bg-muted/20 p-8 text-center">
-                        <p className="text-xs text-muted-foreground">{t('styleGuide.contentArea', '（表格/统计/列表等内容区域）')}</p>
-                      </div>
-                      <div className="flex justify-end pt-4 border-t border-border mt-4">
+                        </>
+                      }
+                      primaryAction={
                         <Button>
                           <Plus className="h-4 w-4" />
                           {t('styleGuide.compose', '编写通知')}
                         </Button>
+                      }
+                    >
+                      <div className="rounded border border-dashed border-border bg-muted/20 p-8 text-center">
+                        <p className="text-sm text-muted-foreground">{t('styleGuide.contentArea', '（表格/统计/列表等内容区域）')}</p>
                       </div>
-                    </div>
+                    </AdminPageTemplate>
                   </div>
                 </SpecBox>
                 <DoDont
@@ -400,6 +395,7 @@ export default function StyleGuidePage() {
                                   <Bell className="h-6 w-6" />
                                 </span>
                                 {t('styleGuide.notificationSample', '通知管理')}
+                                <Badge variant="secondary" className="shrink-0">{t('styleGuide.realTime', '实时')}</Badge>
                               </h1>
                               <p className="text-xs text-muted-foreground">{t('styleGuide.notificationSampleDesc', '配置、发送和审计系统级通知')}</p>
                             </div>
