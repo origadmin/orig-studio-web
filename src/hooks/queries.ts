@@ -379,7 +379,9 @@ export function useChannelLimits(enabled: boolean) {
         queryKey: ['channel', 'limits'],
         queryFn: async () => {
             const res = await channelApi.getChannelLimits();
-            return res as ChannelLimits;
+            // gRPC-gateway returns GetChannelLimitsResponse with {limits: {...}} wrapper
+            const data = (res as any)?.limits ?? res;
+            return data as ChannelLimits;
         },
         enabled,
     });
