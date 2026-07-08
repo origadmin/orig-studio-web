@@ -57,7 +57,6 @@ const UploadPage = () => {
                 <CreateChannelDialog
                     open={createDialogOpen}
                     onOpenChange={setCreateDialogOpen}
-                    onSuccess={() => window.location.reload()}
                 />
             </div>
         );
