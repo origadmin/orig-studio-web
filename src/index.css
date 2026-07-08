@@ -125,6 +125,7 @@
 
     * {
         @apply border-border;
+        --tw-ring-offset-width: 0px !important;
     }
 
     body {
