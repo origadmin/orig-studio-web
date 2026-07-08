@@ -40,6 +40,7 @@
     "edit": "编辑",
     "subtitles": "字幕",
     "delete": "删除",
+    "close": "关闭",
     "submitting": "提交中...",
     "retry": "重试",
     "reply": "回复",
@@ -598,7 +599,8 @@
     "preview": "预览",
     "batchSelect": "批量选择",
     "selectAll": "全选",
-    "selectedCount": "已选择 ({{count}}/{{total}})"
+    "selectedCount": "已选择 ({{count}}/{{total}})",
+    "viewDetail": "查看详情"
   },
   "history": {
     "title": "历史记录",

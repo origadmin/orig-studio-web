@@ -40,6 +40,7 @@
     "edit": "編集",
     "subtitles": "字幕",
     "delete": "削除",
+    "close": "閉じる",
     "submitting": "送信中...",
     "retry": "再試行",
     "reply": "返信",
@@ -598,7 +599,8 @@
     "preview": "プレビュー",
     "batchSelect": "一括選択",
     "selectAll": "すべて選択",
-    "selectedCount": "{{count}}/{{total}} 件選択"
+    "selectedCount": "{{count}}/{{total}} 件選択",
+    "viewDetail": "詳細を見る"
   },
   "history": {
     "title": "視聴履歴",

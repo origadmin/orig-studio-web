@@ -359,7 +359,7 @@ const NotificationCenter: React.FC = () => {
                                                         size="sm"
                                                         className="h-8 w-8 p-0"
                                                         onClick={() => handleOpenDetail(notification)}
-                                                        title={t('notifications.viewDetail') || 'View details'}
+                                                        title={t('notifications.viewDetail')}
                                                     >
                                                         <Eye className="w-4 h-4"/>
                                                     </Button>
@@ -483,11 +483,13 @@ const NotificationCenter: React.FC = () => {
                                     </p>
                                 </div>
                             </DialogBody>
-                            <DialogFooter className="gap-2">
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button variant="outline">{t('common.close')}</Button>
+                                </DialogClose>
                                 {!selectedNotification.read && (
                                     <Button
                                         variant="outline"
-                                        size="sm"
                                         onClick={async () => {
                                             await markAsRead(selectedNotification.id);
                                             setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? {...n, read: true} : n));
@@ -495,13 +497,12 @@ const NotificationCenter: React.FC = () => {
                                             refresh();
                                         }}
                                     >
-                                        <Check className="w-4 h-4 mr-1"/>
+                                        <Check className="w-4 h-4 mr-2"/>
                                         {t('notifications.markAsRead')}
                                     </Button>
                                 )}
                                 <Button
                                     variant="destructive"
-                                    size="sm"
                                     onClick={async () => {
                                         await notificationApi.delete(selectedNotification.id);
                                         setDetailOpen(false);
@@ -510,12 +511,9 @@ const NotificationCenter: React.FC = () => {
                                         refresh();
                                     }}
                                 >
-                                    <Trash2 className="w-4 h-4 mr-1"/>
+                                    <Trash2 className="w-4 h-4 mr-2"/>
                                     {t('common.delete')}
                                 </Button>
-                                <DialogClose asChild>
-                                    <Button variant="outline" size="sm">{t('common.close') || '关闭'}</Button>
-                                </DialogClose>
                             </DialogFooter>
                         </>
                     )}
@@ -537,14 +535,14 @@ const NotificationCenter: React.FC = () => {
                     </DialogBody>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setConfirmClearType(null)} disabled={clearing}>
-                            取消
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             variant="destructive"
                             onClick={confirmClearType === 'all' ? handleClearAll : handleClearRead}
                             disabled={clearing}
                         >
-                            {clearing ? <Loader2 className="w-4 h-4 mr-1 animate-spin"/> : <Trash2 className="w-4 h-4 mr-1"/>}
+                            {clearing ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Trash2 className="w-4 h-4 mr-2"/>}
                             确认清空
                         </Button>
                     </DialogFooter>

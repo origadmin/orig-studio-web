@@ -40,6 +40,7 @@
     "edit": "Edit",
     "subtitles": "Subtitles",
     "delete": "Delete",
+    "close": "Close",
     "submitting": "Submitting...",
     "retry": "Retry",
     "reply": "Reply",
@@ -598,7 +599,8 @@
     "preview": "Preview",
     "batchSelect": "Batch Select",
     "selectAll": "Select All",
-    "selectedCount": "{{count}}/{{total}} selected"
+    "selectedCount": "{{count}}/{{total}} selected",
+    "viewDetail": "View Details"
   },
   "history": {
     "title": "History",
