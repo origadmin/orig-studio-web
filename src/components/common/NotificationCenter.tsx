@@ -265,7 +265,7 @@ const NotificationCenter: React.FC = () => {
                                                 </Button>
                                             )}
                                             <Button
-                                                variant="ghost"
+                                                variant="outline"
                                                 size="sm"
                                                 onClick={() => setBatchMode(true)}
                                             >
@@ -457,36 +457,37 @@ const NotificationCenter: React.FC = () => {
                 </CardContent>
             </Card>
             <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-md">
                     {selectedNotification && (
                         <>
                             <DialogHeader>
-                                <DialogTitle className="flex items-start gap-2 pr-8">
+                                <DialogTitle className="flex items-center gap-2 pr-8">
                                     {!selectedNotification.read && (
-                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-2"/>
+                                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"/>
                                     )}
                                     <span className="break-words">{selectedNotification.title}</span>
                                 </DialogTitle>
+                                <div className="flex items-center gap-2 pt-1">
+                                    <span className="text-xs text-muted-foreground">
+                                        {formatDate(selectedNotification.create_time)}
+                                    </span>
+                                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${selectedNotification.read ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
+                                        {selectedNotification.read ? t('notifications.read') : t('notifications.unread')}
+                                    </span>
+                                </div>
                             </DialogHeader>
                             <DialogBody>
-                                <div className="space-y-4">
+                                <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4 -mx-0">
                                     <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
                                         {selectedNotification.body}
                                     </p>
-                                    <div className="flex items-center gap-3 pt-3 border-t border-border">
-                                        <span className="text-xs text-muted-foreground">
-                                            {formatDate(selectedNotification.create_time)}
-                                        </span>
-                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${selectedNotification.read ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
-                                            {selectedNotification.read ? t('notifications.read') : t('notifications.unread')}
-                                        </span>
-                                    </div>
                                 </div>
                             </DialogBody>
-                            <DialogFooter>
+                            <DialogFooter className="gap-2">
                                 {!selectedNotification.read && (
                                     <Button
                                         variant="outline"
+                                        size="sm"
                                         onClick={async () => {
                                             await markAsRead(selectedNotification.id);
                                             setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? {...n, read: true} : n));
@@ -500,6 +501,7 @@ const NotificationCenter: React.FC = () => {
                                 )}
                                 <Button
                                     variant="destructive"
+                                    size="sm"
                                     onClick={async () => {
                                         await notificationApi.delete(selectedNotification.id);
                                         setDetailOpen(false);
@@ -512,7 +514,7 @@ const NotificationCenter: React.FC = () => {
                                     {t('common.delete')}
                                 </Button>
                                 <DialogClose asChild>
-                                    <Button>{t('common.close') || 'Close'}</Button>
+                                    <Button variant="outline" size="sm">{t('common.close') || '关闭'}</Button>
                                 </DialogClose>
                             </DialogFooter>
                         </>
