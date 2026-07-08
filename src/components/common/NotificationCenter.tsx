@@ -32,6 +32,8 @@ const NotificationCenter: React.FC = () => {
     const [batchLoading, setBatchLoading] = useState(false);
     const [detailOpen, setDetailOpen] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+    const [confirmClearType, setConfirmClearType] = useState<'all' | 'read' | null>(null);
+    const [clearing, setClearing] = useState(false);
     const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
 
     useEffect(() => {
@@ -85,6 +87,34 @@ const NotificationCenter: React.FC = () => {
             refresh();
         } catch (err) {
             console.error('Failed to delete notification:', err);
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            setClearing(true);
+            await notificationApi.deleteAll();
+            setConfirmClearType(null);
+            fetchNotifications();
+            refresh();
+        } catch (err) {
+            console.error('Failed to clear all notifications:', err);
+        } finally {
+            setClearing(false);
+        }
+    };
+
+    const handleClearRead = async () => {
+        try {
+            setClearing(true);
+            await notificationApi.deleteRead();
+            setConfirmClearType(null);
+            fetchNotifications();
+            refresh();
+        } catch (err) {
+            console.error('Failed to clear read notifications:', err);
+        } finally {
+            setClearing(false);
         }
     };
 
@@ -241,6 +271,15 @@ const NotificationCenter: React.FC = () => {
                                             >
                                                 <CheckSquare className="w-4 h-4 mr-1"/>
                                                 {t('notifications.batchSelect')}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setConfirmClearType('all')}
+                                                className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950/40"
+                                            >
+                                                <Trash2 className="w-4 h-4 mr-1"/>
+                                                清空全部
                                             </Button>
                                         </>
                                     )}
@@ -478,6 +517,35 @@ const NotificationCenter: React.FC = () => {
                             </DialogFooter>
                         </>
                     )}
+                </DialogContent>
+            </Dialog>
+            <Dialog open={confirmClearType !== null} onOpenChange={(open) => !open && setConfirmClearType(null)}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {confirmClearType === 'all' ? '清空全部通知' : '清空已读通知'}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <DialogBody>
+                        <p className="text-sm text-muted-foreground">
+                            {confirmClearType === 'all'
+                                ? '此操作将删除所有通知（包括未读通知），且不可恢复。确定要继续吗？'
+                                : '此操作将删除所有已读通知，且不可恢复。确定要继续吗？'}
+                        </p>
+                    </DialogBody>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmClearType(null)} disabled={clearing}>
+                            取消
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmClearType === 'all' ? handleClearAll : handleClearRead}
+                            disabled={clearing}
+                        >
+                            {clearing ? <Loader2 className="w-4 h-4 mr-1 animate-spin"/> : <Trash2 className="w-4 h-4 mr-1"/>}
+                            确认清空
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

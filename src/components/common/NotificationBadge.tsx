@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Bell, CheckCheck, Loader2, ExternalLink} from 'lucide-react';
+import {Bell, CheckCheck, Loader2, ExternalLink, Trash2} from 'lucide-react';
 import {useLocation, Link} from '@tanstack/react-router';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Separator} from '@/components/ui/separator';
@@ -7,6 +7,7 @@ import {formatRelativeTime} from '@/lib/format';
 import {useNotificationState} from '@/contexts/NotificationContext';
 import {useAuth} from '@/hooks/useAuth';
 import {useTranslation} from 'react-i18next';
+import {notificationApi} from '@/lib/api/notification';
 import type {Notification} from '@/lib/api/notification';
 
 const NotificationBadge: React.FC = () => {
@@ -16,6 +17,7 @@ const NotificationBadge: React.FC = () => {
     const {unreadCount, recentNotifications, markAsRead, markAllAsRead, refresh} = useNotificationState();
     const [open, setOpen] = useState(false);
     const [markingAll, setMarkingAll] = useState(false);
+    const [clearing, setClearing] = useState(false);
 
     useEffect(() => {
         setOpen(false);
@@ -39,6 +41,17 @@ const NotificationBadge: React.FC = () => {
             refresh();
         } finally {
             setMarkingAll(false);
+        }
+    };
+
+    const handleClearAll = async () => {
+        if (!window.confirm('确定要清空全部通知吗？此操作不可恢复。')) return;
+        try {
+            setClearing(true);
+            await notificationApi.deleteAll();
+            refresh();
+        } finally {
+            setClearing(false);
         }
     };
 
@@ -71,21 +84,38 @@ const NotificationBadge: React.FC = () => {
                             </span>
                         )}
                     </div>
-                    {unreadCount > 0 && (
-                        <button
-                            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/40 disabled:opacity-50"
-                            onClick={handleMarkAll}
-                            disabled={markingAll}
-                            title={t('notifications.markAllAsRead', 'Mark all as read')}
-                        >
-                            {markingAll ? (
-                                <Loader2 className="w-3 h-3 animate-spin"/>
-                            ) : (
-                                <CheckCheck className="w-3.5 h-3.5"/>
-                            )}
-                            <span>{t('notifications.markAllAsRead', '全部已读')}</span>
-                        </button>
-                    )}
+                    <div className="flex items-center gap-1">
+                        {unreadCount > 0 && (
+                            <button
+                                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/40 disabled:opacity-50"
+                                onClick={handleMarkAll}
+                                disabled={markingAll}
+                                title={t('notifications.markAllAsRead', 'Mark all as read')}
+                            >
+                                {markingAll ? (
+                                    <Loader2 className="w-3 h-3 animate-spin"/>
+                                ) : (
+                                    <CheckCheck className="w-3.5 h-3.5"/>
+                                )}
+                                <span>{t('notifications.markAllAsRead', '全部已读')}</span>
+                            </button>
+                        )}
+                        {notifications.length > 0 && (
+                            <button
+                                className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-50"
+                                onClick={handleClearAll}
+                                disabled={clearing}
+                                title="清空全部通知"
+                            >
+                                {clearing ? (
+                                    <Loader2 className="w-3 h-3 animate-spin"/>
+                                ) : (
+                                    <Trash2 className="w-3.5 h-3.5"/>
+                                )}
+                                <span>清空</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="max-h-[320px] overflow-y-auto overflow-x-hidden w-full">
                     {notifications.length === 0 ? (

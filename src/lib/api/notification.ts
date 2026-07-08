@@ -79,6 +79,12 @@ export const notificationApi = {
     delete: (id: number) =>
         api.del<void>(`/notifications/${id}`),
 
+    deleteAll: () =>
+        api.del<{ deleted_count: number }>('/notifications'),
+
+    deleteRead: () =>
+        api.del<{ deleted_count: number }>('/notifications/read'),
+
     // Admin APIs
     adminGetAll: async (params?: { page?: number; page_size?: number }) => {
         const response = await api.get<unknown>('/admin/notifications', params);
