@@ -1,6 +1,6 @@
 import {Spinner} from "@/components/ui/spinner"
 import React, {useState, useEffect} from 'react';
-import {Bell, Check, Trash2, Loader2, CheckSquare, X} from 'lucide-react';
+import {Bell, Check, Trash2, Loader2, CheckSquare, X, ChevronLeft, ChevronRight} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -8,6 +8,7 @@ import {Checkbox} from '@/components/ui/checkbox';
 import {formatDate} from '@/lib/format';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useNotificationState} from '@/contexts/NotificationContext';
+import {usePagination} from '@/hooks/usePagination';
 import ErrorPage from '@/components/common/ErrorPage';
 
 const NotificationCenter: React.FC = () => {
@@ -20,18 +21,22 @@ const NotificationCenter: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [batchMode, setBatchMode] = useState(false);
     const [batchLoading, setBatchLoading] = useState(false);
+    const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
 
     useEffect(() => {
         fetchNotifications();
-    }, []);
+    }, [page]);
 
     const fetchNotifications = async () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await notificationApi.getAll({page_size: 20});
+            setSelectedIds(new Set());
+            setBatchMode(false);
+            const response = await notificationApi.getAll(getParams());
             const items = Array.isArray(response?.items) ? response.items : [];
             setNotifications(items);
+            setTotal(response?.total ?? items.length);
         } catch (err) {
             setError('Failed to fetch notifications');
             console.error('Failed to fetch notifications:', err);
@@ -53,7 +58,8 @@ const NotificationCenter: React.FC = () => {
         try {
             setIsMarkingAllRead(true);
             await markAllAsRead();
-            setNotifications(prev => prev.map(n => ({...n, read: true})));
+            fetchNotifications();
+            refresh();
         } catch (err) {
             console.error('Failed to mark all notifications as read:', err);
         } finally {
@@ -64,12 +70,7 @@ const NotificationCenter: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             await notificationApi.delete(id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            setSelectedIds(prev => {
-                const next = new Set(prev);
-                next.delete(id);
-                return next;
-            });
+            fetchNotifications();
             refresh();
         } catch (err) {
             console.error('Failed to delete notification:', err);
@@ -98,8 +99,7 @@ const NotificationCenter: React.FC = () => {
         try {
             setBatchLoading(true);
             await Promise.all([...selectedIds].map(id => notificationApi.markAsRead(id)));
-            setNotifications(prev => prev.map(n => selectedIds.has(n.id) ? {...n, read: true} : n));
-            setSelectedIds(new Set());
+            fetchNotifications();
             refresh();
         } catch (err) {
             console.error('Failed to batch mark as read:', err);
@@ -113,8 +113,7 @@ const NotificationCenter: React.FC = () => {
         try {
             setBatchLoading(true);
             await Promise.all([...selectedIds].map(id => notificationApi.delete(id)));
-            setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
-            setSelectedIds(new Set());
+            fetchNotifications();
             refresh();
         } catch (err) {
             console.error('Failed to batch delete:', err);
@@ -305,6 +304,69 @@ const NotificationCenter: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
+                            {total > pageSize && (() => {
+                                const startItem = (page - 1) * pageSize + 1;
+                                const endItem = Math.min(page * pageSize, total);
+                                return (
+                                    <div className="flex items-center justify-between pt-4 mt-4 border-t">
+                                        <p className="text-xs text-muted-foreground">
+                                            {startItem}-{endItem} / {total}
+                                        </p>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                disabled={page <= 1}
+                                                onClick={() => setPage(page - 1)}
+                                            >
+                                                <ChevronLeft className="w-4 h-4"/>
+                                            </Button>
+                                            {Array.from({length: Math.min(totalPages, 3)}, (_, i) => {
+                                                let pageNum: number;
+                                                if (totalPages <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (page <= 2) {
+                                                    pageNum = i + 1;
+                                                } else if (page >= totalPages - 1) {
+                                                    pageNum = totalPages - 2 + i;
+                                                } else {
+                                                    pageNum = page - 1 + i;
+                                                }
+                                                return (
+                                                    <Button
+                                                        key={pageNum}
+                                                        variant={pageNum === page ? 'default' : 'outline'}
+                                                        size="sm"
+                                                        onClick={() => setPage(pageNum)}
+                                                    >
+                                                        {pageNum}
+                                                    </Button>
+                                                );
+                                            })}
+                                            {totalPages > 3 && page < totalPages - 1 && (
+                                                <span className="text-slate-300 mx-1">...</span>
+                                            )}
+                                            {totalPages > 3 && page < totalPages - 1 && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setPage(totalPages)}
+                                                >
+                                                    {totalPages}
+                                                </Button>
+                                            )}
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                disabled={page >= totalPages}
+                                                onClick={() => setPage(page + 1)}
+                                            >
+                                                <ChevronRight className="w-4 h-4"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
                         </>
                     )}
                 </CardContent>

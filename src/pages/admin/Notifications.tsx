@@ -17,6 +17,8 @@ import {
     Trash2,
     Inbox,
     Smartphone,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
@@ -36,6 +38,7 @@ import {Switch} from '@/components/ui/switch';
 import {Checkbox} from '@/components/ui/checkbox';
 import {AdminPageTemplate} from '@/components/AdminPageTemplate';
 import {useNotificationState} from '@/contexts/NotificationContext';
+import {usePagination} from '@/hooks/usePagination';
 
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
@@ -66,6 +69,7 @@ const AdminNotifications: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
 
     // Compose form state
     const [form, setForm] = useState({
@@ -91,16 +95,22 @@ const AdminNotifications: React.FC = () => {
     const [sendingTest, setSendingTest] = useState(false);
 
     useEffect(() => {
-        fetchData();
+        if (activeTab === 'history') {
+            fetchData();
+        }
+    }, [page, activeTab]);
+
+    useEffect(() => {
         fetchConfig();
     }, []);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await notificationApi.adminGetAll({page_size: 50});
+            const response = await notificationApi.adminGetAll(getParams());
             const items = response?.items ?? [];
             setNotifications(items);
+            setTotal(response?.total ?? items.length);
             setUnreadCount(response?.unread_count ?? items.filter((n: Notification) => !n.read).length);
         } catch (err) {
             console.error('Failed to fetch notifications:', err);
@@ -216,6 +226,7 @@ const AdminNotifications: React.FC = () => {
             });
             setSelectedUserIds([]);
             setShowUserPicker(false);
+            setPage(1);
             fetchData();
             refreshBell();
         } catch (err) {
@@ -228,7 +239,8 @@ const AdminNotifications: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             await notificationApi.adminDelete(id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
+            fetchData();
+            refreshBell();
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
@@ -237,7 +249,7 @@ const AdminNotifications: React.FC = () => {
     const selectedUsers = users.filter(u => selectedUserIds.includes(u.id));
 
     // ── Stats (Sent / Delivered / Opened / Clicked) ──
-    const total = notifications.length;
+    const pageTotal = notifications.length;
     const read = notifications.filter(n => n.read).length;
     const stats = {
         sent: total,
@@ -739,6 +751,69 @@ const AdminNotifications: React.FC = () => {
                                             )}
                                         </TableBody>
                                     </Table>
+                                    {total > 0 && (() => {
+                                        const startItem = (page - 1) * pageSize + 1;
+                                        const endItem = Math.min(page * pageSize, total);
+                                        return (
+                                            <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                                                <p className="text-xs text-muted-foreground">
+                                                    {t('admin.showing') || 'Showing'} {startItem} {t('admin.to') || 'to'} {endItem} {t('admin.of') || 'of'} {total} {t('admin.notifications', 'notifications')}
+                                                </p>
+                                                <div className="flex items-center gap-1">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        disabled={page <= 1}
+                                                        onClick={() => setPage(page - 1)}
+                                                    >
+                                                        <ChevronLeft className="w-4 h-4"/>
+                                                    </Button>
+                                                    {Array.from({length: Math.min(totalPages, 3)}, (_, i) => {
+                                                        let pageNum: number;
+                                                        if (totalPages <= 3) {
+                                                            pageNum = i + 1;
+                                                        } else if (page <= 2) {
+                                                            pageNum = i + 1;
+                                                        } else if (page >= totalPages - 1) {
+                                                            pageNum = totalPages - 2 + i;
+                                                        } else {
+                                                            pageNum = page - 1 + i;
+                                                        }
+                                                        return (
+                                                            <Button
+                                                                key={pageNum}
+                                                                variant={pageNum === page ? 'default' : 'outline'}
+                                                                size="sm"
+                                                                onClick={() => setPage(pageNum)}
+                                                            >
+                                                                {pageNum}
+                                                            </Button>
+                                                        );
+                                                    })}
+                                                    {totalPages > 3 && page < totalPages - 1 && (
+                                                        <span className="text-slate-300 mx-1">...</span>
+                                                    )}
+                                                    {totalPages > 3 && page < totalPages - 1 && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setPage(totalPages)}
+                                                        >
+                                                            {totalPages}
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outline"
+                                                        size="icon"
+                                                        disabled={page >= totalPages}
+                                                        onClick={() => setPage(page + 1)}
+                                                    >
+                                                        <ChevronRight className="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </Card>
                             </section>
                         </TabsContent>
