@@ -66,7 +66,7 @@ const AdminNotifications: React.FC = () => {
 
     // Data state
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [sending, setSending] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
@@ -368,14 +368,9 @@ const AdminNotifications: React.FC = () => {
                     </Card>
                 </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center min-h-[200px]">
-                        <Spinner/>
-                    </div>
-                ) : (
-                    <>
-                        {/* Tab 1: Send Notification */}
-                        <TabsContent value="send">
+                <>
+                    {/* Tab 1: Send Notification */}
+                    <TabsContent value="send">
                             <section className="grid grid-cols-12 gap-8">
                                 <div className="col-span-12 lg:col-span-7 space-y-6">
                                     <Card>
@@ -612,6 +607,11 @@ const AdminNotifications: React.FC = () => {
 
                         {/* Tab 2: Broadcast History */}
                         <TabsContent value="history">
+                            {loading ? (
+                                <div className="flex items-center justify-center min-h-[200px]">
+                                    <Spinner/>
+                                </div>
+                            ) : (
                             <section className="space-y-6">
                                 <Card className="overflow-hidden">
                                     <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-muted">
@@ -816,6 +816,7 @@ const AdminNotifications: React.FC = () => {
                                     })()}
                                 </Card>
                             </section>
+                            )}
                         </TabsContent>
 
                         {/* Tab 3: Configuration */}
@@ -955,8 +956,7 @@ const AdminNotifications: React.FC = () => {
                                 </div>
                             </section>
                         </TabsContent>
-                    </>
-                )}
+                </>
             </Tabs>
         </AdminPageTemplate>
     );
