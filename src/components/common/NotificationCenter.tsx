@@ -1,10 +1,19 @@
 import {Spinner} from "@/components/ui/spinner"
 import React, {useState, useEffect} from 'react';
-import {Bell, Check, Trash2, Loader2, CheckSquare, X, ChevronLeft, ChevronRight} from 'lucide-react';
+import {Bell, Check, Trash2, Loader2, CheckSquare, X, ChevronLeft, ChevronRight, Eye} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {Checkbox} from '@/components/ui/checkbox';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogBody,
+    DialogFooter,
+    DialogClose,
+} from '@/components/ui/dialog';
 import {formatDate} from '@/lib/format';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useNotificationState} from '@/contexts/NotificationContext';
@@ -21,6 +30,8 @@ const NotificationCenter: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [batchMode, setBatchMode] = useState(false);
     const [batchLoading, setBatchLoading] = useState(false);
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
     const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
 
     useEffect(() => {
@@ -125,6 +136,20 @@ const NotificationCenter: React.FC = () => {
     const exitBatchMode = () => {
         setBatchMode(false);
         setSelectedIds(new Set());
+    };
+
+    const handleOpenDetail = async (notification: Notification) => {
+        setSelectedNotification(notification);
+        setDetailOpen(true);
+        if (!notification.read) {
+            try {
+                await markAsRead(notification.id);
+                setNotifications(prev => prev.map(n => n.id === notification.id ? {...n, read: true} : n));
+                refresh();
+            } catch (err) {
+                console.error('Failed to mark notification as read:', err);
+            }
+        }
     };
 
     if (loading) {
@@ -246,38 +271,56 @@ const NotificationCenter: React.FC = () => {
                                 {notifications.map(notification => (
                                     <div
                                         key={notification.id}
-                                        className={`p-4 rounded-lg border transition-colors ${
+                                        className={`p-4 rounded-lg border transition-colors cursor-pointer ${
                                             selectedIds.has(notification.id) ? 'border-primary bg-primary/5' :
-                                            notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800' :
-                                            'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30'
+                                            notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50' :
+                                            'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100/70 dark:hover:bg-blue-900/50'
                                         }`}
+                                        onClick={() => !batchMode && handleOpenDetail(notification)}
                                     >
                                         <div className="flex items-start gap-3">
                                             {batchMode && (
                                                 <Checkbox
                                                     checked={selectedIds.has(notification.id)}
                                                     onCheckedChange={() => toggleSelect(notification.id)}
+                                                    onClick={e => e.stopPropagation()}
                                                     className="mt-1"
                                                 />
                                             )}
-                                            <div className="flex-1 min-w-0 space-y-2">
-                                                <h4 className="font-medium text-gray-900 dark:text-white">
-                                                    {notification.title}
-                                                </h4>
-                                                <p className="text-sm text-gray-600 dark:text-gray-300">
+                                            <div className={`flex-1 min-w-0 space-y-1 ${notification.read ? '' : 'pr-1'}`}>
+                                                <div className="flex items-start gap-2">
+                                                    {!notification.read && (
+                                                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"/>
+                                                    )}
+                                                    <h4 className={`font-medium text-gray-900 dark:text-white break-words ${notification.read ? '' : 'font-semibold'}`}>
+                                                        {notification.title}
+                                                    </h4>
+                                                </div>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300 break-words line-clamp-2">
                                                     {notification.body}
                                                 </p>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-xs text-gray-500 dark:text-muted-foreground">
+                                                <div className="flex items-center gap-3 pt-1">
+                                                    <span className="text-xs text-gray-500 dark:text-muted-foreground shrink-0">
                                                         {formatDate(notification.create_time)}
                                                     </span>
-                                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${notification.read ? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200'}`}>
-                                                        {notification.read ? t('notifications.read') : t('notifications.unread')}
-                                                    </span>
+                                                    {!notification.read && (
+                                                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                                            {t('notifications.unread')}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                             {!batchMode && (
-                                                <div className="flex flex-col gap-1">
+                                                <div className="flex flex-col gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0"
+                                                        onClick={() => handleOpenDetail(notification)}
+                                                        title={t('notifications.viewDetail') || 'View details'}
+                                                    >
+                                                        <Eye className="w-4 h-4"/>
+                                                    </Button>
                                                     {!notification.read && (
                                                         <Button
                                                             variant="ghost"
@@ -371,6 +414,69 @@ const NotificationCenter: React.FC = () => {
                     )}
                 </CardContent>
             </Card>
+            <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+                <DialogContent className="max-w-lg">
+                    {selectedNotification && (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle className="flex items-start gap-2 pr-8">
+                                    {!selectedNotification.read && (
+                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0 mt-2"/>
+                                    )}
+                                    <span className="break-words">{selectedNotification.title}</span>
+                                </DialogTitle>
+                            </DialogHeader>
+                            <DialogBody>
+                                <div className="space-y-4">
+                                    <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
+                                        {selectedNotification.body}
+                                    </p>
+                                    <div className="flex items-center gap-3 pt-3 border-t border-border">
+                                        <span className="text-xs text-muted-foreground">
+                                            {formatDate(selectedNotification.create_time)}
+                                        </span>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${selectedNotification.read ? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
+                                            {selectedNotification.read ? t('notifications.read') : t('notifications.unread')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </DialogBody>
+                            <DialogFooter>
+                                {!selectedNotification.read && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={async () => {
+                                            await markAsRead(selectedNotification.id);
+                                            setNotifications(prev => prev.map(n => n.id === selectedNotification.id ? {...n, read: true} : n));
+                                            setSelectedNotification({...selectedNotification, read: true});
+                                            refresh();
+                                        }}
+                                    >
+                                        <Check className="w-4 h-4 mr-1"/>
+                                        {t('notifications.markAsRead')}
+                                    </Button>
+                                )}
+                                <Button
+                                    variant="destructive"
+                                    onClick={async () => {
+                                        await notificationApi.delete(selectedNotification.id);
+                                        setDetailOpen(false);
+                                        setSelectedNotification(null);
+                                        fetchNotifications();
+                                        refresh();
+                                    }}
+                                >
+                                    <Trash2 className="w-4 h-4 mr-1"/>
+                                    {t('common.delete')}
+                                </Button>
+                                <DialogClose asChild>
+                                    <Button>{t('common.close') || 'Close'}</Button>
+                                </DialogClose>
+                            </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
