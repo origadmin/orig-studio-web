@@ -73,7 +73,7 @@ const NotificationBadge: React.FC = () => {
                     </div>
                     {unreadCount > 0 && (
                         <button
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-1.5 py-1 rounded-md hover:bg-accent disabled:opacity-50"
+                            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-950/40 disabled:opacity-50"
                             onClick={handleMarkAll}
                             disabled={markingAll}
                             title={t('notifications.markAllAsRead', 'Mark all as read')}
@@ -83,6 +83,7 @@ const NotificationBadge: React.FC = () => {
                             ) : (
                                 <CheckCheck className="w-3.5 h-3.5"/>
                             )}
+                            <span>{t('notifications.markAllAsRead', '全部已读')}</span>
                         </button>
                     )}
                 </div>

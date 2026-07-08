@@ -213,31 +213,34 @@ const NotificationCenter: React.FC = () => {
                                 <>
                                     {notifications.length > 0 && (
                                         <>
+                                            {unreadCount > 0 && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleMarkAllAsRead}
+                                                    disabled={isMarkingAllRead}
+                                                    className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                                                >
+                                                    {isMarkingAllRead ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 mr-1 animate-spin"/>
+                                                            {t('notifications.markingAllRead')}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <CheckSquare className="w-4 h-4 mr-1"/>
+                                                            {t('notifications.markAllAsRead')}
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            )}
                                             <Button
-                                                variant="outline"
+                                                variant="ghost"
                                                 size="sm"
                                                 onClick={() => setBatchMode(true)}
                                             >
                                                 <CheckSquare className="w-4 h-4 mr-1"/>
                                                 {t('notifications.batchSelect')}
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={handleMarkAllAsRead}
-                                                disabled={isMarkingAllRead}
-                                            >
-                                                {isMarkingAllRead ? (
-                                                    <>
-                                                        <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
-                                                        {t('notifications.markingAllRead')}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Check className="w-4 h-4 mr-2"/>
-                                                        {t('notifications.markAllAsRead')}
-                                                    </>
-                                                )}
                                             </Button>
                                         </>
                                     )}
