@@ -84,6 +84,7 @@ export default function MediaPage() {
     const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', type: '', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
 
     const [total, setTotal] = useState(0);
+    const [failedThumbnails, setFailedThumbnails] = useState<Set<string>>(new Set());
 
     // React Query Hooks
     const {data: mediaData, isLoading: loading, error, refetch: loadMedia} = useAdminMediaList({
@@ -412,12 +413,12 @@ export default function MediaPage() {
                                                 onClick={() => handleViewClick(media)}
                                                 title={t('admin.view', '查看')}
                                             >
-                                                {media.thumbnail ? (
+                                                {media.thumbnail && !failedThumbnails.has(String(media.id)) ? (
                                                     <img
                                                         alt="预览"
                                                         className={`w-full h-full object-cover ${isFailed ? 'grayscale opacity-50' : ''}`}
                                                         src={getFullUrl(media.thumbnail)}
-                                                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                        onError={() => { setFailedThumbnails(prev => new Set(prev).add(String(media.id))); }}
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
