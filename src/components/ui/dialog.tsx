@@ -63,7 +63,7 @@ const DialogHeader = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col space-y-1.5 -mx-6 px-6 py-5 border-b border-border text-left",
+            "flex flex-col space-y-1.5 -mx-6 px-6 py-5 border-b border-border text-left min-w-0",
             className
         )}
         {...props}
@@ -77,7 +77,7 @@ const DialogFooter = ({
                       }: React.HTMLAttributes<HTMLDivElement>) => (
     <div
         className={cn(
-            "flex flex-col-reverse -mx-6 px-6 py-4 bg-muted/50 sm:flex-row sm:justify-end sm:space-x-3",
+            "flex flex-col-reverse -mx-6 px-6 py-4 bg-muted/50 sm:flex-row sm:justify-end sm:space-x-3 min-w-0",
             className
         )}
         {...props}
@@ -89,7 +89,7 @@ const DialogBody = ({
                         className,
                         ...props
                     }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className={cn("py-5", className)} {...props} />
+    <div className={cn("py-5 min-w-0", className)} {...props} />
 )
 DialogBody.displayName = "DialogBody"
 

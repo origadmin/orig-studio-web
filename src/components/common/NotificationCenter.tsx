@@ -330,7 +330,7 @@ const NotificationCenter: React.FC = () => {
                                                 />
                                             )}
                                             <div className={`flex-1 min-w-0 space-y-1 ${notification.read ? '' : 'pr-1'}`}>
-                                                <div className="flex items-start gap-2">
+                                                <div className="flex items-start gap-2 min-w-0">
                                                     {!notification.read && (
                                                         <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"/>
                                                     )}
@@ -461,11 +461,11 @@ const NotificationCenter: React.FC = () => {
                     {selectedNotification && (
                         <>
                             <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2 pr-8">
+                                <DialogTitle className="flex items-center gap-2 pr-8 min-w-0">
                                     {!selectedNotification.read && (
                                         <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"/>
                                     )}
-                                    <span className="break-words">{selectedNotification.title}</span>
+                                    <span className="break-words min-w-0">{selectedNotification.title}</span>
                                 </DialogTitle>
                                 <div className="flex items-center gap-2 pt-1">
                                     <span className="text-xs text-muted-foreground">
@@ -477,7 +477,7 @@ const NotificationCenter: React.FC = () => {
                                 </div>
                             </DialogHeader>
                             <DialogBody>
-                                <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4 -mx-0">
+                                <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4 -mx-0 min-w-0 overflow-hidden">
                                     <p className="text-sm text-foreground whitespace-pre-wrap break-words leading-relaxed">
                                         {selectedNotification.body}
                                     </p>
