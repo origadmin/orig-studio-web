@@ -25,6 +25,7 @@ import {
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import NotificationBadge from '@/components/common/NotificationBadge';
+import UploadCenter from '@/components/common/UploadCenter';
 import {useModuleConfig} from '@/hooks/useModuleConfig';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {usePortalConfig} from '@/hooks/queries';
@@ -274,6 +275,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                     {isAuthenticated && user ? (
                         <>
                             <NotificationBadge/>
+                            <UploadCenter/>
 
                             {/* Write Article button */}
                             {articlesEnabled && (

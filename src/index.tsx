@@ -6,6 +6,7 @@ import {Toaster} from 'sonner';
 import {AuthProvider} from '@/contexts/auth';
 import {AuthContext} from '@/contexts/auth/AuthContext';
 import {NotificationProvider} from '@/contexts/NotificationContext';
+import {UploadProvider} from '@/contexts/UploadContext';
 import {ThemeProvider} from '@/themes';
 import {routeTree} from './routes.gen';
 import './i18n';
@@ -52,9 +53,11 @@ createRoot(rootElement).render(
         <QueryClientProvider client={queryClient}>
             <ThemeProvider>
                 <AuthProvider>
-                    <NotificationProvider>
-                        <InnerApp/>
-                    </NotificationProvider>
+                    <UploadProvider>
+                        <NotificationProvider>
+                            <InnerApp/>
+                        </NotificationProvider>
+                    </UploadProvider>
                 </AuthProvider>
                 <Toaster position="bottom-right" richColors closeButton/>
             </ThemeProvider>

@@ -117,6 +117,8 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [isBuffering, setIsBuffering] = useState(false);
     const [autoResolution, setAutoResolution] = useState<string>('');
     const wasPlayingBeforeQualitySwitch = useRef(false);
+    const [autoplayCountdown, setAutoplayCountdown] = useState<number>(0);
+    const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Use global player settings
     const {
@@ -580,13 +582,35 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         }
     }, []);
 
+    const cancelAutoplayCountdown = useCallback(() => {
+        if (autoplayTimerRef.current) {
+            clearInterval(autoplayTimerRef.current);
+            autoplayTimerRef.current = null;
+        }
+        setAutoplayCountdown(0);
+    }, []);
+
     const handleEnded = useCallback(() => {
         setIsPlaying(false);
         setIsBuffering(false);
         onPlayingChange?.(false);
         onEnded?.();
-        if (autoPlayNext) {
-            onAutoPlayNext?.();
+        if (autoPlayNext && onAutoPlayNext) {
+            setAutoplayCountdown(3);
+            let count = 3;
+            autoplayTimerRef.current = setInterval(() => {
+                count--;
+                if (count <= 0) {
+                    if (autoplayTimerRef.current) {
+                        clearInterval(autoplayTimerRef.current);
+                        autoplayTimerRef.current = null;
+                    }
+                    setAutoplayCountdown(0);
+                    onAutoPlayNext();
+                } else {
+                    setAutoplayCountdown(count);
+                }
+            }, 1000);
         }
     }, [onPlayingChange, onEnded, autoPlayNext, onAutoPlayNext]);
 
@@ -795,6 +819,9 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             if (centerOverlayTimeoutRef.current) {
                 clearTimeout(centerOverlayTimeoutRef.current);
             }
+            if (autoplayTimerRef.current) {
+                clearInterval(autoplayTimerRef.current);
+            }
         };
     }, []);
 
@@ -954,6 +981,29 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 </div>
             )}
 
+            {/* Autoplay countdown overlay */}
+            {autoplayCountdown > 0 && (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+                    <div className="bg-black/80 backdrop-blur-md text-white rounded-full px-5 py-2.5 flex items-center gap-4 shadow-xl border border-white/10">
+                        <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold animate-pulse">
+                                {autoplayCountdown}
+                            </div>
+                            <span className="text-sm">{t('videoPlayer.nextVideoCountdown', 'Next video in {{count}}s', {count: autoplayCountdown})}</span>
+                        </div>
+                        <button
+                            className="text-sm text-white/80 hover:text-white border-l border-white/20 pl-4 transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                cancelAutoplayCountdown();
+                            }}
+                        >
+                            {t('videoPlayer.cancel', 'Cancel')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Error overlay */}
             {hasError && (
                 <div
@@ -1001,8 +1051,42 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 <div
                     className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"/>
 
-                {/* Top controls area (can add more here) */}
-                <div className="relative flex-1"/>
+                {/* Top controls area */}
+                <div className="relative flex-1">
+                    {/* Auto-play next toggle - top right corner */}
+                    <div className="absolute top-3 right-3 pointer-events-auto">
+                        <button
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all backdrop-blur-sm ${
+                                autoPlayNext
+                                    ? 'bg-blue-500/90 text-white hover:bg-blue-500'
+                                    : 'bg-black/50 text-white/70 hover:bg-black/70 hover:text-white'
+                            }`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setAutoPlayNext(!autoPlayNext);
+                                if (autoPlayNext) {
+                                    cancelAutoplayCountdown();
+                                }
+                            }}
+                            title={autoPlayNext ? t('videoPlayer.autoplayNextOn', 'Auto-play next: ON') : t('videoPlayer.autoplayNextOff', 'Auto-play next: OFF')}
+                            aria-label={autoPlayNext ? t('videoPlayer.disableAutoplay', 'Disable auto-play next') : t('videoPlayer.enableAutoplay', 'Enable auto-play next')}
+                        >
+                            <svg
+                                className={`w-3.5 h-3.5 ${autoPlayNext ? '' : 'opacity-60'}`}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <polygon points="5 4 15 12 5 20 5 4" fill={autoPlayNext ? 'currentColor' : 'none'}/>
+                                <line x1="19" y1="5" x2="19" y2="19"/>
+                            </svg>
+                            <span>{t('videoPlayer.autoplay', 'Autoplay')}</span>
+                        </button>
+                    </div>
+                </div>
 
                 {/* Bottom controls */}
                 <div className="relative px-4 pb-4 pt-12 pointer-events-auto">
@@ -1138,26 +1222,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         </div>
 
                         <div className="flex items-center gap-2" ref={settingsMenuRef}>
-                            {/* Auto-play next toggle */}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-8 px-2 text-xs font-medium rounded-full transition-colors ${
-                                    autoPlayNext
-                                        ? 'text-blue-400 hover:text-blue-300 hover:bg-info/10'
-                                        : 'text-white/50 hover:text-white/80 hover:bg-white/10'
-                                }`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setAutoPlayNext(!autoPlayNext);
-                                }}
-                                title={autoPlayNext ? 'Auto-play next: ON' : 'Auto-play next: OFF'}
-                                aria-label={autoPlayNext ? 'Disable auto-play next' : 'Enable auto-play next'}
-                            >
-                                <SkipForward size={14} className="mr-1"/>
-                                {autoPlayNext ? 'ON' : 'OFF'}
-                            </Button>
-
                             {/* Subtitles - conditionally rendered */}
                             {hasSubtitles ? (
                                 <Button
