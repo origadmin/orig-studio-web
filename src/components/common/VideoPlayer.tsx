@@ -302,10 +302,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 qualities.sort((a, b) => (b.height || 0) - (a.height || 0));
                 setHlsQualities(qualities);
 
-                // Explicitly start loading to ensure content begins buffering
-                // (critical for newly transcoded videos where initial segment may not auto-load)
-                hls.startLoad();
-
                 // Auto play if requested
                 if (autoPlay) {
                     video.play().catch((err) => console.error('Play failed:', err));
@@ -931,7 +927,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 poster={poster ? getFullUrl(poster) : undefined}
                 className="w-full h-full cursor-pointer"
                 playsInline
-                preload="auto"
+                preload="metadata"
             />
 
             {/* Center overlay icon (shows on click) */}
