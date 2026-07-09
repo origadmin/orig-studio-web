@@ -119,6 +119,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const wasPlayingBeforeQualitySwitch = useRef(false);
     const [autoplayCountdown, setAutoplayCountdown] = useState<number>(0);
     const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const onErrorRef = useRef(onError);
 
     // Use global player settings
     const {
@@ -191,6 +192,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         }
         return false;
     }, []);
+
+    // Keep callback refs in sync to avoid stale closures in event handlers
+    useEffect(() => {
+        onErrorRef.current = onError;
+    }, [onError]);
 
     // Initialize HLS player with quality levels
     useEffect(() => {
@@ -337,7 +343,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         hls.destroy();
                         setHasError(true);
                         setErrorMessage('Failed to load video. Please try again.');
-                        onError?.(new Error(data.type));
+                        onErrorRef.current?.(new Error(data.type));
                         break;
                 }
             });
@@ -392,7 +398,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         }
 
         return () => {};
-    }, [src, hlsSrc, autoPlay, onError, isProcessing]);
+    }, [src, hlsSrc, autoPlay, isProcessing]);
 
     // Apply global settings to video element
     useEffect(() => {
