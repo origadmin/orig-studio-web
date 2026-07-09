@@ -34,6 +34,10 @@ const UploadCenter: React.FC = () => {
     const [open, setOpen] = useState(false);
     const {tasks, activeCount, pauseTask, resumeTask, removeTask, clearCompleted} = useUploadState();
 
+    if (tasks.length === 0) {
+        return null;
+    }
+
     const recentTasks = tasks.slice(0, 5);
     const hasCompleted = tasks.some(t => ['success', 'aborted', 'error'].includes(t.status));
 
