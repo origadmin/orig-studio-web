@@ -637,8 +637,8 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         const error = video.error;
         setHasError(true);
         setErrorMessage(error ? `Video error: ${error.message}` : 'Failed to load video');
-        onError?.(new Error(errorMessage));
-    }, [onError, errorMessage]);
+        onErrorRef.current?.(new Error(error ? error.message : 'Unknown video error'));
+    }, []);
 
     // Seek
     const getProgressRatio = useCallback((clientX: number, bar: DOMRect) => {
