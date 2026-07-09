@@ -4,6 +4,7 @@ import Header from '@/components/portal/Header';
 import Sidebar from '@/components/portal/Sidebar';
 import CategoryChips from '@/components/portal/CategoryChips';
 import Footer from '@/components/portal/Footer';
+import UploadDialog from '@/components/upload/UploadDialog';
 import {useTheme} from '@/themes';
 
 const PortalLayout = () => {
@@ -56,6 +57,7 @@ const PortalLayout = () => {
                 </div>
                 <Footer/>
             </main>
+            <UploadDialog/>
         </div>
     );
 };

@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
+import {useUploadState} from '@/contexts/UploadContext';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -16,7 +17,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import UploadDialog from '@/components/upload/UploadDialog';
 import {
     Video,
     Clock,
@@ -33,9 +33,9 @@ import {getFullUrl} from '@/lib/utils';
 const MyVideos = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
+    const {openDialog} = useUploadState();
     const [page, setPage] = useState(1);
     const [deleteTarget, setDeleteTarget] = useState<string | number | null>(null);
-    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const pageSize = 12;
 
     const {data, isLoading} = useMediaList({
@@ -76,7 +76,7 @@ const MyVideos = () => {
                     <h1 className="text-2xl font-bold text-foreground">{t('myVideos.title', '我的视频')}</h1>
                     <p className="text-sm text-muted-foreground">{t('myVideos.subtitle', '管理你上传的所有视频内容')}</p>
                 </div>
-                <Button onClick={() => setUploadDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-white">
+                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white">
                     <Plus className="w-4 h-4 mr-2"/>
                     {t('myVideos.uploadVideo', '上传视频')}
                 </Button>
@@ -93,7 +93,7 @@ const MyVideos = () => {
                             <h3 className="text-lg font-medium text-foreground">{t('myVideos.noVideos', '还没有上传视频')}</h3>
                             <p className="text-sm text-muted-foreground">{t('myVideos.noVideosDesc', '你还没有上传过任何视频')}</p>
                         </div>
-                        <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                        <Button variant="outline" onClick={openDialog}>
                             {t('myVideos.uploadFirst', '上传第一个视频')}
                         </Button>
                     </CardContent>
@@ -209,8 +209,6 @@ const MyVideos = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
-            <UploadDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}/>
         </div>
     );
 };

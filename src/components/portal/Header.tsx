@@ -26,7 +26,7 @@ import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import NotificationBadge from '@/components/common/NotificationBadge';
 import UploadCenter from '@/components/common/UploadCenter';
-import UploadDialog from '@/components/upload/UploadDialog';
+import {useUploadState} from '@/contexts/UploadContext';
 import {useModuleConfig} from '@/hooks/useModuleConfig';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {usePortalConfig} from '@/hooks/queries';
@@ -61,9 +61,9 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [moreMenuOpen, setMoreMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const moreMenuRef = useRef<HTMLDivElement>(null);
+    const {openDialog} = useUploadState();
 
     // 检测移动端
     useEffect(() => {
@@ -291,15 +291,6 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                             </Link>
                             )}
 
-                            {/* 上传按钮 - primary style, opens Dialog */}
-                            <button
-                                onClick={() => setUploadDialogOpen(true)}
-                                className="hidden sm:flex items-center gap-1.5 h-10 px-4 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors"
-                            >
-                                <Upload size={16}/>
-                                <span className="hidden lg:inline">{t('nav.upload')}</span>
-                            </button>
-
                             {/* 用户头像 + 下拉菜单 */}
                             <div className="relative" ref={userMenuRef}>
                                 <button
@@ -352,7 +343,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                         <button
                                             onClick={() => {
                                                 setUserMenuOpen(false);
-                                                setUploadDialogOpen(true);
+                                                openDialog();
                                             }}
                                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
                                         >
@@ -404,7 +395,6 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                 </div>
             </div>
         </header>
-        <UploadDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}/>
         </>
     );
 };
