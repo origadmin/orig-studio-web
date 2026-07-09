@@ -48,6 +48,8 @@ interface VideoPlayerProps {
     onPlayingChange?: (playing: boolean) => void;
     onTimeChange?: (time: number) => void;
     onAutoPlayNext?: () => void;
+    /** Controlled auto-play next flag. When provided, overrides the internal player setting. */
+    autoPlayNext?: boolean;
     /** When true, the video is still being processed (transcoding) and
      *  should not attempt playback. Shows a processing overlay instead. */
     isProcessing?: boolean;
@@ -77,6 +79,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                                                              onPlayingChange,
                                                                              onTimeChange,
                                                                              onAutoPlayNext,
+                                                                             autoPlayNext: controlledAutoPlayNext,
                                                                              isProcessing = false,
                                                                              spriteVttUrl,
                                                                              enableSpritePreview = true,
@@ -123,12 +126,14 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         volume,
         isMuted,
         playbackRate,
-        autoPlayNext,
+        autoPlayNext: internalAutoPlayNext,
         setVolume,
         setIsMuted,
         setPlaybackRate,
-        setAutoPlayNext,
     } = usePlayerSettings();
+
+    // When parent provides controlledAutoPlayNext, use it; otherwise fall back to internal setting
+    const autoPlayNext = controlledAutoPlayNext !== undefined ? controlledAutoPlayNext : internalAutoPlayNext;
 
     // 暴露方法给父组件
     useImperativeHandle(ref, () => ({
@@ -894,7 +899,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 }}
                 onError={handleError}
                 poster={poster ? getFullUrl(poster) : undefined}
-                className="w-full h-full cursor-pointer"
+                className="w-full h-full cursor-pointer object-contain"
                 playsInline
                 preload="metadata"
             />
@@ -1137,26 +1142,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         </div>
 
                         <div className="flex items-center gap-2" ref={settingsMenuRef}>
-                            {/* Auto-play next toggle */}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-8 px-2 text-xs font-medium rounded-full transition-colors ${
-                                    autoPlayNext
-                                        ? 'text-blue-400 hover:text-blue-300 hover:bg-info/10'
-                                        : 'text-white/50 hover:text-white/80 hover:bg-white/10'
-                                }`}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setAutoPlayNext(!autoPlayNext);
-                                }}
-                                title={autoPlayNext ? 'Auto-play next: ON' : 'Auto-play next: OFF'}
-                                aria-label={autoPlayNext ? 'Disable auto-play next' : 'Enable auto-play next'}
-                            >
-                                <SkipForward size={14} className="mr-1"/>
-                                {autoPlayNext ? 'ON' : 'OFF'}
-                            </Button>
-
                             {/* Subtitles - conditionally rendered */}
                             {hasSubtitles ? (
                                 <Button

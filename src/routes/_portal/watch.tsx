@@ -13,7 +13,8 @@ const PageLoader = () => (
 export const Route = createFileRoute('/_portal/watch')({
     validateSearch: (search: Record<string, unknown>) => {
         const v = search.v ? String(search.v).replace(/["']/g, '').trim() : undefined;
-        return { v };
+        const autoplay = search.autoplay ? String(search.autoplay).replace(/["']/g, '').trim() : undefined;
+        return { v, autoplay };
     },
     component: () => <Suspense fallback={<PageLoader />}><Page /></Suspense>,
 });

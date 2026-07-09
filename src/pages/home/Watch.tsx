@@ -9,6 +9,7 @@ import {
     Loader2, RefreshCw, AlertTriangle, Trash2, FileText, Eye, Pencil
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {Switch} from '@/components/ui/switch';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Badge} from '@/components/ui/badge';
 import {Card, CardContent} from '@/components/ui/card';
@@ -19,6 +20,7 @@ import {publicMediaApi, adminMediaApi, encodingApi} from '@/lib/api/media';
 import {commentApi} from '@/lib/api/comment';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
+import {usePlayerSettings} from '@/hooks/usePlayerSettings';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {getFullUrl} from '@/lib/utils';
 import ErrorPage from '@/components/common/ErrorPage';
@@ -34,12 +36,13 @@ import {toast} from 'sonner';
 
 const WatchPage = () => {
     const {t} = useTranslation();
-    const {v: shortToken} = useSearch({strict: false});
+    const {v: shortToken, autoplay: urlAutoPlay} = useSearch({strict: false});
     const navigate = useNavigate();
     // ✅ 使用新的 usePublicMediaDetail hook (short_token based)
     const {data: media, isLoading: isMediaLoading, error: mediaError} = usePublicMediaDetail(shortToken as string);
     const {user, isAdmin} = useAuth();
     const deleteMutation = useDeleteMedia();
+    const {autoPlayNext, setAutoPlayNext} = usePlayerSettings();
 
     const [retrying, setRetrying] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -174,15 +177,13 @@ const WatchPage = () => {
                             console.error('Video player error:', error);
                         }}
                         onAutoPlayNext={() => {
-                            if (recData?.items && recData.items.length > 0) {
-                                const currentIndex = recData.items.findIndex((v: any) => v.short_token === shortToken);
-                                const nextIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
-                                if (nextIndex < recData.items.length) {
-                                    navigate({to: '/watch', search: {v: recData.items[nextIndex].short_token}});
-                                }
+                            if (recommendations.length > 0) {
+                                const nextVideo = recommendations[0];
+                                navigate({to: '/watch', search: {v: nextVideo.short_token, autoplay: '1'}});
                             }
                         }}
-                        autoPlay={false}
+                        autoPlay={urlAutoPlay === '1'}
+                        autoPlayNext={autoPlayNext}
                     />
                     
                     {/* Encoding Status Indicator */}
@@ -350,9 +351,19 @@ const WatchPage = () => {
 
             {/* Sidebar: Recommendations */}
             <div className="lg:w-80 xl:w-96 shrink-0 space-y-4">
-                <h3 className="font-bold text-lg text-foreground flex items-center gap-2 mb-4">
-                    {t('watch.nextVideos')}
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-lg text-foreground">
+                        {t('watch.nextVideos')}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">{t('watch.autoplayNext', '自动播放')}</span>
+                        <Switch
+                            checked={autoPlayNext}
+                            onCheckedChange={setAutoPlayNext}
+                            aria-label="Toggle auto-play next"
+                        />
+                    </div>
+                </div>
 
                 <div className="space-y-4">
                     {recommendations.length === 0 ? (
