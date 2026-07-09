@@ -20,11 +20,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Label} from '@/components/ui/label';
-import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp, Plus, Tv} from 'lucide-react';
+import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp, Plus, Tv, ChevronDown} from 'lucide-react';
 import {formatFileSize} from '@/lib/format';
 import {cn} from '@/lib/utils';
-import {useQueryClient} from '@tanstack/react-query';
 
 const getFileIcon = (type: string) => {
     if (type.startsWith('video/')) return FileVideo;
@@ -39,7 +37,6 @@ const MAX_FILE_SIZE = 500 * 1024 * 1024;
 export const UploadDialog: React.FC = () => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
-    const queryClient = useQueryClient();
     const {addTask, isDialogOpen, closeDialog} = useUploadState();
     const {data: channels, isLoading: channelsLoading} = useMyChannels(isDialogOpen && isAuthenticated);
     const [selectedChannelId, setSelectedChannelId] = useState<string>('');
@@ -51,10 +48,13 @@ export const UploadDialog: React.FC = () => {
     const channelList = Array.isArray(channels) ? channels : [];
     const hasChannels = channelList.length > 0;
 
+    const getChannelValue = useCallback((ch: any) => {
+        return ch.id?.toString() || ch.short_token || '';
+    }, []);
+
     const handleChannelCreated = useCallback(() => {
         setCreateChannelOpen(false);
-        queryClient.invalidateQueries({queryKey: ['channels', 'me']});
-    }, [queryClient]);
+    }, []);
 
     const handleFiles = useCallback((files: FileList | File[]) => {
         const validFiles = Array.from(files).filter(file => file.size <= MAX_FILE_SIZE);
@@ -99,23 +99,21 @@ export const UploadDialog: React.FC = () => {
         });
 
         setSelectedFiles([]);
-        setSelectedChannelId('');
         closeDialog();
     }, [selectedChannelId, selectedFiles, addTask, closeDialog]);
 
     const handleOpenChange = useCallback((newOpen: boolean) => {
         if (!newOpen) {
             setSelectedFiles([]);
-            setSelectedChannelId('');
             closeDialog();
         }
     }, [closeDialog]);
 
     useEffect(() => {
-        if (isDialogOpen && channelList.length > 0 && !selectedChannelId) {
-            setSelectedChannelId(channelList[0].id?.toString() || channelList[0].short_token || '');
+        if (isDialogOpen && hasChannels && !selectedChannelId) {
+            setSelectedChannelId(getChannelValue(channelList[0]));
         }
-    }, [isDialogOpen, channelList, selectedChannelId]);
+    }, [isDialogOpen, hasChannels, channelList, selectedChannelId, getChannelValue]);
 
     useEffect(() => {
         if (!isDialogOpen) {
@@ -124,6 +122,9 @@ export const UploadDialog: React.FC = () => {
         }
     }, [isDialogOpen]);
 
+    const selectedChannel = channelList.find(ch => getChannelValue(ch) === selectedChannelId);
+    const canStart = hasChannels && selectedChannelId && selectedFiles.length > 0;
+
     return (
         <>
             <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
@@ -131,7 +132,7 @@ export const UploadDialog: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>{t('upload.uploadVideo', '上传视频')}</DialogTitle>
                         <DialogDescription>
-                            {t('upload.uploadDescription', '选择要上传的文件并选择发布频道')}
+                            {t('upload.uploadDescription', '选择要上传的文件，发布到')} <span className="font-medium text-foreground">{selectedChannel?.name || '...'}</span>
                         </DialogDescription>
                     </DialogHeader>
 
@@ -156,22 +157,6 @@ export const UploadDialog: React.FC = () => {
                             </div>
                         ) : (
                             <>
-                                <div className="grid gap-2">
-                                    <Label>{t('upload.selectChannel', '发布到频道')}</Label>
-                                    <Select value={selectedChannelId} onValueChange={setSelectedChannelId}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={t('upload.selectChannelPlaceholder', '选择频道')}/>
-                                        </SelectTrigger>
-                                        <SelectContent position="popper" sideOffset={4}>
-                                            {channelList.map(ch => (
-                                                <SelectItem key={ch.id} value={ch.id?.toString() || ch.short_token || ''}>
-                                                    {ch.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
                                 <div
                                     role="button"
                                     tabIndex={0}
@@ -246,18 +231,40 @@ export const UploadDialog: React.FC = () => {
                         )}
                     </div>
 
-                    <DialogFooter className="flex gap-2">
-                        <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                            {t('common.cancel', '取消')}
-                        </Button>
-                        <Button
-                            onClick={handleStartUpload}
-                            disabled={!selectedChannelId || selectedFiles.length === 0}
-                        >
-                            <UploadCloud className="w-4 h-4 mr-2"/>
-                            {t('upload.startUpload', '开始上传')}
-                            {selectedFiles.length > 0 && ` (${selectedFiles.length})`}
-                        </Button>
+                    <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
+                        {hasChannels ? (
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-muted-foreground">{t('upload.publishTo', '发布到')}:</span>
+                                <Select value={selectedChannelId} onValueChange={setSelectedChannelId}>
+                                    <SelectTrigger className="h-8 w-auto min-w-[120px] gap-1 border-none bg-muted hover:bg-accent px-2.5 text-sm">
+                                        <SelectValue placeholder={t('upload.selectChannel', '选择频道')}/>
+                                        <ChevronDown className="w-3.5 h-3.5 opacity-50"/>
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        {channelList.map(ch => (
+                                            <SelectItem key={ch.id} value={getChannelValue(ch)}>
+                                                {ch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        ) : (
+                            <div/>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={() => handleOpenChange(false)}>
+                                {t('common.cancel', '取消')}
+                            </Button>
+                            <Button
+                                onClick={handleStartUpload}
+                                disabled={!canStart}
+                            >
+                                <UploadCloud className="w-4 h-4 mr-2"/>
+                                {t('upload.startUpload', '开始上传')}
+                                {selectedFiles.length > 0 && ` (${selectedFiles.length})`}
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

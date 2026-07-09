@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useState, useCallback, useRef} from 'react';
 import type {UploadTask, UploadStatus, UploadCallbacks} from '@/lib/upload';
 import {startMultipartUpload, cancelUpload} from '@/lib/upload';
+import {useQueryClient} from '@tanstack/react-query';
 
 export interface GlobalUploadTask extends Omit<UploadTask, 'file'> {
     file: {
@@ -43,6 +44,7 @@ const UploadContext = createContext<UploadContextValue>({
 export const useUploadState = () => useContext(UploadContext);
 
 export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+    const queryClient = useQueryClient();
     const [tasks, setTasks] = useState<GlobalUploadTask[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const fileMapRef = useRef<Map<string, File>>(new Map());
@@ -84,6 +86,8 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
                 updateTask(taskId, {status: 'success', progress: 100, completedAt: Date.now(), shortToken: media?.short_token});
                 activeUploadsRef.current.delete(taskId);
                 fileMapRef.current.delete(taskId);
+                queryClient.invalidateQueries({queryKey: ['media', 'list']});
+                queryClient.invalidateQueries({queryKey: ['channels', 'me']});
             },
             onError: (taskId, error) => {
                 updateTask(taskId, {status: 'error', error});

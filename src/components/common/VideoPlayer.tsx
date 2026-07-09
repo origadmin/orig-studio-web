@@ -197,6 +197,9 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         const video = videoRef.current;
         if (!video) return;
 
+        // Cancel any pending autoplay countdown when switching videos
+        cancelAutoplayCountdown();
+
         // When the video is still being processed (transcoding), do NOT
         // attempt to load any source.  Loading the raw upload (e.g. MKV/AVI)
         // causes DEMUXER_ERROR_COULD_NOT_OPEN because the browser cannot
@@ -243,11 +246,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // Maximum buffer size in bytes (default 60MB; 80MB for higher quality streams)
                 maxBufferSize: 80 * 1024 * 1024,
                 // Maximum inter-buffer hole tolerance in seconds (default 0.1s is too strict;
-                // 0.5s avoids unnecessary rebuffering on small segment gaps after seek)
-                maxBufferHole: 0.5,
+                // 1.0s avoids unnecessary rebuffering on segment gaps common with newly transcoded videos)
+                maxBufferHole: 1.0,
                 // Back buffer length in seconds — clear already-played content from memory
-                // (default Infinity causes unbounded memory growth on long videos; 30s is sufficient)
-                backBufferLength: 30,
+                // (default Infinity causes unbounded memory growth on long videos; 60s retains more for seeking back)
+                backBufferLength: 60,
 
                 // === ABR (Adaptive Bitrate) configuration ===
                 // Default bandwidth estimate in bps (default 500kbps is too conservative;
@@ -298,6 +301,10 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // Sort by quality (highest first)
                 qualities.sort((a, b) => (b.height || 0) - (a.height || 0));
                 setHlsQualities(qualities);
+
+                // Explicitly start loading to ensure content begins buffering
+                // (critical for newly transcoded videos where initial segment may not auto-load)
+                hls.startLoad();
 
                 // Auto play if requested
                 if (autoPlay) {
@@ -596,8 +603,8 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         onPlayingChange?.(false);
         onEnded?.();
         if (autoPlayNext && onAutoPlayNext) {
-            setAutoplayCountdown(3);
-            let count = 3;
+            setAutoplayCountdown(5);
+            let count = 5;
             autoplayTimerRef.current = setInterval(() => {
                 count--;
                 if (count <= 0) {
@@ -924,7 +931,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 poster={poster ? getFullUrl(poster) : undefined}
                 className="w-full h-full cursor-pointer"
                 playsInline
-                preload="metadata"
+                preload="auto"
             />
 
             {/* Center overlay icon (shows on click) */}
@@ -1053,39 +1060,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
 
                 {/* Top controls area */}
                 <div className="relative flex-1">
-                    {/* Auto-play next toggle - top right corner */}
-                    <div className="absolute top-3 right-3 pointer-events-auto">
-                        <button
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all backdrop-blur-sm ${
-                                autoPlayNext
-                                    ? 'bg-blue-500/90 text-white hover:bg-blue-500'
-                                    : 'bg-black/50 text-white/70 hover:bg-black/70 hover:text-white'
-                            }`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setAutoPlayNext(!autoPlayNext);
-                                if (autoPlayNext) {
-                                    cancelAutoplayCountdown();
-                                }
-                            }}
-                            title={autoPlayNext ? t('videoPlayer.autoplayNextOn', 'Auto-play next: ON') : t('videoPlayer.autoplayNextOff', 'Auto-play next: OFF')}
-                            aria-label={autoPlayNext ? t('videoPlayer.disableAutoplay', 'Disable auto-play next') : t('videoPlayer.enableAutoplay', 'Enable auto-play next')}
-                        >
-                            <svg
-                                className={`w-3.5 h-3.5 ${autoPlayNext ? '' : 'opacity-60'}`}
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
-                                <polygon points="5 4 15 12 5 20 5 4" fill={autoPlayNext ? 'currentColor' : 'none'}/>
-                                <line x1="19" y1="5" x2="19" y2="19"/>
-                            </svg>
-                            <span>{t('videoPlayer.autoplay', 'Autoplay')}</span>
-                        </button>
-                    </div>
                 </div>
 
                 {/* Bottom controls */}
