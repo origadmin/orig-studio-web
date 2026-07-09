@@ -22,7 +22,7 @@ export interface Channel {
     banner?: string;
     banner_logo?: string;
     status?: string;
-    privacy?: string;
+    privacy?: number;
     is_verified?: boolean;
     tags?: string[];
     category_id?: number;
@@ -99,7 +99,7 @@ export interface CreateChannelInput {
     description?: string;
     avatar?: string;
     banner?: string;
-    privacy?: string;
+    privacy?: number;
     tags?: string[];
     category_id?: number;
 }
@@ -119,31 +119,31 @@ export interface ChannelQueryParams {
 
 export const channelApi = {
     getByToken: (token: string) =>
-        api.get<ChannelDetail>(`/channels/${token}`),
+        api.get<{channel: ChannelDetail}>(`/channels/${token}`),
 
-    get: (params?: ChannelQueryParams) =>
-        api.get<Channel | ChannelList>('/channels', params as Record<string, unknown>),
+    list: (params?: ChannelQueryParams) =>
+        api.get<ChannelList>('/channels', params as Record<string, unknown>),
 
-    listAll: (params?: {page?: number; limit?: number}) =>
+    listAll: (params?: {page?: number; page_size?: number}) =>
         api.get<ChannelList>('/channels', params),
 
-    getMyChannels: (params?: {page?: number; page_size?: number}) =>
-        api.get<ChannelList>('/channels/me', params),
+    getMyChannel: () =>
+        api.get<{channel: ChannelDetail | null}>('/channels/me'),
 
-    create: (data: CreateChannelInput) => api.post<Channel>('/channels', data),
+    create: (data: {channel: CreateChannelInput}) => api.post<{channel: Channel}>('/channels', data),
 
-    update: (token: string, data: Partial<Channel>) => api.put<Channel>(`/channels/${token}`, data),
+    update: (token: string, data: {channel: Partial<Channel>}) => api.put<{channel: Channel}>(`/channels/${token}`, data),
 
     delete: (token: string) => api.del<void>(`/channels/${token}`),
 
     resolveHandle: (handle: string) =>
-        api.get<HandleResolution>(`/resolve/@${handle}`),
+        api.get<{resolution: HandleResolution}>(`/resolve/@${handle}`),
 
     validateHandle: (handle: string) =>
-        api.get<HandleValidation>('/channels/validate-handle', {handle}),
+        api.get<{available: boolean; message?: string}>('/channels/validate-handle', {handle}),
 
     getChannelLimits: () =>
-        api.get<ChannelLimits>('/system/config/channel-limits'),
+        api.get<{limits: ChannelLimits}>('/system/config/channel-limits'),
 
     subscribe: (channelToken: string) =>
         api.post<SubscribeResponse>(`/channels/${channelToken}/subscription`),

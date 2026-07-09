@@ -34,6 +34,20 @@ interface CreateChannelDialogProps {
 const SHORT_TOKEN_REGEX = /^[a-zA-Z0-9_-]{6,12}$/;
 const MAX_TAGS = 10;
 
+const PRIVACY_MAP: Record<string, number> = {
+    PUBLIC: 1,
+    PRIVATE: 2,
+    UNLISTED: 3,
+};
+
+interface CreateChannelFormData {
+    name: string;
+    short_token?: string;
+    description?: string;
+    privacy: string;
+    tags: string[];
+}
+
 export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChannelDialogProps) {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
@@ -42,7 +56,7 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
     const {data: limits} = useChannelLimits(isAuthenticated && open);
 
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<CreateChannelInput>({
+    const [formData, setFormData] = useState<CreateChannelFormData>({
         name: '',
         short_token: '',
         description: '',
@@ -131,27 +145,27 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
 
         setLoading(true);
         try {
-            const submitData: CreateChannelInput = {
+            const channelData: CreateChannelInput = {
                 name: formData.name,
                 description: formData.description,
-                privacy: formData.privacy,
+                privacy: PRIVACY_MAP[formData.privacy || 'PUBLIC'] || 1,
                 tags: formData.tags,
             };
             if (formData.short_token) {
-                submitData.short_token = formData.short_token;
+                channelData.short_token = formData.short_token;
             }
 
-            const res = await channelApi.create(submitData);
-            const channel = res;
+            const res = await channelApi.create({channel: channelData});
+            const channel = res.channel;
 
             queryClient.invalidateQueries({queryKey: ['channel', 'me']});
             queryClient.invalidateQueries({queryKey: ['channels', 'me']});
             queryClient.invalidateQueries({queryKey: ['channel', 'limits']});
 
             onOpenChange(false);
-            onSuccess?.({id: channel?.id, short_token: channel?.short_token});
+            onSuccess?.({id: channel?.id || '', short_token: channel?.short_token || ''});
         } catch (err: any) {
-            const msg = err?.response?.data?.message || err?.message || t('channel.create.errors.generic');
+            const msg = err?.message || t('channel.create.errors.generic');
             if (msg.includes('channel_limit_reached')) {
                 setErrors(prev => ({...prev, _form: t('channel.create.errors.limit_reached')}));
             } else if (msg.includes('short_token_already_taken') || msg.includes('already_exists')) {

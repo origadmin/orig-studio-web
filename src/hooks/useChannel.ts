@@ -22,7 +22,7 @@ interface UseChannelReturn {
  * 支持多种路由来源:
  * - /c/{token} 或 /channel/{id} → 路径参数方式 (getByToken)
  * - /@{handle}              → Handle resolution (resolveHandle)
- * - /me/channel             → 当前用户频道 (getMyChannels)
+ * - /me/channel             → 当前用户频道 (getMyChannel)
  */
 const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
     const {enabled = true} = options;
@@ -61,17 +61,23 @@ const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
             setLoading(true);
             setError(null);
 
-            let response: any;
+            let ch: ChannelDetail | null = null;
 
             if (token) {
                 // Mode 1: 路径参数方式 (RESTful, 推荐)
-                response = await channelApi.getByToken(token);
+                const res = await channelApi.getByToken(token);
+                ch = res.channel;
             } else if (handle) {
                 // Mode 2: @handle resolution (F019: uses resolveHandle API)
-                response = await channelApi.resolveHandle(handle);
-            } else if (isAuthenticated && user?.id) {
+                const res = await channelApi.resolveHandle(handle);
+                const resolution = (res as any).resolution ?? res;
+                if (resolution.type === 1 || resolution.type === 'channel') {
+                    ch = resolution.channel as ChannelDetail | null;
+                }
+            } else if (isAuthenticated) {
                 // Mode 3: 我的频道
-                response = await channelApi.getMyChannels();
+                const res = await channelApi.getMyChannel();
+                ch = res.channel;
             } else {
                 if (isMounted) {
                     setError('请先登录');
@@ -79,24 +85,13 @@ const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
                 }
             }
 
-            if (isMounted && response?.code === 0) {
-                const data = response.data;
-                // Handle resolution returns { type, channel, user }
-                if (data?.type === 'channel' && data?.channel) {
-                    setChannel(data.channel as ChannelDetail);
-                } else if (data?.items && Array.isArray(data.items)) {
-                    // getMyChannels returns list
-                    setChannel(data.items.length > 0 ? data.items[0] as ChannelDetail : null);
-                } else if (data?.id) {
-                    setChannel(data as ChannelDetail);
-                } else {
-                    setChannel(null);
-                }
+            if (isMounted) {
+                setChannel(ch);
             }
         } catch (err: any) {
             console.error('Failed to fetch channel:', err);
             if (isMounted) {
-                setError(err.response?.data?.message || err.message || '加载频道失败');
+                setError(err.message || '加载频道失败');
             }
         } finally {
             if (isMounted) {
@@ -107,7 +102,7 @@ const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
         return () => {
             isMounted = false;
         };
-    }, [token, handle, user?.id, isAuthenticated, enabled]);
+    }, [token, handle, isAuthenticated, enabled]);
 
     useEffect(() => {
         fetchChannel();

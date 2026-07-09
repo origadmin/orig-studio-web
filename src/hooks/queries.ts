@@ -284,7 +284,7 @@ export function useChannelByToken(token: string | null) {
         queryKey: ['channel', 'token', token],
         queryFn: async () => {
             const res = await channelApi.getByToken(token!);
-            return res as ChannelDetail;
+            return res.channel as ChannelDetail;
         },
         enabled: !!token,
     });
@@ -295,8 +295,10 @@ export function useChannelByHandle(handle: string | null) {
         queryKey: ['channel', 'handle', handle],
         queryFn: async () => {
             const res = await channelApi.resolveHandle(handle!);
-            if (res.type === 'channel' && res.channel) {
-                return res.channel as ChannelDetail;
+            const resolution = (res as any).resolution ?? res;
+            if (resolution.type === 1 || resolution.type === 'channel') {
+                const ch = resolution.channel;
+                if (ch) return ch as ChannelDetail;
             }
             return null;
         },
@@ -353,10 +355,8 @@ export function useMyChannel(enabled: boolean) {
     return useQuery({
         queryKey: ['channel', 'me'],
         queryFn: async () => {
-            const res = await channelApi.getMyChannels();
-            // Backend returns { items: [], total: 0 } when user has no channels
-            const data = (res as any)?.items ?? [];
-            return (data.length > 0 ? data[0] : null) as ChannelDetail | null;
+            const res = await channelApi.getMyChannel();
+            return res.channel as ChannelDetail | null;
         },
         enabled,
     });
@@ -366,9 +366,8 @@ export function useMyChannels(enabled: boolean) {
     return useQuery({
         queryKey: ['channels', 'me'],
         queryFn: async () => {
-            const res = await channelApi.getMyChannels();
-            const data = (res as any)?.items ?? [];
-            return data as Channel[];
+            const res = await channelApi.listAll();
+            return res.items as Channel[];
         },
         enabled,
     });

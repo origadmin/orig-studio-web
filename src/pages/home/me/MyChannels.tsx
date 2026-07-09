@@ -81,8 +81,10 @@ const MyChannels = () => {
         setEditLoading(true);
         try {
             await channelApi.update(editChannel.short_token, {
-                name: editForm.name,
-                description: editForm.description,
+                channel: {
+                    name: editForm.name,
+                    description: editForm.description,
+                },
             });
             queryClient.invalidateQueries({queryKey: ['channels', 'me']});
             setEditChannel(null);

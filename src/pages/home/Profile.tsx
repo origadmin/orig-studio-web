@@ -86,9 +86,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
             setChannelsLoading(true);
             let res: ChannelList;
             if (isMe) {
-                res = await channelApi.getMyChannels({page_size: 50});
+                res = await channelApi.listAll({page_size: 50});
             } else {
-                res = await channelApi.get({user_id: String(user.id)}) as ChannelList;
+                res = await channelApi.list({user_id: String(user.id)}) as ChannelList;
             }
             setChannels(res.items || []);
         } catch (err) {
@@ -96,7 +96,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
         } finally {
             setChannelsLoading(false);
         }
-    }, [user]);
+    }, [user, isMe]);
 
     const fetchVideos = useCallback(async () => {
         if (!user) return;
@@ -196,8 +196,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
         fetchUser();
     }, [propUserId, params.id, params.username, params.handle]);
 
-    const getPrivacyBadgeVariant = (privacy?: string) => {
-        switch (privacy?.toUpperCase()) {
+    const getPrivacyBadgeVariant = (privacy?: string | number) => {
+        const p = typeof privacy === 'number' 
+            ? (privacy === 1 ? 'PUBLIC' : privacy === 2 ? 'PRIVATE' : 'UNLISTED')
+            : privacy?.toUpperCase();
+        switch (p) {
             case 'PUBLIC': return 'default';
             case 'PRIVATE': return 'secondary';
             case 'UNLISTED': return 'outline';
@@ -205,8 +208,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
         }
     };
 
-    const getPrivacyLabel = (privacy?: string) => {
-        switch (privacy?.toUpperCase()) {
+    const getPrivacyLabel = (privacy?: string | number) => {
+        const p = typeof privacy === 'number' 
+            ? (privacy === 1 ? 'PUBLIC' : privacy === 2 ? 'PRIVATE' : 'UNLISTED')
+            : privacy?.toUpperCase();
+        switch (p) {
             case 'PUBLIC': return t('common.public');
             case 'PRIVATE': return t('common.private');
             case 'UNLISTED': return t('common.unlisted');
