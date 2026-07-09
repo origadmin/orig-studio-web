@@ -102,7 +102,7 @@ const HomePage = () => {
                             <Link to="/featured">
                                 <Button size="lg">{t('home.exploreContent')}</Button>
                             </Link>
-                            <Link to="/me/upload">
+                            <Link to="/me/videos">
                                 <Button size="lg" variant="outline">{t('home.startCreating')}</Button>
                             </Link>
                         </div>

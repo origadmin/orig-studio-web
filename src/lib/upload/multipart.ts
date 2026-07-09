@@ -39,6 +39,7 @@ export interface UploadTask {
     categoryId?: number;
     tags?: string[];
     thumbnail?: string;
+    channelId?: string;
     // Timing
     startedAt?: number;
     completedAt?: number;
@@ -48,7 +49,7 @@ export interface UploadTask {
 export interface UploadCallbacks {
     onProgress: (taskId: string, progress: number, speed?: number) => void;
     onStatusChange: (taskId: string, status: UploadStatus) => void;
-    onSuccess: (taskId: string) => void;
+    onSuccess: (taskId: string, media?: {short_token?: string; id?: string}) => void;
     onError: (taskId: string, error: string) => void;
     onUploadId?: (taskId: string, uploadId: string) => void;
 }
@@ -88,6 +89,7 @@ async function initiateMultipartUpload(task: UploadTask): Promise<InitiateRespon
         category_id: task.categoryId || null,
         tags: task.tags || [],
         thumbnail: task.thumbnail || '',
+        channel_id: task.channelId || '',
     });
 }
 
@@ -153,6 +155,7 @@ export async function updateUploadMetadataApi(task: UploadTask): Promise<void> {
             category_id: task.categoryId,
             tags: task.tags,
             thumbnail: task.thumbnail,
+            channel_id: task.channelId,
         });
     } catch {
         // Silently ignore - metadata is also sent at completion
@@ -164,8 +167,8 @@ async function completeMultipartUpload(
     task: UploadTask,
     parts: PartInfo[],
     sha256?: string,
-): Promise<{ media: unknown }> {
-    return api.post<{ media: unknown }>(`/uploads/${task.uploadId}/complete`, {
+): Promise<{ media?: {short_token?: string; id?: string} }> {
+    return api.post<{ media?: {short_token?: string; id?: string} }>(`/uploads/${task.uploadId}/complete`, {
         upload_id: task.uploadId,
         parts: parts.sort((a, b) => a.part_number - b.part_number),
         sha256: sha256 || '',
@@ -175,6 +178,7 @@ async function completeMultipartUpload(
         category_id: task.categoryId,
         tags: task.tags,
         thumbnail: task.thumbnail,
+        channel_id: task.channelId,
     });
 }
 
@@ -334,11 +338,11 @@ export async function startMultipartUpload(
             const sha256 = '';
             const finalParts = Array.from(partsMap.values());
 
-            await completeMultipartUpload(task, finalParts, sha256);
+            const result = await completeMultipartUpload(task, finalParts, sha256);
 
             task.completedAt = Date.now();
             callbacks.onStatusChange(task.id, 'success');
-            callbacks.onSuccess(task.id);
+            callbacks.onSuccess(task.id, result?.media);
         } else {
             throw new Error(`Upload incomplete: ${partsMap.size}/${totalChunks} parts finished`);
         }

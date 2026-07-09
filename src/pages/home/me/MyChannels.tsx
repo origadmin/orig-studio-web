@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
-import {Link, useNavigate} from '@tanstack/react-router';
+import {Link} from '@tanstack/react-router';
 import {useMyChannels, useChannelLimits} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {useQueryClient} from '@tanstack/react-query';
@@ -37,7 +37,6 @@ import {
 const MyChannels = () => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
-    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const {data: channels, isLoading} = useMyChannels(isAuthenticated);
     const {data: limits} = useChannelLimits(isAuthenticated);
@@ -62,13 +61,10 @@ const MyChannels = () => {
         return translated === key ? status : translated;
     };
 
-    const handleCreateSuccess = ({short_token}: {id: string; short_token: string}) => {
+    const handleCreateSuccess = () => {
         setCreateDialogOpen(false);
-        if (short_token) {
-            navigate({to: '/c/$id', params: {id: short_token}});
-        } else {
-            window.location.reload();
-        }
+        queryClient.invalidateQueries({queryKey: ['channels', 'me']});
+        queryClient.invalidateQueries({queryKey: ['channel', 'limits']});
     };
 
     const openEditDialog = (channel: Channel) => {

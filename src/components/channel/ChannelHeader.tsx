@@ -250,7 +250,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                         ) : (
                             <>
                                 <Button asChild size="sm">
-                                    <Link to="/me/upload">
+                                    <Link to="/me/videos">
                                         <Upload className="w-4 h-4"/>
                                     </Link>
                                 </Button>

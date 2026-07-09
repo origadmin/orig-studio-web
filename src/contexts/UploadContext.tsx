@@ -9,12 +9,13 @@ export interface GlobalUploadTask extends Omit<UploadTask, 'file'> {
         type: string;
     };
     addedAt: number;
+    shortToken?: string;
 }
 
 interface UploadContextValue {
     tasks: GlobalUploadTask[];
     activeCount: number;
-    addTask: (file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags'>>) => string;
+    addTask: (file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags' | 'channelId'>>) => string;
     pauseTask: (taskId: string) => void;
     resumeTask: (taskId: string) => void;
     cancelTask: (taskId: string) => void;
@@ -44,7 +45,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         setTasks(prev => prev.map(t => t.id === id ? {...t, ...updates} : t));
     }, []);
 
-    const addTask = useCallback((file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags'>>) => {
+    const addTask = useCallback((file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags' | 'channelId'>>) => {
         const id = Math.random().toString(36).substr(2, 9);
         const addedAt = Date.now();
 
@@ -69,8 +70,8 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         const callbacks: UploadCallbacks = {
             onProgress: (taskId, progress, speed) => updateTask(taskId, {progress, speed}),
             onStatusChange: (taskId, status) => updateTask(taskId, {status}),
-            onSuccess: (taskId) => {
-                updateTask(taskId, {status: 'success', progress: 100, completedAt: Date.now()});
+            onSuccess: (taskId, media) => {
+                updateTask(taskId, {status: 'success', progress: 100, completedAt: Date.now(), shortToken: media?.short_token});
                 activeUploadsRef.current.delete(taskId);
                 fileMapRef.current.delete(taskId);
             },
@@ -115,8 +116,8 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         const callbacks: UploadCallbacks = {
             onProgress: (id, progress, speed) => updateTask(id, {progress, speed}),
             onStatusChange: (id, status) => updateTask(id, {status}),
-            onSuccess: (id) => {
-                updateTask(id, {status: 'success', progress: 100, completedAt: Date.now()});
+            onSuccess: (id, media) => {
+                updateTask(id, {status: 'success', progress: 100, completedAt: Date.now(), shortToken: media?.short_token});
                 activeUploadsRef.current.delete(id);
                 fileMapRef.current.delete(id);
             },
@@ -138,6 +139,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
             description: existingTask.description,
             categoryId: existingTask.categoryId,
             tags: existingTask.tags,
+            channelId: existingTask.channelId,
         };
 
         activeUploadsRef.current.set(taskId, uploadTask);

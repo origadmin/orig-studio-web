@@ -15,7 +15,6 @@ import {
     Compass,
     Tags,
     LayoutGrid,
-    Upload,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -45,7 +44,6 @@ export const NAV_CONFIG: NavSection[] = [
         title: 'nav.create',
         requiresAuth: true,
         items: [
-            {id: 'upload', label: 'nav.upload', to: '/me/upload', icon: Upload, module: 'videos'},
             {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
             {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
         ],

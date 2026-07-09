@@ -31,7 +31,7 @@ const Footer = () => {
                     ]}/>
 
                     <FooterSection title="Create" links={[
-                        {label: 'Upload Video', to: '/me/upload'},
+                        {label: 'Upload Video', to: '/me/videos'},
                         {label: 'Start Streaming', to: '/live'},
                     ]}/>
 

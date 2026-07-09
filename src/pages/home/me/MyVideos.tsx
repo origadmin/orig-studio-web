@@ -1,5 +1,5 @@
 import {Spinner} from "@/components/ui/spinner"
-import React from 'react';
+import React, {useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
@@ -7,10 +7,20 @@ import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import UploadDialog from '@/components/upload/UploadDialog';
+import {
     Video,
     Clock,
     Eye,
-    MoreVertical,
     Trash2,
     Edit,
     Plus,
@@ -23,10 +33,10 @@ import {getFullUrl} from '@/lib/utils';
 const MyVideos = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
-    const [page, setPage] = React.useState(1);
+    const [page, setPage] = useState(1);
+    const [deleteTarget, setDeleteTarget] = useState<string | number | null>(null);
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const pageSize = 12;
-
-
 
     const {data, isLoading} = useMediaList({
         page,
@@ -38,20 +48,17 @@ const MyVideos = () => {
 
     const mediaList = data?.items || [];
 
-    const handleDelete = async (id: string | number) => {
-        if (window.confirm('确定要删除这个视频吗？')) {
-            await deleteMutation.mutateAsync(id?.toString() || '');
-            // 检查当前页面是否还有数据
-            if (mediaList.length === 1) {
-                if (page > 1) {
-                    // 如果当前页面只有一条数据且不是第一页，则切换到上一页
-                    setPage(page - 1);
-                } else if ((data?.total ?? 0) > 0) {
-                    // 如果是第一页且总数据大于0，则重新加载当前页
-                    setPage(1);
-                }
+    const handleDeleteConfirm = async () => {
+        if (!deleteTarget) return;
+        await deleteMutation.mutateAsync(deleteTarget?.toString() || '');
+        if (mediaList.length === 1) {
+            if (page > 1) {
+                setPage(page - 1);
+            } else if ((data?.total ?? 0) > 0) {
+                setPage(1);
             }
         }
+        setDeleteTarget(null);
     };
 
     if (isLoading) {
@@ -66,14 +73,12 @@ const MyVideos = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">我的上传</h1>
-                    <p className="text-sm text-muted-foreground">管理你上传的所有媒体内容</p>
+                    <h1 className="text-2xl font-bold text-foreground">{t('myVideos.title', '我的视频')}</h1>
+                    <p className="text-sm text-muted-foreground">{t('myVideos.subtitle', '管理你上传的所有视频内容')}</p>
                 </div>
-                <Button asChild className="bg-primary hover:bg-primary/90 text-white">
-                    <Link to="/me/upload">
-                        <Plus className="w-4 h-4 mr-2"/>
-                        上传新内容
-                    </Link>
+                <Button onClick={() => setUploadDialogOpen(true)} className="bg-primary hover:bg-primary/90 text-white">
+                    <Plus className="w-4 h-4 mr-2"/>
+                    {t('myVideos.uploadVideo', '上传视频')}
                 </Button>
             </div>
 
@@ -85,11 +90,11 @@ const MyVideos = () => {
                             <Video className="w-8 h-8 text-muted-foreground"/>
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-medium text-foreground">暂无上传内容</h3>
-                            <p className="text-sm text-gray-500">你还没有上传过任何视频或图片</p>
+                            <h3 className="text-lg font-medium text-foreground">{t('myVideos.noVideos', '还没有上传视频')}</h3>
+                            <p className="text-sm text-muted-foreground">{t('myVideos.noVideosDesc', '你还没有上传过任何视频')}</p>
                         </div>
-                        <Button asChild variant="outline">
-                            <Link to="/me/upload">立即上传</Link>
+                        <Button variant="outline" onClick={() => setUploadDialogOpen(true)}>
+                            {t('myVideos.uploadFirst', '上传第一个视频')}
                         </Button>
                     </CardContent>
                 </Card>
@@ -149,17 +154,17 @@ const MyVideos = () => {
                                             className="h-8 text-gray-500 hover:text-primary" asChild>
                                         <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
                                             <Edit className="w-3.5 h-3.5 mr-1"/>
-                                            编辑
+                                            {t('common.edit', '编辑')}
                                         </Link>
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         className="h-8 text-gray-500 hover:text-destructive"
-                                        onClick={() => handleDelete(item.id)}
+                                        onClick={() => setDeleteTarget(item.id)}
                                     >
                                         <Trash2 className="w-3.5 h-3.5 mr-1"/>
-                                        删除
+                                        {t('common.delete', '删除')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -184,6 +189,28 @@ const MyVideos = () => {
                     </div>
                 </div>
             )}
+
+            <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('myVideos.deleteConfirmTitle', '确认删除')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('myVideos.deleteConfirmDesc', '确定要删除这个视频吗？此操作无法撤销。')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel', '取消')}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteConfirm}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            {t('common.delete', '删除')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <UploadDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}/>
         </div>
     );
 };

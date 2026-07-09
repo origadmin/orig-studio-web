@@ -22,7 +22,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
                 ? t('channel.emptyVideosDescOwner')
                 : t('channel.emptyVideosDescVisitor'),
             action: isOwner ? (
-                <Button onClick={() => navigate({to: '/me/upload'})}>
+                <Button onClick={() => navigate({to: '/me/videos'})}>
                     <Upload className="w-4 h-4 mr-1"/>
                     {t('channel.uploadVideo')}
                 </Button>
@@ -59,7 +59,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
             title: t('channel.emptyHomeTitle'),
             desc: isOwner ? t('channel.emptyHomeDescOwner') : t('channel.emptyHomeDescVisitor'),
             action: isOwner ? (
-                <Button onClick={() => navigate({to: '/me/upload'})}>
+                <Button onClick={() => navigate({to: '/me/videos'})}>
                     <Upload className="w-4 h-4 mr-1"/>
                     {t('channel.startCreating')}
                 </Button>

@@ -1,9 +1,8 @@
 import React, {useState} from 'react';
-import {Upload, Pause, Play, X, CheckCircle, AlertCircle, Loader2, FileVideo, Image as ImageIcon, Music, Trash2, ExternalLink} from 'lucide-react';
+import {Upload, Pause, Play, X, CheckCircle, AlertCircle, Loader2, FileVideo, Image as ImageIcon, Music, Trash2, ExternalLink, Edit3} from 'lucide-react';
 import {Link} from '@tanstack/react-router';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Separator} from '@/components/ui/separator';
-import {Button} from '@/components/ui/button';
 import {useUploadState} from '@/contexts/UploadContext';
 import {useTranslation} from 'react-i18next';
 import {formatFileSize} from '@/lib/format';
@@ -79,11 +78,11 @@ const UploadCenter: React.FC = () => {
                             <Upload className="w-9 h-9 mb-2 opacity-20"/>
                             <p className="text-sm">{t('upload.noTasks', '暂无上传任务')}</p>
                             <Link
-                                to="/me/upload"
+                                to="/me/videos"
                                 className="mt-3 text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
                                 onClick={() => setOpen(false)}
                             >
-                                {t('upload.goToUpload', '去上传文件')}
+                                {t('upload.goToVideos', '去我的视频')}
                                 <ExternalLink className="w-3 h-3"/>
                             </Link>
                         </div>
@@ -168,6 +167,20 @@ const UploadCenter: React.FC = () => {
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-1 shrink-0">
+                                                {isSuccess && task.shortToken && (
+                                                    <Link
+                                                        to="/media/$shortToken/edit"
+                                                        params={{shortToken: task.shortToken}}
+                                                        onClick={() => setOpen(false)}
+                                                        className={cn(
+                                                            "w-7 h-7 rounded-full flex items-center justify-center transition-colors",
+                                                            "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                                                        )}
+                                                        title={t('common.edit', '编辑')}
+                                                    >
+                                                        <Edit3 className="w-3.5 h-3.5"/>
+                                                    </Link>
+                                                )}
                                                 {(isActive || isPaused) && (
                                                     <button
                                                         className={cn(
@@ -198,11 +211,11 @@ const UploadCenter: React.FC = () => {
                 <Separator/>
                 <div className="p-2">
                     <Link
-                        to="/me/upload"
+                        to="/me/videos"
                         className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 py-1.5 rounded-lg hover:bg-accent/50 transition-colors"
                         onClick={() => setOpen(false)}
                     >
-                        {t('upload.viewAll', '上传中心')}
+                        {t('upload.viewAll', '查看所有视频')}
                         <ExternalLink className="w-3.5 h-3.5"/>
                     </Link>
                 </div>

@@ -367,7 +367,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-48">
-                                    <DropdownMenuItem onClick={() => navigate({to: '/me/upload'})}>
+                                    <DropdownMenuItem onClick={() => navigate({to: '/me/videos'})}>
                                         <Upload className="w-4 h-4 mr-2"/>
                                         {t('profile.uploadContent')}
                                     </DropdownMenuItem>
