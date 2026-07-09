@@ -197,9 +197,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         const video = videoRef.current;
         if (!video) return;
 
-        // Cancel any pending autoplay countdown when switching videos
-        cancelAutoplayCountdown();
-
         // When the video is still being processed (transcoding), do NOT
         // attempt to load any source.  Loading the raw upload (e.g. MKV/AVI)
         // causes DEMUXER_ERROR_COULD_NOT_OPEN because the browser cannot
@@ -246,11 +243,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // Maximum buffer size in bytes (default 60MB; 80MB for higher quality streams)
                 maxBufferSize: 80 * 1024 * 1024,
                 // Maximum inter-buffer hole tolerance in seconds (default 0.1s is too strict;
-                // 1.0s avoids unnecessary rebuffering on segment gaps common with newly transcoded videos)
-                maxBufferHole: 1.0,
+                // 0.5s avoids unnecessary rebuffering on small segment gaps after seek)
+                maxBufferHole: 0.5,
                 // Back buffer length in seconds — clear already-played content from memory
-                // (default Infinity causes unbounded memory growth on long videos; 60s retains more for seeking back)
-                backBufferLength: 60,
+                // (default Infinity causes unbounded memory growth on long videos; 30s is sufficient)
+                backBufferLength: 30,
 
                 // === ABR (Adaptive Bitrate) configuration ===
                 // Default bandwidth estimate in bps (default 500kbps is too conservative;
