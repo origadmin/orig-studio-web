@@ -20,6 +20,7 @@ import {commentApi} from '@/lib/api/comment';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
+import {getFullUrl} from '@/lib/utils';
 import ErrorPage from '@/components/common/ErrorPage';
 import SubscribeButton from '@/components/common/SubscribeButton';
 import CommentSection from '@/components/common/CommentSection';
@@ -29,15 +30,12 @@ import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
 import {colorFromName} from '@/lib/utils/tag-color';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
-import {usePlayerSettings} from '@/hooks/usePlayerSettings';
 import {toast} from 'sonner';
-import {Switch} from '@/components/ui/switch';
 
 const WatchPage = () => {
     const {t} = useTranslation();
     const {v: shortToken} = useSearch({strict: false});
     const navigate = useNavigate();
-    const {autoPlayNext, setAutoPlayNext} = usePlayerSettings();
     // ✅ 使用新的 usePublicMediaDetail hook (short_token based)
     const {data: media, isLoading: isMediaLoading, error: mediaError} = usePublicMediaDetail(shortToken as string);
     const {user, isAdmin} = useAuth();
@@ -161,7 +159,7 @@ const WatchPage = () => {
                         hlsSrc={media.hls_file}
                         isProcessing={isProcessing}
                         poster={media.poster || media.thumbnail}
-                        spriteVttUrl={media.type === 'video' && media.sprite_status === 'success' && media.vtt_path ? media.vtt_path : undefined}
+                        spriteVttUrl={media.type === 'video' && media.sprite_status === 'success' && media.vtt_path ? getFullUrl(media.vtt_path) : undefined}
                         enableSpritePreview={true}
                         onTimeUpdate={handleProgressTimeUpdate}
                         onPause={handleProgressPause}
@@ -352,19 +350,9 @@ const WatchPage = () => {
 
             {/* Sidebar: Recommendations */}
             <div className="lg:w-80 xl:w-96 shrink-0 space-y-4">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-                        {t('watch.nextVideos')}
-                    </h3>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">{t('watch.autoplay', '自动播放')}</span>
-                        <Switch
-                            checked={autoPlayNext}
-                            onCheckedChange={setAutoPlayNext}
-                            aria-label={t('watch.toggleAutoplay', '切换自动播放')}
-                        />
-                    </div>
-                </div>
+                <h3 className="font-bold text-lg text-foreground flex items-center gap-2 mb-4">
+                    {t('watch.nextVideos')}
+                </h3>
 
                 <div className="space-y-4">
                     {recommendations.length === 0 ? (
