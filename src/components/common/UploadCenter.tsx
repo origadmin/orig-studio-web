@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {Upload, Pause, Play, X, CheckCircle, AlertCircle, Loader2, FileVideo, Image as ImageIcon, Music, Trash2, ExternalLink, Edit3} from 'lucide-react';
+import React, {useState, useCallback} from 'react';
+import {Upload, Pause, Play, X, CheckCircle, AlertCircle, Loader2, FileVideo, Image as ImageIcon, Music, Trash2, ExternalLink, Edit3, Plus} from 'lucide-react';
 import {Link} from '@tanstack/react-router';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Separator} from '@/components/ui/separator';
@@ -32,19 +32,32 @@ const getStatusText = (status: string, t: ReturnType<typeof useTranslation>['t']
 const UploadCenter: React.FC = () => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
-    const {tasks, activeCount, pauseTask, resumeTask, removeTask, clearCompleted} = useUploadState();
+    const {tasks, activeCount, pauseTask, resumeTask, removeTask, clearCompleted, openDialog} = useUploadState();
 
-    if (tasks.length === 0) {
-        return null;
-    }
-
+    const hasTasks = tasks.length > 0;
     const recentTasks = tasks.slice(0, 5);
     const hasCompleted = tasks.some(t => ['success', 'aborted', 'error'].includes(t.status));
 
+    const handleTriggerClick = useCallback((e: React.MouseEvent) => {
+        if (!hasTasks) {
+            e.preventDefault();
+            openDialog();
+        }
+    }, [hasTasks, openDialog]);
+
+    const handleNewUpload = useCallback(() => {
+        setOpen(false);
+        openDialog();
+    }, [openDialog]);
+
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <>
+        <Popover open={hasTasks && open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <button className="relative p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground hover:text-foreground">
+                <button
+                    onClick={handleTriggerClick}
+                    className="relative p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+                >
                     <Upload size={18}/>
                     {activeCount > 0 && (
                         <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm">
@@ -53,44 +66,31 @@ const UploadCenter: React.FC = () => {
                     )}
                 </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0 shadow-lg rounded-xl overflow-hidden border border-border/60" align="end" sideOffset={8}>
-                <div className="flex items-center justify-between px-4 py-2.5 border-b">
-                    <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-sm text-foreground">{t('upload.uploadCenter', '上传任务')}</h3>
-                        {activeCount > 0 && (
-                            <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                                {activeCount}
-                            </span>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-1">
-                        {hasCompleted && (
-                            <button
-                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors px-2 py-1 rounded-md hover:bg-accent disabled:opacity-50"
-                                onClick={clearCompleted}
-                                title={t('upload.clearCompleted', '清除已完成')}
-                            >
-                                <Trash2 className="w-3.5 h-3.5"/>
-                                <span>{t('upload.clear', '清除')}</span>
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div className="max-h-[380px] overflow-y-auto overflow-x-hidden w-full">
-                    {tasks.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
-                            <Upload className="w-9 h-9 mb-2 opacity-20"/>
-                            <p className="text-sm">{t('upload.noTasks', '暂无上传任务')}</p>
-                            <Link
-                                to="/me/videos"
-                                className="mt-3 text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
-                                onClick={() => setOpen(false)}
-                            >
-                                {t('upload.goToVideos', '去我的视频')}
-                                <ExternalLink className="w-3 h-3"/>
-                            </Link>
+            {hasTasks && (
+                <PopoverContent className="w-80 p-0 shadow-lg rounded-xl overflow-hidden border border-border/60" align="end" sideOffset={8}>
+                    <div className="flex items-center justify-between px-4 py-2.5 border-b">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-sm text-foreground">{t('upload.uploadCenter', '上传任务')}</h3>
+                            {activeCount > 0 && (
+                                <span className="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                                    {activeCount}
+                                </span>
+                            )}
                         </div>
-                    ) : (
+                        <div className="flex items-center gap-1">
+                            {hasCompleted && (
+                                <button
+                                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors px-2 py-1 rounded-md hover:bg-accent"
+                                    onClick={clearCompleted}
+                                    title={t('upload.clearCompleted', '清除已完成')}
+                                >
+                                    <Trash2 className="w-3.5 h-3.5"/>
+                                    <span>{t('upload.clear', '清除')}</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="max-h-[320px] overflow-y-auto overflow-x-hidden w-full">
                         <div className="w-full">
                             {recentTasks.map((task) => {
                                 const IconComponent = getFileIcon(task.file.type);
@@ -210,21 +210,29 @@ const UploadCenter: React.FC = () => {
                                 );
                             })}
                         </div>
-                    )}
-                </div>
-                <Separator/>
-                <div className="p-2">
-                    <Link
-                        to="/me/videos"
-                        className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 py-1.5 rounded-lg hover:bg-accent/50 transition-colors"
-                        onClick={() => setOpen(false)}
-                    >
-                        {t('upload.viewAll', '查看所有视频')}
-                        <ExternalLink className="w-3.5 h-3.5"/>
-                    </Link>
-                </div>
-            </PopoverContent>
+                    </div>
+                    <Separator/>
+                    <div className="p-2 flex gap-1">
+                        <button
+                            onClick={handleNewUpload}
+                            className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 py-1.5 rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                            <Plus className="w-4 h-4"/>
+                            {t('upload.newUpload', '新上传')}
+                        </button>
+                        <Link
+                            to="/me/videos"
+                            className="flex items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground py-1.5 px-3 rounded-lg hover:bg-accent/50 transition-colors"
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('upload.myVideos', '我的视频')}
+                            <ExternalLink className="w-3.5 h-3.5"/>
+                        </Link>
+                    </div>
+                </PopoverContent>
+            )}
         </Popover>
+        </>
     );
 };
 

@@ -15,6 +15,9 @@ export interface GlobalUploadTask extends Omit<UploadTask, 'file'> {
 interface UploadContextValue {
     tasks: GlobalUploadTask[];
     activeCount: number;
+    isDialogOpen: boolean;
+    openDialog: () => void;
+    closeDialog: () => void;
     addTask: (file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags' | 'channelId'>>) => string;
     pauseTask: (taskId: string) => void;
     resumeTask: (taskId: string) => void;
@@ -26,6 +29,9 @@ interface UploadContextValue {
 const UploadContext = createContext<UploadContextValue>({
     tasks: [],
     activeCount: 0,
+    isDialogOpen: false,
+    openDialog: () => {},
+    closeDialog: () => {},
     addTask: () => '',
     pauseTask: () => {},
     resumeTask: () => {},
@@ -38,8 +44,12 @@ export const useUploadState = () => useContext(UploadContext);
 
 export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [tasks, setTasks] = useState<GlobalUploadTask[]>([]);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const fileMapRef = useRef<Map<string, File>>(new Map());
     const activeUploadsRef = useRef<Map<string, UploadTask>>(new Map());
+
+    const openDialog = useCallback(() => setIsDialogOpen(true), []);
+    const closeDialog = useCallback(() => setIsDialogOpen(false), []);
 
     const updateTask = useCallback((id: string, updates: Partial<GlobalUploadTask>) => {
         setTasks(prev => prev.map(t => t.id === id ? {...t, ...updates} : t));
@@ -172,6 +182,9 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         <UploadContext.Provider value={{
             tasks,
             activeCount,
+            isDialogOpen,
+            openDialog,
+            closeDialog,
             addTask,
             pauseTask,
             resumeTask,

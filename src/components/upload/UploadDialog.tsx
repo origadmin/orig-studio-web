@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import {useMyChannels} from '@/hooks/queries';
@@ -26,11 +26,6 @@ import {formatFileSize} from '@/lib/format';
 import {cn} from '@/lib/utils';
 import {useQueryClient} from '@tanstack/react-query';
 
-interface UploadDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
-
 const getFileIcon = (type: string) => {
     if (type.startsWith('video/')) return FileVideo;
     if (type.startsWith('image/')) return ImageIcon;
@@ -41,12 +36,12 @@ const getFileIcon = (type: string) => {
 const ACCEPTED_TYPES = 'video/*,image/*,audio/*';
 const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
-export const UploadDialog: React.FC<UploadDialogProps> = ({open, onOpenChange}) => {
+export const UploadDialog: React.FC = () => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
     const queryClient = useQueryClient();
-    const {addTask} = useUploadState();
-    const {data: channels, isLoading: channelsLoading} = useMyChannels(open && isAuthenticated);
+    const {addTask, isDialogOpen, closeDialog} = useUploadState();
+    const {data: channels, isLoading: channelsLoading} = useMyChannels(isDialogOpen && isAuthenticated);
     const [selectedChannelId, setSelectedChannelId] = useState<string>('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [isDragActive, setIsDragActive] = useState(false);
@@ -105,27 +100,34 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({open, onOpenChange}) 
 
         setSelectedFiles([]);
         setSelectedChannelId('');
-        onOpenChange(false);
-    }, [selectedChannelId, selectedFiles, addTask, onOpenChange]);
+        closeDialog();
+    }, [selectedChannelId, selectedFiles, addTask, closeDialog]);
 
     const handleOpenChange = useCallback((newOpen: boolean) => {
         if (!newOpen) {
             setSelectedFiles([]);
             setSelectedChannelId('');
+            closeDialog();
         }
-        onOpenChange(newOpen);
-    }, [onOpenChange]);
+    }, [closeDialog]);
 
-    React.useEffect(() => {
-        if (open && channelList.length > 0 && !selectedChannelId) {
+    useEffect(() => {
+        if (isDialogOpen && channelList.length > 0 && !selectedChannelId) {
             setSelectedChannelId(channelList[0].id?.toString() || channelList[0].short_token || '');
         }
-    }, [open, channelList, selectedChannelId]);
+    }, [isDialogOpen, channelList, selectedChannelId]);
+
+    useEffect(() => {
+        if (!isDialogOpen) {
+            setSelectedFiles([]);
+            setSelectedChannelId('');
+        }
+    }, [isDialogOpen]);
 
     return (
         <>
-            <Dialog open={open} onOpenChange={handleOpenChange}>
-                <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+            <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+                <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>{t('upload.uploadVideo', '上传视频')}</DialogTitle>
                         <DialogDescription>
@@ -133,7 +135,7 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({open, onOpenChange}) 
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto space-y-4 py-2">
+                    <div className="flex-1 overflow-y-auto space-y-4 py-2 px-0.5">
                         {!hasChannels && !channelsLoading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
                                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
@@ -160,7 +162,7 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({open, onOpenChange}) 
                                         <SelectTrigger>
                                             <SelectValue placeholder={t('upload.selectChannelPlaceholder', '选择频道')}/>
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent position="popper" sideOffset={4}>
                                             {channelList.map(ch => (
                                                 <SelectItem key={ch.id} value={ch.id?.toString() || ch.short_token || ''}>
                                                     {ch.name}
@@ -216,7 +218,7 @@ export const UploadDialog: React.FC<UploadDialogProps> = ({open, onOpenChange}) 
                                         <p className="text-sm font-medium">
                                             {t('upload.selectedFiles', '已选择 {{count}} 个文件', {count: selectedFiles.length})}
                                         </p>
-                                        <div className="max-h-40 overflow-y-auto space-y-1">
+                                        <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
                                             {selectedFiles.map((file, index) => {
                                                 const Icon = getFileIcon(file.type);
                                                 return (
