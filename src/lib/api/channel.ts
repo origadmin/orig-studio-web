@@ -167,4 +167,7 @@ export const channelApi = {
         api.get<{count: number}>(`/channels/${channelToken}/subscribers`, {count: 'true'}),
 
     getAll: (params?: {page?: number; page_size?: number}) => api.get<PaginatedResponse<Channel>>('/channels', params),
+
+    getPlaylists: (token: string, params?: {page?: number; page_size?: number}) =>
+        api.get<{items: ChannelPlaylist[]; total: number; page: number; page_size: number}>(`/channels/${token}/playlists`, params as Record<string, unknown>),
 };

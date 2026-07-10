@@ -449,8 +449,8 @@ export function useChannelPlaylists(channelToken: string | null) {
     return useQuery({
         queryKey: ['channelPlaylists', channelToken],
         queryFn: async () => {
-            const res = await playlistApi.getMyPlaylists();
-            return res as PlaylistListResponse;
+            const res = await channelApi.getPlaylists(channelToken!);
+            return res;
         },
         enabled: !!channelToken,
     });

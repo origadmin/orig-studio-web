@@ -10,11 +10,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2} from 'lucide-react';
-import type {ChannelDetail} from '@/lib/api/channel';
+import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2, ListVideo} from 'lucide-react';
+import type {ChannelDetail, ChannelPlaylist} from '@/lib/api/channel';
 import type {Media} from '@/lib/api/media';
 import {
     useChannelVideos,
+    useChannelPlaylists,
     useSubscribe,
     useUnsubscribe,
     useUpdateNotificationSetting,
@@ -28,6 +29,7 @@ import {PAGINATION_CONFIG} from '@/config/pagination';
 import ChannelHeader from './ChannelHeader';
 import ChannelNav from './ChannelNav';
 import VideoCard from './widgets/VideoCard';
+import PlaylistCard from './widgets/PlaylistCard';
 import RecommendedChannels from './widgets/RecommendedChannels';
 import EmptyState from './widgets/EmptyState';
 
@@ -134,6 +136,13 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                             <VideosTabContent
                                 channelToken={channelToken}
                                 channelId={channel.id}
+                                isOwner={isOwner}
+                                onEmptyChange={handleContentEmptyChange}
+                            />
+                        )}
+                        {activeTab === 'playlists' && (
+                            <PlaylistsTabContent
+                                channelToken={channelToken}
                                 isOwner={isOwner}
                                 onEmptyChange={handleContentEmptyChange}
                             />
@@ -266,18 +275,38 @@ const VideosTabContent: React.FC<{
     const {t} = useTranslation();
     const [sortBy, setSortBy] = useState('newest');
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [page, setPage] = useState(1);
+    const [allVideos, setAllVideos] = useState<any[]>([]);
 
+    const pageSize = 12;
     const {data: videosData, isLoading} = useChannelVideos(
         channelToken || null,
         {
             sort: sortBy,
             keyword: searchKeyword || undefined,
-            page_size: 20,
+            page,
+            page_size: pageSize,
         }
     );
 
-    const videos = videosData?.items || [];
+    React.useEffect(() => {
+        if (videosData?.items) {
+            if (page === 1) {
+                setAllVideos(videosData.items);
+            } else {
+                setAllVideos(prev => [...prev, ...videosData.items]);
+            }
+        }
+    }, [videosData, page]);
+
+    React.useEffect(() => {
+        setPage(1);
+        setAllVideos([]);
+    }, [sortBy, searchKeyword]);
+
+    const videos = allVideos;
     const total = videosData?.total || 0;
+    const hasMore = videos.length < total;
 
     React.useEffect(() => {
         if (!isLoading) {
@@ -291,7 +320,11 @@ const VideosTabContent: React.FC<{
         {value: 'oldest', label: t('channel.sortOldest')},
     ];
 
-    if (isLoading) {
+    const handleLoadMore = () => {
+        setPage(prev => prev + 1);
+    };
+
+    if (isLoading && page === 1) {
         return (
             <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -365,16 +398,82 @@ const VideosTabContent: React.FC<{
                 </div>
             )}
 
-            {videos.length < total && (
+            {hasMore && (
                 <div className="flex justify-center pt-4">
                     <Button
                         variant="outline"
                         size="sm"
+                        onClick={handleLoadMore}
+                        disabled={isLoading}
                     >
+                        {isLoading ? <Spinner size="sm" className="mr-2"/> : null}
                         {t('channel.loadMore')}
                     </Button>
                 </div>
             )}
+        </div>
+    );
+};
+
+// ================================
+// Playlists Tab - Channel playlists
+// ================================
+const PlaylistsTabContent: React.FC<{
+    channelToken?: string;
+    isOwner: boolean;
+    onEmptyChange?: (empty: boolean) => void;
+}> = ({channelToken, isOwner, onEmptyChange}) => {
+    const {t} = useTranslation();
+
+    const {data: playlistsData, isLoading} = useChannelPlaylists(channelToken || null);
+
+    const playlists = playlistsData?.items || [];
+    const total = playlistsData?.total || 0;
+
+    React.useEffect(() => {
+        if (!isLoading) {
+            onEmptyChange?.(playlists.length === 0);
+        }
+    }, [isLoading, playlists.length, onEmptyChange]);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="animate-pulse">
+                            <div className="aspect-video bg-muted rounded-lg"/>
+                            <div className="mt-2 space-y-2">
+                                <div className="h-4 bg-muted rounded w-3/4"/>
+                                <div className="h-3 bg-muted rounded w-1/2"/>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    if (playlists.length === 0) {
+        return <EmptyState type="playlists" isOwner={isOwner}/>;
+    }
+
+    return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">
+                    {t('channel.playlists')} ({total})
+                </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {playlists.map((playlist) => (
+                    <PlaylistCard
+                        key={playlist.id}
+                        playlist={playlist}
+                        isOwner={isOwner}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

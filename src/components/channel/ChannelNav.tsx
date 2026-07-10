@@ -1,6 +1,6 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
-import {Film, Info, Home, MessageSquare, Users} from 'lucide-react';
+import {Film, Info, Home, MessageSquare, Users, ListVideo} from 'lucide-react';
 
 interface ChannelNavProps {
     activeTab: string;
@@ -18,6 +18,7 @@ const ChannelNav: React.FC<ChannelNavProps> = ({
     const tabs = [
         {id: 'home', label: t('channel.tabHome'), icon: Home},
         {id: 'videos', label: t('channel.tabVideos'), icon: Film},
+        {id: 'playlists', label: t('channel.tabPlaylists'), icon: ListVideo},
         {id: 'community', label: t('channel.tabCommunity'), icon: MessageSquare},
         ...(_isOwner ? [{id: 'subscriptions', label: t('channel.tabSubscriptions'), icon: Users}] : []),
         {id: 'about', label: t('channel.tabAbout'), icon: Info},
