@@ -173,7 +173,7 @@ const FeaturedPage = () => {
                 </div>
 
                 {horizontalItems.length > 0 ? (
-                    <HorizontalScroll itemsPerPage={4}>
+                    <HorizontalScroll>
                         {horizontalItems.map((item) => (
                             <FeaturedHorizontalCard key={item.id} item={item}/>
                         ))}

@@ -1,79 +1,96 @@
-import React, {useState, useRef, useCallback} from 'react';
+import React, {useState, useRef, useCallback, useEffect} from 'react';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
-import {Button} from '@/components/ui/button';
-import {ScrollArea, ScrollBar} from '@/components/ui/scroll-area';
 import {cn} from '@/lib/utils';
 
 interface HorizontalScrollProps {
     children: React.ReactNode;
     className?: string;
-    itemsPerPage?: number;
 }
 
-const HorizontalScroll: React.FC<HorizontalScrollProps> = ({children, className, itemsPerPage = 4}) => {
-    const [currentPage, setCurrentPage] = useState(0);
+const HorizontalScroll: React.FC<HorizontalScrollProps> = ({children, className}) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const childrenArray = React.Children.toArray(children);
-    const totalPages = Math.ceil(childrenArray.length / itemsPerPage);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
 
-    const goToPage = useCallback((page: number) => {
-        setCurrentPage(page);
-        if (containerRef.current) {
-            containerRef.current.scrollTo({
-                left: page * containerRef.current.clientWidth,
-                behavior: 'smooth',
-            });
-        }
+    const updateScrollState = useCallback(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 4);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
     }, []);
 
-    const nextPage = useCallback(() => {
-        if (currentPage < totalPages - 1) {
-            goToPage(currentPage + 1);
-        }
-    }, [currentPage, totalPages, goToPage]);
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+        updateScrollState();
+        el.addEventListener('scroll', updateScrollState, {passive: true});
+        const ro = new ResizeObserver(updateScrollState);
+        ro.observe(el);
+        return () => {
+            el.removeEventListener('scroll', updateScrollState);
+            ro.disconnect();
+        };
+    }, [updateScrollState, children]);
 
-    const prevPage = useCallback(() => {
-        if (currentPage > 0) {
-            goToPage(currentPage - 1);
-        }
-    }, [currentPage, goToPage]);
+    const scrollByAmount = useCallback((direction: 'left' | 'right') => {
+        const el = containerRef.current;
+        if (!el) return;
+        const amount = el.clientWidth * 0.85;
+        el.scrollBy({
+            left: direction === 'left' ? -amount : amount,
+            behavior: 'smooth',
+        });
+    }, []);
+
+    const showButtons = canScrollLeft || canScrollRight;
 
     return (
-        <div className={cn('relative', className)}>
-            <ScrollArea className="w-full whitespace-nowrap pb-4">
-                <div className="flex w-max gap-4" ref={containerRef}>
-                    {children}
-                </div>
-                <ScrollBar orientation="horizontal"/>
-            </ScrollArea>
-            {totalPages > 1 && (
+        <div className={cn('relative group', className)}>
+            <div
+                ref={containerRef}
+                data-hscroll="true"
+                className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
+                style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch',
+                }}
+            >
+                <style>{`
+                    [data-hscroll="true"]::-webkit-scrollbar { display: none; }
+                `}</style>
+                {children}
+            </div>
+            {showButtons && (
                 <>
-                    <Button
-                        variant="ghost"
-                        size="icon"
+                    <button
+                        onClick={() => scrollByAmount('left')}
                         className={cn(
-                            'absolute left-0 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm shadow-md z-10',
-                            currentPage === 0 && 'opacity-50 cursor-not-allowed',
+                            'absolute top-[calc(50%-2.5rem)] -left-3 -translate-y-1/2 z-20',
+                            'w-10 h-10 rounded-full flex items-center justify-center',
+                            'bg-background/90 dark:bg-black/70 backdrop-blur-md shadow-lg border border-border/40',
+                            'text-foreground hover:bg-background dark:hover:bg-black/90 transition-all duration-200',
+                            'opacity-0 group-hover:opacity-100',
+                            !canScrollLeft && 'pointer-events-none opacity-0',
                         )}
-                        onClick={prevPage}
-                        disabled={currentPage === 0}
-                        aria-label="Previous page"
+                        aria-label="Previous"
                     >
                         <ChevronLeft className="h-5 w-5"/>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
+                    </button>
+                    <button
+                        onClick={() => scrollByAmount('right')}
                         className={cn(
-                            'absolute right-0 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm shadow-md z-10',
-                            currentPage === totalPages - 1 && 'opacity-50 cursor-not-allowed',
+                            'absolute top-[calc(50%-2.5rem)] -right-3 -translate-y-1/2 z-20',
+                            'w-10 h-10 rounded-full flex items-center justify-center',
+                            'bg-background/90 dark:bg-black/70 backdrop-blur-md shadow-lg border border-border/40',
+                            'text-foreground hover:bg-background dark:hover:bg-black/90 transition-all duration-200',
+                            'opacity-0 group-hover:opacity-100',
+                            !canScrollRight && 'pointer-events-none opacity-0',
                         )}
-                        onClick={nextPage}
-                        disabled={currentPage === totalPages - 1}
-                        aria-label="Next page"
+                        aria-label="Next"
                     >
                         <ChevronRight className="h-5 w-5"/>
-                    </Button>
+                    </button>
                 </>
             )}
         </div>

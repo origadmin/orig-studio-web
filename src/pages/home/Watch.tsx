@@ -16,7 +16,7 @@ import {Card, CardContent} from '@/components/ui/card';
 import {Skeleton} from '@/components/ui/skeleton';
 import {formatViews, formatDate, formatDuration} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
-import {publicMediaApi, adminMediaApi, encodingApi} from '@/lib/api/media';
+import {publicMediaApi, adminMediaApi, encodingApi, type Media} from '@/lib/api/media';
 import {commentApi} from '@/lib/api/comment';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
@@ -75,7 +75,7 @@ const WatchPage = () => {
     });
 
     // 推荐视频过滤：使用 short_token 过滤当前视频
-    const recommendations = recData?.items?.filter(m => m.short_token !== shortToken) || [];
+    const recommendations = recData?.items?.filter((m: Media) => m.short_token !== shortToken) || [];
     const loading = isMediaLoading;
     const error = mediaError ? t('watch.failedToLoad') : null;
 
@@ -359,7 +359,7 @@ const WatchPage = () => {
             </div>
 
             {/* Sidebar: Recommendations */}
-            <div className="lg:w-80 xl:w-96 shrink-0 space-y-4">
+            <div className="lg:w-80 xl:w-[400px] shrink-0 space-y-4">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-lg text-foreground">
                         {t('watch.nextVideos')}
@@ -378,7 +378,7 @@ const WatchPage = () => {
                     {recommendations.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-4 italic">{t('watch.noRecommendations')}</p>
                     ) : (
-                        recommendations.map((item) => {
+                        recommendations.map((item: Media) => {
                             const recUser = item.edges?.user?.[0];
                             const recThumb = getImageUrl(item.thumbnail, 'thumbnail');
 
@@ -386,7 +386,7 @@ const WatchPage = () => {
                                 <Link
                                     key={item.id}
                                     to="/watch"
-                                    search={{v: item.short_token}}
+                                    search={{v: item.short_token, autoplay: undefined}}
                                     className="flex gap-3 group"
                                 >
                                     <div className="relative w-40 aspect-video rounded-lg overflow-hidden shrink-0">
