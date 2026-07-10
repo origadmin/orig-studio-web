@@ -159,11 +159,11 @@ const WatchPage = () => {
     const isProcessing = media.encoding_status !== 'success';
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 relative">
+        <div className="flex flex-col lg:flex-row gap-6 relative w-full max-w-screen-2xl mx-auto">
             {/* Main Content: Player & Details */}
             <div className="flex-1 min-w-0">
                 {/* Player Container with new YouTube-style VideoPlayer */}
-                <div className="relative">
+                <div className="relative w-full">
                     <VideoPlayer
                         ref={videoPlayerRef}
                         src={media.url || ''}
@@ -359,7 +359,7 @@ const WatchPage = () => {
             </div>
 
             {/* Sidebar: Recommendations */}
-            <div className="lg:w-80 xl:w-[400px] shrink-0 space-y-4">
+            <div className="lg:w-72 xl:w-96 shrink-0 space-y-4">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-bold text-lg text-foreground">
                         {t('watch.nextVideos')}
@@ -389,7 +389,7 @@ const WatchPage = () => {
                                     search={{v: item.short_token, autoplay: undefined}}
                                     className="flex gap-3 group"
                                 >
-                                    <div className="relative w-40 aspect-video rounded-lg overflow-hidden shrink-0">
+                                    <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0">
                                         <img
                                             src={recThumb}
                                             alt={item.title}

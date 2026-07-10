@@ -79,10 +79,10 @@ const CommentItem: React.FC<{
     const isExpanded = expandedReplies.has(comment.id);
     const content = comment.content || comment.text || '';
     const isReplyingToThis = replyingTo?.id === comment.id;
-    const size = depth === 0 ? 'h-9 w-9' : 'h-8 w-8';
+    const size = depth === 0 ? 'h-8 w-8' : 'h-7 w-7';
 
     return (
-        <div className={`flex gap-3 py-3 ${depth > 0 ? '' : ''}`}>
+        <div className={`flex gap-2.5 py-2 ${depth > 0 ? '' : ''}`}>
             <Avatar className={`${size} flex-shrink-0`}>
                 <AvatarImage src={comment.avatar || undefined}/>
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-medium">
@@ -103,20 +103,20 @@ const CommentItem: React.FC<{
                 </div>
 
                 {comment.status === 'blocked' ? (
-                    <div className="flex items-center gap-2 text-gray-400 dark:text-muted-foreground italic mt-1.5 py-1">
-                        <ShieldOff className="h-4 w-4 flex-shrink-0"/>
+                    <div className="flex items-center gap-2 text-gray-400 dark:text-muted-foreground italic mt-1 py-0.5 text-sm">
+                        <ShieldOff className="h-3.5 w-3.5 flex-shrink-0"/>
                         <span>{t('watch.commentBlocked', 'Comment blocked')}</span>
                     </div>
                 ) : (
-                    <p className="text-[15px] text-gray-800 dark:text-gray-200 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
+                    <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 leading-relaxed whitespace-pre-wrap break-words">
                         {content || <span className="text-muted-foreground italic">No content</span>}
                     </p>
                 )}
 
                 {comment.status !== 'blocked' && (
-                    <div className="flex items-center gap-1 mt-2">
+                    <div className="flex items-center gap-0.5 mt-1.5">
                         <button
-                            className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
+                            className={`flex items-center gap-1 rounded-full p-1 transition-colors ${
                                 commentLikes.get(comment.id)?.is_liked
                                     ? 'text-info bg-blue-50 dark:bg-blue-900/20'
                                     : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -125,9 +125,9 @@ const CommentItem: React.FC<{
                             disabled={likingComments.has(comment.id)}
                         >
                             {likingComments.has(comment.id) ? (
-                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin"/>
                             ) : (
-                                <ThumbsUp className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_liked ? 'fill-current' : ''}`}/>
+                                <ThumbsUp className={`w-3.5 h-3.5 ${commentLikes.get(comment.id)?.is_liked ? 'fill-current' : ''}`}/>
                             )}
                             <span className={`text-xs font-medium ${commentLikes.get(comment.id)?.is_liked ? 'text-info' : ''}`}>
                                 {(commentLikes.get(comment.id)?.like_count ?? comment.like_count ?? 0) || ''}
@@ -135,7 +135,7 @@ const CommentItem: React.FC<{
                         </button>
 
                         <button
-                            className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
+                            className={`flex items-center gap-1 rounded-full p-1 transition-colors ${
                                 commentLikes.get(comment.id)?.is_disliked
                                     ? 'text-destructive bg-red-50 dark:bg-red-900/20'
                                     : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -144,40 +144,40 @@ const CommentItem: React.FC<{
                             disabled={likingComments.has(comment.id)}
                         >
                             {likingComments.has(comment.id) ? (
-                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                <Loader2 className="w-3.5 h-3.5 animate-spin"/>
                             ) : (
-                                <ThumbsDown className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_disliked ? 'fill-current' : ''}`}/>
+                                <ThumbsDown className={`w-3.5 h-3.5 ${commentLikes.get(comment.id)?.is_disliked ? 'fill-current' : ''}`}/>
                             )}
                         </button>
 
                         <button
-                            className="flex items-center gap-1.5 text-gray-500 hover:text-info font-medium text-sm px-2 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            className="flex items-center gap-1 text-gray-500 hover:text-info font-medium text-xs px-1.5 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                             onClick={() => onReply(comment.id, comment.username || 'Anonymous')}
                         >
-                            <Reply className="w-4 h-4"/>
+                            <Reply className="w-3.5 h-3.5"/>
                             {t('common.reply', 'Reply')}
                         </button>
 
                         {isAuthenticated && user && (String(comment.user_id) === String(user.id) || user.roles?.includes('admin')) && (
                             <button
-                                className="flex items-center gap-1.5 text-gray-500 hover:text-destructive font-medium text-sm px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                className="flex items-center gap-1 text-gray-500 hover:text-destructive font-medium text-xs px-1.5 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                                 onClick={() => onDelete(comment.id)}
                                 disabled={deletingCommentId === comment.id}
                             >
                                 {deletingCommentId === comment.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin"/>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin"/>
                                 ) : (
-                                    <Trash2 className="w-4 h-4"/>
+                                    <Trash2 className="w-3.5 h-3.5"/>
                                 )}
                             </button>
                         )}
 
                         {isAuthenticated && user && String(comment.user_id) !== String(user.id) && (
                             <button
-                                className="flex items-center gap-1.5 text-gray-500 hover:text-amber-600 font-medium text-sm px-2 py-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                className="flex items-center gap-1 text-gray-500 hover:text-amber-600 font-medium text-xs px-1.5 py-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
                                 onClick={() => onReport(comment.id)}
                             >
-                                <Flag className="w-4 h-4"/>
+                                <Flag className="w-3.5 h-3.5"/>
                             </button>
                         )}
                     </div>
@@ -648,9 +648,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
     const rootCount = total > 0 ? total : comments.length;
 
     return (
-        <div className="mt-8">
-            <div className="flex items-center justify-between mb-4 relative">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+        <div className="mt-6">
+            <div className="flex items-center justify-between mb-3 relative">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
                     {rootCount} {t('watch.comments', 'Comments')}
                 </h3>
                 <button

@@ -136,6 +136,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [autoplayCountdown, setAutoplayCountdown] = useState(5);
     const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Subtitle state
+    const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+    const [currentSubtitle, setCurrentSubtitle] = useState<string>('off');
+    const [activeCue, setActiveCue] = useState<string>('');
+
     // Use global player settings
     const {
         volume,
@@ -465,6 +470,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             if (settingsMenuRef.current && !settingsMenuRef.current.contains(e.target as Node)) {
                 setShowSettingsMenu(false);
                 setShowPlaybackMenu(false);
+                setShowSubtitleMenu(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -888,7 +894,74 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     useEffect(() => {
         setShowAutoplayCountdown(false);
         setAutoplayCountdown(5);
+        setCurrentSubtitle('off');
+        setActiveCue('');
     }, [src, hlsSrc]);
+
+    // Subtitle track handling - listen for cue changes
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const handleCueChange = (track: TextTrack) => () => {
+            const activeCues = track.activeCues;
+            if (activeCues && activeCues.length > 0) {
+                const text = Array.from(activeCues)
+                    .map(cue => (cue as VTTCue).text || '')
+                    .join('\n');
+                setActiveCue(text);
+            } else {
+                setActiveCue('');
+            }
+        };
+
+        const tracks = video.textTracks;
+        const cueListeners: Array<{track: TextTrack; listener: () => void}> = [];
+
+        for (let i = 0; i < tracks.length; i++) {
+            const track = tracks[i];
+            track.mode = 'hidden';
+            const listener = handleCueChange(track);
+            track.addEventListener('cuechange', listener);
+            cueListeners.push({track, listener});
+        }
+
+        return () => {
+            cueListeners.forEach(({track, listener}) => {
+                track.removeEventListener('cuechange', listener);
+            });
+        };
+    }, [subtitles, src, hlsSrc]);
+
+    // Handle subtitle selection change
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !subtitles) return;
+
+        const tracks = video.textTracks;
+        for (let i = 0; i < tracks.length; i++) {
+            const track = tracks[i];
+            if (currentSubtitle === 'off') {
+                track.mode = 'hidden';
+            } else {
+                const trackLang = track.language || track.label;
+                if (trackLang === currentSubtitle || track.label === currentSubtitle) {
+                    track.mode = 'hidden';
+                } else {
+                    track.mode = 'disabled';
+                }
+            }
+        }
+
+        if (currentSubtitle === 'off') {
+            setActiveCue('');
+        }
+    }, [currentSubtitle, subtitles, src, hlsSrc]);
+
+    const handleSubtitleChange = useCallback((label: string) => {
+        setCurrentSubtitle(label);
+        setShowSubtitleMenu(false);
+    }, []);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -958,7 +1031,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     return (
         <div
             ref={containerRef}
-            className={`relative bg-black overflow-hidden aspect-video group video-player-container ${className}`}
+            className={`relative bg-black overflow-hidden aspect-video group video-player-container rounded-xl ${className}`}
             tabIndex={0}
             role="application"
             aria-label={t('videoPlayer.player')}
@@ -990,7 +1063,19 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 className="w-full h-full cursor-pointer object-contain"
                 playsInline
                 preload="metadata"
-            />
+                crossOrigin="anonymous"
+            >
+                {subtitles?.map((sub, index) => (
+                    <track
+                        key={`${sub.src}-${index}`}
+                        kind="subtitles"
+                        src={getFullUrl(sub.src)}
+                        srcLang={sub.language}
+                        label={sub.label}
+                        default={false}
+                    />
+                ))}
+            </video>
 
             {/* Center overlay icon (shows on click) */}
             {showCenterOverlay && !isBuffering && (
@@ -1078,6 +1163,18 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                     <p className="text-white/60 text-sm text-center max-w-sm">
                         {t('videoPlayer.processingDesc')}
                     </p>
+                </div>
+            )}
+
+            {/* Subtitle rendering overlay */}
+            {activeCue && currentSubtitle !== 'off' && (
+                <div
+                    className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4"
+                    aria-hidden="true"
+                >
+                    <div className="bg-black/80 text-white text-lg md:text-xl font-medium px-4 py-2 rounded-lg text-center max-w-[80%] leading-relaxed whitespace-pre-line">
+                        {activeCue}
+                    </div>
                 </div>
             )}
 
@@ -1303,15 +1400,74 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         <div className="flex items-center gap-2" ref={settingsMenuRef}>
                             {/* Subtitles - conditionally rendered */}
                             {hasSubtitles ? (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 text-white hover:bg-white/10 rounded-full focus-visible:ring-2 focus-visible:ring-white"
-                                    title={t('videoPlayer.subtitles')}
-                                    aria-label={t('videoPlayer.subtitles')}
-                                >
-                                    <Subtitles size={20} aria-hidden="true"/>
-                                </Button>
+                                <div className="relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-10 w-10 text-white hover:bg-white/10 rounded-full focus-visible:ring-2 focus-visible:ring-white ${currentSubtitle !== 'off' ? 'bg-white/20' : ''}`}
+                                        title={t('videoPlayer.subtitles')}
+                                        aria-label={t('videoPlayer.subtitles')}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShowSubtitleMenu(!showSubtitleMenu);
+                                            setShowPlaybackMenu(false);
+                                            setShowSettingsMenu(false);
+                                        }}
+                                        aria-expanded={showSubtitleMenu}
+                                        aria-haspopup="menu"
+                                    >
+                                        <Subtitles size={20} aria-hidden="true"/>
+                                        {currentSubtitle !== 'off' && (
+                                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-red-500 rounded-full"/>
+                                        )}
+                                    </Button>
+                                    {showSubtitleMenu && (
+                                        <div
+                                            className="absolute bottom-full right-0 mb-2 bg-black/90 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden min-w-[160px] shadow-xl z-50"
+                                            role="menu"
+                                            aria-label="Subtitle options"
+                                        >
+                                            <div className="px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-white/10">
+                                                {t('videoPlayer.subtitles', 'Subtitles')}
+                                            </div>
+                                            <button
+                                                role="menuitemradio"
+                                                aria-checked={currentSubtitle === 'off'}
+                                                className={`w-full text-left px-4 py-2 text-white hover:bg-white/10 transition-colors text-sm flex items-center justify-between ${
+                                                    currentSubtitle === 'off' ? 'bg-white/10 font-semibold' : ''
+                                                }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleSubtitleChange('off');
+                                                }}
+                                            >
+                                                <span>{t('videoPlayer.off', 'Off')}</span>
+                                                {currentSubtitle === 'off' && (
+                                                    <span className="text-blue-400 text-xs">✓</span>
+                                                )}
+                                            </button>
+                                            {subtitles?.map((sub) => (
+                                                <button
+                                                    key={sub.language}
+                                                    role="menuitemradio"
+                                                    aria-checked={currentSubtitle === sub.label || currentSubtitle === sub.language}
+                                                    className={`w-full text-left px-4 py-2 text-white hover:bg-white/10 transition-colors text-sm flex items-center justify-between ${
+                                                        currentSubtitle === sub.label || currentSubtitle === sub.language ? 'bg-white/10 font-semibold' : ''
+                                                    }`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleSubtitleChange(sub.label);
+                                                    }}
+                                                >
+                                                    <span>{sub.label}</span>
+                                                    {(currentSubtitle === sub.label || currentSubtitle === sub.language) && (
+                                                        <span className="text-blue-400 text-xs">✓</span>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             ) : null}
 
                             {/* Audio tracks - conditionally rendered */}
@@ -1337,6 +1493,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                         e.stopPropagation();
                                         setShowPlaybackMenu(!showPlaybackMenu);
                                         setShowSettingsMenu(false);
+                                        setShowSubtitleMenu(false);
                                     }}
                                     aria-label={`Playback speed: ${playbackRate}x`}
                                     aria-expanded={showPlaybackMenu}
@@ -1383,6 +1540,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                         e.stopPropagation();
                                         setShowSettingsMenu(!showSettingsMenu);
                                         setShowPlaybackMenu(false);
+                                        setShowSubtitleMenu(false);
                                     }}
                                     disabled={!hasQualityOptions}
                                     title={hasQualityOptions ? t('videoPlayer.qualitySettings') : t('videoPlayer.qualitySettings')}
