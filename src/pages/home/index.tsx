@@ -1,14 +1,14 @@
-import React, {useEffect, useRef, useState, useCallback} from 'react';
+import React, {useEffect, useRef, useMemo} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, Star, Clock, ChevronRight, ChevronLeft, Flame} from 'lucide-react';
-import {Button} from '@/components/ui/button';
+import {Play, Eye, ChevronRight, Flame} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
-import {Badge} from '@/components/ui/badge';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
+import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
+import HorizontalScroll from '@/components/common/HorizontalScroll';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -70,151 +70,29 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
     );
 };
 
-const HeroSideThumb: React.FC<{media: Media}> = ({media}) => {
-    const user = media?.edges?.user?.[0];
-    const thumbUrl = getImageUrl(media?.thumbnail || media?.poster, 'thumbnail');
-
-    return (
-        <Link
-            to="/watch"
-            search={{v: media?.short_token, autoplay: undefined}}
-            className="group flex gap-3 p-2 rounded-xl hover:bg-accent/50 transition-colors cursor-pointer"
-        >
-            <div className="relative w-40 aspect-video flex-shrink-0 overflow-hidden rounded-lg bg-muted">
-                <img
-                    src={thumbUrl}
-                    alt={media?.title}
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                />
-                <div className="absolute bottom-1 right-1 bg-black/85 text-white text-[10px] font-medium px-1 py-0.5 rounded">
-                    {formatDuration(media?.duration || 0)}
-                </div>
-            </div>
-            <div className="flex-1 min-w-0 py-0.5">
-                <h4 className="font-medium text-sm text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug mb-1">
-                    {media?.title || 'Untitled'}
-                </h4>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <img
-                        src={getImageUrl(user?.avatar, 'avatar')}
-                        alt={user?.username}
-                        onError={(e) => handleImageError(e, 'avatar')}
-                        className="w-4 h-4 rounded-full object-cover flex-shrink-0"
-                    />
-                    <span className="truncate">{user?.nickname || user?.username || 'Unknown'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1">
-                    <span className="flex items-center gap-0.5">
-                        <Eye size={10}/>{formatViews(media?.view_count || 0)}
-                    </span>
-                </div>
-            </div>
-        </Link>
-    );
-};
-
-interface HorizontalScrollRowProps {
+const SectionHeader: React.FC<{
     title: string;
     icon?: React.ReactNode;
     viewAllLink?: string;
-    children: React.ReactNode;
-    cardWidth?: number;
-    gap?: number;
-}
+}> = ({title, icon, viewAllLink}) => (
+    <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+            {icon}
+            {title}
+        </h2>
+        {viewAllLink && (
+            <Link
+                to={viewAllLink}
+                className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-0.5 transition-colors"
+            >
+                查看全部
+                <ChevronRight size={14}/>
+            </Link>
+        )}
+    </div>
+);
 
-const HorizontalScrollRow: React.FC<HorizontalScrollRowProps> = ({
-    title,
-    icon,
-    viewAllLink,
-    children,
-    cardWidth = 240,
-    gap = 16,
-}) => {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-
-    const updateScrollButtons = useCallback(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 8);
-        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
-    }, []);
-
-    useEffect(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        updateScrollButtons();
-        el.addEventListener('scroll', updateScrollButtons);
-        const resizeObserver = new ResizeObserver(updateScrollButtons);
-        resizeObserver.observe(el);
-        return () => {
-            el.removeEventListener('scroll', updateScrollButtons);
-            resizeObserver.disconnect();
-        };
-    }, [updateScrollButtons, children]);
-
-    const scroll = (direction: 'left' | 'right') => {
-        const el = scrollRef.current;
-        if (!el) return;
-        const scrollAmount = el.clientWidth * 0.85;
-        el.scrollBy({
-            left: direction === 'left' ? -scrollAmount : scrollAmount,
-            behavior: 'smooth',
-        });
-    };
-
-    return (
-        <section className="group/row">
-            <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                    {icon}
-                    {title}
-                </h2>
-                {viewAllLink && (
-                    <Link to={viewAllLink}
-                          className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-0.5 transition-colors">
-                        查看全部
-                        <ChevronRight size={14}/>
-                    </Link>
-                )}
-            </div>
-            <div className="relative -mx-1">
-                <button
-                    onClick={() => scroll('left')}
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/95 backdrop-blur-md shadow-lg border border-border/50 flex items-center justify-center transition-all duration-200 hover:bg-background hover:scale-110 ${
-                        canScrollLeft ? 'opacity-70 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
-                    }`}
-                    aria-label="Scroll left"
-                >
-                    <ChevronLeft size={18}/>
-                </button>
-                <div
-                    ref={scrollRef}
-                    className="flex overflow-x-auto scroll-smooth scrollbar-hide px-1 py-1"
-                    style={{gap: `${gap}px`, scrollbarWidth: 'none'}}
-                >
-                    {React.Children.map(children, (child) => (
-                        <div style={{width: `${cardWidth}px`, flexShrink: 0}}>
-                            {child}
-                        </div>
-                    ))}
-                </div>
-                <button
-                    onClick={() => scroll('right')}
-                    className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-background/95 backdrop-blur-md shadow-lg border border-border/50 flex items-center justify-center transition-all duration-200 hover:bg-background hover:scale-110 ${
-                        canScrollRight ? 'opacity-70 group-hover/row:opacity-100' : 'opacity-0 pointer-events-none'
-                    }`}
-                    aria-label="Scroll right"
-                >
-                    <ChevronRight size={18}/>
-                </button>
-            </div>
-        </section>
-    );
-};
+const VIDEO_CARD_WIDTH = 240;
 
 const HomePage = () => {
     const {t} = useTranslation();
@@ -225,9 +103,26 @@ const HomePage = () => {
         featured: true,
     });
     const featuredVideos = featuredData?.items || [];
-    const mainFeatured = featuredVideos[0];
-    const sideFeatured = featuredVideos.slice(1, 4);
-    const scrollFeatured = featuredVideos.slice(4);
+
+    const heroItems = useMemo<HeroBannerItem[]>(() => {
+        return featuredVideos.map((media: Media) => {
+            const user = media?.edges?.user?.[0];
+            return {
+                id: String(media.id),
+                title: media.title || 'Untitled',
+                thumbnail: getImageUrl(media.thumbnail || media.poster, 'cover'),
+                shortToken: media.short_token,
+                badge: t('home.featured', '精选'),
+                duration: media.duration,
+                viewCount: media.view_count,
+                createTime: media.create_time,
+                user: user ? {
+                    name: user.nickname || user.username || 'Unknown',
+                    avatar: user.avatar,
+                } : undefined,
+            };
+        });
+    }, [featuredVideos, t]);
 
     const {
         data,
@@ -235,17 +130,20 @@ const HomePage = () => {
         hasNextPage,
         isFetchingNextPage,
     } = useInfiniteMediaList({
-        page_size: 18,
+        page_size: 12,
     });
 
-    let items: Media[] = [];
-    if (data && data.pages) {
-        for (const page of data.pages) {
-            if (page && page.items) {
-                items = items.concat(page.items);
+    const items: Media[] = useMemo(() => {
+        let result: Media[] = [];
+        if (data?.pages) {
+            for (const page of data.pages) {
+                if (page?.items) {
+                    result = result.concat(page.items);
+                }
             }
         }
-    }
+        return result;
+    }, [data]);
 
     const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -266,97 +164,45 @@ const HomePage = () => {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+    const cardOffset = useMemo(() => {
+        const thumbHeight = VIDEO_CARD_WIDTH * 9 / 16;
+        return thumbHeight / 2;
+    }, []);
+
     return (
         <div className="space-y-8 max-w-[1800px] mx-auto w-full px-1">
-            <style>{`.scrollbar-hide::-webkit-scrollbar{display:none}`}</style>
-
-            {/* Hero Section: Large main + side thumbs on lg+, single banner on smaller */}
-            {mainFeatured && (
+            {heroItems.length > 0 && (
                 <section className="mb-2">
-                    <div className="flex flex-col lg:flex-row gap-4">
-                        <Link
-                            to="/watch"
-                            search={{v: mainFeatured.short_token, autoplay: undefined}}
-                            className="group block relative flex-1 min-w-0 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300"
-                        >
-                            <div className="relative aspect-video lg:aspect-[16/10]">
-                                <img
-                                    src={getImageUrl(mainFeatured.thumbnail || mainFeatured.poster, 'thumbnail')}
-                                    alt={mainFeatured.title}
-                                    onError={(e) => handleImageError(e, 'thumbnail')}
-                                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"/>
-                                <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold gap-1.5">
-                                    <Star className="w-3 h-3" fill="currentColor"/>
-                                    {t('home.featuredVideos', '精选')}
-                                </Badge>
-                                <div className="absolute bottom-0 left-0 right-0 p-5 md:p-7">
-                                    <h2 className="text-white text-xl md:text-2xl xl:text-3xl font-bold mb-2 line-clamp-2 leading-tight max-w-2xl">
-                                        {mainFeatured.title || 'Untitled'}
-                                    </h2>
-                                    <div className="flex items-center gap-3 text-white/80 text-sm mb-3.5 flex-wrap">
-                                        <img
-                                            src={getImageUrl(mainFeatured?.edges?.user?.[0]?.avatar, 'avatar')}
-                                            alt={mainFeatured?.edges?.user?.[0]?.username}
-                                            onError={(e) => handleImageError(e, 'avatar')}
-                                            className="w-6 h-6 rounded-full object-cover border-2 border-white/30"
-                                        />
-                                        <span className="font-medium">
-                                            {mainFeatured?.edges?.user?.[0]?.nickname || mainFeatured?.edges?.user?.[0]?.username || 'Unknown'}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Eye size={13}/>{formatViews(mainFeatured.view_count || 0)}
-                                        </span>
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={13}/>{formatDate(mainFeatured.create_time || new Date().toISOString())}
-                                        </span>
-                                    </div>
-                                    <Button size="sm" className="bg-white text-black hover:bg-white/90 gap-2 font-medium shadow-lg">
-                                        <Play size={15} fill="currentColor"/>
-                                        {t('home.playNow', '立即播放')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </Link>
-
-                        {sideFeatured.length > 0 && (
-                            <div className="hidden lg:flex lg:flex-col gap-1 lg:w-72 xl:w-80 shrink-0">
-                                {sideFeatured.map((media: Media) => (
-                                    <HeroSideThumb key={media.id} media={media}/>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <HeroBanner
+                        items={heroItems}
+                        mode="card"
+                        autoPlayInterval={5000}
+                    />
                 </section>
             )}
 
-            {/* Featured Videos - Horizontal Scroll Row */}
-            {scrollFeatured.length > 0 && (
-                <HorizontalScrollRow
-                    title={t('home.featuredVideos', '精选推荐')}
-                    icon={<Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>}
-                    cardWidth={240}
-                    gap={16}
-                >
-                    {scrollFeatured.map((media: Media) => (
-                        <VideoCard key={media.id} media={media} size="md"/>
-                    ))}
-                </HorizontalScrollRow>
+            {featuredVideos.length > 0 && (
+                <section>
+                    <SectionHeader
+                        title={t('home.featuredVideos', '精选推荐')}
+                        icon={<Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>}
+                        viewAllLink="/featured"
+                    />
+                    <HorizontalScroll buttonOffset={cardOffset}>
+                        {featuredVideos.map((media: Media) => (
+                            <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
+                                <VideoCard media={media} size="md"/>
+                            </div>
+                        ))}
+                    </HorizontalScroll>
+                </section>
             )}
 
-            {/* Latest Videos - Responsive Grid */}
             <section>
-                <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-bold text-foreground">
-                        {t('home.latestVideos', '最新视频')}
-                    </h2>
-                    <Link to="/latest"
-                          className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-0.5 transition-colors">
-                        查看全部
-                        <ChevronRight size={14}/>
-                    </Link>
-                </div>
+                <SectionHeader
+                    title={t('home.latestVideos', '最新视频')}
+                    viewAllLink="/latest"
+                />
 
                 {items.length === 0 && !isFetchingNextPage ? (
                     <div className="py-20 text-center text-muted-foreground">
@@ -371,7 +217,6 @@ const HomePage = () => {
                 )}
             </section>
 
-            {/* Infinite Scroll Sentinel */}
             <div ref={sentinelRef} className="flex flex-col items-center py-8">
                 {isFetchingNextPage && (
                     <div className="flex items-center gap-3 text-muted-foreground py-2">

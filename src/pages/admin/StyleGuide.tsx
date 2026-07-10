@@ -24,6 +24,10 @@ import {
   ChevronRight,
   Users,
   Edit3,
+  Play,
+  Film,
+  MonitorPlay,
+  Flame,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +46,59 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/comp
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTheme } from '@/themes';
 import AdminPageTemplate from '@/components/AdminPageTemplate';
+import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
+import HorizontalScroll from '@/components/common/HorizontalScroll';
 import { toast } from 'sonner';
+
+const MOCK_HERO_ITEMS: HeroBannerItem[] = Array.from({length: 6}, (_, i) => ({
+  id: `hero-${i}`,
+  title: [
+    '探索宇宙的奥秘：深空摄影精选',
+    '现代建筑艺术：几何之美',
+    '美食之旅：世界各地的味蕾冒险',
+    '自然奇观：地球上最壮观的景色',
+    '科技前沿：人工智能的未来',
+    '艺术创作：数字绘画的无限可能',
+  ][i],
+  thumbnail: `https://picsum.photos/seed/hero${i}/1280/720`,
+  badge: '精选',
+  duration: 1234 + i * 100,
+  viewCount: 12345 + i * 1000,
+  createTime: new Date(Date.now() - i * 86400000).toISOString(),
+  user: {
+    name: ['摄影师小明', '建筑达人', '美食家', '旅行者', '科技极客', '艺术家'][i],
+    avatar: `https://picsum.photos/seed/avatar${i}/100/100`,
+  },
+}));
+
+const DemoVideoCard: React.FC<{index: number}> = ({index}) => (
+  <div className="group block w-full">
+    <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
+      <img
+        src={`https://picsum.photos/seed/vid${index}/480/270`}
+        alt=""
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+      <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[11px] font-medium px-1.5 py-0.5 rounded">
+        {`${10 + index}:23`}
+      </div>
+    </div>
+    <div className="pt-2.5">
+      <h3 className="font-semibold text-foreground text-sm line-clamp-2 mb-1.5 group-hover:text-primary transition-colors leading-snug">
+        示例视频标题 {index + 1} - 这是一段示例视频描述文字
+      </h3>
+      <div className="flex items-center gap-1.5 mb-1">
+        <img
+          src={`https://picsum.photos/seed/u${index}/50/50`}
+          alt=""
+          className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+        />
+        <span className="text-xs text-muted-foreground truncate">创作者 {index + 1}</span>
+      </div>
+    </div>
+  </div>
+);
 
 const Section: React.FC<{ title: string; description?: string; children: React.ReactNode }> = ({ title, description, children }) => (
   <Card className="mb-6">
@@ -296,6 +352,10 @@ export default function StyleGuidePage() {
             <TabsTrigger value="colors" className="flex items-center gap-1.5">
               <Palette className="h-4 w-4" />
               {t('styleGuide.colors', '颜色')}
+            </TabsTrigger>
+            <TabsTrigger value="media" className="flex items-center gap-1.5">
+              <Film className="h-4 w-4" />
+              媒体组件
             </TabsTrigger>
           </TabsList>
 
@@ -694,6 +754,62 @@ export default function StyleGuidePage() {
                 {t('styleGuide.forbiddenColorsDesc', '禁止使用 text-slate-*、bg-slate-*、border-slate-*、text-gray-*、bg-gray-* 等。这些颜色不会适配深色模式。请始终使用语义化 token（text-foreground、bg-muted、border-border）。')}
               </AlertDescription>
             </Alert>
+          </TabsContent>
+
+          <TabsContent value="media">
+            <Section title="Hero Banner 轮播 - 卡片模式 (16:9)" description="固定高度380px，主卡560px，左右露出预览卡片，自动轮播5秒间隔，hover暂停">
+              <HeroBanner
+                items={MOCK_HERO_ITEMS}
+                mode="card"
+                autoPlayInterval={5000}
+              />
+            </Section>
+
+            <Section title="Hero Banner 轮播 - 宽幅模式 (21:9)" description="宽幅模式使用更宽的卡片比例(21:9)，保持相同高度，适合电影/宣传Banner">
+              <HeroBanner
+                items={MOCK_HERO_ITEMS.slice(0, 4)}
+                mode="wide"
+                autoPlayInterval={6000}
+              />
+            </Section>
+
+            <Section title="Hero Banner - 单Banner/少Banner处理" description="1个Banner：静态展示，隐藏导航/指示器/进度条；2-3个Banner：正常循环轮播">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">单个Banner（静态）：</p>
+                  <HeroBanner
+                    items={MOCK_HERO_ITEMS.slice(0, 1)}
+                    mode="card"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-2">两个Banner（循环）：</p>
+                  <HeroBanner
+                    items={MOCK_HERO_ITEMS.slice(0, 2)}
+                    mode="card"
+                    autoPlayInterval={4000}
+                  />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Horizontal Scroll - YouTube风格翻页" description="按钮40px圆形，一半超出内容区，垂直对齐缩略图中线，hover显示渐变遮罩">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>
+                    精选视频
+                  </h4>
+                </div>
+                <HorizontalScroll buttonOffset={240 * 9 / 16 / 2}>
+                  {Array.from({length: 12}, (_, i) => (
+                    <div key={i} style={{width: 240}}>
+                      <DemoVideoCard index={i}/>
+                    </div>
+                  ))}
+                </HorizontalScroll>
+              </div>
+            </Section>
           </TabsContent>
         </Tabs>
       </AdminPageTemplate>
