@@ -27,7 +27,7 @@ import ErrorPage from '@/components/common/ErrorPage';
 import SubscribeButton from '@/components/common/SubscribeButton';
 import CommentSection from '@/components/common/CommentSection';
 import InteractionBar from '@/components/common/InteractionBar';
-import VideoPlayer, {VideoPlayerHandle} from '@/components/common/VideoPlayer';
+import VideoPlayer, {VideoPlayerHandle, NextVideoInfo} from '@/components/common/VideoPlayer';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
 import {colorFromName} from '@/lib/utils/tag-color';
@@ -78,6 +78,14 @@ const WatchPage = () => {
     const recommendations = recData?.items?.filter(m => m.short_token !== shortToken) || [];
     const loading = isMediaLoading;
     const error = mediaError ? t('watch.failedToLoad') : null;
+
+    // Next video for YouTube-style autoplay countdown
+    const nextVideo: NextVideoInfo | null = recommendations.length > 0 ? {
+        title: recommendations[0].title,
+        thumbnail: recommendations[0].thumbnail || recommendations[0].poster || '',
+        channelName: recommendations[0].edges?.user?.[0]?.nickname || recommendations[0].edges?.user?.[0]?.username,
+        duration: recommendations[0].duration,
+    } : null;
 
     // Handle media deletion
     const handleDeleteMedia = async () => {
@@ -178,12 +186,13 @@ const WatchPage = () => {
                         }}
                         onAutoPlayNext={() => {
                             if (recommendations.length > 0) {
-                                const nextVideo = recommendations[0];
-                                navigate({to: '/watch', search: {v: nextVideo.short_token, autoplay: '1'}});
+                                const nextVideoItem = recommendations[0];
+                                navigate({to: '/watch', search: {v: nextVideoItem.short_token, autoplay: '1'}});
                             }
                         }}
                         autoPlay={urlAutoPlay === '1'}
                         autoPlayNext={autoPlayNext}
+                        nextVideo={nextVideo}
                     />
                     
                     {/* Encoding Status Indicator */}

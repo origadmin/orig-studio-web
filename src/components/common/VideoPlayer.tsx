@@ -2,7 +2,7 @@ import React, {useState, useRef, useEffect, useCallback, useMemo, forwardRef, us
 import {
     Play, Pause, Volume2, VolumeX, Maximize, Minimize,
     SkipBack, SkipForward, Settings, Subtitles, PictureInPicture,
-    MonitorPlay, AlertCircle
+    MonitorPlay, AlertCircle, X, SkipForward as NextIcon
 } from 'lucide-react';
 import Hls from 'hls.js';
 import {Button} from '@/components/ui/button';
@@ -29,6 +29,13 @@ export interface VideoPlayerHandle {
     getDuration: () => number;
 }
 
+export interface NextVideoInfo {
+    title: string;
+    thumbnail: string;
+    channelName?: string;
+    duration?: number;
+}
+
 interface VideoPlayerProps {
     src: string;
     hlsSrc?: string;
@@ -50,6 +57,8 @@ interface VideoPlayerProps {
     onAutoPlayNext?: () => void;
     /** Controlled auto-play next flag. When provided, overrides the internal player setting. */
     autoPlayNext?: boolean;
+    /** Information about the next video to show in the YouTube-style autoplay countdown overlay. */
+    nextVideo?: NextVideoInfo | null;
     /** When true, the video is still being processed (transcoding) and
      *  should not attempt playback. Shows a processing overlay instead. */
     isProcessing?: boolean;
@@ -80,6 +89,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                                                              onTimeChange,
                                                                              onAutoPlayNext,
                                                                              autoPlayNext: controlledAutoPlayNext,
+                                                                             nextVideo,
                                                                              isProcessing = false,
                                                                              spriteVttUrl,
                                                                              enableSpritePreview = true,
@@ -120,6 +130,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [isBuffering, setIsBuffering] = useState(false);
     const [autoResolution, setAutoResolution] = useState<string>('');
     const wasPlayingBeforeQualitySwitch = useRef(false);
+
+    // Autoplay countdown (YouTube-style)
+    const [showAutoplayCountdown, setShowAutoplayCountdown] = useState(false);
+    const [autoplayCountdown, setAutoplayCountdown] = useState(5);
+    const autoplayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Use global player settings
     const {
@@ -236,6 +251,14 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // to avoid aggressive small-segment fetching that causes stuttering
                 lowLatencyMode: false,
 
+                // === VOD enforcement ===
+                // Force start from position 0. This prevents the bug where videos
+                // start at ~48 seconds caused by m3u8 files missing #EXT-X-ENDLIST
+                // (which makes HLS.js misdetect VOD as live stream and seek to live edge).
+                startPosition: 0,
+                // Tell HLS.js not to treat streams without ENDLIST as infinite live
+                liveDurationInfinity: false,
+
                 // === Buffer configuration (optimized for VOD playback) ===
                 // Maximum forward buffer length in seconds (default 30s is too short for VOD;
                 // 60s provides smoother playback without excessive memory usage)
@@ -301,6 +324,19 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                 // Sort by quality (highest first)
                 qualities.sort((a, b) => (b.height || 0) - (a.height || 0));
                 setHlsQualities(qualities);
+
+                // Force start from position 0 — safety net against misdetected live streams
+                // (e.g., legacy m3u8 files missing #EXT-X-ENDLIST that cause HLS.js to seek
+                // to the live edge instead of starting from the beginning).
+                // Using requestAnimationFrame + setTimeout to ensure media is ready.
+                const forceStartFromZero = () => {
+                    if (video.currentTime > 0.5) {
+                        video.currentTime = 0;
+                    }
+                };
+                video.addEventListener('loadedmetadata', forceStartFromZero, {once: true});
+                // Double-ensurance after first frame
+                video.addEventListener('canplay', forceStartFromZero, {once: true});
 
                 // Auto play if requested
                 if (autoPlay) {
@@ -589,10 +625,56 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         setIsPlaying(false);
         onPlayingChange?.(false);
         onEnded?.();
-        if (autoPlayNext) {
-            onAutoPlayNext?.();
+        // YouTube-style autoplay: show countdown overlay instead of navigating immediately.
+        // The overlay lets the user cancel or see what's coming next.
+        if (autoPlayNext && nextVideo) {
+            setAutoplayCountdown(5);
+            setShowAutoplayCountdown(true);
         }
-    }, [onPlayingChange, onEnded, autoPlayNext, onAutoPlayNext]);
+    }, [onPlayingChange, onEnded, autoPlayNext, nextVideo]);
+
+    // Autoplay countdown timer
+    useEffect(() => {
+        if (!showAutoplayCountdown) {
+            if (autoplayTimerRef.current) {
+                clearInterval(autoplayTimerRef.current);
+                autoplayTimerRef.current = null;
+            }
+            return;
+        }
+        autoplayTimerRef.current = setInterval(() => {
+            setAutoplayCountdown(prev => {
+                if (prev <= 1) {
+                    // Countdown finished — trigger auto-play next
+                    if (autoplayTimerRef.current) {
+                        clearInterval(autoplayTimerRef.current);
+                        autoplayTimerRef.current = null;
+                    }
+                    setShowAutoplayCountdown(false);
+                    onAutoPlayNext?.();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => {
+            if (autoplayTimerRef.current) {
+                clearInterval(autoplayTimerRef.current);
+                autoplayTimerRef.current = null;
+            }
+        };
+    }, [showAutoplayCountdown, onAutoPlayNext]);
+
+    const cancelAutoplay = useCallback(() => {
+        setShowAutoplayCountdown(false);
+        setAutoplayCountdown(5);
+    }, []);
+
+    const playNow = useCallback(() => {
+        setShowAutoplayCountdown(false);
+        setAutoplayCountdown(5);
+        onAutoPlayNext?.();
+    }, [onAutoPlayNext]);
 
     const handleWaiting = useCallback(() => {
         setIsBuffering(true);
@@ -802,6 +884,12 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         };
     }, []);
 
+    // Reset autoplay countdown when video source changes (new video loaded)
+    useEffect(() => {
+        setShowAutoplayCountdown(false);
+        setAutoplayCountdown(5);
+    }, [src, hlsSrc]);
+
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -990,6 +1078,77 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                     <p className="text-white/60 text-sm text-center max-w-sm">
                         {t('videoPlayer.processingDesc')}
                     </p>
+                </div>
+            )}
+
+            {/* Autoplay countdown overlay (YouTube-style) */}
+            {showAutoplayCountdown && nextVideo && (
+                <div
+                    className="absolute inset-0 z-30 flex items-end justify-end p-6 md:p-10"
+                    style={{background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.2) 100%)'}}
+                >
+                    {/* Cancel button - top right */}
+                    <button
+                        onClick={cancelAutoplay}
+                        className="absolute top-4 right-4 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors"
+                        aria-label={t('videoPlayer.cancelAutoplay', 'Cancel')}
+                    >
+                        <X size={20}/>
+                    </button>
+
+                    {/* Next video card - bottom right */}
+                    <div className="flex items-end gap-4 max-w-md w-full">
+                        <div className="flex-1 min-w-0">
+                            <p className="text-white/80 text-sm mb-2">{t('videoPlayer.nextUp', 'Next up')}</p>
+                            <h3 className="text-white font-semibold text-lg line-clamp-2 leading-tight mb-1">
+                                {nextVideo.title}
+                            </h3>
+                            {nextVideo.channelName && (
+                                <p className="text-white/70 text-sm">{nextVideo.channelName}</p>
+                            )}
+                            <button
+                                onClick={playNow}
+                                className="mt-3 flex items-center gap-2 bg-white text-black px-5 py-2 rounded-full font-medium text-sm hover:bg-white/90 transition-colors"
+                            >
+                                <NextIcon size={16}/>
+                                {t('videoPlayer.playNow', 'Play now')}
+                            </button>
+                        </div>
+
+                        {/* Thumbnail with countdown ring */}
+                        <div className="relative shrink-0">
+                            <div className="w-40 md:w-48 aspect-video rounded-lg overflow-hidden bg-black/40 shadow-2xl">
+                                <img
+                                    src={getFullUrl(nextVideo.thumbnail)}
+                                    alt={nextVideo.title}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            {/* Circular countdown */}
+                            <div className="absolute -bottom-2 -left-2 w-10 h-10">
+                                <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+                                    <circle
+                                        cx="18" cy="18" r="16"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.3)"
+                                        strokeWidth="2"
+                                    />
+                                    <circle
+                                        cx="18" cy="18" r="16"
+                                        fill="none"
+                                        stroke="white"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeDasharray={`${(autoplayCountdown / 5) * 100.53} 100.53`}
+                                        style={{transition: 'stroke-dasharray 1s linear'}}
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-white text-sm font-bold">{autoplayCountdown}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
 

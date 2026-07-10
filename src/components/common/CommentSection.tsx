@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {MessageCircle, ThumbsUp, ThumbsDown, Loader2, LogIn, List, Reply, SmilePlus, Trash2, ChevronDown, ShieldOff, Flag} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
@@ -18,28 +18,300 @@ interface CommentSectionProps {
 
 interface Comment {
     id: string;
+    content?: string;
     text?: string;
     media_id?: string;
     user_id?: string;
     username?: string;
     avatar?: string;
     parent_id?: string | null;
+    reply_to_comment_id?: string | null;
     status?: string;
     create_time?: string;
     update_time?: string;
     like_count?: number;
     is_liked?: boolean;
     is_reply?: boolean;
-    reply_to_comment_id?: string | null;
     reply_to_username?: string | null;
-    reply_to_content?: string | null;
+    replies?: Comment[];
 }
+
+const PAGE_SIZE = 50;
+
+const CommentItem: React.FC<{
+    comment: Comment;
+    depth: number;
+    expandedReplies: Set<string>;
+    toggleReplies: (id: string) => void;
+    commentLikes: Map<string, CommentLikeResponse>;
+    likingComments: Set<string>;
+    replyingTo: {id: string; username: string} | null;
+    replyText: string;
+    showReplyEmojiPicker: boolean;
+    isAuthenticated: boolean;
+    user: any;
+    isSubmittingReply: boolean;
+    deletingCommentId: string | null;
+    t: any;
+    navigate: any;
+    onLike: (id: string) => void;
+    onDislike: (id: string) => void;
+    onReply: (id: string, username: string) => void;
+    onDelete: (id: string) => void;
+    onReport: (id: string) => void;
+    onReplyTextChange: (v: string) => void;
+    onSubmitReply: () => void;
+    onCancelReply: () => void;
+    onToggleEmoji: () => void;
+    onAddEmoji: (emoji: any) => void;
+    replyEmojiPickerRef: React.RefObject<HTMLDivElement | null>;
+    formatDate: (d?: string) => string;
+    userAvatar: string;
+    userInitial: string;
+}> = ({
+    comment, depth, expandedReplies, toggleReplies, commentLikes, likingComments,
+    replyingTo, replyText, showReplyEmojiPicker, isAuthenticated, user, isSubmittingReply,
+    deletingCommentId, t, navigate, onLike, onDislike, onReply, onDelete, onReport,
+    onReplyTextChange, onSubmitReply, onCancelReply, onToggleEmoji, onAddEmoji,
+    replyEmojiPickerRef, formatDate, userAvatar, userInitial
+}) => {
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const isExpanded = expandedReplies.has(comment.id);
+    const content = comment.content || comment.text || '';
+    const isReplyingToThis = replyingTo?.id === comment.id;
+    const size = depth === 0 ? 'h-9 w-9' : 'h-8 w-8';
+
+    return (
+        <div className={`flex gap-3 py-3 ${depth > 0 ? '' : ''}`}>
+            <Avatar className={`${size} flex-shrink-0`}>
+                <AvatarImage src={comment.avatar || undefined}/>
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-medium">
+                    {(comment.username || 'U')[0]?.toUpperCase() || 'U'}
+                </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Link
+                        to={`/@${comment.username?.trim() || 'anonymous'}` as any}
+                        className="font-semibold text-sm text-gray-900 dark:text-white hover:text-info cursor-pointer transition-colors"
+                    >
+                        @{comment.username?.trim() || 'Anonymous'}
+                    </Link>
+                    <span className="text-gray-500 dark:text-muted-foreground text-xs">
+                        {formatDate(comment.create_time)}
+                    </span>
+                </div>
+
+                {comment.status === 'blocked' ? (
+                    <div className="flex items-center gap-2 text-gray-400 dark:text-muted-foreground italic mt-1.5 py-1">
+                        <ShieldOff className="h-4 w-4 flex-shrink-0"/>
+                        <span>{t('watch.commentBlocked', 'Comment blocked')}</span>
+                    </div>
+                ) : (
+                    <p className="text-[15px] text-gray-800 dark:text-gray-200 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
+                        {content || <span className="text-muted-foreground italic">No content</span>}
+                    </p>
+                )}
+
+                {comment.status !== 'blocked' && (
+                    <div className="flex items-center gap-1 mt-2">
+                        <button
+                            className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
+                                commentLikes.get(comment.id)?.is_liked
+                                    ? 'text-info bg-blue-50 dark:bg-blue-900/20'
+                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            } ${likingComments.has(comment.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => onLike(comment.id)}
+                            disabled={likingComments.has(comment.id)}
+                        >
+                            {likingComments.has(comment.id) ? (
+                                <Loader2 className="w-4 h-4 animate-spin"/>
+                            ) : (
+                                <ThumbsUp className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_liked ? 'fill-current' : ''}`}/>
+                            )}
+                            <span className={`text-xs font-medium ${commentLikes.get(comment.id)?.is_liked ? 'text-info' : ''}`}>
+                                {(commentLikes.get(comment.id)?.like_count ?? comment.like_count ?? 0) || ''}
+                            </span>
+                        </button>
+
+                        <button
+                            className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
+                                commentLikes.get(comment.id)?.is_disliked
+                                    ? 'text-destructive bg-red-50 dark:bg-red-900/20'
+                                    : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                            } ${likingComments.has(comment.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => onDislike(comment.id)}
+                            disabled={likingComments.has(comment.id)}
+                        >
+                            {likingComments.has(comment.id) ? (
+                                <Loader2 className="w-4 h-4 animate-spin"/>
+                            ) : (
+                                <ThumbsDown className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_disliked ? 'fill-current' : ''}`}/>
+                            )}
+                        </button>
+
+                        <button
+                            className="flex items-center gap-1.5 text-gray-500 hover:text-info font-medium text-sm px-2 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            onClick={() => onReply(comment.id, comment.username || 'Anonymous')}
+                        >
+                            <Reply className="w-4 h-4"/>
+                            {t('common.reply', 'Reply')}
+                        </button>
+
+                        {isAuthenticated && user && (String(comment.user_id) === String(user.id) || user.roles?.includes('admin')) && (
+                            <button
+                                className="flex items-center gap-1.5 text-gray-500 hover:text-destructive font-medium text-sm px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                onClick={() => onDelete(comment.id)}
+                                disabled={deletingCommentId === comment.id}
+                            >
+                                {deletingCommentId === comment.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin"/>
+                                ) : (
+                                    <Trash2 className="w-4 h-4"/>
+                                )}
+                            </button>
+                        )}
+
+                        {isAuthenticated && user && String(comment.user_id) !== String(user.id) && (
+                            <button
+                                className="flex items-center gap-1.5 text-gray-500 hover:text-amber-600 font-medium text-sm px-2 py-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                onClick={() => onReport(comment.id)}
+                            >
+                                <Flag className="w-4 h-4"/>
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {hasReplies && (
+                    <button
+                        onClick={() => toggleReplies(comment.id)}
+                        className="mt-2 flex items-center gap-1.5 text-info font-medium text-sm px-1 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                    >
+                        <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? '' : '-rotate-90'}`}/>
+                        {isExpanded
+                            ? t('watch.hideReplies', 'Hide replies')
+                            : t('watch.viewReplies', `View ${comment.replies!.length} ${comment.replies!.length === 1 ? 'reply' : 'replies'}`)
+                        }
+                    </button>
+                )}
+
+                {comment.status !== 'blocked' && isReplyingToThis && (
+                    <div className="mt-3 space-y-2 border-l-2 border-blue-300 dark:border-blue-700 pl-4 ml-1">
+                        {isAuthenticated ? (
+                            <div className="flex gap-2 items-start">
+                                <Avatar className="h-7 w-7 flex-shrink-0 mt-0.5">
+                                    <AvatarImage src={userAvatar}/>
+                                    <AvatarFallback className="bg-muted text-gray-600 text-xs">{userInitial}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 space-y-2 min-w-0">
+                                    <div className="text-xs text-gray-500">
+                                        Replying to <span className="font-medium text-info">@{replyingTo!.username}</span>
+                                    </div>
+                                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
+                                        <textarea
+                                            placeholder={t('watch.addComment', 'Add a comment...')}
+                                            value={replyText}
+                                            onChange={(e) => onReplyTextChange(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && replyText.trim()) { e.preventDefault(); onSubmitReply(); }}}
+                                            className="w-full min-h-[50px] px-3 py-2 resize-none focus:outline-none bg-transparent text-sm"
+                                            rows={2}
+                                            autoFocus
+                                        />
+                                        <div className="flex items-center justify-between px-2.5 py-1.5 border-t border-gray-100 dark:border-gray-800">
+                                            <div className="relative" ref={replyEmojiPickerRef}>
+                                                <button
+                                                    type="button"
+                                                    onClick={onToggleEmoji}
+                                                    className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
+                                                >
+                                                    <SmilePlus className="w-4 h-4"/>
+                                                </button>
+                                                {showReplyEmojiPicker && (
+                                                    <div className="absolute bottom-full mb-2 left-0 z-50 shadow-lg rounded-xl overflow-hidden">
+                                                        <Picker data={data} onEmojiSelect={onAddEmoji} theme="auto" previewPosition="none" skinTonePosition="search" perLine={7}/>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Button type="button" variant="ghost" size="sm" onClick={onCancelReply} className="text-gray-500 hover:text-gray-700 font-medium text-xs">
+                                                    {t('common.cancel', 'Cancel')}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    onClick={onSubmitReply}
+                                                    disabled={isSubmittingReply || !replyText.trim()}
+                                                    size="sm"
+                                                    className={`font-medium px-3 text-xs ${replyText.trim() ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-transparent text-muted-foreground cursor-not-allowed'}`}
+                                                >
+                                                    {isSubmittingReply ? <Loader2 className="w-3 h-3 animate-spin"/> : t('common.reply', 'Reply')}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="py-2">
+                                <p className="text-sm text-gray-500 mb-2">{t('watch.pleaseLoginToReply', 'Please sign in to reply')}</p>
+                                <Button variant="outline" size="sm" onClick={() => navigate({to: '/auth/signin'})} className="border-blue-600 text-info hover:bg-blue-50">
+                                    <LogIn className="w-4 h-4 mr-2"/>{t('auth.signin', 'Sign in')}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {hasReplies && isExpanded && (
+                    <div className="mt-1 border-l-2 border-gray-200 dark:border-gray-700 pl-4 ml-2 space-y-0">
+                        {comment.replies!.map(reply => (
+                            <CommentItem
+                                key={reply.id}
+                                comment={reply}
+                                depth={depth + 1}
+                                expandedReplies={expandedReplies}
+                                toggleReplies={toggleReplies}
+                                commentLikes={commentLikes}
+                                likingComments={likingComments}
+                                replyingTo={replyingTo}
+                                replyText={replyText}
+                                showReplyEmojiPicker={showReplyEmojiPicker}
+                                isAuthenticated={isAuthenticated}
+                                user={user}
+                                isSubmittingReply={isSubmittingReply}
+                                deletingCommentId={deletingCommentId}
+                                t={t}
+                                navigate={navigate}
+                                onLike={onLike}
+                                onDislike={onDislike}
+                                onReply={onReply}
+                                onDelete={onDelete}
+                                onReport={onReport}
+                                onReplyTextChange={onReplyTextChange}
+                                onSubmitReply={onSubmitReply}
+                                onCancelReply={onCancelReply}
+                                onToggleEmoji={onToggleEmoji}
+                                onAddEmoji={onAddEmoji}
+                                replyEmojiPickerRef={replyEmojiPickerRef}
+                                formatDate={formatDate}
+                                userAvatar={userAvatar}
+                                userInitial={userInitial}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
     const {t} = useTranslation();
     const {isAuthenticated, user} = useAuth();
     const navigate = useNavigate();
     const [comments, setComments] = useState<Comment[]>([]);
+    const [allFlatComments, setAllFlatComments] = useState<Comment[]>([]);
+    const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [commentText, setCommentText] = useState('');
@@ -56,42 +328,46 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [total, setTotal] = useState(0);
-    const PAGE_SIZE = 10;
     const [sortBy, setSortBy] = useState<CommentSortBy>('newest');
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
     const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
     const [showReportDialog, setShowReportDialog] = useState(false);
     const sortMenuRef = useRef<HTMLDivElement>(null);
-
     const emojiPickerRef = useRef<HTMLDivElement>(null);
     const replyEmojiPickerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        fetchComments();
-    }, [mediaId]);
+    const userAvatar = (user as any)?.avatar || (user as any)?.avatarUrl || '';
+    const userInitial = user?.username?.[0]?.toUpperCase() || 'U';
 
-    useEffect(() => {
-        fetchComments();
-    }, [sortBy]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
-                setShowEmojiPicker(false);
+    const buildTree = useCallback((flatList: Comment[]): Comment[] => {
+        const map = new Map<string, Comment>();
+        const roots: Comment[] = [];
+        flatList.forEach(c => {
+            map.set(c.id, {...c, replies: []});
+        });
+        flatList.forEach(c => {
+            const node = map.get(c.id)!;
+            const parentId = c.reply_to_comment_id || c.parent_id;
+            if (parentId && map.has(parentId)) {
+                const parent = map.get(parentId)!;
+                parent.replies = parent.replies || [];
+                parent.replies.push(node);
+            } else {
+                roots.push(node);
             }
-            if (replyEmojiPickerRef.current && !replyEmojiPickerRef.current.contains(event.target as Node)) {
-                setShowReplyEmojiPicker(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        });
+        return roots;
     }, []);
 
-    const fetchComments = async (pageNum: number = 1, append: boolean = false) => {
+    const fetchComments = useCallback(async (pageNum: number = 1, append: boolean = false) => {
         try {
-            if (!append) setLoading(true);
-            else setLoadingMore(true);
+            if (!append) {
+                setLoading(true);
+                setAllFlatComments([]);
+            } else {
+                setLoadingMore(true);
+            }
             setError(null);
             const sortParams: Record<string, string> = {};
             switch (sortBy) {
@@ -103,31 +379,54 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             const commentsList = response?.items || [];
             const formattedComments: Comment[] = commentsList.map((comment: any) => ({
                 id: comment.id || '',
-                text: comment.text || '',
+                content: comment.content || comment.text || '',
+                text: comment.content || comment.text || '',
                 media_id: comment.media_id || '',
                 user_id: comment.user_id || '',
                 username: comment.username || 'Anonymous',
                 avatar: comment.avatar || '',
                 parent_id: comment.parent_id || null,
+                reply_to_comment_id: comment.reply_to_comment_id || null,
                 status: comment.status || '',
                 create_time: comment.create_time || '',
                 update_time: comment.update_time || '',
                 like_count: comment.like_count || 0,
                 is_liked: comment.is_liked || false,
-                is_reply: comment.is_reply || false,
-                reply_to_comment_id: comment.reply_to_comment_id || null,
-                reply_to_username: comment.reply_to_username || null,
-                reply_to_content: comment.reply_to_content || null,
+                is_reply: comment.is_reply || !!comment.reply_to_comment_id,
             }));
+
+            let accumulated: Comment[];
             if (append) {
-                setComments(prev => [...prev, ...formattedComments]);
+                const existingIds = new Set(allFlatComments.map(c => c.id));
+                accumulated = [...allFlatComments];
+                formattedComments.forEach(c => {
+                    if (!existingIds.has(c.id)) accumulated.push(c);
+                });
             } else {
-                setComments(formattedComments);
+                accumulated = formattedComments;
             }
+            setAllFlatComments(accumulated);
+
+            const roots = buildTree(accumulated);
+            setComments(roots);
             setPage(pageNum);
             const totalCount = response?.total || 0;
             setTotal(totalCount);
-            setHasMore(pageNum * PAGE_SIZE < totalCount);
+            setHasMore(accumulated.length < totalCount);
+
+            const likeMap = new Map<string, CommentLikeResponse>();
+            formattedComments.forEach(c => {
+                likeMap.set(c.id, {
+                    like_count: c.like_count || 0,
+                    is_liked: c.is_liked || false,
+                    is_disliked: false,
+                });
+            });
+            setCommentLikes(prev => {
+                const next = new Map(prev);
+                likeMap.forEach((v, k) => next.set(k, v));
+                return next;
+            });
         } catch (err) {
             setError('Failed to fetch comments');
             console.error('Failed to fetch comments:', err);
@@ -135,7 +434,27 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             if (!append) setLoading(false);
             else setLoadingMore(false);
         }
-    };
+    }, [mediaId, sortBy, allFlatComments, buildTree]);
+
+    useEffect(() => {
+        fetchComments(1, false);
+    }, [mediaId, sortBy]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+                setShowEmojiPicker(false);
+            }
+            if (replyEmojiPickerRef.current && !replyEmojiPickerRef.current.contains(event.target as Node)) {
+                setShowReplyEmojiPicker(false);
+            }
+            if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+                setShowSortMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const loadMore = () => {
         if (!hasMore || loadingMore) return;
@@ -148,15 +467,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             navigate({to: '/auth/signin'});
             return;
         }
-
         try {
             setIsSubmitting(true);
             setError(null);
-            await commentApi.create({media_id: mediaId, text: commentText});
+            await commentApi.create({media_id: mediaId, content: commentText});
             setCommentText('');
             setIsFocused(false);
             setShowEmojiPicker(false);
-            await fetchComments();
+            await fetchComments(1, false);
         } catch (err: any) {
             console.error('Failed to submit comment:', err);
             setError(err.message || 'Failed to submit comment');
@@ -166,24 +484,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
     };
 
     const handleSubmitReply = async () => {
-        if (!replyText.trim()) return;
+        if (!replyText.trim() || !replyingTo) return;
         if (!isAuthenticated) {
             navigate({to: '/auth/signin'});
             return;
         }
-
         try {
             setIsSubmittingReply(true);
             setError(null);
             await commentApi.create({
                 media_id: mediaId,
-                parent_id: replyingTo?.id,
-                text: replyText
+                parent_id: replyingTo.id,
+                content: replyText
             });
             setReplyText('');
             setShowReplyEmojiPicker(false);
             setReplyingTo(null);
-            await fetchComments();
+            setExpandedReplies(prev => new Set(prev).add(replyingTo.id));
+            await fetchComments(1, false);
         } catch (err: any) {
             console.error('Failed to submit reply:', err);
             setError(err.message || 'Failed to submit reply');
@@ -198,49 +516,21 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             return;
         }
         if (likingComments.has(commentId)) return;
-
+        setLikingComments(prev => new Set(prev).add(commentId));
         try {
-            setLikingComments(prev => new Set(prev).add(commentId));
-            const prevStatus = commentLikes.get(commentId);
-            const newLiked = !prevStatus?.is_liked;
-
-            if (prevStatus) {
-                setCommentLikes(prev => {
-                    const updated = new Map(prev);
-                    updated.set(commentId, {
-                        like_count: prevStatus.like_count + (newLiked ? 1 : -1),
-                        is_liked: newLiked,
-                        is_disliked: false,
-                    });
-                    return updated;
-                });
-            }
-
-            const result = await commentApi.likes.toggle(commentId);
+            const stats = await commentApi.likes.toggle(commentId);
             setCommentLikes(prev => {
-                const updated = new Map(prev);
-                updated.set(commentId, result);
-                return updated;
+                const next = new Map(prev);
+                next.set(commentId, stats);
+                return next;
             });
         } catch (err) {
             console.error('Failed to like comment:', err);
-            if (commentLikes.get(commentId)) {
-                setCommentLikes(prev => {
-                    const updated = new Map(prev);
-                    const prevStatus = prev.get(commentId)!;
-                    updated.set(commentId, {
-                        like_count: prevStatus.like_count + (prevStatus.is_liked ? -1 : 1),
-                        is_liked: !prevStatus.is_liked,
-                        is_disliked: false,
-                    });
-                    return updated;
-                });
-            }
         } finally {
             setLikingComments(prev => {
-                const updated = new Set(prev);
-                updated.delete(commentId);
-                return updated;
+                const next = new Set(prev);
+                next.delete(commentId);
+                return next;
             });
         }
     };
@@ -251,47 +541,33 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             return;
         }
         if (likingComments.has(commentId)) return;
-
+        setLikingComments(prev => new Set(prev).add(commentId));
         try {
-            setLikingComments(prev => new Set(prev).add(commentId));
-            const prevStatus = commentLikes.get(commentId);
-            const newDisliked = !prevStatus?.is_disliked;
-
-            if (prevStatus) {
-                setCommentLikes(prev => {
-                    const updated = new Map(prev);
-                    updated.set(commentId, {
-                        like_count: prevStatus.like_count + (prevStatus.is_liked ? -1 : 0) + (newDisliked ? 0 : 1),
-                        is_liked: false,
-                        is_disliked: newDisliked,
-                    });
-                    return updated;
-                });
-            }
-
-            const result = await commentApi.likes.toggleDislike(commentId);
+            const stats = await commentApi.likes.toggleDislike(commentId);
             setCommentLikes(prev => {
-                const updated = new Map(prev);
-                updated.set(commentId, result);
-                return updated;
+                const next = new Map(prev);
+                next.set(commentId, stats);
+                return next;
             });
         } catch (err) {
             console.error('Failed to dislike comment:', err);
         } finally {
             setLikingComments(prev => {
-                const updated = new Set(prev);
-                updated.delete(commentId);
-                return updated;
+                const next = new Set(prev);
+                next.delete(commentId);
+                return next;
             });
         }
     };
 
     const handleDeleteComment = async (commentId: string) => {
-        if (!isAuthenticated) return;
+        if (!confirm(t('watch.confirmDeleteComment', 'Delete this comment?'))) return;
+        setDeletingCommentId(commentId);
         try {
-            setDeletingCommentId(commentId);
             await commentApi.delete(commentId);
-            setComments(prev => prev.filter(c => c.id !== commentId));
+            const remaining = allFlatComments.filter(c => c.id !== commentId && (c.reply_to_comment_id || c.parent_id) !== commentId);
+            setAllFlatComments(remaining);
+            setComments(buildTree(remaining));
             setTotal(prev => Math.max(0, prev - 1));
         } catch (err) {
             console.error('Failed to delete comment:', err);
@@ -304,7 +580,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         if (!reportingCommentId) return;
         try {
             await commentApi.report(reportingCommentId, data);
-            toast.success(t('report.submitted'));
+            toast.success(t('report.submitted', 'Report submitted'));
         } catch (err: any) {
             throw err;
         }
@@ -330,6 +606,26 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         setShowReplyEmojiPicker(false);
     };
 
+    const toggleReplies = (commentId: string) => {
+        setExpandedReplies(prev => {
+            const next = new Set(prev);
+            if (next.has(commentId)) next.delete(commentId);
+            else next.add(commentId);
+            return next;
+        });
+    };
+
+    const handleReply = (id: string, username: string) => {
+        setReplyingTo(prev => prev?.id === id ? null : {id, username});
+        setReplyText('');
+    };
+
+    const handleCancelReply = () => {
+        setReplyingTo(null);
+        setReplyText('');
+        setShowReplyEmojiPicker(false);
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -342,27 +638,29 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         return (
             <div className="py-8 text-center text-destructive">
                 <p>{error}</p>
-                <Button variant="ghost" size="sm" onClick={() => fetchComments()} className="mt-2">
-                    {t('common.retry')}
+                <Button variant="ghost" size="sm" onClick={() => fetchComments(1, false)} className="mt-2">
+                    {t('common.retry', 'Retry')}
                 </Button>
             </div>
         );
     }
 
+    const rootCount = total > 0 ? total : comments.length;
+
     return (
         <div className="mt-8">
             <div className="flex items-center justify-between mb-4 relative">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {comments.length} {t('watch.comments')}
+                    {rootCount} {t('watch.comments', 'Comments')}
                 </h3>
                 <button
                     className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-1.5 rounded-full transition-colors"
                     onClick={() => setShowSortMenu(!showSortMenu)}
                 >
                     <List className="w-4 h-4"/>
-                    {sortBy === 'newest' ? (t('watch.sortNewest')) :
-                     sortBy === 'oldest' ? (t('watch.sortOldest')) :
-                     (t('watch.sortPopular'))}
+                    {sortBy === 'newest' ? (t('watch.sortNewest', 'Newest')) :
+                     sortBy === 'oldest' ? (t('watch.sortOldest', 'Oldest')) :
+                     (t('watch.sortPopular', 'Top'))}
                     <ChevronDown className="w-3 h-3"/>
                 </button>
                 {showSortMenu && (
@@ -375,9 +673,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                 }`}
                                 onClick={() => { setSortBy(option); setShowSortMenu(false); }}
                             >
-                                {option === 'newest' ? (t('watch.sortNewest')) :
-                                 option === 'oldest' ? (t('watch.sortOldest')) :
-                                 (t('watch.sortPopular'))}
+                                {option === 'newest' ? (t('watch.sortNewest', 'Newest')) :
+                                 option === 'oldest' ? (t('watch.sortOldest', 'Oldest')) :
+                                 (t('watch.sortPopular', 'Top'))}
                                 {sortBy === option && <span className="ml-2 text-info">✓</span>}
                             </button>
                         ))}
@@ -389,16 +687,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                 {isAuthenticated ? (
                     <div className="flex gap-3 items-start">
                         <Avatar className="h-10 w-10 flex-shrink-0 mt-0.5">
-                            <AvatarImage src={(user as any)?.avatar || (user as any)?.avatarUrl}/>
-                            <AvatarFallback className="bg-muted text-gray-600">
-                                {user?.username?.[0]?.toUpperCase() || 'U'}
-                            </AvatarFallback>
+                            <AvatarImage src={userAvatar}/>
+                            <AvatarFallback className="bg-muted text-gray-600">{userInitial}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             {isFocused ? (
                                 <div className="border border-blue-300 dark:border-blue-700 rounded-xl bg-white dark:bg-gray-900 overflow-hidden">
                                     <textarea
-                                        placeholder={t('watch.addComment')}
+                                        placeholder={t('watch.addComment', 'Add a comment...')}
                                         value={commentText}
                                         onChange={(e) => setCommentText(e.target.value)}
                                         onBlur={() => { setTimeout(() => { if (!commentText.trim()) setIsFocused(false); }, 150); }}
@@ -418,44 +714,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                             </button>
                                             {showEmojiPicker && (
                                                 <div className="absolute bottom-full mb-2 left-0 z-50 shadow-lg rounded-xl overflow-hidden">
-                                                    <Picker
-                                                        data={data}
-                                                        onEmojiSelect={addEmoji}
-                                                        theme="auto"
-                                                        previewPosition="none"
-                                                        skinTonePosition="search"
-                                                        perLine={8}
-                                                        maxFrequentRows={2}
-                                                    />
+                                                    <Picker data={data} onEmojiSelect={addEmoji} theme="auto" previewPosition="none" skinTonePosition="search" perLine={8} maxFrequentRows={2}/>
                                                 </div>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => { setCommentText(''); setIsFocused(false); }}
-                                                className="text-gray-500 hover:text-gray-700 font-medium"
-                                            >
-                                                {t('common.cancel')}
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => { setCommentText(''); setIsFocused(false); }} className="text-gray-500 hover:text-gray-700 font-medium">
+                                                {t('common.cancel', 'Cancel')}
                                             </Button>
                                             <Button
                                                 type="button"
                                                 onClick={handleSubmitComment}
                                                 disabled={isSubmitting || !commentText.trim()}
                                                 size="sm"
-                                                className={`font-medium px-4 ${
-                                                    commentText.trim()
-                                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                        : 'bg-transparent text-muted-foreground cursor-not-allowed'
-                                                }`}
+                                                className={`font-medium px-4 ${commentText.trim() ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-transparent text-muted-foreground cursor-not-allowed'}`}
                                             >
-                                                {isSubmitting ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin"/>
-                                                ) : (
-                                                    t('watch.postComment')
-                                                )}
+                                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin"/> : t('watch.postComment', 'Comment')}
                                             </Button>
                                         </div>
                                     </div>
@@ -465,7 +739,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                                     onClick={() => setIsFocused(true)}
                                     className="w-full px-4 py-2.5 border border-transparent bg-gray-50 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-900 rounded-full cursor-text transition-colors text-sm text-gray-500 dark:text-muted-foreground select-none"
                                 >
-                                    {t('watch.addComment')}
+                                    {t('watch.addComment', 'Add a comment...')}
                                 </div>
                             )}
                         </div>
@@ -477,16 +751,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                         </Avatar>
                         <div className="flex-1">
                             <p className="text-sm text-gray-500 dark:text-muted-foreground mb-3">
-                                {t('watch.pleaseLoginToComment')}
+                                {t('watch.pleaseLoginToComment', 'Sign in to leave a comment')}
                             </p>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate({to: '/auth/signin'})}
-                                className="border-blue-600 text-info hover:bg-blue-50"
-                            >
-                                <LogIn className="w-4 h-4 mr-2"/>
-                                {t('auth.signin')}
+                            <Button variant="outline" size="sm" onClick={() => navigate({to: '/auth/signin'})} className="border-blue-600 text-info hover:bg-blue-50">
+                                <LogIn className="w-4 h-4 mr-2"/>{t('auth.signin', 'Sign in')}
                             </Button>
                         </div>
                     </div>
@@ -496,229 +764,43 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             {comments.length === 0 ? (
                 <div className="text-center py-12 text-gray-500 dark:text-muted-foreground">
                     <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-30"/>
-                    <p>{t('watch.noComments')}</p>
+                    <p>{t('watch.noComments', 'No comments yet. Be the first!')}</p>
                 </div>
             ) : (
                 <div className="space-y-0">
-                    {comments.map((comment) => (
-                        <div key={comment.id} className="flex gap-3 py-3">
-                            <Avatar className="h-9 w-9 flex-shrink-0">
-                                <AvatarImage src={comment.avatar || undefined}/>
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-medium">
-                                    {(comment.username || 'U')[0]?.toUpperCase() || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <Link
-                                        to={`/@${comment.username?.trim() || 'anonymous'}` as any}
-                                        className="font-semibold text-sm text-gray-900 dark:text-white hover:text-info cursor-pointer transition-colors"
-                                    >
-                                        @{comment.username?.trim() || 'Anonymous'}
-                                    </Link>
-                                    {comment.is_reply && comment.reply_to_username && (
-                                        <>
-                                            <span className="text-muted-foreground text-xs">→</span>
-                                            <Link
-                                                to={`/@${comment.reply_to_username?.trim() || ''}` as any}
-                                                className="text-info text-sm font-medium hover:underline"
-                                            >
-                                                @{comment.reply_to_username}
-                                            </Link>
-                                        </>
-                                    )}
-                                    <span className="text-gray-500 dark:text-muted-foreground text-xs">
-                                        {formatDate(comment.create_time)}
-                                    </span>
-                                </div>
-
-                                {comment.is_reply && comment.reply_to_content && (
-                                    <div className="mt-1 px-3 py-1.5 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-l-2 border-blue-200 dark:border-blue-800">
-                                        <p className="text-xs text-gray-500 dark:text-muted-foreground italic line-clamp-2">
-                                            {comment.reply_to_content}
-                                        </p>
-                                    </div>
-                                )}
-
-                                {comment.status === 'blocked' ? (
-                                    <div className="flex items-center gap-2 text-gray-400 dark:text-muted-foreground italic mt-1.5 py-1">
-                                        <ShieldOff className="h-4 w-4 flex-shrink-0"/>
-                                        <span>{t('watch.commentBlocked')}</span>
-                                    </div>
-                                ) : (
-                                    <p className="text-[15px] text-gray-800 dark:text-gray-200 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
-                                        {comment.text || <span className="text-muted-foreground italic">No content</span>}
-                                    </p>
-                                )}
-
-                                {comment.status !== 'blocked' && (
-                                <div className="flex items-center gap-1 mt-2">
-                                    <button
-                                        className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
-                                            commentLikes.get(comment.id)?.is_liked
-                                                ? 'text-info bg-blue-50 dark:bg-blue-900/20'
-                                                : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                        } ${likingComments.has(comment.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => handleLikeComment(comment.id)}
-                                        disabled={likingComments.has(comment.id)}
-                                    >
-                                        {likingComments.has(comment.id) ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <ThumbsUp className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_liked ? 'fill-current' : ''}`}/>
-                                        )}
-                                        <span className={`text-xs font-medium ${
-                                            commentLikes.get(comment.id)?.is_liked ? 'text-info' : ''
-                                        }`}>
-                                            {(commentLikes.get(comment.id)?.like_count ?? comment.like_count ?? 0) || ''}
-                                        </span>
-                                    </button>
-
-                                    <button
-                                        className={`flex items-center gap-1.5 rounded-full p-1.5 transition-colors ${
-                                            commentLikes.get(comment.id)?.is_disliked
-                                                ? 'text-destructive bg-red-50 dark:bg-red-900/20'
-                                                : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-                                        } ${likingComments.has(comment.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => handleDislikeComment(comment.id)}
-                                        disabled={likingComments.has(comment.id)}
-                                    >
-                                        {likingComments.has(comment.id) ? (
-                                            <Loader2 className="w-4 h-4 animate-spin"/>
-                                        ) : (
-                                            <ThumbsDown className={`w-4 h-4 ${commentLikes.get(comment.id)?.is_disliked ? 'fill-current' : ''}`}/>
-                                        )}
-                                    </button>
-
-                                    <button
-                                        className="flex items-center gap-1.5 text-gray-500 hover:text-info font-medium text-sm px-2 py-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                        onClick={() => setReplyingTo({id: comment.id, username: comment.username || 'Anonymous'})}
-                                    >
-                                        <Reply className="w-4 h-4"/>
-                                        {t('common.reply')}
-                                    </button>
-
-                                    {isAuthenticated && user && (String(comment.user_id) === String(user.id) || user.roles?.includes('admin')) && (
-                                        <button
-                                            className="flex items-center gap-1.5 text-gray-500 hover:text-destructive font-medium text-sm px-2 py-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                            onClick={() => handleDeleteComment(comment.id)}
-                                            disabled={deletingCommentId === comment.id}
-                                        >
-                                            {deletingCommentId === comment.id ? (
-                                                <Loader2 className="w-4 h-4 animate-spin"/>
-                                            ) : (
-                                                <Trash2 className="w-4 h-4"/>
-                                            )}
-                                        </button>
-                                    )}
-
-                                    {isAuthenticated && user && String(comment.user_id) !== String(user.id) && (
-                                        <button
-                                            className="flex items-center gap-1.5 text-gray-500 hover:text-amber-600 font-medium text-sm px-2 py-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                                            onClick={() => handleOpenReportDialog(comment.id)}
-                                        >
-                                            <Flag className="w-4 h-4"/>
-                                        </button>
-                                    )}
-                                </div>
-                                )}
-
-                                {comment.status !== 'blocked' && replyingTo?.id === comment.id && (
-                                    <div className="mt-3 space-y-2 border-l-2 border-input dark:border-gray-600 pl-5 ml-1">
-                                        {isAuthenticated ? (
-                                            <div className="flex gap-3 items-start">
-                                                <Avatar className="h-8 w-8 flex-shrink-0 mt-0.5">
-                                                    <AvatarImage src={(user as any)?.avatar || (user as any)?.avatarUrl}/>
-                                                    <AvatarFallback className="bg-muted text-gray-600 text-xs">
-                                                        {user?.username?.[0]?.toUpperCase() || 'U'}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 space-y-2 min-w-0">
-                                                    <div className="text-xs text-gray-500">
-                                                        Replying to <span className="font-medium text-info">@{replyingTo.username}</span>
-                                                    </div>
-                                                    <div className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 overflow-hidden">
-                                                        <textarea
-                                                            placeholder={t('watch.addComment')}
-                                                            value={replyText}
-                                                            onChange={(e) => setReplyText(e.target.value)}
-                                                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && replyText.trim()) { e.preventDefault(); handleSubmitReply(); }}}
-                                                            className="w-full min-h-[60px] px-3 py-2 resize-none focus:outline-none bg-transparent"
-                                                            rows={2}
-                                                            autoFocus
-                                                        />
-                                                        <div className="flex items-center justify-between px-2.5 py-1.5 border-t border-gray-100 dark:border-gray-800">
-                                                            <div className="relative" ref={replyEmojiPickerRef}>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowReplyEmojiPicker(!showReplyEmojiPicker)}
-                                                                    className="flex items-center gap-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
-                                                                >
-                                                                    <SmilePlus className="w-4 h-4"/>
-                                                                </button>
-                                                                {showReplyEmojiPicker && (
-                                                                    <div className="absolute bottom-full mb-2 left-0 z-50 shadow-lg rounded-xl overflow-hidden">
-                                                                        <Picker
-                                                                            data={data}
-                                                                            onEmojiSelect={addReplyEmoji}
-                                                                            theme="auto"
-                                                                            previewPosition="none"
-                                                                            skinTonePosition="search"
-                                                                            perLine={7}
-                                                                        />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => {setReplyingTo(null); setReplyText('');}}
-                                                                    className="text-gray-500 hover:text-gray-700 font-medium"
-                                                                >
-                                                                    {t('common.cancel')}
-                                                                </Button>
-                                                                <Button
-                                                                    type="button"
-                                                                    onClick={handleSubmitReply}
-                                                                    disabled={isSubmittingReply || !replyText.trim()}
-                                                                    size="sm"
-                                                                    className={`font-medium px-3 ${
-                                                                        replyText.trim()
-                                                                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                                                            : 'bg-transparent text-muted-foreground cursor-not-allowed'
-                                                                    }`}
-                                                                >
-                                                                    {isSubmittingReply ? (
-                                                                        <Loader2 className="w-4 h-4 animate-spin"/>
-                                                                    ) : (
-                                                                        t('common.reply')
-                                                                    )}
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="py-3">
-                                                <p className="text-sm text-gray-500 mb-2">{t('watch.pleaseLoginToReply')}</p>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => navigate({to: '/auth/signin'})}
-                                                    className="border-blue-600 text-info hover:bg-blue-50"
-                                                >
-                                                    <LogIn className="w-4 h-4 mr-2"/>
-                                                    {t('auth.signin')}
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                    {comments.map(comment => (
+                        <CommentItem
+                            key={comment.id}
+                            comment={comment}
+                            depth={0}
+                            expandedReplies={expandedReplies}
+                            toggleReplies={toggleReplies}
+                            commentLikes={commentLikes}
+                            likingComments={likingComments}
+                            replyingTo={replyingTo}
+                            replyText={replyText}
+                            showReplyEmojiPicker={showReplyEmojiPicker}
+                            isAuthenticated={isAuthenticated}
+                            user={user}
+                            isSubmittingReply={isSubmittingReply}
+                            deletingCommentId={deletingCommentId}
+                            t={t}
+                            navigate={navigate}
+                            onLike={handleLikeComment}
+                            onDislike={handleDislikeComment}
+                            onReply={handleReply}
+                            onDelete={handleDeleteComment}
+                            onReport={handleOpenReportDialog}
+                            onReplyTextChange={setReplyText}
+                            onSubmitReply={handleSubmitReply}
+                            onCancelReply={handleCancelReply}
+                            onToggleEmoji={() => setShowReplyEmojiPicker(!showReplyEmojiPicker)}
+                            onAddEmoji={addReplyEmoji}
+                            replyEmojiPickerRef={replyEmojiPickerRef}
+                            formatDate={formatDate}
+                            userAvatar={userAvatar}
+                            userInitial={userInitial}
+                        />
                     ))}
                 </div>
             )}
@@ -733,12 +815,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                         {loadingMore ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin"/>
-                                <span>{t('watch.loading')}</span>
+                                <span>{t('watch.loading', 'Loading...')}</span>
                             </>
                         ) : (
                             <>
-                                {t('watch.loadMore')}
-                                <span className="text-xs text-gray-500">({Math.max(0, total - comments.length)} remaining)</span>
+                                {t('watch.loadMore', 'Load more')}
+                                <span className="text-xs text-gray-500">({Math.max(0, total - allFlatComments.length)} remaining)</span>
                             </>
                         )}
                     </button>
