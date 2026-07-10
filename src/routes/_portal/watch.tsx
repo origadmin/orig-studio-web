@@ -11,7 +11,7 @@ const PageLoader = () => (
 );
 
 export const Route = createFileRoute('/_portal/watch')({
-    validateSearch: (search: Record<string, unknown>) => {
+    validateSearch: (search: Record<string, unknown>): { v: string | undefined; autoplay?: string | undefined } => {
         const v = search.v ? String(search.v).replace(/["']/g, '').trim() : undefined;
         const autoplay = search.autoplay ? String(search.autoplay).replace(/["']/g, '').trim() : undefined;
         return { v, autoplay };

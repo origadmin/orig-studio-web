@@ -298,14 +298,15 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
     };
 
     const handleAddToPlaylist = async (playlistId: string) => {
-        // Skip if already added to this playlist
         if (addedPlaylistIds.has(playlistId)) return;
         try {
             setIsSaving(true);
-            await playlistApi.addMedia(playlistId, mediaId);
+            await playlistApi.addMedia(playlistId, apiIdentifier);
             setAddedPlaylistIds(prev => new Set(prev).add(playlistId));
+            toast.success(t('watch.addedToPlaylist'));
         } catch (err) {
             console.error('Failed to add to playlist:', err);
+            toast.error(t('common.error'));
         } finally {
             setIsSaving(false);
         }
@@ -319,15 +320,17 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
             const result = await playlistApi.create({title: newPlaylistName.trim()});
             const newPlaylist = result.playlist;
             if (newPlaylist && newPlaylist.id) {
-                await playlistApi.addMedia(newPlaylist.id, mediaId);
+                await playlistApi.addMedia(newPlaylist.id, apiIdentifier);
                 const playlistId = String(newPlaylist.id);
                 setPlaylists(prev => [...prev, {id: playlistId, name: newPlaylist.title || newPlaylistName.trim()}]);
                 setAddedPlaylistIds(prev => new Set(prev).add(playlistId));
+                toast.success(t('watch.playlistCreated'));
             }
             setNewPlaylistName('');
             setShowCreateForm(false);
         } catch (err) {
             console.error('Failed to create playlist:', err);
+            toast.error(t('common.error'));
         } finally {
             setIsCreatingPlaylist(false);
         }
@@ -336,12 +339,15 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
     const handleDownload = async () => {
         try {
             setIsDownloading(true);
-            const response = await mediaApi.download(mediaId);
+            const response = await mediaApi.download(apiIdentifier);
             if (response.download_url) {
                 window.open(response.download_url, '_blank');
+            } else {
+                toast.info(t('watch.downloadNotAvailable'));
             }
         } catch (err) {
             console.error('Failed to download:', err);
+            toast.error(t('common.error'));
         } finally {
             setIsDownloading(false);
         }
@@ -367,13 +373,13 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
 
     return (
         <div className="flex items-center gap-2 flex-wrap">
-            {/* Like Button */}
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+            {/* Like/Dislike Buttons */}
+            <div className="flex items-center bg-muted rounded-full overflow-hidden">
                 <Button
                     variant="ghost"
                     size="sm"
                     className={`flex items-center gap-2 rounded-none px-4 ${
-                        isLiked ? 'text-info bg-blue-50 dark:bg-blue-900/20' : 'text-gray-700 dark:text-gray-300'
+                        isLiked ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'text-foreground'
                     }`}
                     onClick={handleLike}
                     disabled={isLiking}
@@ -385,12 +391,12 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     )}
                     <span className="font-medium">{formatViews(likeCount)}</span>
                 </Button>
-                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"/>
+                <div className="w-px h-4 bg-border"/>
                 <Button
                     variant="ghost"
                     size="sm"
                     className={`flex items-center rounded-none px-3 ${
-                        isDisliked ? 'text-destructive bg-red-50 dark:bg-red-900/20' : 'text-gray-700 dark:text-gray-300'
+                        isDisliked ? 'text-destructive bg-red-50 dark:bg-red-900/20' : 'text-foreground'
                     }`}
                     onClick={handleDislike}
                     disabled={isDisliking}
@@ -403,12 +409,25 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 </Button>
             </div>
 
+            {/* Comment Button */}
+            {onCommentClick && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2 rounded-full px-4 text-foreground bg-muted"
+                    onClick={onCommentClick}
+                >
+                    <MessageCircle className="w-4 h-4"/>
+                    <span className="font-medium">{formatViews(commentCount)}</span>
+                </Button>
+            )}
+
             {/* Favorite Button */}
             <Button
                 variant="ghost"
                 size="sm"
                 className={`flex items-center gap-2 rounded-full px-4 ${
-                    isFavorited ? 'text-success bg-green-50 dark:bg-green-900/20' : 'text-gray-700 dark:text-gray-300'
+                    isFavorited ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' : 'text-foreground bg-muted'
                 }`}
                 onClick={handleFavorite}
                 disabled={isFavoriting}
@@ -418,15 +437,14 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 ) : (
                     <Bookmark className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`}/>
                 )}
-                <span
-                    className="font-medium">{isFavorited ? t('watch.favorited') : t('watch.favorite')}</span>
+                <span className="font-medium">{isFavorited ? t('watch.favorited') : t('watch.favorite')}</span>
             </Button>
 
             {/* Share Button */}
             <Button
                 variant="ghost"
                 size="sm"
-                className="flex items-center gap-2 rounded-full px-4 text-gray-700 dark:text-gray-300"
+                className="flex items-center gap-2 rounded-full px-4 text-foreground bg-muted"
                 onClick={handleShare}
                 disabled={isSharing}
             >
@@ -444,7 +462,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-full px-3 text-gray-700 dark:text-gray-300"
+                        className="rounded-full px-3 text-foreground bg-muted"
                     >
                         <span className="sr-only">More actions</span>
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -455,14 +473,14 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={fetchPlaylists}>
-                        <Bookmark className="w-4 h-4 mr-2"/>
+                        <BookmarkPlus className="w-4 h-4 mr-2"/>
                         {t('watch.saveToPlaylist')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDownload} disabled={isDownloading}>
                         <Download className="w-4 h-4 mr-2"/>
-                        {isDownloading ? t('common.loading') : (t('watch.download'))}
+                        {isDownloading ? t('common.loading') : t('watch.download')}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator/>
                     <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
                         <Flag className="w-4 h-4 mr-2"/>
                         {t('report.reportVideo')}

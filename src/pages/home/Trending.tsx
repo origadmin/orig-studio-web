@@ -1,10 +1,15 @@
 import {useState, useEffect} from 'react';
 import {Link} from '@tanstack/react-router';
-import {TrendingUp, Play, Eye, Heart, Clock} from 'lucide-react';
-import {exploreApi} from '../../lib/api/explore';
-import type {TrendingItem} from '../../lib/api/explore';
+import {TrendingUp, Play, Eye, Heart} from 'lucide-react';
+import {useTranslation} from 'react-i18next';
+import {Spinner} from '@/components/ui/spinner';
+import {exploreApi} from '@/lib/api/explore';
+import type {TrendingItem} from '@/lib/api/explore';
+import {getImageUrl, handleImageError} from '@/lib/imageUtils';
+import {formatViews, formatDuration} from '@/lib/format';
 
 export default function Trending() {
+    const {t} = useTranslation();
     const [items, setItems] = useState<TrendingItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -18,34 +23,19 @@ export default function Trending() {
             .finally(() => setLoading(false));
     }, []);
 
-    const formatCount = (n: number) => {
-        if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
-        if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
-        return String(n);
-    };
-
-    const formatDuration = (seconds?: number) => {
-        if (!seconds) return '--:--';
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        return `${m}:${String(s).padStart(2, '0')}`;
-    };
-
     if (loading) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="flex items-center gap-3 mb-8">
-                    <TrendingUp className="w-8 h-8 text-emerald-500"/>
-                    <h1 className="text-2xl font-bold">热门内容</h1>
+            <div className="space-y-6">
+                <div className="flex items-center gap-3">
+                    <TrendingUp size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('trending.title', 'Trending')}</h1>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                     {Array.from({length: 12}).map((_, i) => (
                         <div key={i} className="animate-pulse">
-                            <div className="aspect-video bg-muted dark:bg-gray-800 rounded-lg mb-3"/>
-                            <div className="h-4 bg-muted dark:bg-gray-800 rounded w-3/4 mb-2"/>
-                            <div className="h-3 bg-muted dark:bg-gray-800 rounded w-1/2"/>
+                            <div className="aspect-video bg-muted rounded-card mb-3"/>
+                            <div className="h-4 bg-muted rounded w-3/4 mb-2"/>
+                            <div className="h-3 bg-muted rounded w-1/2"/>
                         </div>
                     ))}
                 </div>
@@ -55,63 +45,70 @@ export default function Trending() {
 
     if (error) {
         return (
-            <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-                <p className="text-destructive">{error}</p>
+            <div className="text-center py-16 text-destructive">
+                <p>{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex items-center justify-between mb-8">
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <TrendingUp className="w-8 h-8 text-emerald-500"/>
-                    <h1 className="text-2xl font-bold">热门内容</h1>
+                    <TrendingUp size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('trending.title', 'Trending')}</h1>
                 </div>
-                <span className="text-sm text-gray-500">共 {items.length} 个结果</span>
+                <span className="text-sm text-muted-foreground">{t('trending.resultCount', {count: items.length})}</span>
             </div>
 
             {items.length === 0 ? (
-                <div className="text-center py-16 text-gray-500">
-                    暂无热门内容
+                <div className="text-center py-16 text-muted-foreground">
+                    {t('trending.noResults', 'No trending content')}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                     {items.map((item) => (
                         <Link
                             key={item.id}
                             to="/watch"
                             search={{v: item.short_token}}
-                            className="group block"
+                            className="group"
                         >
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted dark:bg-gray-800 mb-3">
-                                {item.thumbnail ? (
+                            <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                                <div className="relative aspect-video overflow-hidden">
                                     <img
-                                        src={item.thumbnail}
+                                        src={getImageUrl(item.thumbnail, 'thumbnail')}
                                         alt={item.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                        onError={(e) => handleImageError(e, 'thumbnail')}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         loading="lazy"
                                     />
-                                ) : null}
-                                {item.duration ? (
-                                    <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-0.5 rounded">
-                                        {formatDuration(item.duration)}
-                                    </span>
-                                ) : null}
-                                <Play className="absolute inset-0 m-auto w-12 h-12 text-white opacity-0 group-hover:opacity-80 transition-opacity pointer-events-none"/>
-                            </div>
-                            <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                                {item.title}
-                            </h3>
-                            <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500">
-                                <span className="flex items-center gap-1">
-                                    <Eye size={12}/>
-                                    {formatCount(item.view_count)}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Heart size={12}/>
-                                    {formatCount(item.like_count)}
-                                </span>
+                                    {item.duration ? (
+                                        <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-1.5 py-0.5 rounded">
+                                            {formatDuration(item.duration)}
+                                        </span>
+                                    ) : null}
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
+                                            <Play className="w-5 h-5 text-gray-900 ml-0.5" fill="currentColor"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-3">
+                                    <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">
+                                        {item.title}
+                                    </h3>
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                            <Eye size={12}/>
+                                            {formatViews(item.view_count)}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Heart size={12}/>
+                                            {formatViews(item.like_count)}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </Link>
                     ))}

@@ -30,16 +30,17 @@ const PortalLayout = () => {
         localStorage.setItem('sidebarCollapsed', String(next));
     };
 
+    const sidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 240) : 0;
+
     return (
         <div className="min-h-screen bg-background transition-colors flex flex-col">
             <Header
                 onToggleSidebar={toggleSidebar}
+                onOpenMobileSidebar={toggleSidebar}
                 sidebarCollapsed={sidebarCollapsed}
                 darkMode={isDark}
                 onToggleDarkMode={toggleDark}
             />
-
-            <CategoryChips/>
 
             <Sidebar
                 collapsed={sidebarCollapsed}
@@ -47,12 +48,19 @@ const PortalLayout = () => {
             />
 
             <main
-                className="pt-14 min-h-screen transition-all duration-300 bg-background relative z-10 flex-1"
+                className="min-h-screen transition-all duration-300 bg-background relative z-10 flex-1 flex flex-col"
                 style={{
-                    marginLeft: isDesktop ? (sidebarCollapsed ? 72 : 240) : 0
+                    marginLeft: sidebarWidth,
+                    paddingTop: 56,
                 }}
             >
-                <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6">
+                <div
+                    className="sticky top-14 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40"
+                    style={{marginLeft: -sidebarWidth, paddingLeft: sidebarWidth}}
+                >
+                    <CategoryChips embedded={true}/>
+                </div>
+                <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 flex-1">
                     <Outlet/>
                 </div>
                 <Footer/>

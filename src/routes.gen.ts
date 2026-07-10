@@ -24,6 +24,7 @@ import { Route as PortalLatestRouteImport } from "./routes/_portal/latest";
 import { Route as PortalFeaturedRouteImport } from "./routes/_portal/featured";
 import { Route as PortalExploreRouteImport } from "./routes/_portal/explore";
 import { Route as PortalCookiesRouteImport } from "./routes/_portal/cookies";
+import { Route as PortalChannelsRouteImport } from "./routes/_portal/channels";
 import { Route as PortalCategoriesRouteImport } from "./routes/_portal/categories";
 import { Route as PortalAboutRouteImport } from "./routes/_portal/about";
 import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
@@ -158,6 +159,11 @@ const PortalExploreRoute = PortalExploreRouteImport.update({
 const PortalCookiesRoute = PortalCookiesRouteImport.update({
   id: "/cookies",
   path: "/cookies",
+  getParentRoute: () => PortalRouteRoute,
+} as any);
+const PortalChannelsRoute = PortalChannelsRouteImport.update({
+  id: "/channels",
+  path: "/channels",
   getParentRoute: () => PortalRouteRoute,
 } as any);
 const PortalCategoriesRoute = PortalCategoriesRouteImport.update({
@@ -522,6 +528,7 @@ export interface FileRoutesByFullPath {
   "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
+  "/channels": typeof PortalChannelsRoute;
   "/cookies": typeof PortalCookiesRoute;
   "/explore": typeof PortalExploreRoute;
   "/featured": typeof PortalFeaturedRoute;
@@ -597,6 +604,7 @@ export interface FileRoutesByTo {
   "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
+  "/channels": typeof PortalChannelsRoute;
   "/cookies": typeof PortalCookiesRoute;
   "/explore": typeof PortalExploreRoute;
   "/featured": typeof PortalFeaturedRoute;
@@ -672,6 +680,7 @@ export interface FileRoutesById {
   "/_portal/$handle": typeof PortalHandleRoute;
   "/_portal/about": typeof PortalAboutRoute;
   "/_portal/categories": typeof PortalCategoriesRoute;
+  "/_portal/channels": typeof PortalChannelsRoute;
   "/_portal/cookies": typeof PortalCookiesRoute;
   "/_portal/explore": typeof PortalExploreRoute;
   "/_portal/featured": typeof PortalFeaturedRoute;
@@ -751,6 +760,7 @@ export interface FileRouteTypes {
     | "/$handle"
     | "/about"
     | "/categories"
+    | "/channels"
     | "/cookies"
     | "/explore"
     | "/featured"
@@ -826,6 +836,7 @@ export interface FileRouteTypes {
     | "/$handle"
     | "/about"
     | "/categories"
+    | "/channels"
     | "/cookies"
     | "/explore"
     | "/featured"
@@ -900,6 +911,7 @@ export interface FileRouteTypes {
     | "/_portal/$handle"
     | "/_portal/about"
     | "/_portal/categories"
+    | "/_portal/channels"
     | "/_portal/cookies"
     | "/_portal/explore"
     | "/_portal/featured"
@@ -1083,6 +1095,13 @@ declare module "@tanstack/react-router" {
       path: "/cookies";
       fullPath: "/cookies";
       preLoaderRoute: typeof PortalCookiesRouteImport;
+      parentRoute: typeof PortalRouteRoute;
+    };
+    "/_portal/channels": {
+      id: "/_portal/channels";
+      path: "/channels";
+      fullPath: "/channels";
+      preLoaderRoute: typeof PortalChannelsRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
     "/_portal/categories": {
@@ -1526,6 +1545,7 @@ interface PortalRouteRouteChildren {
   PortalHandleRoute: typeof PortalHandleRoute;
   PortalAboutRoute: typeof PortalAboutRoute;
   PortalCategoriesRoute: typeof PortalCategoriesRoute;
+  PortalChannelsRoute: typeof PortalChannelsRoute;
   PortalCookiesRoute: typeof PortalCookiesRoute;
   PortalExploreRoute: typeof PortalExploreRoute;
   PortalFeaturedRoute: typeof PortalFeaturedRoute;
@@ -1548,6 +1568,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalHandleRoute: PortalHandleRoute,
   PortalAboutRoute: PortalAboutRoute,
   PortalCategoriesRoute: PortalCategoriesRoute,
+  PortalChannelsRoute: PortalChannelsRoute,
   PortalCookiesRoute: PortalCookiesRoute,
   PortalExploreRoute: PortalExploreRoute,
   PortalFeaturedRoute: PortalFeaturedRoute,

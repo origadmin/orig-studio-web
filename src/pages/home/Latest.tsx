@@ -11,7 +11,7 @@ import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {useMediaList, useCategoryList} from '@/hooks/queries';
-import {getFullUrl} from '@/lib/utils';
+import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import ErrorPage from '@/components/common/ErrorPage';
 
 const PAGE_SIZE = 12;
@@ -113,8 +113,12 @@ const LatestPage = () => {
                         <div
                             className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                             <div className="relative aspect-video overflow-hidden">
-                                <img src={media.thumbnail ? getFullUrl(media.thumbnail) : undefined} alt={media.title}
-                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                                <img
+                                    src={getImageUrl(media.thumbnail, 'thumbnail')}
+                                    alt={media.title}
+                                    onError={(e) => handleImageError(e, 'thumbnail')}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
                                 <div
                                     className="absolute bottom-2 right-2 bg-black/80 text-white text-xs font-medium px-1.5 py-0.5 rounded">
                                     {formatDuration(media.duration)}
@@ -133,9 +137,11 @@ const LatestPage = () => {
                                 </h3>
                                 <div className="flex items-center gap-2 mb-1">
                                     <img
-                                        src={media.edges?.user?.[0]?.avatar ? getFullUrl(media.edges.user[0].avatar) : undefined}
-                                         alt={media.edges?.user?.[0]?.username}
-                                         className="w-5 h-5 rounded-full object-cover"/>
+                                        src={getImageUrl(media.edges?.user?.[0]?.avatar, 'avatar')}
+                                        alt={media.edges?.user?.[0]?.username}
+                                        onError={(e) => handleImageError(e, 'avatar')}
+                                        className="w-5 h-5 rounded-full object-cover"
+                                    />
                                     <span
                                         className="text-xs text-muted-foreground">{media.edges?.user?.[0]?.username || 'Unknown'}</span>
                                 </div>
