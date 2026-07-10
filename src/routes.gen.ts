@@ -15,6 +15,7 @@ import { Route as PortalIndexRouteImport } from "./routes/_portal/index";
 import { Route as AuthSignupRouteImport } from "./routes/auth/signup";
 import { Route as AuthSigninRouteImport } from "./routes/auth/signin";
 import { Route as PortalWatchRouteImport } from "./routes/_portal/watch";
+import { Route as PortalTrendingRouteImport } from "./routes/_portal/trending";
 import { Route as PortalTermsRouteImport } from "./routes/_portal/terms";
 import { Route as PortalTagsRouteImport } from "./routes/_portal/tags";
 import { Route as PortalSearchRouteImport } from "./routes/_portal/search";
@@ -114,6 +115,11 @@ const AuthSigninRoute = AuthSigninRouteImport.update({
 const PortalWatchRoute = PortalWatchRouteImport.update({
   id: "/watch",
   path: "/watch",
+  getParentRoute: () => PortalRouteRoute,
+} as any);
+const PortalTrendingRoute = PortalTrendingRouteImport.update({
+  id: "/trending",
+  path: "/trending",
   getParentRoute: () => PortalRouteRoute,
 } as any);
 const PortalTermsRoute = PortalTermsRouteImport.update({
@@ -538,6 +544,7 @@ export interface FileRoutesByFullPath {
   "/search": typeof PortalSearchRoute;
   "/tags": typeof PortalTagsRoute;
   "/terms": typeof PortalTermsRoute;
+  "/trending": typeof PortalTrendingRoute;
   "/watch": typeof PortalWatchRoute;
   "/auth/signin": typeof AuthSigninRoute;
   "/auth/signup": typeof AuthSignupRoute;
@@ -614,6 +621,7 @@ export interface FileRoutesByTo {
   "/search": typeof PortalSearchRoute;
   "/tags": typeof PortalTagsRoute;
   "/terms": typeof PortalTermsRoute;
+  "/trending": typeof PortalTrendingRoute;
   "/watch": typeof PortalWatchRoute;
   "/auth/signin": typeof AuthSigninRoute;
   "/auth/signup": typeof AuthSignupRoute;
@@ -690,6 +698,7 @@ export interface FileRoutesById {
   "/_portal/search": typeof PortalSearchRoute;
   "/_portal/tags": typeof PortalTagsRoute;
   "/_portal/terms": typeof PortalTermsRoute;
+  "/_portal/trending": typeof PortalTrendingRoute;
   "/_portal/watch": typeof PortalWatchRoute;
   "/auth/signin": typeof AuthSigninRoute;
   "/auth/signup": typeof AuthSignupRoute;
@@ -770,6 +779,7 @@ export interface FileRouteTypes {
     | "/search"
     | "/tags"
     | "/terms"
+    | "/trending"
     | "/watch"
     | "/auth/signin"
     | "/auth/signup"
@@ -846,6 +856,7 @@ export interface FileRouteTypes {
     | "/search"
     | "/tags"
     | "/terms"
+    | "/trending"
     | "/watch"
     | "/auth/signin"
     | "/auth/signup"
@@ -921,6 +932,7 @@ export interface FileRouteTypes {
     | "/_portal/search"
     | "/_portal/tags"
     | "/_portal/terms"
+    | "/_portal/trending"
     | "/_portal/watch"
     | "/auth/signin"
     | "/auth/signup"
@@ -1032,6 +1044,13 @@ declare module "@tanstack/react-router" {
       path: "/watch";
       fullPath: "/watch";
       preLoaderRoute: typeof PortalWatchRouteImport;
+      parentRoute: typeof PortalRouteRoute;
+    };
+    "/_portal/trending": {
+      id: "/_portal/trending";
+      path: "/trending";
+      fullPath: "/trending";
+      preLoaderRoute: typeof PortalTrendingRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
     "/_portal/terms": {
@@ -1555,6 +1574,7 @@ interface PortalRouteRouteChildren {
   PortalSearchRoute: typeof PortalSearchRoute;
   PortalTagsRoute: typeof PortalTagsRoute;
   PortalTermsRoute: typeof PortalTermsRoute;
+  PortalTrendingRoute: typeof PortalTrendingRoute;
   PortalWatchRoute: typeof PortalWatchRoute;
   PortalIndexRoute: typeof PortalIndexRoute;
   PortalCIdRoute: typeof PortalCIdRoute;
@@ -1578,6 +1598,7 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalSearchRoute: PortalSearchRoute,
   PortalTagsRoute: PortalTagsRoute,
   PortalTermsRoute: PortalTermsRoute,
+  PortalTrendingRoute: PortalTrendingRoute,
   PortalWatchRoute: PortalWatchRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCIdRoute: PortalCIdRoute,

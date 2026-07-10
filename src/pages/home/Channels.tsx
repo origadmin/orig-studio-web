@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Tv, Users, Video, Search} from 'lucide-react';
+import {Tv, Users, Video} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
@@ -13,11 +13,12 @@ const PAGE_SIZE = 24;
 
 const ChannelCard: React.FC<{channel: Channel}> = ({channel}) => {
     const displayName = channel.name || channel.title || 'Channel';
+    const channelId = channel.short_token || channel.id;
     return (
         <Link
-            to="/c/$id"
-            params={{id: channel.short_token}}
-            className="group flex flex-col items-center p-5 bg-card border border-border rounded-card hover:shadow-md transition-all hover:-translate-y-0.5"
+            to={channel.short_token ? "/c/$id" : "/u/$id"}
+            params={{id: String(channelId)}}
+            className="group flex flex-col items-center p-5 bg-card border border-border rounded-xl hover:shadow-md transition-all hover:-translate-y-0.5"
         >
             <Avatar className="w-24 h-24 mb-3 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
                 <AvatarImage
@@ -40,7 +41,7 @@ const ChannelCard: React.FC<{channel: Channel}> = ({channel}) => {
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                     <Users size={12}/>
-                    {formatViews(channel.subscriber_count)}
+                    {formatViews(channel.subscriber_count ?? 0)}
                 </span>
                 <span className="flex items-center gap-1">
                     <Video size={12}/>
@@ -59,21 +60,16 @@ const ChannelsPage = () => {
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
     const [hasMore, setHasMore] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchChannels = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const params: Record<string, unknown> = {
+                const response = await channelApi.getAll({
                     page,
-                    limit: PAGE_SIZE,
-                };
-                if (searchQuery) {
-                    params.keyword = searchQuery;
-                }
-                const response = await channelApi.list(params);
+                    page_size: PAGE_SIZE,
+                });
                 const items = response?.items || [];
                 if (page === 1) {
                     setChannels(items);
@@ -90,13 +86,7 @@ const ChannelsPage = () => {
             }
         };
         fetchChannels();
-    }, [page, searchQuery, t]);
-
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setPage(1);
-        setChannels([]);
-    };
+    }, [page, t]);
 
     if (error && channels.length === 0) {
         return (
@@ -126,20 +116,9 @@ const ChannelsPage = () => {
                     <h1 className="text-2xl font-bold text-foreground">{t('channels.title', 'Channels')}</h1>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                    {t('channels.channelCount', {count: total})}
+                    {total} {t('channels.channels', 'channels')}
                 </span>
             </div>
-
-            <form onSubmit={handleSearch} className="relative max-w-md">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={t('channels.searchPlaceholder', 'Search channels...')}
-                    className="w-full bg-card border border-border rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
-                />
-            </form>
 
             {loading && channels.length === 0 ? (
                 <div className="flex items-center justify-center py-16">

@@ -2,7 +2,6 @@ import React, {useState, useCallback} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {
     Settings,
     Upload,
@@ -15,6 +14,7 @@ import {
     ChevronDown,
     Check,
     Link2,
+    Bell,
 } from 'lucide-react';
 import {
     DropdownMenu,

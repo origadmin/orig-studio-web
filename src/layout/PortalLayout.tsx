@@ -54,10 +54,7 @@ const PortalLayout = () => {
                     paddingTop: 56,
                 }}
             >
-                <div
-                    className="sticky top-14 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40"
-                    style={{marginLeft: -sidebarWidth, paddingLeft: sidebarWidth}}
-                >
+                <div className="sticky top-14 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
                     <CategoryChips embedded={true}/>
                 </div>
                 <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 flex-1">
