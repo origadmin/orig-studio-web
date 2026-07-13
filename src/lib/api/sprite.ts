@@ -40,4 +40,17 @@ export const spriteApi = {
     /** Trigger thumbnail regeneration at an optional timestamp (admin only, uses ID) */
     regenerateThumbnail: (id: string, data?: RegenerateThumbnailRequest) =>
         api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regenerate-thumbnail`, data),
+
+    /** Trigger thumbnail regeneration at a specific timestamp (owner only, uses short_token) */
+    regenerateOwnerThumbnail: (shortToken: string, data?: RegenerateThumbnailRequest) =>
+        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/regenerate-thumbnail`, data),
+
+    /** Upload a custom cover image (owner only, uses short_token) */
+    uploadCustomThumbnail: (shortToken: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/thumbnail`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'},
+        });
+    },
 };

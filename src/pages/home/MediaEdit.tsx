@@ -5,12 +5,14 @@ import {useAuth} from '@/hooks/useAuth';
 import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {MediaEditForm, type MediaEditFormState} from '@/components/common/MediaEditForm';
+import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
-import {AlertTriangle, ArrowLeft, Play} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, Play, Pencil} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl} from '@/lib/utils';
+import {useQueryClient} from '@tanstack/react-query';
 
 /**
  * Normalize privacy value from backend to a numeric enum value.
@@ -105,8 +107,11 @@ export default function MediaEditPage() {
     });
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [thumbnailDialogOpen, setThumbnailDialogOpen] = useState(false);
+    const [thumbnailVersion, setThumbnailVersion] = useState(Date.now());
     const [isDeleting, setIsDeleting] = useState(false);
     const {saveState, isSaving, setSaving, setSuccess, setError} = useSaveState();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (media) {
@@ -176,6 +181,11 @@ export default function MediaEditPage() {
     const handleBack = useCallback(() => {
         navigate({to: '/watch', search: {v: shortToken}});
     }, [navigate, shortToken]);
+
+    const handleThumbnailSuccess = useCallback(() => {
+        setThumbnailVersion(Date.now());
+        queryClient.invalidateQueries({queryKey: ['public-media-detail', shortToken]});
+    }, [queryClient, shortToken]);
 
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
@@ -247,21 +257,43 @@ export default function MediaEditPage() {
 
                     <div className="space-y-6">
                         <div className="bg-card rounded-lg border p-4">
-                            <h3 className="font-medium mb-3">Preview</h3>
-                            {media.thumbnail ? (
-                                <img
-                                    src={getFullUrl(media.thumbnail)}
-                                    alt={media.title}
-                                    className="w-full aspect-video object-cover rounded-md"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                />
-                            ) : (
-                                <div className="w-full aspect-video bg-muted rounded-md flex items-center justify-center">
-                                    <Play className="w-8 h-8 text-muted-foreground"/>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-medium">Preview</h3>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setThumbnailDialogOpen(true)}
+                                    className="h-7 px-2 text-xs gap-1"
+                                >
+                                    <Pencil className="w-3 h-3"/>
+                                    更换封面
+                                </Button>
+                            </div>
+                            <div
+                                className="relative group cursor-pointer rounded-md overflow-hidden"
+                                onClick={() => setThumbnailDialogOpen(true)}
+                            >
+                                {media.thumbnail ? (
+                                    <img
+                                        src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`}
+                                        alt={media.title}
+                                        className="w-full aspect-video object-cover transition-opacity group-hover:opacity-80"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full aspect-video bg-muted flex items-center justify-center">
+                                        <Play className="w-8 h-8 text-muted-foreground"/>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-white text-sm font-medium">
+                                        <Pencil className="w-4 h-4"/>
+                                        点击更换封面
+                                    </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         <div className="bg-card rounded-lg border p-4 space-y-3">
@@ -295,6 +327,13 @@ export default function MediaEditPage() {
                 title={media.title || 'Untitled Media'}
                 isDeleting={isDeleting}
                 onConfirm={handleDelete}
+            />
+
+            <ThumbnailSelectDialog
+                open={thumbnailDialogOpen}
+                onOpenChange={setThumbnailDialogOpen}
+                media={media}
+                onSuccess={handleThumbnailSuccess}
             />
         </div>
     );
