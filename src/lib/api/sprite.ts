@@ -53,4 +53,13 @@ export const spriteApi = {
             headers: {'Content-Type': 'multipart/form-data'},
         });
     },
+
+    /** Upload a custom cover image (admin only, uses database ID) */
+    uploadAdminCustomThumbnail: (id: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/thumbnail`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'},
+        });
+    },
 };

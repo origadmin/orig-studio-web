@@ -32,6 +32,7 @@ interface ThumbnailSelectDialogProps {
         sprite_path?: string;
         duration?: number;
     };
+    mode?: 'owner' | 'admin';
     onSuccess?: (newThumbnail?: string) => void;
 }
 
@@ -39,6 +40,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
     open,
     onOpenChange,
     media,
+    mode = 'owner',
     onSuccess,
 }) => {
     const [activeTab, setActiveTab] = useState<string>('frames');
@@ -113,7 +115,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
     }, [customPreview]);
 
     const handleSubmit = useCallback(async () => {
-        if (!media.short_token) {
+        if (mode === 'owner' && !media.short_token) {
             toast.error('无法获取视频标识');
             return;
         }
@@ -125,7 +127,9 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
             setIsSubmitting(true);
             try {
                 const timestamp = selectedCue.startTime + (selectedCue.endTime - selectedCue.startTime) / 2;
-                const res = await spriteApi.regenerateOwnerThumbnail(media.short_token, {timestamp});
+                const res = mode === 'admin'
+                    ? await spriteApi.regenerateThumbnail(media.id, {timestamp})
+                    : await spriteApi.regenerateOwnerThumbnail(media.short_token!, {timestamp});
                 toast.success('封面已更新');
                 if (onSuccess && res?.thumbnail) {
                     onSuccess(res.thumbnail);
@@ -146,7 +150,9 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
             }
             setIsSubmitting(true);
             try {
-                const res = await spriteApi.uploadCustomThumbnail(media.short_token, customFile);
+                const res = mode === 'admin'
+                    ? await spriteApi.uploadAdminCustomThumbnail(media.id, customFile)
+                    : await spriteApi.uploadCustomThumbnail(media.short_token!, customFile);
                 toast.success('封面已更新');
                 if (onSuccess && res?.thumbnail) {
                     onSuccess(res.thumbnail);
@@ -161,7 +167,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 setIsSubmitting(false);
             }
         }
-    }, [activeTab, selectedCue, customFile, media.short_token, onSuccess, onOpenChange]);
+    }, [mode, activeTab, selectedCue, customFile, media.id, media.short_token, onSuccess, onOpenChange]);
 
     const handleClose = useCallback(() => {
         if (isSubmitting) return;

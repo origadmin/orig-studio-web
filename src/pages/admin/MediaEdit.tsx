@@ -23,10 +23,12 @@ import {Switch} from '@/components/ui/switch';
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
+import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save} from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {toast} from 'sonner';
+import {useQueryClient} from '@tanstack/react-query';
 import type {Media} from '@/lib/api/media';
 
 /**
@@ -230,6 +232,9 @@ export default function MediaEditPage() {
     const [profiles, setProfiles] = useState<Map<number, EncodeProfile>>(new Map());
     const [activeTab, setActiveTab] = useState<string>('metadata');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [thumbnailDialogOpen, setThumbnailDialogOpen] = useState(false);
+    const [thumbnailVersion, setThumbnailVersion] = useState(Date.now());
+    const queryClient = useQueryClient();
     const [isDeleting, setIsDeleting] = useState(false);
     const [thumbnailError, setThumbnailError] = useState(false);
     const [regenThumbnailConfirmOpen, setRegenThumbnailConfirmOpen] = useState(false);
@@ -396,6 +401,11 @@ export default function MediaEditPage() {
             setRegenSpriteConfirmOpen(false);
         }
     };
+
+    const handleThumbnailSuccess = useCallback(() => {
+        setThumbnailVersion(Date.now());
+        queryClient.invalidateQueries({queryKey: ['admin-media-detail', id]});
+    }, [queryClient, id]);
 
     // Compute header badges from media
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, t) : [], [media, t]);
@@ -724,9 +734,9 @@ export default function MediaEditPage() {
                                                        onChange={e => setForm({...form, title: e.target.value})}
                                                        placeholder={t('mediaEdit.titlePlaceholder', '输入媒体标题...')}/>
                                             </div>
-                                            <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors">
+                                            <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors" onClick={() => setThumbnailDialogOpen(true)}>
                                                 {media.thumbnail && !thumbnailError ? (
-                                                    <img src={getFullUrl(media.thumbnail)} alt={media.title}
+                                                    <img src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`} alt={media.title}
                                                          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
                                                          onError={() => setThumbnailError(true)}/>
                                                 ) : null}
@@ -1213,6 +1223,14 @@ export default function MediaEditPage() {
                 title={media.title || t('mediaEdit.unnamedMedia', '未命名媒体')}
                 isDeleting={isDeleting}
                 onConfirm={handleDelete}
+            />
+
+            <ThumbnailSelectDialog
+                open={thumbnailDialogOpen}
+                onOpenChange={setThumbnailDialogOpen}
+                media={media}
+                mode="admin"
+                onSuccess={handleThumbnailSuccess}
             />
         </div>
     );
