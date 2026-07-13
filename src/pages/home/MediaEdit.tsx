@@ -182,10 +182,19 @@ export default function MediaEditPage() {
         navigate({to: '/watch', search: {v: shortToken}});
     }, [navigate, shortToken]);
 
-    const handleThumbnailSuccess = useCallback(() => {
+    const handleThumbnailSuccess = useCallback((newThumbnail?: string) => {
         setThumbnailVersion(Date.now());
-        queryClient.invalidateQueries({queryKey: ['public-media-detail', shortToken]});
-    }, [queryClient, shortToken]);
+        if (newThumbnail && media) {
+            const cleanToken = String(shortToken).replace(/["']/g, '').trim();
+            queryClient.setQueryData(['publicMedia', 'detail', cleanToken], {
+                ...media,
+                thumbnail: newThumbnail,
+            });
+        }
+        const cleanToken = String(shortToken).replace(/["']/g, '').trim();
+        queryClient.invalidateQueries({queryKey: ['publicMedia', 'detail', cleanToken]});
+        queryClient.invalidateQueries({queryKey: ['public-media-list']});
+    }, [queryClient, shortToken, media]);
 
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 

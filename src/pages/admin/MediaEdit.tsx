@@ -402,10 +402,19 @@ export default function MediaEditPage() {
         }
     };
 
-    const handleThumbnailSuccess = useCallback(() => {
+    const handleThumbnailSuccess = useCallback((newThumbnail?: string) => {
+        setThumbnailError(false);
         setThumbnailVersion(Date.now());
-        queryClient.invalidateQueries({queryKey: ['admin-media-detail', id]});
-    }, [queryClient, id]);
+        if (newThumbnail && media) {
+            queryClient.setQueryData(['adminMedia', 'detail', String(id)], {
+                ...media,
+                thumbnail: newThumbnail,
+            });
+        }
+        queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
+        queryClient.invalidateQueries({queryKey: ['admin-media-list']});
+        queryClient.invalidateQueries({queryKey: ['publicMedia', 'detail']});
+    }, [queryClient, id, media]);
 
     // Compute header badges from media
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, t) : [], [media, t]);
