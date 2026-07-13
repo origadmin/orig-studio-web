@@ -301,7 +301,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
         if (addedPlaylistIds.has(playlistId)) return;
         try {
             setIsSaving(true);
-            await playlistApi.addMedia(playlistId, apiIdentifier);
+            await playlistApi.addMedia(playlistId, mediaId);
             setAddedPlaylistIds(prev => new Set(prev).add(playlistId));
             toast.success(t('watch.addedToPlaylist'));
         } catch (err) {
@@ -320,7 +320,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
             const result = await playlistApi.create({title: newPlaylistName.trim()});
             const newPlaylist = result.playlist;
             if (newPlaylist && newPlaylist.id) {
-                await playlistApi.addMedia(newPlaylist.id, apiIdentifier);
+                await playlistApi.addMedia(newPlaylist.id, mediaId);
                 const playlistId = String(newPlaylist.id);
                 setPlaylists(prev => [...prev, {id: playlistId, name: newPlaylist.title || newPlaylistName.trim()}]);
                 setAddedPlaylistIds(prev => new Set(prev).add(playlistId));
@@ -355,11 +355,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
 
     const handleReport = async (data: { reason: string; description?: string }) => {
         try {
-            if (usePublicApi) {
-                await publicMediaApi.report(apiIdentifier, data);
-            } else {
-                await mediaApi.report(mediaId, data);
-            }
+            await mediaApi.report(mediaId, data);
             toast.success(t('report.submitted'));
         } catch (err: any) {
             throw err;
