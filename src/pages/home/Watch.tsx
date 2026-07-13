@@ -242,7 +242,7 @@ const WatchPage = () => {
 
                 {/* Video Info */}
                 <div className="mt-6 space-y-4">
-                    <h1 className="text-2xl font-bold text-foreground line-clamp-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground line-clamp-2">
                         <HashtagText text={media.title} />
                     </h1>
 
@@ -330,10 +330,11 @@ const WatchPage = () => {
 
                     {/* Meta & Description */}
                     <Card
-                        className="bg-muted border-none shadow-none rounded-card overflow-hidden mt-4">
+                        className="bg-muted/50 border border-border/40 shadow-none rounded-xl overflow-hidden mt-4">
                         <CardContent className="p-4 space-y-2">
-                            <div className="flex gap-3 text-sm font-bold text-foreground">
+                            <div className="flex flex-wrap items-center gap-2 text-sm font-bold text-foreground">
                                 <span>{formatViews(media.view_count)} {t('watch.views')}</span>
+                                <span className="text-muted-foreground/60">•</span>
                                 <span>{formatDate(media.create_time)}</span>
                                 {media.tags?.map(tag => (
                                     <Link
