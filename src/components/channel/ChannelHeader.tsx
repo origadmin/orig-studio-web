@@ -31,6 +31,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from '@/components/ui/avatar';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import SubscribeButton from './SubscribeButton';
 import NotificationBell from './NotificationBell';
