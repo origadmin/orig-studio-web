@@ -25,8 +25,8 @@ import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save} from 'lucide-react';
-import {formatDateTime} from '@/lib/format';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon} from 'lucide-react';
+import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {toast} from 'sonner';
 import {useQueryClient} from '@tanstack/react-query';
 import type {Media} from '@/lib/api/media';
@@ -505,6 +505,51 @@ export default function MediaEditPage() {
         );
     }
 
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success(t('common.copied', '已复制到剪贴板'));
+        } catch {
+            toast.error(t('common.copyFailed', '复制失败'));
+        }
+    };
+
+    const typeBadgeStyle = (type?: string) => {
+        switch (type) {
+            case 'video': return 'bg-primary/10 text-primary';
+            case 'image': return 'bg-success/10 text-success';
+            case 'audio': return 'bg-info/10 text-info';
+            default: return 'bg-muted text-muted-foreground';
+        }
+    };
+
+    const getCategoryName = () => {
+        if (media.category?.name) return media.category.name;
+        const catId = media.category_id;
+        if (catId && categoriesData?.items) {
+            const cat = categoriesData.items.find((c: any) => c.id === catId);
+            if (cat?.name) return cat.name;
+        }
+        return t('mediaEdit.general', '通用');
+    };
+
+    const getUserName = () => {
+        if (media.user?.nickname) return media.user.nickname;
+        if (media.user?.username) return media.user.username;
+        return t('common.unknown', '未知');
+    };
+
+    const getUserInitial = () => {
+        const name = getUserName();
+        return name === t('common.unknown', '未知') ? '?' : name.charAt(0).toUpperCase();
+    };
+
+    const getChannelName = () => {
+        if (media.channel?.name) return media.channel.name;
+        if (media.edges?.channels?.[0]?.name) return media.edges.channels[0].name;
+        return '-';
+    };
+
     const sidebarCards = (
         <div className="col-span-12 lg:col-span-4 space-y-6">
             <Card>
@@ -516,21 +561,29 @@ export default function MediaEditPage() {
                         <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.resourceId', '资源ID')}</Label>
                         <div className="flex items-center gap-2">
                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.id}</code>
-                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                            <button onClick={() => copyToClipboard(media.id)}>
+                                <Copy className="w-4 h-4 text-muted-foreground hover:text-primary cursor-pointer"/>
+                            </button>
                         </div>
                     </div>
                     <div className="pb-3 border-b border-border">
                         <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
                         <div className="flex items-center gap-2">
                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
-                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                            <button onClick={() => copyToClipboard((media as any).uuid || media.id)}>
+                                <Copy className="w-4 h-4 text-muted-foreground hover:text-primary cursor-pointer"/>
+                            </button>
                         </div>
                     </div>
                     <div className="pb-3">
                         <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
                         <div className="flex items-center gap-2">
                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
-                            <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                            {media.short_token && (
+                                <button onClick={() => copyToClipboard(media.short_token!)}>
+                                    <Copy className="w-4 h-4 text-muted-foreground hover:text-primary cursor-pointer"/>
+                                </button>
+                            )}
                         </div>
                     </div>
                     <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border mt-2">
@@ -590,22 +643,30 @@ export default function MediaEditPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-primary/20 flex items-center justify-center">
-                            <span className="text-primary font-bold text-sm">U</span>
-                        </div>
-                        <div>
-                            <p className="font-bold text-sm">{t('mediaEdit.user', '用户')}</p>
-                            <p className="text-xs text-muted-foreground">{t('mediaEdit.contentCreator', '内容创作者')}</p>
+                        {media.user?.avatar ? (
+                            <img src={getFullUrl(media.user.avatar) || undefined} alt={getUserName()} className="w-10 h-10 rounded-full object-cover border border-border"/>
+                        ) : (
+                            <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-primary/10 flex items-center justify-center">
+                                {media.user ? (
+                                    <span className="text-primary font-bold text-sm">{getUserInitial()}</span>
+                                ) : (
+                                    <UserIcon className="w-5 h-5 text-muted-foreground"/>
+                                )}
+                            </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                            <p className="font-bold text-sm truncate">{getUserName()}</p>
+                            <p className="text-xs text-muted-foreground">{media.user?.id ? `ID: ${media.user.id}` : t('mediaEdit.contentCreator', '内容创作者')}</p>
                         </div>
                     </div>
                     <div className="space-y-3 pt-3 border-t border-border">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">{t('mediaEdit.channel', '频道')}</span>
-                            <span className="font-semibold">{t('mediaEdit.defaultChannel', '默认')}</span>
+                            <span className="font-semibold">{getChannelName()}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
-                            <Badge variant="outline" className="text-xs font-semibold">{media.category_id || t('mediaEdit.general', '通用')}</Badge>
+                            <span className="font-semibold">{getCategoryName()}</span>
                         </div>
                     </div>
                 </CardContent>
@@ -665,7 +726,7 @@ export default function MediaEditPage() {
     );
 
     return (
-        <div className="p-8">
+        <div className="p-6">
             <Breadcrumb className="mb-4">
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -685,26 +746,37 @@ export default function MediaEditPage() {
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex items-center justify-between mb-6">
-                <div>
+            <div className="flex justify-between items-end mb-6">
+                <div className="min-w-0 flex-1">
                     <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                        <Film className="w-8 h-8 text-primary"/>
-                        {media.title || t('mediaEdit.unnamedMedia', '未命名媒体')}
-                        {headerBadges.map((badge, i) => {
-                            if (badge.type === 'state') {
-                                return (
-                                    <StatusDot key={i} status={badge.statusDot || 'unknown'} label={badge.label}/>
-                                );
-                            }
-                            if (badge.type === 'featured') {
-                                return <Badge key={i} variant="secondary" className="text-xs font-semibold">{badge.label}</Badge>;
-                            }
-                            return <Badge key={i} variant="outline" className="text-xs font-semibold">{badge.label}</Badge>;
-                        })}
+                        <span className="h-8 w-8 shrink-0 flex items-center justify-center text-primary">
+                            <Film className="h-8 w-8"/>
+                        </span>
+                        <Input
+                            value={form.title}
+                            onChange={e => setForm({...form, title: e.target.value})}
+                            placeholder={t('mediaEdit.unnamedMedia', '未命名媒体')}
+                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 min-w-0"
+                        />
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-1">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                    <div className="flex items-center gap-2 mt-2 ml-11">
+                        {(() => {
+                            const typeKey = TYPE_I18N_KEYS[media.type];
+                            const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
+                            return typeLabel ? (
+                                <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", typeBadgeStyle(media.type))}>
+                                    {typeLabel}
+                                </span>
+                            ) : null;
+                        })()}
+                        <StatusDot status={getComprehensiveStatus(media)} label={getStatusLabel(media, t)}/>
+                        {media.featured && (
+                            <Badge variant="secondary" className="text-xs font-medium">{t('mediaEdit.featured', '推荐')}</Badge>
+                        )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 ml-11">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
                     <Button variant="outline" onClick={handleBack}>
                         <ArrowLeft className="w-4 h-4 mr-2"/>
                         {t('common.back', '返回')}
@@ -748,12 +820,6 @@ export default function MediaEditPage() {
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="space-y-6">
-                                            <div className="space-y-1.5">
-                                                <Label htmlFor="media-title" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.title', '标题')}</Label>
-                                                <Input id="media-title" value={form.title}
-                                                       onChange={e => setForm({...form, title: e.target.value})}
-                                                       placeholder={t('mediaEdit.titlePlaceholder', '输入媒体标题...')}/>
-                                            </div>
                                             <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors" onClick={() => setThumbnailDialogOpen(true)}>
                                                 {media.thumbnail && !thumbnailError ? (
                                                     <img src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`} alt={media.title}
@@ -791,7 +857,7 @@ export default function MediaEditPage() {
                                         <div className="space-y-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.language', '语言')}</Label>
                                             <Select value={form.language} onValueChange={(v: string) => setForm({...form, language: v})}>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder={t('mediaEdit.selectLanguage', '选择语言')}/>
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -804,7 +870,7 @@ export default function MediaEditPage() {
                                         <div className="space-y-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.contentRating', '内容分级')}</Label>
                                             <Select value={form.rating} onValueChange={(v: string) => setForm({...form, rating: v})}>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder={t('mediaEdit.selectRating', '选择内容分级')}/>
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -819,7 +885,7 @@ export default function MediaEditPage() {
                                         <div className="space-y-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.category', '分类')}</Label>
                                             <Select value={String(form.category_id || '0')} onValueChange={val => setForm({...form, category_id: val !== '0' ? Number(val) : ''})}>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="w-full">
                                                     <SelectValue placeholder={t('mediaEdit.selectCategory', '选择分类')}/>
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -829,11 +895,6 @@ export default function MediaEditPage() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.thumbnailTime', '缩略图时间')}</Label>
-                                            <Input defaultValue="" placeholder="00:00:00.000"/>
                                         </div>
                                     </div>
 
@@ -877,29 +938,43 @@ export default function MediaEditPage() {
                                 <div className="space-y-4 pt-4 border-t">
                                     <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('mediaEdit.resourceLinks', '资源链接')}</h4>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <button className="flex items-center justify-between px-3 py-2 border rounded-lg text-xs hover:bg-accent group">
-                                            <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-primary"/>{t('mediaEdit.hlsManifest', 'HLS 播放清单')}</span>
-                                            <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
-                                        </button>
-                                        <button className="flex items-center justify-between px-3 py-2 border rounded-lg text-xs hover:bg-accent group">
-                                            <span className="flex items-center gap-2"><Video className="w-4 h-4 text-secondary"/>{t('mediaEdit.spriteMap', '雪碧图')}</span>
-                                            <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
-                                        </button>
+                                        {media.hls_file ? (
+                                            <button onClick={() => {
+                                                const url = getFullUrl(media.hls_file!);
+                                                if (url) copyToClipboard(url);
+                                            }} className="flex items-center justify-between px-3 py-2 border rounded-lg text-xs hover:bg-accent group">
+                                                <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-primary"/>{t('mediaEdit.hlsManifest', 'HLS 播放清单')}</span>
+                                                <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
+                                            </button>
+                                        ) : null}
+                                        {media.sprite_path ? (
+                                            <button onClick={() => {
+                                                const url = getFullUrl(media.sprite_path!);
+                                                if (url) copyToClipboard(url);
+                                            }} className="flex items-center justify-between px-3 py-2 border rounded-lg text-xs hover:bg-accent group">
+                                                <span className="flex items-center gap-2"><Video className="w-4 h-4 text-secondary"/>{t('mediaEdit.spriteMap', '雪碧图')}</span>
+                                                <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </div>
 
                                 <div className="space-y-3 pt-4 border-t">
                                     <h4 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t('mediaEdit.techSpecs', '技术规格')}</h4>
                                     <div className="grid grid-cols-2 gap-3 text-sm">
-                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.format', '格式')}</span><span className="font-medium">{media.type?.toUpperCase() || t('mediaEdit.videoType', '视频')}</span></div>
+                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.format', '格式')}</span><span className="font-medium">{media.mime_type || media.type?.toUpperCase() || t('common.na', '无')}</span></div>
                                         <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.resolution', '分辨率')}</span><span className="font-medium">{media.width && media.height ? `${media.width}x${media.height}` : t('common.na', '无')}</span></div>
-                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.duration', '时长')}</span><span className="font-medium">{media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : t('common.na', '无')}</span></div>
-                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.fileSize', '大小')}</span><span className="font-medium">{media.size || t('common.na', '无')}</span></div>
+                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.duration', '时长')}</span><span className="font-medium">{media.duration ? formatDuration(Math.round(media.duration)) : t('common.na', '无')}</span></div>
+                                        <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.fileSize', '大小')}</span><span className="font-medium">{media.size ? formatFileSize(Number(media.size)) : t('common.na', '无')}</span></div>
                                     </div>
-                                    <div className="mt-2 bg-muted px-3 py-2 rounded border flex items-center justify-between">
-                                        <span className="text-xs font-mono text-primary truncate">MD5: {media.md5sum || t('common.na', '无')}</span>
-                                        <Copy className="w-4 h-4 text-muted-foreground hover:text-primary shrink-0 ml-2"/>
-                                    </div>
+                                    {media.md5sum && (
+                                        <div className="mt-2 bg-muted px-3 py-2 rounded border flex items-center justify-between">
+                                            <span className="text-xs font-mono text-primary truncate">MD5: {media.md5sum}</span>
+                                            <button onClick={() => media.md5sum && copyToClipboard(media.md5sum)} className="shrink-0 ml-2">
+                                                <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                                     </CardContent>
                                 </Card>
