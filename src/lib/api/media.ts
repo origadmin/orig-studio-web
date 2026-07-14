@@ -4,7 +4,7 @@
 import {z} from 'zod';
 import {api, getAccessToken, API_BASE_URL} from "../request";
 
-// Media 对齐后端 entity.Media JSON 序列化字段
+// Media 对齐后端 types.Media proto 定义
 export interface Media {
     id: string;
     title: string;
@@ -22,8 +22,9 @@ export interface Media {
     width: number;
     height: number;
     mime_type?: string;
-    md5sum?: string;
+    sha256?: string;
     extension?: string;
+    thumbnail_time?: number;
     privacy: number;
     encoding_status: string;
     /** Sprite generation status: pending | processing | success | failed */
@@ -38,13 +39,14 @@ export interface Media {
     dislike_count: number;
     comment_count: number;
     favorite_count: number;
+    share_count?: number;
     download_count?: number;
+    reported_times?: number;
     allow_download?: boolean;
     enable_comments?: boolean;
     featured?: boolean;
     review_status?: string;
     listable?: boolean;
-    reported_times?: number;
     tags?: string[];
     user_id: string;
     channel_id?: string;
@@ -52,6 +54,8 @@ export interface Media {
     published_at?: string;
     create_time?: string;
     update_time?: string;
+    create_author?: string;
+    update_author?: string;
     // Flat edge fields returned by proto-based API (backend returns these at top level)
     user?: UserSummary;
     category?: CategorySummary;
@@ -225,8 +229,9 @@ const mediaSchema = z.object({
     width: toNumber,
     height: toNumber,
     mime_type: toString,
-    md5sum: toString,
+    sha256: toString,
     extension: toString,
+    thumbnail_time: toNumberOptional,
     privacy: z.any().optional().nullable().transform((v) => {
         if (v === null || v === undefined) return undefined;
         return String(v);
@@ -241,13 +246,14 @@ const mediaSchema = z.object({
     dislike_count: toNumber,
     comment_count: toNumber,
     favorite_count: toNumber,
+    share_count: toNumberOptional,
     download_count: toNumberOptional,
+    reported_times: toNumberOptional,
     allow_download: toBoolean,
     enable_comments: toBoolean,
     featured: toBoolean,
     review_status: toString,
     listable: toBoolean,
-    reported_times: toNumberOptional,
     tags: z.array(z.string()).optional().nullable().transform((v) => {
         if (v === null || v === undefined) return undefined;
         return Array.isArray(v) ? v.map(String) : undefined;
@@ -264,6 +270,8 @@ const mediaSchema = z.object({
     published_at: toString,
     create_time: toString,
     update_time: toString,
+    create_author: toString,
+    update_author: toString,
     user: z.any().optional(),
     category: z.any().optional(),
     channel: z.any().optional(),

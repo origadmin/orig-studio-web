@@ -967,10 +967,10 @@ export default function MediaEditPage() {
                                         <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.duration', '时长')}</span><span className="font-medium">{media.duration ? formatDuration(Math.round(media.duration)) : t('common.na', '无')}</span></div>
                                         <div className="flex justify-between"><span className="text-muted-foreground">{t('mediaEdit.fileSize', '大小')}</span><span className="font-medium">{media.size ? formatFileSize(Number(media.size)) : t('common.na', '无')}</span></div>
                                     </div>
-                                    {media.md5sum && (
+                                    {media.sha256 && (
                                         <div className="mt-2 bg-muted px-3 py-2 rounded border flex items-center justify-between">
-                                            <span className="text-xs font-mono text-primary truncate">MD5: {media.md5sum}</span>
-                                            <button onClick={() => media.md5sum && copyToClipboard(media.md5sum)} className="shrink-0 ml-2">
+                                            <span className="text-xs font-mono text-primary truncate">SHA256: {media.sha256}</span>
+                                            <button onClick={() => media.sha256 && copyToClipboard(media.sha256)} className="shrink-0 ml-2">
                                                 <Copy className="w-4 h-4 text-muted-foreground hover:text-primary"/>
                                             </button>
                                         </div>

@@ -335,10 +335,11 @@ export async function startMultipartUpload(
             callbacks.onStatusChange(task.id, 'completing');
             callbacks.onProgress(task.id, 100);
 
-            const sha256 = '';
+            // Calculate file SHA256 for integrity verification
+            const fileSha256 = await calculateSHA256(task.file);
             const finalParts = Array.from(partsMap.values());
 
-            const result = await completeMultipartUpload(task, finalParts, sha256);
+            const result = await completeMultipartUpload(task, finalParts, fileSha256);
 
             task.completedAt = Date.now();
             callbacks.onStatusChange(task.id, 'success');
