@@ -9,7 +9,7 @@ import {Spinner} from '@/components/ui/spinner';
 import {Upload, Camera, Image as ImageIcon, X, Check} from 'lucide-react';
 import {toast} from 'sonner';
 import {useSpriteVtt} from '@/hooks/useSpriteVtt';
-import {spriteApi} from '@/lib/api/sprite';
+import {spriteApi, pickThumbnail} from '@/lib/api/sprite';
 import {formatDuration} from '@/lib/format';
 import {getFullUrl} from '@/lib/utils';
 import type {SpriteCue} from '@/lib/parseWebVTT';
@@ -39,16 +39,22 @@ function SpriteFrameThumb({
     onClick,
 }: {
     cue: SpriteCue;
-    parsed: {imageUrl: string; totalWidth: number; totalHeight: number};
+    parsed: {imageUrl: string; totalWidth: number; totalHeight: number} | null;
     selected: boolean;
     onClick: () => void;
 }) {
-    const imgStyle: React.CSSProperties = {
-        width: `${(parsed.totalWidth / cue.w) * 100}%`,
-        height: `${(parsed.totalHeight / cue.h) * 100}%`,
-        left: `${-(cue.x / cue.w) * 100}%`,
-        top: `${-(cue.y / cue.h) * 100}%`,
-    };
+    // A cue carrying its own imageUrl (the synthetic "current cover" frame) is a
+    // standalone full image, not a region of the sprite sheet, so it must fill
+    // the thumbnail box with no offset/crop.
+    const isStandaloneCover = !!cue.imageUrl;
+    const imgStyle: React.CSSProperties = isStandaloneCover
+        ? {width: '100%', height: '100%', left: '0', top: '0'}
+        : {
+            width: `${(parsed ? parsed.totalWidth : cue.w) / cue.w * 100}%`,
+            height: `${(parsed ? parsed.totalHeight : cue.h) / cue.h * 100}%`,
+            left: `${-(cue.x / cue.w) * 100}%`,
+            top: `${-(cue.y / cue.h) * 100}%`,
+        };
 
     return (
         <button
@@ -62,9 +68,9 @@ function SpriteFrameThumb({
         >
             <div className="relative w-full h-full overflow-hidden bg-black">
                 <img
-                    src={parsed.imageUrl}
+                    src={cue.imageUrl || parsed?.imageUrl || ''}
                     alt=""
-                    className="absolute block max-w-none"
+                    className={`absolute block max-w-none ${isStandaloneCover ? 'object-contain' : ''}`}
                     style={imgStyle}
                     draggable={false}
                 />
@@ -107,8 +113,12 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 setCustomPreview(null);
             }
             setActiveTab('frames');
+        } else {
+            // Default to the whole sprite sheet (first item) as the selected
+            // preview when a sprite is available.
+            setSelectedIdx(0);
         }
-    }, [open, customPreview]);
+    }, [open, customPreview, media.thumbnail]);
 
     const handleFrameSelect = useCallback((idx: number) => {
         setSelectedIdx(idx);
@@ -168,7 +178,20 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
         }
     }, [customPreview]);
 
-    const selectedCue = parsed && selectedIdx >= 0 ? parsed.cues[selectedIdx] : null;
+    // The whole sprite sheet is shown as the FIRST selectable image (per user
+    // requirement): it lets the user preview the entire thumbnail strip before
+    // drilling into individual frames. Its image is the sprite sheet file
+    // itself, not the current cover.
+    const spriteSheetCue: SpriteCue | null = parsed
+        ? {startTime: 0, endTime: 0, x: 0, y: 0, w: 1, h: 1, imageUrl: parsed.imageUrl}
+        : null;
+
+    // Display list: whole sprite sheet first, then individual sprite frames.
+    const displayCues: SpriteCue[] = parsed
+        ? [spriteSheetCue!, ...parsed.cues]
+        : [];
+
+    const selectedCue = displayCues.length > 0 && selectedIdx >= 0 ? displayCues[selectedIdx] : null;
 
     const handleSubmit = useCallback(async () => {
         if (mode === 'owner' && !media.short_token) {
@@ -182,16 +205,35 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
             }
             setIsSubmitting(true);
             try {
-                const timestamp = selectedCue.startTime + (selectedCue.endTime - selectedCue.startTime) / 2;
-                const res = mode === 'admin'
-                    ? await spriteApi.regenerateThumbnail(media.id, {timestamp})
-                    : await spriteApi.regenerateOwnerThumbnail(media.short_token!, {timestamp});
+                // When the WHOLE sprite sheet is selected, set the cover to the
+                // entire sprite-sheet image (requirement: "整体雪碧图应作为第一张
+                // 图" / "封面不应作第一张帧"). Do NOT sample a single frame — that
+                // produced a wrong/identical image before. Individual frames keep
+                // their own mid-point timestamp.
+                const useSpriteSheet = !!selectedCue.imageUrl;
+                const timestamp = useSpriteSheet
+                    ? 0
+                    : selectedCue.startTime + (selectedCue.endTime - selectedCue.startTime) / 2;
+                const res = useSpriteSheet
+                    ? (mode === 'admin'
+                        ? await spriteApi.setSpriteSheetThumbnail(media.id)
+                        : await spriteApi.setOwnerSpriteSheetThumbnail(media.short_token!))
+                    : (mode === 'admin'
+                        ? await spriteApi.regenerateThumbnail(media.id, {thumbnail_time: timestamp})
+                        : await spriteApi.regenerateOwnerThumbnail(media.short_token!, {thumbnail_time: timestamp}));
+                const rawThumb = pickThumbnail(res);
+                const newThumb = rawThumb ? getFullUrl(rawThumb) : undefined;
+                // Only report success when we actually received a (new) thumbnail
+                // URL. Otherwise the backend may have returned success without a
+                // usable path (stale binary / regeneration race), and we must not
+                // lie to the user that the cover was updated.
+                if (!newThumb) {
+                    toast.error('封面更新失败：未获取到新封面地址，请重试');
+                    return;
+                }
                 toast.success('封面已更新');
-                const newThumb = res?.data?.thumbnail;
-                if (onSuccess && newThumb) {
+                if (onSuccess) {
                     onSuccess(newThumb);
-                } else if (onSuccess) {
-                    onSuccess();
                 }
                 onOpenChange(false);
             } catch (err: any) {
@@ -210,12 +252,15 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 const res = mode === 'admin'
                     ? await spriteApi.uploadAdminCustomThumbnail(media.id, customFile)
                     : await spriteApi.uploadCustomThumbnail(media.short_token!, customFile);
+                const rawThumb = pickThumbnail(res);
+                const newThumb = rawThumb ? getFullUrl(rawThumb) : undefined;
+                if (!newThumb) {
+                    toast.error('封面更新失败：未获取到新封面地址，请重试');
+                    return;
+                }
                 toast.success('封面已更新');
-                const newThumb = res?.data?.thumbnail;
-                if (onSuccess && newThumb) {
+                if (onSuccess) {
                     onSuccess(newThumb);
-                } else if (onSuccess) {
-                    onSuccess();
                 }
                 onOpenChange(false);
             } catch (err: any) {
@@ -227,10 +272,10 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
         }
     }, [mode, activeTab, selectedCue, customFile, media.id, media.short_token, onSuccess, onOpenChange]);
 
-    const canSubmit = activeTab === 'frames' ? selectedIdx >= 0 : !!customFile;
-    const hasFrames = parsed && parsed.cues.length > 0 && !vttError;
+    const canSubmit = activeTab === 'frames' ? selectedIdx >= 0 && displayCues.length > 0 : !!customFile;
+    const hasFrames = !vttLoading && displayCues.length > 0;
 
-    const previewImgStyle = selectedCue && parsed ? {
+    const previewImgStyle = selectedCue && !selectedCue.imageUrl && parsed ? {
         width: `${(parsed.totalWidth / selectedCue.w) * 100}%`,
         height: `${(parsed.totalHeight / selectedCue.h) * 100}%`,
         left: `${-(selectedCue.x / selectedCue.w) * 100}%`,
@@ -269,7 +314,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                 </div>
                             )}
 
-                            {vttError && !vttLoading && (
+                            {vttError && !vttLoading && displayCues.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                                     <ImageIcon className="w-12 h-12 mb-3 opacity-40"/>
                                     <p className="font-medium">无法加载视频帧预览</p>
@@ -277,19 +322,28 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                 </div>
                             )}
 
-                            {hasFrames && parsed && (
+                            {hasFrames && (
                                 <>
                                     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border">
                                         {selectedCue ? (
-                                            <div className="relative w-full h-full overflow-hidden">
+                                            selectedCue.imageUrl ? (
                                                 <img
-                                                    src={parsed.imageUrl}
+                                                    src={selectedCue.imageUrl}
                                                     alt=""
-                                                    className="absolute block max-w-none"
-                                                    style={previewImgStyle}
+                                                    className="w-full h-full object-contain"
                                                     draggable={false}
                                                 />
-                                            </div>
+                                            ) : (
+                                                <div className="relative w-full h-full overflow-hidden">
+                                                    <img
+                                                        src={parsed!.imageUrl}
+                                                        alt=""
+                                                        className="absolute block max-w-none"
+                                                        style={previewImgStyle}
+                                                        draggable={false}
+                                                    />
+                                                </div>
+                                            )
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-white/60">
                                                 <p>请在下方选择一个视频帧</p>
@@ -298,17 +352,17 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                     </div>
                                     {selectedCue && (
                                         <p className="text-center text-sm text-muted-foreground">
-                                            时间戳: {formatDuration(Math.floor(selectedCue.startTime))}
+                                            {selectedCue.imageUrl ? '整体雪碧图' : `时间戳: ${formatDuration(Math.floor(selectedCue.startTime))}`}
                                         </p>
                                     )}
 
                                     <div className="border rounded-lg p-3 bg-muted/30">
                                         <div className="flex gap-2 overflow-x-auto pb-1" style={{scrollbarWidth: 'thin'}}>
-                                            {parsed.cues.map((cue, idx) => (
+                                            {displayCues.map((cue, idx) => (
                                                 <SpriteFrameThumb
                                                     key={idx}
                                                     cue={cue}
-                                                    parsed={parsed}
+                                                    parsed={cue.imageUrl ? null : parsed}
                                                     selected={selectedIdx === idx}
                                                     onClick={() => handleFrameSelect(idx)}
                                                 />
@@ -318,7 +372,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                 </>
                             )}
 
-                            {!vttLoading && !vttError && !hasFrames && (
+                            {!vttLoading && !hasFrames && (
                                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                                     <ImageIcon className="w-12 h-12 mb-3 opacity-40"/>
                                     <p>该视频暂无帧预览</p>

@@ -8,14 +8,27 @@ export interface RegenerateSpriteResponse {
 }
 
 export interface RegenerateThumbnailRequest {
-    timestamp?: number;
+    // Backend (proto) expects `thumbnail_time`; previously the frontend sent
+    // `timestamp`, which the gRPC-Gateway could not map and always landed as 0.
+    thumbnail_time?: number;
 }
 
 export interface RegenerateThumbnailResponse {
-    media_id: string;
     thumbnail: string;
-    thumbnail_time: number;
-    message: string;
+    thumbnail_time?: number;
+    message?: string;
+    success?: boolean;
+}
+
+/**
+ * Extract the thumbnail path from a regenerate/upload response in a single,
+ * null-safe place (no `?.` chains at call sites). Returns "" when absent.
+ */
+export function pickThumbnail(res: RegenerateThumbnailResponse | undefined): string {
+    if (res && typeof res.thumbnail === "string" && res.thumbnail.length > 0) {
+        return res.thumbnail;
+    }
+    return "";
 }
 
 export const spriteApi = {
@@ -37,19 +50,31 @@ export const spriteApi = {
     regenerateSprite: (id: string) =>
         api.post<RegenerateSpriteResponse>(`/admin/medias/${id}/regenerate-sprite`),
 
-    /** Trigger thumbnail regeneration at an optional timestamp (admin only, uses ID) */
+    /** Trigger thumbnail regeneration at a chosen timestamp (admin only, uses ID) */
     regenerateThumbnail: (id: string, data?: RegenerateThumbnailRequest) =>
-        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regenerate-thumbnail`, data),
+        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regen-thumbnail`, data),
 
     /** Trigger thumbnail regeneration at a specific timestamp (owner only, uses short_token) */
     regenerateOwnerThumbnail: (shortToken: string, data?: RegenerateThumbnailRequest) =>
-        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/regenerate-thumbnail`, data),
+        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/regen-thumbnail`, data),
+
+    /**
+     * Set the cover to the WHOLE sprite sheet image (admin only, uses ID).
+     * Sends `use_sprite_sheet: true` on the regen route so the backend points
+     * the cover at the sprite sheet asset instead of sampling a single frame.
+     */
+    setSpriteSheetThumbnail: (id: string) =>
+        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regen-thumbnail`, {use_sprite_sheet: true}),
+
+    /** Set the cover to the WHOLE sprite sheet image (owner only, uses short_token) */
+    setOwnerSpriteSheetThumbnail: (shortToken: string) =>
+        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/regen-thumbnail`, {use_sprite_sheet: true}),
 
     /** Upload a custom cover image (owner only, uses short_token) */
     uploadCustomThumbnail: (shortToken: string, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/thumbnail`, formData, {
+        return api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/set-thumbnail`, formData, {
             headers: {'Content-Type': 'multipart/form-data'},
         });
     },
@@ -58,7 +83,7 @@ export const spriteApi = {
     uploadAdminCustomThumbnail: (id: string, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/thumbnail`, formData, {
+        return api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/set-thumbnail`, formData, {
             headers: {'Content-Type': 'multipart/form-data'},
         });
     },

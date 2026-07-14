@@ -19,6 +19,13 @@ export interface SpriteCue {
     w: number;
     /** Frame height (px) */
     h: number;
+    /**
+     * Optional explicit image URL for this cue. When present, the frame
+     * thumbnail is rendered from this URL instead of the shared sprite sheet
+     * (used for the synthetic "current cover" cue, whose image is the cover
+     * file rather than a region of the sprite sheet).
+     */
+    imageUrl?: string;
 }
 
 /** Parsed sprite sheet VTT data. */

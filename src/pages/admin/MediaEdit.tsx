@@ -225,6 +225,8 @@ export default function MediaEditPage() {
         enable_comments: true,
         allow_download: false,
         listable: false,
+        language: 'en',
+        rating: 'general',
     });
 
     const [stats, setStats] = useState<MediaStats | null>(null);
@@ -259,6 +261,8 @@ export default function MediaEditPage() {
                 enable_comments: media.enable_comments ?? true,
                 allow_download: media.allow_download ?? false,
                 listable: media.listable ?? false,
+                language: (media as any).language || 'en',
+                rating: (media as any).rating || 'general',
             });
         }
     }, [media, syncFromData]);
@@ -299,6 +303,8 @@ export default function MediaEditPage() {
                     enable_comments: form.enable_comments,
                     allow_download: form.allow_download,
                     listable: form.listable,
+                    language: form.language,
+                    rating: form.rating,
                 } as any,
             });
             resetDirty();
@@ -366,7 +372,12 @@ export default function MediaEditPage() {
         if (!id) return;
         setIsRegenerating(true);
         try {
-            await api.post(`/admin/medias/${id}/regenerate-thumbnail`, {});
+            await api.post(`/admin/medias/${id}/regen-thumbnail`, {});
+            // Force the preview to refresh: the regenerated file lives at the
+            // same storage path, so we must bump the cache-buster and refetch
+            // the media detail to pick up the new cover bytes.
+            setThumbnailVersion(Date.now());
+            queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
             toast.success(t('mediaEdit.thumbnailRegenerateScheduled', '缩略图重新生成已调度...'));
             const res = await adminMediaApi.getTasks(id);
             setTasks(extractTasks(res));
@@ -779,7 +790,7 @@ export default function MediaEditPage() {
                                     <div className="space-y-4">
                                         <div className="space-y-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.language', '语言')}</Label>
-                                            <Select defaultValue="en">
+                                            <Select value={form.language} onValueChange={(v: string) => setForm({...form, language: v})}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder={t('mediaEdit.selectLanguage', '选择语言')}/>
                                                 </SelectTrigger>
@@ -792,7 +803,7 @@ export default function MediaEditPage() {
 
                                         <div className="space-y-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.contentRating', '内容分级')}</Label>
-                                            <Select defaultValue="general">
+                                            <Select value={form.rating} onValueChange={(v: string) => setForm({...form, rating: v})}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder={t('mediaEdit.selectRating', '选择内容分级')}/>
                                                 </SelectTrigger>
