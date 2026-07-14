@@ -567,15 +567,6 @@ export default function MediaEditPage() {
                         </div>
                     </div>
                     <div className="pb-3 border-b border-border">
-                        <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.uuid', 'UUID')}</Label>
-                        <div className="flex items-center gap-2">
-                            <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{(media as any).uuid || media?.id || t('common.na', '无')}</code>
-                            <button onClick={() => copyToClipboard((media as any).uuid || media.id)}>
-                                <Copy className="w-4 h-4 text-muted-foreground hover:text-primary cursor-pointer"/>
-                            </button>
-                        </div>
-                    </div>
-                    <div className="pb-3">
                         <Label className="text-xs text-muted-foreground font-bold block uppercase tracking-wider mb-1">{t('mediaEdit.shortToken', '短链Token')}</Label>
                         <div className="flex items-center gap-2">
                             <code className="bg-muted px-2 py-1 rounded text-xs font-mono text-primary flex-1 truncate">{media.short_token || t('common.na', '无')}</code>
