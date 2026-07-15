@@ -200,30 +200,40 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </Breadcrumb>
       )}
 
-      <div className="flex justify-between items-end">
-        <div>
+      <div className="flex justify-between items-end gap-4">
+        <div className="min-w-0 flex-1">
           {titleIcon && (
             <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
               <span className={cn('h-8 w-8 shrink-0 flex items-center justify-center', titleIconColor)}>
                 {titleIcon}
               </span>
-              {title}
+              <span className="min-w-0">{title}</span>
             </h1>
           )}
           {!titleIcon && (
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
           )}
-          {titleExtra && (
-            <div className="mt-2">{titleExtra}</div>
-          )}
-          {subtitle && (
+          {subtitle && !titleExtra && !description && (
             <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
           )}
-          {description && (
-            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+          {(titleExtra || description) && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 min-w-0">
+              {titleExtra && (
+                <span className="inline-flex items-center shrink-0">{titleExtra}</span>
+              )}
+              {titleExtra && description && (
+                <span className="h-4 w-px bg-border shrink-0 hidden sm:block"/>
+              )}
+              {description && (
+                <p className="text-sm text-muted-foreground min-w-0 flex-1">{description}</p>
+              )}
+            </div>
+          )}
+          {subtitle && (titleExtra || description) && (
+            <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
       </div>
 
       {stats}

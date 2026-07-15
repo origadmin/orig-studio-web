@@ -759,7 +759,7 @@ export default function MediaEditPage() {
             </Breadcrumb>
             <div className="flex justify-between items-end gap-4">
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex flex-wrap items-center gap-3">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
                         <span className="h-8 w-8 shrink-0 flex items-center justify-center text-sky-600">
                             <Film className="h-8 w-8"/>
                         </span>
@@ -769,6 +769,8 @@ export default function MediaEditPage() {
                             placeholder={t('mediaEdit.unnamedMedia', '未命名媒体')}
                             className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
                         />
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 min-w-0">
                         <span className="inline-flex items-center gap-1.5 shrink-0">
                             {(() => {
                                 const typeKey = TYPE_I18N_KEYS[media.type];
@@ -786,8 +788,9 @@ export default function MediaEditPage() {
                                 </span>
                             )}
                         </span>
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                        <span className="h-4 w-px bg-border shrink-0 hidden sm:block"/>
+                        <p className="text-sm text-muted-foreground min-w-0 flex-1">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     <Button variant="outline" onClick={handleBack}>
