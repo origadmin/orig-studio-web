@@ -105,41 +105,41 @@ function StatusBadge({status}: { status: string }) {
     const config: Record<string, { label: string; className: string }> = {
         processing: {
             label: t('admin.processing', '转码中'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary whitespace-nowrap shrink-0"
         },
         queued: {
             label: t('admin.queued', '排队中'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning whitespace-nowrap shrink-0"
         },
         completed: {
             label: t('admin.success', '成功'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success whitespace-nowrap shrink-0"
         },
         pending: {
             label: t('admin.queued', '排队中'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning whitespace-nowrap shrink-0"
         },
         success: {
             label: t('admin.success', '成功'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success whitespace-nowrap shrink-0"
         },
         skipped: {
             label: t('admin.skipped', '已跳过'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning whitespace-nowrap shrink-0"
         },
         partial: {
             label: t('admin.partialComplete', '部分完成'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning whitespace-nowrap shrink-0"
         },
         failed: {
             label: t('admin.failed', '失败'),
-            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 whitespace-nowrap"
+            className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive/10 text-destructive whitespace-nowrap shrink-0"
         },
     };
 
     const cfg = config[status] || {
         label: status,
-        className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap"
+        className: "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground whitespace-nowrap shrink-0"
     };
 
     return <span className={cfg.className}>{cfg.label}</span>;
