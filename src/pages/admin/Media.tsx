@@ -206,10 +206,10 @@ export default function MediaPage() {
         };
         const c = type ? config[type] : undefined;
         if (!c) {
-            return <span className="px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs font-medium">{type || t('common.unknown', '未知')}</span>;
+            return <span className="inline-flex items-center px-2.5 py-0.5 bg-muted text-muted-foreground rounded-full text-xs font-medium whitespace-nowrap shrink-0">{type || t('common.unknown', '未知')}</span>;
         }
         return (
-            <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-medium", c.bg, c.text)}>
+            <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0", c.bg, c.text)}>
                 {t(c.key, c.label)}
             </span>
         );
