@@ -26,6 +26,7 @@ import {
     Target,
     Tv2,
     Layers,
+    Layout,
     Plus,
     Zap,
     PanelLeft,
@@ -104,6 +105,12 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                 ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', '付费管理'), path: "/admin/payment"}] : []),
                 ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', '推广管理'), path: "/admin/promotion"}] : []),
                 ...(featureFlags.ads ? [{id: "ads", icon: Target, label: t('admin.ads', '广告管理'), path: "/admin/ads"}] : []),
+            ],
+        },
+        {
+            header: t('admin.sectionPortal', '站点与门户'),
+            items: [
+                {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal"},
             ],
         },
         {

@@ -757,9 +757,9 @@ export default function MediaEditPage() {
                     </BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-            <div className="flex justify-between items-end">
+            <div className="flex justify-between items-start gap-4">
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                         <span className="h-8 w-8 shrink-0 flex items-center justify-center text-sky-600">
                             <Film className="h-8 w-8"/>
                         </span>
@@ -767,27 +767,30 @@ export default function MediaEditPage() {
                             value={form.title}
                             onChange={e => setForm({...form, title: e.target.value})}
                             placeholder={t('mediaEdit.unnamedMedia', '未命名媒体')}
-                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 min-w-0"
+                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 w-full"
                         />
-                    </h1>
-                    <div className="flex items-center gap-2 mt-2">
-                        {(() => {
-                            const typeKey = TYPE_I18N_KEYS[media.type];
-                            const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
-                            return typeLabel ? (
-                                <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium", typeBadgeStyle(media.type))}>
-                                    {typeLabel}
-                                </span>
-                            ) : null;
-                        })()}
-                        <StatusDot status={getComprehensiveStatus(media)} label={getStatusLabel(media, t)}/>
-                        {media.featured && (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/30">
-                                {t('mediaEdit.featured', '推荐')}
-                            </span>
-                        )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                    <div className="flex items-center gap-3 mt-1.5 ml-11">
+                        <div className="flex items-center gap-1.5">
+                            {(() => {
+                                const typeKey = TYPE_I18N_KEYS[media.type];
+                                const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
+                                return typeLabel ? (
+                                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium", typeBadgeStyle(media.type))}>
+                                        {typeLabel}
+                                    </span>
+                                ) : null;
+                            })()}
+                            <StatusDot status={getComprehensiveStatus(media)} label={getStatusLabel(media, t)}/>
+                            {media.featured && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/30">
+                                    {t('mediaEdit.featured', '推荐')}
+                                </span>
+                            )}
+                        </div>
+                        <span className="h-4 w-px bg-border shrink-0"/>
+                        <p className="text-sm text-muted-foreground truncate">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     <Button variant="outline" onClick={handleBack}>
@@ -833,20 +836,37 @@ export default function MediaEditPage() {
                                 <Card>
                                     <CardContent className="p-6">
                                         <div className="space-y-6">
-                                            <div className="relative aspect-video rounded-lg border border-dashed border-border overflow-hidden bg-muted flex items-center justify-center group cursor-pointer hover:border-primary transition-colors" onClick={() => setThumbnailDialogOpen(true)}>
+                                            <div className={cn(
+                                                "relative aspect-video rounded-lg overflow-hidden cursor-pointer group transition-all",
+                                                media.thumbnail && !thumbnailError
+                                                    ? "border border-border hover:border-primary"
+                                                    : "border border-dashed border-border bg-muted flex items-center justify-center hover:border-primary"
+                                            )} onClick={() => setThumbnailDialogOpen(true)}>
                                                 {media.thumbnail && !thumbnailError ? (
-                                                    <img src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`} alt={media.title}
-                                                         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
-                                                         onError={() => setThumbnailError(true)}/>
-                                                ) : null}
-                                                <div className="relative z-10 flex flex-col items-center gap-3 text-foreground">
-                                                    <Upload className="w-10 h-10"/>
-                                                    <p className="font-semibold">{t('mediaEdit.dragOrClickThumbnail', '拖拽或点击更换缩略图')}</p>
-                                                    <p className="text-xs text-muted-foreground uppercase tracking-widest">{t('mediaEdit.thumbnailRecommended', '推荐: 1920x1080 (16:9)')}</p>
-                                                </div>
-                                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2">
-                                                    <Edit className="w-4 h-4"/>{t('mediaEdit.change', '更换')}
-                                                </div>
+                                                    <>
+                                                        <img src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`} alt={media.title}
+                                                             className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover:brightness-50"
+                                                             onError={() => setThumbnailError(true)}/>
+                                                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                            <Upload className="w-8 h-8"/>
+                                                            <p className="text-sm font-medium">{t('mediaEdit.dragOrClickThumbnail', '拖拽或点击更换缩略图')}</p>
+                                                        </div>
+                                                        <div className="absolute bottom-3 right-3 z-20 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-white text-xs font-medium flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                            <Edit className="w-3.5 h-3.5"/>{t('mediaEdit.change', '更换')}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="relative z-10 flex flex-col items-center gap-3 text-foreground">
+                                                            <Upload className="w-10 h-10"/>
+                                                            <p className="font-semibold">{t('mediaEdit.dragOrClickThumbnail', '拖拽或点击更换缩略图')}</p>
+                                                            <p className="text-xs text-muted-foreground uppercase tracking-widest">{t('mediaEdit.thumbnailRecommended', '推荐: 1920x1080 (16:9)')}</p>
+                                                        </div>
+                                                        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-bold flex items-center gap-2">
+                                                            <Edit className="w-4 h-4"/>{t('mediaEdit.change', '更换')}
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="description" className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.description', '描述')}</Label>

@@ -7357,7 +7357,7 @@ export interface components {
             /** Format: int32 */
             reported_times?: number;
             extension?: string;
-            md5sum?: string;
+            sha256?: string;
             poster?: string;
             review_status?: string;
             listable?: boolean;

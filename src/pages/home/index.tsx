@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useMemo} from 'react';
+import React, {useEffect, useRef, useMemo, useState} from 'react';
 import {Link} from '@tanstack/react-router';
 import {Play, Eye, ChevronRight, Flame} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
@@ -7,6 +7,9 @@ import {useTranslation} from 'react-i18next';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
+import {publicAdsApi} from '@/lib/api/ads';
+import type {Ad} from '@/lib/api/portal';
+import AdDisplay from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
 
@@ -104,6 +107,17 @@ const HomePage = () => {
     });
     const featuredVideos = featuredData?.items || [];
 
+    // Public sponsored ads — fetched from media:8002 (/api/v1/ads?placement=home),
+    // bridged by the gateway. Renders nothing if no active ads exist for the placement.
+    const [ads, setAds] = useState<Ad[]>([]);
+    useEffect(() => {
+        let cancelled = false;
+        publicAdsApi.listActiveAds('home')
+            .then((res) => { if (!cancelled) setAds(Array.isArray(res) ? (res as unknown as Ad[]) : []); })
+            .catch(() => { if (!cancelled) setAds([]); });
+        return () => { cancelled = true; };
+    }, []);
+
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         return featuredVideos.map((media: Media) => {
             const user = media?.edges?.user?.[0];
@@ -194,13 +208,24 @@ const HomePage = () => {
                                 <VideoCard media={media} size="md"/>
                             </div>
                         ))}
-                    </HorizontalScroll>
-                </section>
-            )}
+				</HorizontalScroll>
+			</section>
+		)}
 
-            <section>
-                <SectionHeader
-                    title={t('home.latestVideos', '最新视频')}
+		{ads.length > 0 && (
+			<section>
+				<SectionHeader title={t('home.sponsored', '赞助内容')} />
+				<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+					{ads.map((ad) => (
+						<AdDisplay key={ad.id} ad={ad} />
+					))}
+				</div>
+			</section>
+		)}
+
+		<section>
+			<SectionHeader
+				title={t('home.latestVideos', '最新视频')}
                     viewAllLink="/latest"
                 />
 

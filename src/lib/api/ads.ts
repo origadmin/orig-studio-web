@@ -129,3 +129,10 @@ export const adminAdsApi = {
     toggleAd: (id: string) =>
         api.post<Ad>(`/admin/ads/${id}/toggle`),
 };
+
+// Public (unauthenticated) ad surface — served by media:8002 via the
+// enterprise Gin engine. Requires a `placement` query param.
+export const publicAdsApi = {
+    listActiveAds: (placement: string) =>
+        api.get<Ad[]>(`/ads?placement=${encodeURIComponent(placement)}`),
+};
