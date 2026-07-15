@@ -5,14 +5,15 @@ import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
-import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
+import {cn} from '@/lib/utils';
+import {useInfiniteMediaList, useMediaList, usePortalConfig} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
 import {publicAdsApi} from '@/lib/api/ads';
 import type {Ad} from '@/lib/api/portal';
 import AdDisplay from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
+import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
-import BannerCarousel from '@/components/common/BannerCarousel';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -99,7 +100,7 @@ const SectionHeader: React.FC<{
 const VIDEO_CARD_WIDTH = 240;
 
 const HomePage = () => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
 
     const {data: featuredData} = useMediaList({
         page: 1,
@@ -118,26 +119,6 @@ const HomePage = () => {
             .catch(() => { if (!cancelled) setAds([]); });
         return () => { cancelled = true; };
     }, []);
-
-    const heroItems = useMemo<HeroBannerItem[]>(() => {
-        return featuredVideos.map((media: Media) => {
-            const user = media?.edges?.user?.[0];
-            return {
-                id: String(media.id),
-                title: media.title || 'Untitled',
-                thumbnail: getImageUrl(media.thumbnail || media.poster, 'cover'),
-                shortToken: media.short_token,
-                badge: t('home.featured', '精选'),
-                duration: media.duration,
-                viewCount: media.view_count,
-                createTime: media.create_time,
-                user: user ? {
-                    name: user.nickname || user.username || 'Unknown',
-                    avatar: user.avatar,
-                } : undefined,
-            };
-        });
-    }, [featuredVideos, t]);
 
     const {
         data,
@@ -184,20 +165,46 @@ const HomePage = () => {
         return thumbHeight / 2;
     }, []);
 
+    const {data: portalConfig} = usePortalConfig();
+    const bannerItems = useMemo<HeroBannerItem[]>(() => {
+        const list = portalConfig?.banners || [];
+        return list
+            .filter((b) => b.is_active)
+            .map((b) => ({
+                id: b.id,
+                title: getLocalizedText(b.title, b.title_i18n, i18n.language),
+                thumbnail: b.image_url || '',
+                url: b.primary_btn_url || undefined,
+                badge: b.badge_text || undefined,
+            }));
+    }, [portalConfig, i18n.language]);
+
+    const [bannerMode, setBannerMode] = useState<'card' | 'wide'>('wide');
+
     return (
         <div className="space-y-8 max-w-[1800px] mx-auto w-full px-1">
-            {heroItems.length > 0 && (
-                <section className="mb-2">
-                    <HeroBanner
-                        items={heroItems}
-                        mode="card"
-                        autoPlayInterval={5000}
-                    />
-                </section>
-            )}
-
-            <section className="mb-2">
-                <BannerCarousel />
+            <section className="mb-2 relative">
+                <HeroBanner items={bannerItems} mode={bannerMode} autoPlayInterval={5000} />
+                {bannerItems.length > 0 && (
+                    <div className="absolute right-3 top-3 z-40 flex gap-1 rounded-full bg-black/40 p-1 backdrop-blur">
+                        <button
+                            type="button"
+                            onClick={() => setBannerMode('card')}
+                            className={cn(
+                                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                                bannerMode === 'card' ? 'bg-white text-black' : 'text-white/80 hover:text-white',
+                            )}
+                        >窄</button>
+                        <button
+                            type="button"
+                            onClick={() => setBannerMode('wide')}
+                            className={cn(
+                                'rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                                bannerMode === 'wide' ? 'bg-white text-black' : 'text-white/80 hover:text-white',
+                            )}
+                        >宽</button>
+                    </div>
+                )}
             </section>
 
             {featuredVideos.length > 0 && (

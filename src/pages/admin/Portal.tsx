@@ -34,6 +34,7 @@ import {
 } from '@/hooks/queries';
 import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
+import {SUPPORTED_LANGS} from '@/lib/i18n-utils';
 
 export default function PortalConfigPage() {
     const {t} = useTranslation();
@@ -214,7 +215,7 @@ const NavigationTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary" />
@@ -224,7 +225,7 @@ const NavigationTab: React.FC = () => {
                             {t('admin.addNavItemDesc', 'Create a new navigation menu item with link type and display order.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.navLabel')}</Label><Input value={createForm.label} onChange={e => setCreateForm({...createForm, label: e.target.value})} placeholder={t('admin.navLabel')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.navType')}</Label>
                             <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v as any})}>
@@ -247,7 +248,7 @@ const NavigationTab: React.FC = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Edit className="w-5 h-5 text-primary" />
@@ -257,7 +258,7 @@ const NavigationTab: React.FC = () => {
                             {t('admin.editNavItemDesc', 'Update navigation item label, link type, and target URL.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.navLabel')}</Label><Input value={editForm.label} onChange={e => setEditForm({...editForm, label: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.navType')}</Label>
                             <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v as any})}>
@@ -317,6 +318,7 @@ const BannersTab: React.FC = () => {
         bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
         secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
         start_at: '', end_at: '', auto_slide_interval: 5,
+        type: 'custom', count: 5, category_id: '',
     };
     const [createForm, setCreateForm] = useState<CreateBannerRequest>(emptyCreateForm);
     const [editForm, setEditForm] = useState<UpdateBannerRequest>({
@@ -325,6 +327,7 @@ const BannersTab: React.FC = () => {
         bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
         secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
         start_at: '', end_at: '', auto_slide_interval: 5,
+        type: 'custom', count: 5, category_id: '',
     });
 
     const banners = bannerData?.items || [];
@@ -413,6 +416,9 @@ const BannersTab: React.FC = () => {
             start_at: fromISO(banner.start_at),
             end_at: fromISO(banner.end_at),
             auto_slide_interval: banner.auto_slide_interval || 5,
+            type: banner.type || 'custom',
+            count: banner.count || 5,
+            category_id: banner.category_id || '',
         });
         setEditDialogOpen(true);
     };
@@ -489,7 +495,7 @@ const BannersTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary" />
@@ -499,17 +505,50 @@ const BannersTab: React.FC = () => {
                             {t('admin.createBannerDesc', 'Create a new homepage banner with image, title, and call-to-action buttons.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.bannerTitle')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={createForm.subtitle || ''} onChange={e => setCreateForm({...createForm, subtitle: e.target.value})} placeholder={t('admin.bannerSubtitle')}/></div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.bannerType', '横幅类型')}</Label>
+                            <Select value={createForm.type || 'custom'} onValueChange={(v) => setCreateForm({...createForm, type: v})}>
+                                <SelectTrigger><SelectValue placeholder={t('admin.bannerType', '横幅类型')} /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义轮播')}</SelectItem>
+                                    <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频')}</SelectItem>
+                                    <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新视频')}</SelectItem>
+                                    <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {(createForm.type === 'hot_videos' || createForm.type === 'new_videos') && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2"><Label>{t('admin.bannerCount', '聚合条数')}</Label><Input type="number" min="1" value={createForm.count ?? 5} onChange={e => setCreateForm({...createForm, count: Number(e.target.value)})} /></div>
+                                <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={createForm.category_id || ''} onChange={e => setCreateForm({...createForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerTitleZh', '标题(中文)')}</Label><Input value={createForm.title_i18n?.zh || ''} onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), zh: e.target.value}})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerTitleEn', 'Title (EN)')}</Label><Input value={createForm.title_i18n?.en || ''} onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), en: e.target.value}})}/></div>
+                            {SUPPORTED_LANGS.map((lang) => (
+                                <div className="grid gap-2" key={lang.value}>
+                                    <Label>{t('admin.bannerTitleLang', '标题')} ({lang.label})</Label>
+                                    <Input
+                                        value={createForm.title_i18n?.[lang.value] || ''}
+                                        onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), [lang.value]: e.target.value}})}
+                                    />
+                                </div>
+                            ))}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleZh', '副标题(中文)')}</Label><Input value={createForm.subtitle_i18n?.zh || ''} onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), zh: e.target.value}})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleEn', 'Subtitle (EN)')}</Label><Input value={createForm.subtitle_i18n?.en || ''} onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), en: e.target.value}})}/></div>
+                            {SUPPORTED_LANGS.map((lang) => (
+                                <div className="grid gap-2" key={lang.value}>
+                                    <Label>{t('admin.bannerSubtitleLang', '副标题')} ({lang.label})</Label>
+                                    <Input
+                                        value={createForm.subtitle_i18n?.[lang.value] || ''}
+                                        onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), [lang.value]: e.target.value}})}
+                                    />
+                                </div>
+                            ))}
                         </div>
+                        {(!createForm.type || createForm.type === 'custom') && (<>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT, NEW"/></div>
                         <ImageUploadField
                             value={createForm.image_url || ''}
@@ -534,6 +573,7 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={createForm.secondary_btn_text || ''} onChange={e => setCreateForm({...createForm, secondary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={createForm.secondary_btn_url || ''} onChange={e => setCreateForm({...createForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
+                        </>)}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={createForm.start_at || ''} onChange={e => setCreateForm({...createForm, start_at: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={createForm.end_at || ''} onChange={e => setCreateForm({...createForm, end_at: e.target.value})}/></div>
@@ -555,7 +595,7 @@ const BannersTab: React.FC = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Edit className="w-5 h-5 text-primary" />
@@ -565,17 +605,50 @@ const BannersTab: React.FC = () => {
                             {t('admin.editBannerDesc', 'Update banner content, imagery, and call-to-action settings.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={editForm.subtitle} onChange={e => setEditForm({...editForm, subtitle: e.target.value})}/></div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.bannerType', '横幅类型')}</Label>
+                            <Select value={editForm.type || 'custom'} onValueChange={(v) => setEditForm({...editForm, type: v})}>
+                                <SelectTrigger><SelectValue placeholder={t('admin.bannerType', '横幅类型')} /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义轮播')}</SelectItem>
+                                    <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频')}</SelectItem>
+                                    <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新视频')}</SelectItem>
+                                    <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {(editForm.type === 'hot_videos' || editForm.type === 'new_videos') && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2"><Label>{t('admin.bannerCount', '聚合条数')}</Label><Input type="number" min="1" value={editForm.count ?? 5} onChange={e => setEditForm({...editForm, count: Number(e.target.value)})} /></div>
+                                <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={editForm.category_id || ''} onChange={e => setEditForm({...editForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
+                            </div>
+                        )}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerTitleZh', '标题(中文)')}</Label><Input value={editForm.title_i18n?.zh || ''} onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), zh: e.target.value}})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerTitleEn', 'Title (EN)')}</Label><Input value={editForm.title_i18n?.en || ''} onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), en: e.target.value}})}/></div>
+                            {SUPPORTED_LANGS.map((lang) => (
+                                <div className="grid gap-2" key={lang.value}>
+                                    <Label>{t('admin.bannerTitleLang', '标题')} ({lang.label})</Label>
+                                    <Input
+                                        value={editForm.title_i18n?.[lang.value] || ''}
+                                        onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), [lang.value]: e.target.value}})}
+                                    />
+                                </div>
+                            ))}
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleZh', '副标题(中文)')}</Label><Input value={editForm.subtitle_i18n?.zh || ''} onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), zh: e.target.value}})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleEn', 'Subtitle (EN)')}</Label><Input value={editForm.subtitle_i18n?.en || ''} onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), en: e.target.value}})}/></div>
+                            {SUPPORTED_LANGS.map((lang) => (
+                                <div className="grid gap-2" key={lang.value}>
+                                    <Label>{t('admin.bannerSubtitleLang', '副标题')} ({lang.label})</Label>
+                                    <Input
+                                        value={editForm.subtitle_i18n?.[lang.value] || ''}
+                                        onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), [lang.value]: e.target.value}})}
+                                    />
+                                </div>
+                            ))}
                         </div>
+                        {(!editForm.type || editForm.type === 'custom') && (<>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={editForm.badge_text} onChange={e => setEditForm({...editForm, badge_text: e.target.value})}/></div>
                         <ImageUploadField
                             value={editForm.image_url || ''}
@@ -600,6 +673,7 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={editForm.secondary_btn_text} onChange={e => setEditForm({...editForm, secondary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={editForm.secondary_btn_url} onChange={e => setEditForm({...editForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
+                        </>)}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
@@ -782,7 +856,7 @@ const AdPlacementsTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary" />
@@ -792,7 +866,7 @@ const AdPlacementsTab: React.FC = () => {
                             {t('admin.addAdPlacementDesc', 'Create a new ad placement slot with dimensions and display limits.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.placementName')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={createForm.slug} onChange={e => setCreateForm({...createForm, slug: e.target.value})} placeholder="home-banner"/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
@@ -820,7 +894,7 @@ const AdPlacementsTab: React.FC = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Edit className="w-5 h-5 text-primary" />
@@ -830,7 +904,7 @@ const AdPlacementsTab: React.FC = () => {
                             {t('admin.editAdPlacementDesc', 'Update ad placement dimensions, limits, and active status.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
@@ -1032,7 +1106,7 @@ const AdsTab: React.FC = () => {
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary" />
@@ -1042,7 +1116,7 @@ const AdsTab: React.FC = () => {
                             {t('admin.addAdDesc', 'Create a new advertisement with creative assets, target link, and priority.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.adTitle')}/></div>
                         <ImageUploadField
                             value={createForm.image_url || ''}
@@ -1068,7 +1142,7 @@ const AdsTab: React.FC = () => {
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                             <Edit className="w-5 h-5 text-primary" />
@@ -1078,7 +1152,7 @@ const AdsTab: React.FC = () => {
                             {t('admin.editAdDesc', 'Update advertisement creative, targeting, and scheduling settings.')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="px-6 py-5 space-y-4">
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <ImageUploadField
                             value={editForm.image_url || ''}

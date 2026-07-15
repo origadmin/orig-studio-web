@@ -57,6 +57,9 @@ export interface Banner {
     start_at?: string;
     end_at?: string;
     auto_slide_interval?: number;
+    type?: 'custom' | 'hot_videos' | 'new_videos' | 'ad';
+    count?: number;
+    category_id?: string;
     create_time: string;
     update_time: string;
 }
@@ -86,6 +89,9 @@ export interface CreateBannerRequest {
     start_at?: string;
     end_at?: string;
     auto_slide_interval?: number;
+    type?: string;
+    count?: number;
+    category_id?: string;
 }
 
 export interface UpdateBannerRequest {
@@ -108,6 +114,9 @@ export interface UpdateBannerRequest {
     start_at?: string;
     end_at?: string;
     auto_slide_interval?: number;
+    type?: string;
+    count?: number;
+    category_id?: string;
 }
 
 export interface CustomPage {
