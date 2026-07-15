@@ -1,7 +1,6 @@
 import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
-import {Badge} from '@/components/ui/badge';
 import {
     Carousel,
     CarouselContent,
@@ -92,12 +91,9 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="px-6 md:px-12 max-w-xl">
                                         {currentBanner.badge_text && (
-                                            <Badge
-                                                variant="secondary"
-                                                className="mb-3 bg-white/20 text-white border-white/30 backdrop-blur-sm"
-                                            >
+                                            <span className="c-badge c-badge--primary mb-3">
                                                 {currentBanner.badge_text}
-                                            </Badge>
+                                            </span>
                                         )}
 
                                         <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
@@ -112,14 +108,14 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
 
                                         <div className="flex gap-3">
                                             {currentBanner.primary_btn_text && currentBanner.primary_btn_url && (
-                                                <Button asChild className="bg-white text-slate-900 hover:bg-white/90">
+                                                <Button asChild className="c-button--primary">
                                                     <Link to={(currentBanner.primary_btn_url.startsWith('/') ? currentBanner.primary_btn_url : '/') as any}>
                                                         {currentBanner.primary_btn_text}
                                                     </Link>
                                                 </Button>
                                             )}
                                             {currentBanner.secondary_btn_text && currentBanner.secondary_btn_url && (
-                                                <Button asChild variant="outline" className="border-white text-white hover:bg-white/20">
+                                                <Button asChild variant="outline" className="c-button--outline">
                                                     <Link to={(currentBanner.secondary_btn_url.startsWith('/') ? currentBanner.secondary_btn_url : '/') as any}>
                                                         {currentBanner.secondary_btn_text}
                                                     </Link>

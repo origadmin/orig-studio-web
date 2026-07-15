@@ -68,30 +68,46 @@ export interface BannerListResponse {
 
 export interface CreateBannerRequest {
     title: string;
+    title_i18n?: Record<string, string>;
     subtitle?: string;
+    subtitle_i18n?: Record<string, string>;
     badge_text?: string;
     image_url?: string;
+    image_mobile_url?: string;
+    bg_color_start?: string;
+    bg_color_end?: string;
+    bg_overlay_opacity?: number;
     primary_btn_text?: string;
     primary_btn_url?: string;
     secondary_btn_text?: string;
     secondary_btn_url?: string;
     sequence?: number;
-    start_time?: string;
-    end_time?: string;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+    auto_slide_interval?: number;
 }
 
 export interface UpdateBannerRequest {
     title?: string;
+    title_i18n?: Record<string, string>;
     subtitle?: string;
+    subtitle_i18n?: Record<string, string>;
     badge_text?: string;
     image_url?: string;
+    image_mobile_url?: string;
+    bg_color_start?: string;
+    bg_color_end?: string;
+    bg_overlay_opacity?: number;
     primary_btn_text?: string;
     primary_btn_url?: string;
     secondary_btn_text?: string;
     secondary_btn_url?: string;
     sequence?: number;
-    start_time?: string;
-    end_time?: string;
+    is_active?: boolean;
+    start_at?: string;
+    end_at?: string;
+    auto_slide_interval?: number;
 }
 
 export interface CustomPage {

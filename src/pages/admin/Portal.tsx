@@ -32,7 +32,7 @@ import {
     useAdminAdPlacements, useCreateAdPlacement, useUpdateAdPlacement, useToggleAdPlacement, useDeleteAdPlacement,
     useAdminAds, useCreateAd, useUpdateAd, useToggleAd, useDeleteAd,
 } from '@/hooks/queries';
-import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
+import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
@@ -311,20 +311,46 @@ const BannersTab: React.FC = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-    const [createForm, setCreateForm] = useState<CreateBannerRequest>({title: ''});
-    const [editForm, setEditForm] = useState({
-        title: '', subtitle: '', badge_text: '', image_url: '',
-        primary_btn_text: '', primary_btn_url: '',
-        secondary_btn_text: '', secondary_btn_url: '',
+    const emptyCreateForm: CreateBannerRequest = {
+        title: '', title_i18n: {}, subtitle: '', subtitle_i18n: {}, badge_text: '',
+        image_url: '', image_mobile_url: '', bg_color_start: '', bg_color_end: '',
+        bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
+        secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
+        start_at: '', end_at: '', auto_slide_interval: 5,
+    };
+    const [createForm, setCreateForm] = useState<CreateBannerRequest>(emptyCreateForm);
+    const [editForm, setEditForm] = useState<UpdateBannerRequest>({
+        title: '', title_i18n: {}, subtitle: '', subtitle_i18n: {}, badge_text: '',
+        image_url: '', image_mobile_url: '', bg_color_start: '', bg_color_end: '',
+        bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
+        secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
+        start_at: '', end_at: '', auto_slide_interval: 5,
     });
 
     const banners = bannerData?.items || [];
 
+    const toISO = (v?: string): string | undefined => {
+        if (!v) return undefined;
+        const d = new Date(v);
+        return isNaN(d.getTime()) ? undefined : d.toISOString();
+    };
+    const fromISO = (v?: string): string => {
+        if (!v) return '';
+        const d = new Date(v);
+        if (isNaN(d.getTime())) return '';
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     const handleCreate = async () => {
         try {
-            await createMutation.mutateAsync(createForm);
+            await createMutation.mutateAsync({
+                ...createForm,
+                start_at: toISO(createForm.start_at),
+                end_at: toISO(createForm.end_at),
+            });
             setCreateDialogOpen(false);
-            setCreateForm({title: ''});
+            setCreateForm(emptyCreateForm);
         } catch (err) {
             console.error('Failed to create banner:', err);
         }
@@ -333,7 +359,14 @@ const BannersTab: React.FC = () => {
     const handleUpdate = async () => {
         if (!editingBanner) return;
         try {
-            await updateMutation.mutateAsync({id: editingBanner.id, data: editForm});
+            await updateMutation.mutateAsync({
+                id: editingBanner.id,
+                data: {
+                    ...editForm,
+                    start_at: toISO(editForm.start_at),
+                    end_at: toISO(editForm.end_at),
+                },
+            });
             setEditDialogOpen(false);
         } catch (err) {
             console.error('Failed to update banner:', err);
@@ -362,13 +395,24 @@ const BannersTab: React.FC = () => {
         setEditingBanner(banner);
         setEditForm({
             title: banner.title,
+            title_i18n: banner.title_i18n || {},
             subtitle: banner.subtitle || '',
+            subtitle_i18n: banner.subtitle_i18n || {},
             badge_text: banner.badge_text || '',
             image_url: banner.image_url || '',
+            image_mobile_url: banner.image_mobile_url || '',
+            bg_color_start: banner.bg_color_start || '',
+            bg_color_end: banner.bg_color_end || '',
+            bg_overlay_opacity: banner.bg_overlay_opacity || 0,
             primary_btn_text: banner.primary_btn_text || '',
             primary_btn_url: banner.primary_btn_url || '',
             secondary_btn_text: banner.secondary_btn_text || '',
             secondary_btn_url: banner.secondary_btn_url || '',
+            sequence: banner.sequence || 0,
+            is_active: banner.is_active,
+            start_at: fromISO(banner.start_at),
+            end_at: fromISO(banner.end_at),
+            auto_slide_interval: banner.auto_slide_interval || 5,
         });
         setEditDialogOpen(true);
     };
@@ -394,7 +438,10 @@ const BannersTab: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {banners.map(banner => (
                                 <Card key={banner.id} className={`overflow-hidden ${!banner.is_active ? 'opacity-60' : ''}`}>
-                                    <div className="h-32 bg-gradient-to-r from-emerald-500 to-teal-600 relative">
+                                    <div
+                                        className="h-32 relative"
+                                        style={{background: banner.bg_color_start ? `linear-gradient(135deg, ${banner.bg_color_start}, ${banner.bg_color_end || banner.bg_color_start})` : 'linear-gradient(135deg, #1e293b, #334155)'}}
+                                    >
                                         {banner.image_url && <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>}
                                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                                             <div className="text-center text-white">
@@ -455,12 +502,30 @@ const BannersTab: React.FC = () => {
                     <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.bannerTitle')}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={createForm.subtitle || ''} onChange={e => setCreateForm({...createForm, subtitle: e.target.value})} placeholder={t('admin.bannerSubtitle')}/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerTitleZh', '标题(中文)')}</Label><Input value={createForm.title_i18n?.zh || ''} onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), zh: e.target.value}})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerTitleEn', 'Title (EN)')}</Label><Input value={createForm.title_i18n?.en || ''} onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), en: e.target.value}})}/></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleZh', '副标题(中文)')}</Label><Input value={createForm.subtitle_i18n?.zh || ''} onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), zh: e.target.value}})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleEn', 'Subtitle (EN)')}</Label><Input value={createForm.subtitle_i18n?.en || ''} onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), en: e.target.value}})}/></div>
+                        </div>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT, NEW"/></div>
                         <ImageUploadField
                             value={createForm.image_url || ''}
                             onChange={url => setCreateForm({...createForm, image_url: url})}
                             label={t('admin.bannerImageUrl')}
                         />
+                        <ImageUploadField
+                            value={createForm.image_mobile_url || ''}
+                            onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
+                            label={t('admin.bannerImageMobileUrl', '移动端图片')}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerBgStart', '背景渐变起始色')}</Label><Input value={createForm.bg_color_start || ''} onChange={e => setCreateForm({...createForm, bg_color_start: e.target.value})} placeholder="#667eea"/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerBgEnd', '背景渐变结束色')}</Label><Input value={createForm.bg_color_end || ''} onChange={e => setCreateForm({...createForm, bg_color_end: e.target.value})} placeholder="#764ba2"/></div>
+                        </div>
+                        <div className="grid gap-2"><Label>{t('admin.bannerOverlayOpacity', '背景遮罩透明度 (0-1)')}</Label><Input type="number" step="0.1" min="0" max="1" value={createForm.bg_overlay_opacity ?? 0} onChange={e => setCreateForm({...createForm, bg_overlay_opacity: Number(e.target.value)})}/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnText')}</Label><Input value={createForm.primary_btn_text || ''} onChange={e => setCreateForm({...createForm, primary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnUrl')}</Label><Input value={createForm.primary_btn_url || ''} onChange={e => setCreateForm({...createForm, primary_btn_url: e.target.value})}/></div>
@@ -469,10 +534,22 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={createForm.secondary_btn_text || ''} onChange={e => setCreateForm({...createForm, secondary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={createForm.secondary_btn_url || ''} onChange={e => setCreateForm({...createForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={createForm.start_at || ''} onChange={e => setCreateForm({...createForm, start_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={createForm.end_at || ''} onChange={e => setCreateForm({...createForm, end_at: e.target.value})}/></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={createForm.sequence ?? 0} onChange={e => setCreateForm({...createForm, sequence: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={createForm.auto_slide_interval ?? 5} onChange={e => setCreateForm({...createForm, auto_slide_interval: Number(e.target.value)})}/></div>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" checked={createForm.is_active ?? true} onChange={e => setCreateForm({...createForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
+                            <span className="text-sm text-slate-700">{t('admin.bannerIsActive', '是否启用')}</span>
+                        </label>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                        <Button variant="outline" size="lg" className="c-button--outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button size="lg" className="c-button--primary" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -491,12 +568,30 @@ const BannersTab: React.FC = () => {
                     <div className="px-6 py-5 space-y-4">
                         <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
                         <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={editForm.subtitle} onChange={e => setEditForm({...editForm, subtitle: e.target.value})}/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerTitleZh', '标题(中文)')}</Label><Input value={editForm.title_i18n?.zh || ''} onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), zh: e.target.value}})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerTitleEn', 'Title (EN)')}</Label><Input value={editForm.title_i18n?.en || ''} onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), en: e.target.value}})}/></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleZh', '副标题(中文)')}</Label><Input value={editForm.subtitle_i18n?.zh || ''} onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), zh: e.target.value}})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerSubtitleEn', 'Subtitle (EN)')}</Label><Input value={editForm.subtitle_i18n?.en || ''} onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), en: e.target.value}})}/></div>
+                        </div>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={editForm.badge_text} onChange={e => setEditForm({...editForm, badge_text: e.target.value})}/></div>
                         <ImageUploadField
-                            value={editForm.image_url}
+                            value={editForm.image_url || ''}
                             onChange={url => setEditForm({...editForm, image_url: url})}
                             label={t('admin.bannerImageUrl')}
                         />
+                        <ImageUploadField
+                            value={editForm.image_mobile_url || ''}
+                            onChange={url => setEditForm({...editForm, image_mobile_url: url})}
+                            label={t('admin.bannerImageMobileUrl', '移动端图片')}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerBgStart', '背景渐变起始色')}</Label><Input value={editForm.bg_color_start || ''} onChange={e => setEditForm({...editForm, bg_color_start: e.target.value})} placeholder="#667eea"/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerBgEnd', '背景渐变结束色')}</Label><Input value={editForm.bg_color_end || ''} onChange={e => setEditForm({...editForm, bg_color_end: e.target.value})} placeholder="#764ba2"/></div>
+                        </div>
+                        <div className="grid gap-2"><Label>{t('admin.bannerOverlayOpacity', '背景遮罩透明度 (0-1)')}</Label><Input type="number" step="0.1" min="0" max="1" value={editForm.bg_overlay_opacity ?? 0} onChange={e => setEditForm({...editForm, bg_overlay_opacity: Number(e.target.value)})}/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnText')}</Label><Input value={editForm.primary_btn_text} onChange={e => setEditForm({...editForm, primary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnUrl')}</Label><Input value={editForm.primary_btn_url} onChange={e => setEditForm({...editForm, primary_btn_url: e.target.value})}/></div>
@@ -505,10 +600,22 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={editForm.secondary_btn_text} onChange={e => setEditForm({...editForm, secondary_btn_text: e.target.value})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={editForm.secondary_btn_url} onChange={e => setEditForm({...editForm, secondary_btn_url: e.target.value})}/></div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={editForm.sequence ?? 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={editForm.auto_slide_interval ?? 5} onChange={e => setEditForm({...editForm, auto_slide_interval: Number(e.target.value)})}/></div>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
+                            <span className="text-sm text-slate-700">{t('admin.bannerIsActive', '是否启用')}</span>
+                        </label>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate}>{t('common.save')}</Button>
+                        <Button variant="outline" size="lg" className="c-button--outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button size="lg" className="c-button--primary" onClick={handleUpdate}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

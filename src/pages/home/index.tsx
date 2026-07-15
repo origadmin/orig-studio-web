@@ -12,6 +12,7 @@ import type {Ad} from '@/lib/api/portal';
 import AdDisplay from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
+import BannerCarousel from '@/components/common/BannerCarousel';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -194,6 +195,10 @@ const HomePage = () => {
                     />
                 </section>
             )}
+
+            <section className="mb-2">
+                <BannerCarousel />
+            </section>
 
             {featuredVideos.length > 0 && (
                 <section>
