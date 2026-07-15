@@ -5037,6 +5037,11 @@ export interface components {
             end_at?: string;
             /** Format: int32 */
             auto_slide_interval?: number;
+            type?: string;
+            /** Format: int32 */
+            count?: number;
+            category_id?: string;
+            display_mode?: string;
             link_url?: string;
             link_target?: string;
             /** Format: int32 */

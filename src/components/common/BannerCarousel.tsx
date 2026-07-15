@@ -61,7 +61,10 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
                 <CarouselContent>
                     {activeBanners.map((currentBanner) => (
                         <CarouselItem key={currentBanner.id}>
-                            <div className="relative aspect-[21/9] w-full">
+                            <div className={cn(
+                                "relative w-full",
+                                currentBanner.display_mode === 'narrow' ? 'aspect-[16/9]' : 'aspect-[21/9]'
+                            )}>
                                 {currentBanner.image_url ? (
                                     <img
                                         src={currentBanner.image_url}

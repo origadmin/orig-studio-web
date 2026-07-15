@@ -318,7 +318,7 @@ const BannersTab: React.FC = () => {
         bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
         secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
         start_at: '', end_at: '', auto_slide_interval: 5,
-        type: 'custom', count: 5, category_id: '',
+        type: 'custom', count: 5, category_id: '', display_mode: 'wide',
     };
     const [createForm, setCreateForm] = useState<CreateBannerRequest>(emptyCreateForm);
     const [editForm, setEditForm] = useState<UpdateBannerRequest>({
@@ -327,7 +327,7 @@ const BannersTab: React.FC = () => {
         bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
         secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
         start_at: '', end_at: '', auto_slide_interval: 5,
-        type: 'custom', count: 5, category_id: '',
+        type: 'custom', count: 5, category_id: '', display_mode: 'wide',
     });
 
     const banners = bannerData?.items || [];
@@ -419,6 +419,7 @@ const BannersTab: React.FC = () => {
             type: banner.type || 'custom',
             count: banner.count || 5,
             category_id: banner.category_id || '',
+            display_mode: banner.display_mode || 'wide',
         });
         setEditDialogOpen(true);
     };
@@ -582,6 +583,16 @@ const BannersTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={createForm.sequence ?? 0} onChange={e => setCreateForm({...createForm, sequence: Number(e.target.value)})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={createForm.auto_slide_interval ?? 5} onChange={e => setCreateForm({...createForm, auto_slide_interval: Number(e.target.value)})}/></div>
                         </div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.bannerDisplayMode', '显示模式')}</Label>
+                            <Select value={createForm.display_mode || 'wide'} onValueChange={(v: 'wide' | 'narrow') => setCreateForm({...createForm, display_mode: v})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="wide">{t('admin.bannerDisplayModeWide', '宽屏 (21:9 电影感)')}</SelectItem>
+                                    <SelectItem value="narrow">{t('admin.bannerDisplayModeNarrow', '窄屏 (16:9 标准)')}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" checked={createForm.is_active ?? true} onChange={e => setCreateForm({...createForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
                             <span className="text-sm text-slate-700">{t('admin.bannerIsActive', '是否启用')}</span>
@@ -681,6 +692,16 @@ const BannersTab: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={editForm.sequence ?? 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
                             <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={editForm.auto_slide_interval ?? 5} onChange={e => setEditForm({...editForm, auto_slide_interval: Number(e.target.value)})}/></div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.bannerDisplayMode', '显示模式')}</Label>
+                            <Select value={editForm.display_mode || 'wide'} onValueChange={(v: 'wide' | 'narrow') => setEditForm({...editForm, display_mode: v})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="wide">{t('admin.bannerDisplayModeWide', '宽屏 (21:9 电影感)')}</SelectItem>
+                                    <SelectItem value="narrow">{t('admin.bannerDisplayModeNarrow', '窄屏 (16:9 标准)')}</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input type="checkbox" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>

@@ -60,6 +60,7 @@ export interface Banner {
     type?: 'custom' | 'hot_videos' | 'new_videos' | 'ad';
     count?: number;
     category_id?: string;
+    display_mode?: 'wide' | 'narrow';
     create_time: string;
     update_time: string;
 }
@@ -92,6 +93,7 @@ export interface CreateBannerRequest {
     type?: string;
     count?: number;
     category_id?: string;
+    display_mode?: 'wide' | 'narrow';
 }
 
 export interface UpdateBannerRequest {
@@ -117,6 +119,7 @@ export interface UpdateBannerRequest {
     type?: string;
     count?: number;
     category_id?: string;
+    display_mode?: 'wide' | 'narrow';
 }
 
 export interface CustomPage {
