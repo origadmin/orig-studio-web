@@ -767,29 +767,28 @@ export default function MediaEditPage() {
                             value={form.title}
                             onChange={e => setForm({...form, title: e.target.value})}
                             placeholder={t('mediaEdit.unnamedMedia', '未命名媒体')}
-                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 w-full"
+                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
                         />
                     </div>
-                    <div className="flex items-center gap-3 mt-1.5 ml-11">
-                        <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 ml-11">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             {(() => {
                                 const typeKey = TYPE_I18N_KEYS[media.type];
                                 const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
                                 return typeLabel ? (
-                                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium", typeBadgeStyle(media.type))}>
+                                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0", typeBadgeStyle(media.type))}>
                                         {typeLabel}
                                     </span>
                                 ) : null;
                             })()}
                             <StatusDot status={getComprehensiveStatus(media)} label={getStatusLabel(media, t)}/>
                             {media.featured && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/30">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning/10 text-warning border border-warning/30 whitespace-nowrap shrink-0">
                                     {t('mediaEdit.featured', '推荐')}
                                 </span>
                             )}
                         </div>
-                        <span className="h-4 w-px bg-border shrink-0"/>
-                        <p className="text-sm text-muted-foreground truncate">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
+                        <p className="text-sm text-muted-foreground min-w-[200px] flex-1 truncate sm:pl-3 sm:border-l sm:border-border">{t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
