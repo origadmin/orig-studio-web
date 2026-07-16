@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {
-    Layout, Plus, Edit, Trash2,
+    Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -25,7 +25,10 @@ import {
 import {Label} from '@/components/ui/label';
 import {Switch} from '@/components/ui/switch';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
+import {toast} from 'sonner';
 import {
     useAdminNavItems, useAdminBanners,
     useCreateNavItem, useUpdateNavItem, useDeleteNavItem,
@@ -312,8 +315,40 @@ const NavigationTab: React.FC = () => {
     );
 };
 
+type BannerFormData = {
+    title: string;
+    subtitle: string;
+    badge_text: string;
+    image_url: string;
+    primary_btn_text: string;
+    primary_btn_url: string;
+    sequence: number;
+    is_active: boolean;
+    start_at: string;
+    end_at: string;
+};
+
+type GlobalCarouselSettings = {
+    display_mode: 'wide' | 'narrow';
+    auto_slide_interval: number;
+};
+
+const emptyBannerForm: BannerFormData = {
+    title: '',
+    subtitle: '',
+    badge_text: '',
+    image_url: '',
+    primary_btn_text: '',
+    primary_btn_url: '',
+    sequence: 0,
+    is_active: true,
+    start_at: '',
+    end_at: '',
+};
+
 const BannersTab: React.FC = () => {
     const {t} = useTranslation();
+    const queryClient = useQueryClient();
     const {data: bannerData, isLoading} = useAdminBanners();
     const createMutation = useCreateBanner();
     const updateMutation = useUpdateBanner();
@@ -324,25 +359,33 @@ const BannersTab: React.FC = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
-    const emptyCreateForm: CreateBannerRequest = {
-        title: '', title_i18n: {}, subtitle: '', subtitle_i18n: {}, badge_text: '',
-        image_url: '', image_mobile_url: '', bg_color_start: '', bg_color_end: '',
-        bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
-        secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
-        start_at: '', end_at: '', auto_slide_interval: 5,
-        type: 'custom', count: 5, category_id: '', display_mode: 'wide',
-    };
-    const [createForm, setCreateForm] = useState<CreateBannerRequest>(emptyCreateForm);
-    const [editForm, setEditForm] = useState<UpdateBannerRequest>({
-        title: '', title_i18n: {}, subtitle: '', subtitle_i18n: {}, badge_text: '',
-        image_url: '', image_mobile_url: '', bg_color_start: '', bg_color_end: '',
-        bg_overlay_opacity: 0, primary_btn_text: '', primary_btn_url: '',
-        secondary_btn_text: '', secondary_btn_url: '', sequence: 0, is_active: true,
-        start_at: '', end_at: '', auto_slide_interval: 5,
-        type: 'custom', count: 5, category_id: '', display_mode: 'wide',
-    });
+    const [advancedOpen, setAdvancedOpen] = useState(false);
+    const [createForm, setCreateForm] = useState<BannerFormData>(emptyBannerForm);
+    const [editForm, setEditForm] = useState<BannerFormData>(emptyBannerForm);
 
     const banners = bannerData?.items || [];
+
+    const initialGlobal: GlobalCarouselSettings = React.useMemo(() => {
+        if (banners.length === 0) return {display_mode: 'wide', auto_slide_interval: 5};
+        const first = banners.find(b => b.is_active) || banners[0];
+        return {
+            display_mode: first.display_mode || 'wide',
+            auto_slide_interval: first.auto_slide_interval ?? 5,
+        };
+    }, [banners]);
+
+    const [globalSettings, setGlobalSettings] = useState<GlobalCarouselSettings>(initialGlobal);
+    const [globalDirty, setGlobalDirty] = useState(false);
+    const [globalSaving, setGlobalSaving] = useState(false);
+
+    React.useEffect(() => {
+        if (!globalDirty) setGlobalSettings(initialGlobal);
+    }, [initialGlobal, globalDirty]);
+
+    const updateGlobal = (patch: Partial<GlobalCarouselSettings>) => {
+        setGlobalSettings(prev => ({...prev, ...patch}));
+        setGlobalDirty(true);
+    };
 
     const toISO = (v?: string): string | undefined => {
         if (!v) return undefined;
@@ -357,17 +400,55 @@ const BannersTab: React.FC = () => {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
+    const buildCreatePayload = (f: BannerFormData): CreateBannerRequest => {
+        const payload: CreateBannerRequest = {
+            title: f.title,
+            type: 'custom',
+            image_url: f.image_url || undefined,
+            is_active: f.is_active,
+            sequence: f.sequence,
+        };
+        if (f.subtitle) payload.subtitle = f.subtitle;
+        if (f.badge_text) payload.badge_text = f.badge_text;
+        if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
+        if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        const startISO = toISO(f.start_at);
+        const endISO = toISO(f.end_at);
+        if (startISO) payload.start_at = startISO;
+        if (endISO) payload.end_at = endISO;
+        return payload;
+    };
+
+    const buildUpdatePayload = (f: BannerFormData): UpdateBannerRequest => {
+        const payload: UpdateBannerRequest = {
+            title: f.title,
+            type: 'custom',
+            image_url: f.image_url || undefined,
+            is_active: f.is_active,
+            sequence: f.sequence,
+        };
+        if (f.subtitle) payload.subtitle = f.subtitle;
+        if (f.badge_text) payload.badge_text = f.badge_text;
+        if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
+        if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        const startISO = toISO(f.start_at);
+        const endISO = toISO(f.end_at);
+        if (startISO) payload.start_at = startISO;
+        if (endISO) payload.end_at = endISO;
+        return payload;
+    };
+
     const handleCreate = async () => {
         try {
-            await createMutation.mutateAsync({
-                ...createForm,
-                start_at: toISO(createForm.start_at),
-                end_at: toISO(createForm.end_at),
-            });
+            await createMutation.mutateAsync(buildCreatePayload(createForm));
+            toast.success(t('admin.bannerCreateSuccess', 'Banner created'));
             setCreateDialogOpen(false);
-            setCreateForm(emptyCreateForm);
+            setCreateForm(emptyBannerForm);
+            setAdvancedOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminBanners']});
         } catch (err) {
             console.error('Failed to create banner:', err);
+            toast.error(t('admin.bannerCreateFail', 'Failed to create banner'));
         }
     };
 
@@ -376,21 +457,48 @@ const BannersTab: React.FC = () => {
         try {
             await updateMutation.mutateAsync({
                 id: editingBanner.id,
-                data: {
-                    ...editForm,
-                    start_at: toISO(editForm.start_at),
-                    end_at: toISO(editForm.end_at),
-                },
+                data: buildUpdatePayload(editForm),
             });
+            toast.success(t('admin.bannerUpdateSuccess', 'Banner updated'));
             setEditDialogOpen(false);
+            setAdvancedOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminBanners']});
         } catch (err) {
             console.error('Failed to update banner:', err);
+            toast.error(t('admin.bannerUpdateFail', 'Failed to update banner'));
+        }
+    };
+
+    const handleSaveGlobal = async () => {
+        if (!globalDirty) return;
+        setGlobalSaving(true);
+        try {
+            await Promise.all(
+                banners.map(b =>
+                    updateMutation.mutateAsync({
+                        id: b.id,
+                        data: {
+                            display_mode: globalSettings.display_mode,
+                            auto_slide_interval: globalSettings.auto_slide_interval,
+                        },
+                    })
+                )
+            );
+            toast.success(t('admin.bannerGlobalSaveSuccess', 'Carousel settings saved'));
+            setGlobalDirty(false);
+            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+        } catch (err) {
+            console.error('Failed to save global banner settings:', err);
+            toast.error(t('admin.bannerGlobalSaveFail', 'Failed to save carousel settings'));
+        } finally {
+            setGlobalSaving(false);
         }
     };
 
     const handleToggle = async (id: string) => {
         try {
             await toggleMutation.mutateAsync(id);
+            queryClient.invalidateQueries({queryKey: ['adminBanners']});
         } catch (err) {
             console.error('Failed to toggle banner:', err);
         }
@@ -400,53 +508,212 @@ const BannersTab: React.FC = () => {
         if (!editingBanner) return;
         try {
             await deleteMutation.mutateAsync(editingBanner.id);
+            toast.success(t('admin.bannerDeleteSuccess', 'Banner deleted'));
             setDeleteDialogOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminBanners']});
         } catch (err) {
             console.error('Failed to delete banner:', err);
+            toast.error(t('admin.bannerDeleteFail', 'Failed to delete banner'));
         }
+    };
+
+    const openCreateDialog = () => {
+        setCreateForm(emptyBannerForm);
+        setAdvancedOpen(false);
+        setCreateDialogOpen(true);
     };
 
     const openEditDialog = (banner: Banner) => {
         setEditingBanner(banner);
         setEditForm({
-            title: banner.title,
-            title_i18n: banner.title_i18n || {},
+            title: banner.title || '',
             subtitle: banner.subtitle || '',
-            subtitle_i18n: banner.subtitle_i18n || {},
             badge_text: banner.badge_text || '',
             image_url: banner.image_url || '',
-            image_mobile_url: banner.image_mobile_url || '',
-            bg_color_start: banner.bg_color_start || '',
-            bg_color_end: banner.bg_color_end || '',
-            bg_overlay_opacity: banner.bg_overlay_opacity || 0,
             primary_btn_text: banner.primary_btn_text || '',
             primary_btn_url: banner.primary_btn_url || '',
-            secondary_btn_text: banner.secondary_btn_text || '',
-            secondary_btn_url: banner.secondary_btn_url || '',
-            sequence: banner.sequence || 0,
+            sequence: banner.sequence ?? 0,
             is_active: banner.is_active,
             start_at: fromISO(banner.start_at),
             end_at: fromISO(banner.end_at),
-            auto_slide_interval: banner.auto_slide_interval || 5,
-            type: banner.type || 'custom',
-            count: banner.count || 5,
-            category_id: banner.category_id || '',
-            display_mode: banner.display_mode || 'wide',
         });
+        setAdvancedOpen(!!(banner.start_at || banner.end_at) || banner.sequence !== 0);
         setEditDialogOpen(true);
     };
+
+    const aspectClass = globalSettings.display_mode === 'narrow' ? 'aspect-video' : 'aspect-[21/9]';
+
+    const renderBannerFormFields = (
+        form: BannerFormData,
+        setForm: React.Dispatch<React.SetStateAction<BannerFormData>>,
+    ) => (
+        <>
+            <div className="grid gap-2">
+                <Label htmlFor="banner-title">{t('admin.bannerTitle', '标题')}</Label>
+                <Input
+                    id="banner-title"
+                    value={form.title}
+                    onChange={e => setForm({...form, title: e.target.value})}
+                    placeholder={t('admin.bannerTitle', '标题')}
+                />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="banner-subtitle">{t('admin.bannerSubtitle', '副标题')}</Label>
+                <Input
+                    id="banner-subtitle"
+                    value={form.subtitle}
+                    onChange={e => setForm({...form, subtitle: e.target.value})}
+                    placeholder={t('admin.bannerSubtitle', '副标题')}
+                />
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="banner-badge">{t('admin.bannerBadgeText', '角标文字')}</Label>
+                <Input
+                    id="banner-badge"
+                    value={form.badge_text}
+                    onChange={e => setForm({...form, badge_text: e.target.value})}
+                    placeholder="HOT, NEW"
+                />
+            </div>
+            <ImageUploadField
+                value={form.image_url}
+                onChange={url => setForm({...form, image_url: url})}
+                label={t('admin.bannerImageUrl', 'Banner图片')}
+            />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="banner-cta-text">{t('admin.bannerPrimaryBtnText', 'CTA按钮文字')}</Label>
+                    <Input
+                        id="banner-cta-text"
+                        value={form.primary_btn_text}
+                        onChange={e => setForm({...form, primary_btn_text: e.target.value})}
+                    />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="banner-cta-url">{t('admin.bannerPrimaryBtnUrl', 'CTA按钮链接')}</Label>
+                    <Input
+                        id="banner-cta-url"
+                        value={form.primary_btn_url}
+                        onChange={e => setForm({...form, primary_btn_url: e.target.value})}
+                        placeholder="/featured"
+                    />
+                </div>
+            </div>
+            <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+                <CollapsibleTrigger asChild>
+                    <Button type="button" variant="ghost" size="sm" className="px-0 text-sm flex items-center gap-1 -ml-1">
+                        <ChevronDown className={`h-4 w-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`}/>
+                        {t('admin.bannerAdvanced', '其他设置')}
+                    </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="banner-start">{t('admin.bannerStartAt', '开始时间')}</Label>
+                            <Input
+                                id="banner-start"
+                                type="datetime-local"
+                                value={form.start_at}
+                                onChange={e => setForm({...form, start_at: e.target.value})}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="banner-end">{t('admin.bannerEndAt', '结束时间')}</Label>
+                            <Input
+                                id="banner-end"
+                                type="datetime-local"
+                                value={form.end_at}
+                                onChange={e => setForm({...form, end_at: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-sequence">{t('admin.bannerSequence', '排序')}</Label>
+                        <Input
+                            id="banner-sequence"
+                            type="number"
+                            value={form.sequence}
+                            onChange={e => setForm({...form, sequence: Number(e.target.value)})}
+                        />
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
+            <div className="flex items-center gap-2">
+                <Switch
+                    checked={form.is_active}
+                    onCheckedChange={(v) => setForm({...form, is_active: v})}
+                    id="banner-active"
+                />
+                <Label htmlFor="banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
+            </div>
+        </>
+    );
 
     return (
         <>
             <Card>
                 <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Settings className="h-5 w-5 text-primary"/>
+                        {t('admin.bannerGlobalSettings', '轮播全局设置')}
+                    </CardTitle>
+                    <CardDescription>
+                        {t('admin.bannerGlobalSettingsDesc', '控制所有Banner轮播的展示模式与切换速度。')}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label>{t('admin.bannerDisplayMode', '展示模式')}</Label>
+                        <RadioGroup
+                            value={globalSettings.display_mode}
+                            onValueChange={(v: 'wide' | 'narrow') => updateGlobal({display_mode: v})}
+                            className="flex gap-6"
+                        >
+                            <div className="flex items-center gap-2">
+                                <RadioGroupItem value="wide" id="mode-wide"/>
+                                <Label htmlFor="mode-wide" className="cursor-pointer">
+                                    {t('admin.bannerDisplayModeWide', '宽屏 (21:9)')}
+                                </Label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <RadioGroupItem value="narrow" id="mode-narrow"/>
+                                <Label htmlFor="mode-narrow" className="cursor-pointer">
+                                    {t('admin.bannerDisplayModeNarrow', '窄屏 (16:9)')}
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <div className="grid gap-2 max-w-xs">
+                        <Label htmlFor="carousel-interval">{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label>
+                        <Input
+                            id="carousel-interval"
+                            type="number"
+                            min={1}
+                            max={30}
+                            value={globalSettings.auto_slide_interval}
+                            onChange={e => updateGlobal({auto_slide_interval: Math.max(1, Number(e.target.value) || 5)})}
+                        />
+                    </div>
+                    <Button
+                        size="sm"
+                        onClick={handleSaveGlobal}
+                        disabled={!globalDirty || globalSaving}
+                    >
+                        {globalSaving ? <Spinner className="w-4 h-4 mr-2"/> : null}
+                        {t('common.save', '保存')}
+                    </Button>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>{t('admin.bannerManagement')}</CardTitle>
-                            <CardDescription>{t('admin.bannerManagementDesc')}</CardDescription>
+                            <CardTitle>{t('admin.bannerManagement', 'Banner管理')}</CardTitle>
+                            <CardDescription>{t('admin.bannerManagementDesc', '管理首页轮播Banner')}</CardDescription>
                         </div>
-                        <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-                            <Plus className="w-4 h-4 mr-2"/>{t('admin.addBanner')}
+                        <Button size="sm" onClick={openCreateDialog}>
+                            <Plus className="w-4 h-4 mr-2"/>{t('admin.addBanner', '添加Banner')}
                         </Button>
                     </div>
                 </CardHeader>
@@ -457,29 +724,37 @@ const BannersTab: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {banners.map(banner => (
                                 <Card key={banner.id} className={`overflow-hidden ${!banner.is_active ? 'opacity-60' : ''}`}>
-                                    <div
-                                        className="h-32 relative"
-                                        style={{background: banner.bg_color_start ? `linear-gradient(135deg, ${banner.bg_color_start}, ${banner.bg_color_end || banner.bg_color_start})` : 'linear-gradient(135deg, #1e293b, #334155)'}}
-                                    >
-                                        {banner.image_url && <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>}
-                                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                            <div className="text-center text-white">
-                                                <h3 className="font-bold text-lg">{banner.title}</h3>
-                                                {banner.subtitle && <p className="text-sm opacity-80">{banner.subtitle}</p>}
+                                    <div className={`relative ${aspectClass} bg-slate-800`}>
+                                        {banner.image_url ? (
+                                            <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-white/70">
+                                                {banner.title || t('admin.noImage', '无图片')}
                                             </div>
-                                        </div>
+                                        )}
+                                        {banner.badge_text && (
+                                            <Badge className="absolute top-2 left-2" variant="secondary">
+                                                {banner.badge_text}
+                                            </Badge>
+                                        )}
                                     </div>
-                                    <CardContent className="p-4">
+                                    <CardContent className="p-4 space-y-3">
+                                        <div>
+                                            <h3 className="font-semibold text-sm truncate">{banner.title}</h3>
+                                            {banner.subtitle && (
+                                                <p className="text-xs text-muted-foreground truncate mt-0.5">{banner.subtitle}</p>
+                                            )}
+                                        </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Switch
                                                     checked={banner.is_active}
                                                     onCheckedChange={() => handleToggle(banner.id)}
+                                                    aria-label={banner.is_active ? t('admin.disable', '禁用') : t('admin.enable', '启用')}
                                                 />
                                                 <span className={`text-sm ${banner.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
                                                     {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
                                                 </span>
-                                                {banner.badge_text && <Badge variant="outline" className="ml-1">{banner.badge_text}</Badge>}
                                             </div>
                                             <div className="flex items-center gap-1">
                                                 <Button variant="ghost" size="icon-sm"
@@ -493,8 +768,8 @@ const BannersTab: React.FC = () => {
                                             </div>
                                         </div>
                                         {banner.primary_btn_text && (
-                                            <div className="mt-2 text-xs text-muted-foreground">
-                                                CTA: {banner.primary_btn_text} → {banner.primary_btn_url}
+                                            <div className="text-xs text-muted-foreground truncate">
+                                                CTA: {banner.primary_btn_text} {banner.primary_btn_url ? `→ ${banner.primary_btn_url}` : ''}
                                             </div>
                                         )}
                                     </CardContent>
@@ -502,193 +777,43 @@ const BannersTab: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="py-12 text-center text-muted-foreground">{t('admin.noBanners')}</div>
+                        <div className="py-12 text-center text-muted-foreground">{t('admin.noBanners', '暂无Banner')}</div>
                     )}
                 </CardContent>
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
+                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-primary" />
-                            {t('admin.createBanner', 'Create Banner')}
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('admin.createBanner', '添加Banner')}
                         </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.createBannerDesc', 'Create a new homepage banner with image, title, and call-to-action buttons.')}
-                        </DialogDescription>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.bannerTitle')}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={createForm.subtitle || ''} onChange={e => setCreateForm({...createForm, subtitle: e.target.value})} placeholder={t('admin.bannerSubtitle')}/></div>
-                        <div className="grid gap-2">
-                            <Label>{t('admin.bannerType', '横幅类型')}</Label>
-                            <Select value={createForm.type || 'custom'} onValueChange={(v) => setCreateForm({...createForm, type: v})}>
-                                <SelectTrigger><SelectValue placeholder={t('admin.bannerType', '横幅类型')} /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义轮播')}</SelectItem>
-                                    <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频')}</SelectItem>
-                                    <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新视频')}</SelectItem>
-                                    <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {(createForm.type === 'hot_videos' || createForm.type === 'new_videos') && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2"><Label>{t('admin.bannerCount', '聚合条数')}</Label><Input type="number" min="1" value={createForm.count ?? 5} onChange={e => setCreateForm({...createForm, count: Number(e.target.value)})} /></div>
-                                <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={createForm.category_id || ''} onChange={e => setCreateForm({...createForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
-                            </div>
-                        )}
-                        {/* route A: 单语种阶段,title_i18n/subtitle_i18n 字段休眠(不编辑、不 populate),数据层保留;后期由独立字典页(catalog)按 key 接管 */}
-                        {(!createForm.type || createForm.type === 'custom') && (<>
-                        <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT, NEW"/></div>
-                        <ImageUploadField
-                            value={createForm.image_url || ''}
-                            onChange={url => setCreateForm({...createForm, image_url: url})}
-                            label={t('admin.bannerImageUrl')}
-                        />
-                        <ImageUploadField
-                            value={createForm.image_mobile_url || ''}
-                            onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
-                            label={t('admin.bannerImageMobileUrl', '移动端图片')}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerBgStart', '背景渐变起始色')}</Label><Input value={createForm.bg_color_start || ''} onChange={e => setCreateForm({...createForm, bg_color_start: e.target.value})} placeholder="#667eea"/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerBgEnd', '背景渐变结束色')}</Label><Input value={createForm.bg_color_end || ''} onChange={e => setCreateForm({...createForm, bg_color_end: e.target.value})} placeholder="#764ba2"/></div>
-                        </div>
-                        <div className="grid gap-2"><Label>{t('admin.bannerOverlayOpacity', '背景遮罩透明度 (0-1)')}</Label><Input type="number" step="0.1" min="0" max="1" value={createForm.bg_overlay_opacity ?? 0} onChange={e => setCreateForm({...createForm, bg_overlay_opacity: Number(e.target.value)})}/></div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnText')}</Label><Input value={createForm.primary_btn_text || ''} onChange={e => setCreateForm({...createForm, primary_btn_text: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnUrl')}</Label><Input value={createForm.primary_btn_url || ''} onChange={e => setCreateForm({...createForm, primary_btn_url: e.target.value})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={createForm.secondary_btn_text || ''} onChange={e => setCreateForm({...createForm, secondary_btn_text: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={createForm.secondary_btn_url || ''} onChange={e => setCreateForm({...createForm, secondary_btn_url: e.target.value})}/></div>
-                        </div>
-                        </>)}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={createForm.start_at || ''} onChange={e => setCreateForm({...createForm, start_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={createForm.end_at || ''} onChange={e => setCreateForm({...createForm, end_at: e.target.value})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={createForm.sequence ?? 0} onChange={e => setCreateForm({...createForm, sequence: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={createForm.auto_slide_interval ?? 5} onChange={e => setCreateForm({...createForm, auto_slide_interval: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>{t('admin.bannerDisplayMode', '显示模式')}</Label>
-                            <Select value={createForm.display_mode || 'wide'} onValueChange={(v: 'wide' | 'narrow') => setCreateForm({...createForm, display_mode: v})}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="wide">{t('admin.bannerDisplayModeWide', '宽屏 (21:9 电影感)')}</SelectItem>
-                                    <SelectItem value="narrow">{t('admin.bannerDisplayModeNarrow', '窄屏 (16:9 标准)')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                checked={createForm.is_active ?? true}
-                                onCheckedChange={(v) => setCreateForm({...createForm, is_active: v})}
-                                id="create-banner-active"
-                            />
-                            <Label htmlFor="create-banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
-                        </div>
+                        {renderBannerFormFields(createForm, setCreateForm)}
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" size="lg" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button size="lg" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleCreate} disabled={!createForm.title || !createForm.image_url}>{t('common.add', '添加')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
+                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Edit className="w-5 h-5 text-primary" />
-                            {t('admin.editBanner', 'Edit Banner')}
+                            <Edit className="w-5 h-5 text-primary"/>
+                            {t('admin.editBanner', '编辑Banner')}
                         </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.editBannerDesc', 'Update banner content, imagery, and call-to-action settings.')}
-                        </DialogDescription>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.bannerTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.bannerSubtitle')}</Label><Input value={editForm.subtitle} onChange={e => setEditForm({...editForm, subtitle: e.target.value})}/></div>
-                        <div className="grid gap-2">
-                            <Label>{t('admin.bannerType', '横幅类型')}</Label>
-                            <Select value={editForm.type || 'custom'} onValueChange={(v) => setEditForm({...editForm, type: v})}>
-                                <SelectTrigger><SelectValue placeholder={t('admin.bannerType', '横幅类型')} /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义轮播')}</SelectItem>
-                                    <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频')}</SelectItem>
-                                    <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新视频')}</SelectItem>
-                                    <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {(editForm.type === 'hot_videos' || editForm.type === 'new_videos') && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="grid gap-2"><Label>{t('admin.bannerCount', '聚合条数')}</Label><Input type="number" min="1" value={editForm.count ?? 5} onChange={e => setEditForm({...editForm, count: Number(e.target.value)})} /></div>
-                                <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={editForm.category_id || ''} onChange={e => setEditForm({...editForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
-                            </div>
-                        )}
-                        {/* route A: 单语种阶段,title_i18n/subtitle_i18n 字段休眠(不编辑、不 populate),数据层保留;后期由独立字典页(catalog)按 key 接管 */}
-                        {(!editForm.type || editForm.type === 'custom') && (<>
-                        <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={editForm.badge_text} onChange={e => setEditForm({...editForm, badge_text: e.target.value})}/></div>
-                        <ImageUploadField
-                            value={editForm.image_url || ''}
-                            onChange={url => setEditForm({...editForm, image_url: url})}
-                            label={t('admin.bannerImageUrl')}
-                        />
-                        <ImageUploadField
-                            value={editForm.image_mobile_url || ''}
-                            onChange={url => setEditForm({...editForm, image_mobile_url: url})}
-                            label={t('admin.bannerImageMobileUrl', '移动端图片')}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerBgStart', '背景渐变起始色')}</Label><Input value={editForm.bg_color_start || ''} onChange={e => setEditForm({...editForm, bg_color_start: e.target.value})} placeholder="#667eea"/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerBgEnd', '背景渐变结束色')}</Label><Input value={editForm.bg_color_end || ''} onChange={e => setEditForm({...editForm, bg_color_end: e.target.value})} placeholder="#764ba2"/></div>
-                        </div>
-                        <div className="grid gap-2"><Label>{t('admin.bannerOverlayOpacity', '背景遮罩透明度 (0-1)')}</Label><Input type="number" step="0.1" min="0" max="1" value={editForm.bg_overlay_opacity ?? 0} onChange={e => setEditForm({...editForm, bg_overlay_opacity: Number(e.target.value)})}/></div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnText')}</Label><Input value={editForm.primary_btn_text} onChange={e => setEditForm({...editForm, primary_btn_text: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerPrimaryBtnUrl')}</Label><Input value={editForm.primary_btn_url} onChange={e => setEditForm({...editForm, primary_btn_url: e.target.value})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnText')}</Label><Input value={editForm.secondary_btn_text} onChange={e => setEditForm({...editForm, secondary_btn_text: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerSecondaryBtnUrl')}</Label><Input value={editForm.secondary_btn_url} onChange={e => setEditForm({...editForm, secondary_btn_url: e.target.value})}/></div>
-                        </div>
-                        </>)}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerStartAt', '开始时间')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerEndAt', '结束时间')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.bannerSequence', '排序')}</Label><Input type="number" value={editForm.sequence ?? 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label><Input type="number" value={editForm.auto_slide_interval ?? 5} onChange={e => setEditForm({...editForm, auto_slide_interval: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>{t('admin.bannerDisplayMode', '显示模式')}</Label>
-                            <Select value={editForm.display_mode || 'wide'} onValueChange={(v: 'wide' | 'narrow') => setEditForm({...editForm, display_mode: v})}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="wide">{t('admin.bannerDisplayModeWide', '宽屏 (21:9 电影感)')}</SelectItem>
-                                    <SelectItem value="narrow">{t('admin.bannerDisplayModeNarrow', '窄屏 (16:9 标准)')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                checked={editForm.is_active ?? true}
-                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
-                                id="edit-banner-active"
-                            />
-                            <Label htmlFor="edit-banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
-                        </div>
+                        {renderBannerFormFields(editForm, setEditForm)}
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" size="lg" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button size="lg" onClick={handleUpdate}>{t('common.save')}</Button>
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleUpdate}>{t('common.save', '保存')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -697,16 +822,16 @@ const BannersTab: React.FC = () => {
                 <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
                     <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Trash2 className="w-5 h-5 text-red-500" />
-                            {t('admin.confirmDelete', 'Confirm Delete')}
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.confirmDelete', '确认删除')}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
                             {t('admin.deleteBannerConfirm', {title: editingBanner?.title})}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel', '取消')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete', '删除')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
