@@ -721,10 +721,10 @@ const BannersTab: React.FC = () => {
                     {isLoading ? (
                         <div className="py-12 text-center"><Spinner className="mx-auto"/></div>
                     ) : banners.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {banners.map(banner => (
                                 <Card key={banner.id} className={`overflow-hidden ${!banner.is_active ? 'opacity-60' : ''}`}>
-                                    <div className={`relative ${aspectClass} bg-slate-800`}>
+                                    <div className="relative aspect-video bg-slate-800">
                                         {banner.image_url ? (
                                             <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>
                                         ) : (
