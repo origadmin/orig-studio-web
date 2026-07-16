@@ -60,7 +60,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     const buttonTop = buttonOffset > 0 ? buttonOffset : '38%';
 
     return (
-        <div ref={wrapperRef} className={cn('relative group', className)}>
+        <div ref={wrapperRef} className={cn('relative group/scroll', className)}>
             <div
                 ref={containerRef}
                 data-hscroll="true"
@@ -91,7 +91,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             'hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:scale-110',
                             'active:scale-95',
                             'transition-all duration-200 ease-out',
-                            'opacity-0 group-hover:opacity-100',
+                            'opacity-0 group-hover/scroll:opacity-100',
                             'left-0 -translate-x-1/2',
                             !canScrollLeft && 'pointer-events-none opacity-0 !scale-90',
                         )}
@@ -110,7 +110,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             'hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:scale-110',
                             'active:scale-95',
                             'transition-all duration-200 ease-out',
-                            'opacity-0 group-hover:opacity-100',
+                            'opacity-0 group-hover/scroll:opacity-100',
                             'right-0 translate-x-1/2',
                             !canScrollRight && 'pointer-events-none opacity-0 !scale-90',
                         )}
@@ -123,7 +123,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                         className={cn(
                             'absolute top-0 bottom-0 w-12 z-20 pointer-events-none transition-opacity duration-300',
                             'bg-gradient-to-r from-background to-transparent left-0',
-                            'opacity-0 group-hover:opacity-100',
+                            'opacity-0 group-hover/scroll:opacity-100',
                             !canScrollLeft && 'opacity-0',
                         )}
                     />
@@ -131,7 +131,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                         className={cn(
                             'absolute top-0 bottom-0 w-12 z-20 pointer-events-none transition-opacity duration-300',
                             'bg-gradient-to-l from-background to-transparent right-0',
-                            'opacity-0 group-hover:opacity-100',
+                            'opacity-0 group-hover/scroll:opacity-100',
                             !canScrollRight && 'opacity-0',
                         )}
                     />

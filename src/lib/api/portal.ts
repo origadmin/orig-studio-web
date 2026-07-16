@@ -274,10 +274,9 @@ export interface UpdateAdRequest {
 }
 
 export interface PortalConfig {
-    navigation: {
-        items: NavItem[];
-        visible_count: number;
-    };
+    // 后端 /portal/config 返回 navigation 为 NavItem 扁平数组(与 admin /admin/nav-items 的 {items,total} 形态不同,
+    // 门户页读取时必须兼容数组;不要按 {items} 对象访问,否则导航整列丢失(配置与门户页脱离)。
+    navigation: NavItem[];
     banners: Banner[];
     featured_users: FeaturedUser[];
     site: {

@@ -34,7 +34,6 @@ import {
 } from '@/hooks/queries';
 import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
-import {SUPPORTED_LANGS} from '@/lib/i18n-utils';
 
 export default function PortalConfigPage() {
     const {t} = useTranslation();
@@ -527,28 +526,7 @@ const BannersTab: React.FC = () => {
                                 <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={createForm.category_id || ''} onChange={e => setCreateForm({...createForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
                             </div>
                         )}
-                        <div className="grid grid-cols-2 gap-4">
-                            {SUPPORTED_LANGS.map((lang) => (
-                                <div className="grid gap-2" key={lang.value}>
-                                    <Label>{t('admin.bannerTitleLang', '标题')} ({lang.label})</Label>
-                                    <Input
-                                        value={createForm.title_i18n?.[lang.value] || ''}
-                                        onChange={e => setCreateForm({...createForm, title_i18n: {...(createForm.title_i18n || {}), [lang.value]: e.target.value}})}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {SUPPORTED_LANGS.map((lang) => (
-                                <div className="grid gap-2" key={lang.value}>
-                                    <Label>{t('admin.bannerSubtitleLang', '副标题')} ({lang.label})</Label>
-                                    <Input
-                                        value={createForm.subtitle_i18n?.[lang.value] || ''}
-                                        onChange={e => setCreateForm({...createForm, subtitle_i18n: {...(createForm.subtitle_i18n || {}), [lang.value]: e.target.value}})}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                        {/* route A: 单语种阶段,title_i18n/subtitle_i18n 字段休眠(不编辑、不 populate),数据层保留;后期由独立字典页(catalog)按 key 接管 */}
                         {(!createForm.type || createForm.type === 'custom') && (<>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT, NEW"/></div>
                         <ImageUploadField
@@ -637,28 +615,7 @@ const BannersTab: React.FC = () => {
                                 <div className="grid gap-2"><Label>{t('admin.bannerCategoryId', '分类ID(可选·数字)')}</Label><Input value={editForm.category_id || ''} onChange={e => setEditForm({...editForm, category_id: e.target.value})} placeholder={t('admin.bannerCategoryIdPlaceholder', '留空=全部分类')} /></div>
                             </div>
                         )}
-                        <div className="grid grid-cols-2 gap-4">
-                            {SUPPORTED_LANGS.map((lang) => (
-                                <div className="grid gap-2" key={lang.value}>
-                                    <Label>{t('admin.bannerTitleLang', '标题')} ({lang.label})</Label>
-                                    <Input
-                                        value={editForm.title_i18n?.[lang.value] || ''}
-                                        onChange={e => setEditForm({...editForm, title_i18n: {...(editForm.title_i18n || {}), [lang.value]: e.target.value}})}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {SUPPORTED_LANGS.map((lang) => (
-                                <div className="grid gap-2" key={lang.value}>
-                                    <Label>{t('admin.bannerSubtitleLang', '副标题')} ({lang.label})</Label>
-                                    <Input
-                                        value={editForm.subtitle_i18n?.[lang.value] || ''}
-                                        onChange={e => setEditForm({...editForm, subtitle_i18n: {...(editForm.subtitle_i18n || {}), [lang.value]: e.target.value}})}
-                                    />
-                                </div>
-                            ))}
-                        </div>
+                        {/* route A: 单语种阶段,title_i18n/subtitle_i18n 字段休眠(不编辑、不 populate),数据层保留;后期由独立字典页(catalog)按 key 接管 */}
                         {(!editForm.type || editForm.type === 'custom') && (<>
                         <div className="grid gap-2"><Label>{t('admin.bannerBadgeText')}</Label><Input value={editForm.badge_text} onChange={e => setEditForm({...editForm, badge_text: e.target.value})}/></div>
                         <ImageUploadField

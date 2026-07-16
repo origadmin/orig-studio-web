@@ -28,6 +28,7 @@ import NotificationBadge from '@/components/common/NotificationBadge';
 import UploadCenter from '@/components/common/UploadCenter';
 import {useUploadState} from '@/contexts/UploadContext';
 import {useModuleConfig} from '@/hooks/useModuleConfig';
+import {getLocalizedText} from '@/lib/i18n-utils';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {usePortalConfig} from '@/hooks/queries';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
@@ -89,13 +90,16 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     const {site} = useModuleState();
     const articlesEnabled = moduleConfig?.modules?.articles !== false;
 
-    const navItems = portalConfig?.navigation?.items;
+    // 后端 /portal/config 的 navigation 是 NavItem 扁平数组(非 {items} 对象)。
+    // 兼容两种形态,避免后台配置的导航在门户页整列丢失(配置与门户页脱离的根因)。
+    const rawNav = portalConfig?.navigation;
+    const navItems = Array.isArray(rawNav) ? rawNav : (rawNav?.items ?? []);
     const dynamicNavItems = (Array.isArray(navItems) ? navItems : [])
         .filter(item => item.is_visible !== false && item.type !== 'category')
         .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 
     const quickLinks: QuickLink[] = dynamicNavItems.map(item => ({
-        label: item.label_i18n?.[i18n.language] || item.label,
+        label: getLocalizedText(item.label, item.label_i18n, i18n.language),
         to: item.url,
     }));
 

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, ChevronRight, Flame} from 'lucide-react';
+import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -10,7 +10,9 @@ import type {Media} from '@/lib/api/media';
 import {publicAdsApi} from '@/lib/api/ads';
 import type {Ad} from '@/lib/api/portal';
 import AdDisplay from '@/components/portal/AdDisplay';
-import BannerCarousel from '@/components/common/BannerCarousel';
+import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
+import {usePortalConfig} from '@/hooks/queries';
+import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
@@ -98,7 +100,7 @@ const SectionHeader: React.FC<{
 const VIDEO_CARD_WIDTH = 240;
 
 const HomePage = () => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
 
     const {data: featuredData} = useMediaList({
         page: 1,
@@ -106,6 +108,45 @@ const HomePage = () => {
         featured: true,
     });
     const featuredVideos = featuredData?.items || [];
+
+    // Q5 (M2-3a): independent "推荐" section. v1 = random shuffle of the latest pool;
+    // the recommendationSource abstraction reserves a profile-based strategy later
+    // (reusing watch history / interactions to build a user portrait).
+    const {data: recommendData} = useMediaList({page: 1, page_size: 24});
+    const [recoSeed, setRecoSeed] = useState(0);
+    const recommendVideos = useMemo<Media[]>(() => {
+        const pool = recommendData?.items || [];
+        const arr = pool.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr.slice(0, 12);
+    }, [recommendData?.items, recoSeed]);
+
+    // Portal-configured hero banners (content managed in admin). Rendered with the
+    // standard HeroBanner (YouTube-style) carousel — the correct visual per pre-5be79f8.
+    const {data: portalConfig} = usePortalConfig();
+    const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
+    const heroItems = useMemo<HeroBannerItem[]>(() => {
+        const lang = i18n.language;
+        return activeBanners.map((b) => ({
+            id: String(b.id),
+            title: getLocalizedText(b.title, b.title_i18n, lang),
+            subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+            thumbnail: b.image_url || '',
+            url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
+            badge: b.badge_text || undefined,
+        }));
+    }, [activeBanners, i18n.language]);
+
+    // P0 fix: homepage HeroBanner must honor the operator's display_mode toggle in
+    // admin Portal. It was previously hardcoded to "card", silently breaking the
+    // wide/narrow switch. narrow -> card (16:9), wide -> wide (21:9).
+    const heroMode = useMemo<'card' | 'wide'>(() => {
+        const dm = activeBanners[0]?.display_mode;
+        return dm === 'wide' ? 'wide' : 'card';
+    }, [activeBanners]);
 
     // Public sponsored ads — fetched from media:8002 (/api/v1/ads?placement=home),
     // bridged by the gateway. Renders nothing if no active ads exist for the placement.
@@ -165,9 +206,11 @@ const HomePage = () => {
 
     return (
         <div className="space-y-8 max-w-[1800px] mx-auto w-full px-1">
-            <section className="mb-2">
-                <BannerCarousel/>
-            </section>
+            {heroItems.length > 0 && (
+                <section className="mb-2">
+                    <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={5000}/>
+                </section>
+            )}
 
             {featuredVideos.length > 0 && (
                 <section>
@@ -178,6 +221,32 @@ const HomePage = () => {
                     />
                     <HorizontalScroll buttonOffset={cardOffset}>
                         {featuredVideos.map((media: Media) => (
+                            <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
+                                <VideoCard media={media} size="md"/>
+                            </div>
+                        ))}
+                    </HorizontalScroll>
+                </section>
+            )}
+
+            {recommendVideos.length > 0 && (
+                <section>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-sky-500" fill="currentColor"/>
+                            {t('home.recommended', '为您推荐')}
+                        </h2>
+                        <button
+                            type="button"
+                            onClick={() => setRecoSeed((s) => s + 1)}
+                            className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-1 transition-colors"
+                        >
+                            <Shuffle size={14}/>
+                            {t('home.refresh', '换一批')}
+                        </button>
+                    </div>
+                    <HorizontalScroll buttonOffset={cardOffset}>
+                        {recommendVideos.map((media: Media) => (
                             <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
                                 <VideoCard media={media} size="md"/>
                             </div>

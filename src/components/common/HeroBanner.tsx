@@ -12,6 +12,7 @@ import {useTranslation} from 'react-i18next';
 export interface HeroBannerItem {
     id: string;
     title: string;
+    subtitle?: string;
     thumbnail: string;
     url?: string;
     shortToken?: string;
@@ -37,33 +38,34 @@ const MOBILE_BP = 768;
 
 const CSS = `
 .hero-banner-root {
-  --hero-card-w: 560px;
+  --hero-card-w: 533px;
   --hero-ratio: 16/9;
-  --hero-card-h: calc(var(--hero-card-w) * 9 / 16);
-  --hero-step: 380px;
+  --hero-card-h: 300px;
+  --hero-pad-y: 0px;
+  --hero-step: 360px;
   --hero-scale-step: 0.14;
   --hero-opacity-step: 0.3;
   --hero-blur-step: 1.5px;
   --hero-radius: 18px;
   --hero-visible: 5;
   position: relative;
-  height: 380px;
+  height: calc(var(--hero-card-h) + var(--hero-pad-y) * 2);
   overflow: hidden;
   user-select: none;
   border-radius: 20px;
   background: radial-gradient(ellipse at center, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0) 70%);
 }
 .hero-banner-root[data-mode="wide"] {
-  --hero-card-w: min(760px, 82vw);
+  --hero-card-w: min(720px, 82vw);
   --hero-ratio: 21/9;
-  --hero-card-h: calc(var(--hero-card-w) * 9 / 21);
-  --hero-step: min(580px, 64vw);
+  --hero-card-h: 309px;
+  --hero-step: min(560px, 64vw);
   --hero-scale-step: 0.08;
   --hero-opacity-step: 0.5;
   --hero-blur-step: 1px;
   --hero-radius: 14px;
   --hero-visible: 3;
-  height: 380px;
+  height: calc(var(--hero-card-h) + var(--hero-pad-y) * 2);
 }
 .hero-banner-slide {
   position: absolute;
@@ -347,7 +349,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
     if (isSingle) {
         return (
-            <section className={cn('relative w-full', className)}>
+            <section className={cn('hero-banner-root group select-none', className)} data-mode={resolvedMode}>
                 <HeroCard
                     item={items[0]}
                     isActive
@@ -390,7 +392,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
     return (
         <section
             ref={carouselRef}
-            className={cn('hero-banner-root group', className)}
+            className={cn('hero-banner-root group select-none', className)}
             data-mode={resolvedMode}
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
@@ -404,8 +406,10 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
                 <HeroCard
                     key={item.id}
                     item={item}
+                    index={i}
                     isActive={i === current}
                     onItemClick={onItemClick}
+                    onSwitch={(idx) => { goTo(idx); clearTimers(); }}
                     buildUrl={buildItemUrl}
                 />
             ))}
@@ -449,13 +453,15 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 interface HeroCardProps {
     item: HeroBannerItem;
     isActive: boolean;
+    index?: number;
     standalone?: boolean;
     mobile?: boolean;
     onItemClick?: (item: HeroBannerItem) => void;
+    onSwitch?: (index: number) => void;
     buildUrl: (item: HeroBannerItem) => any;
 }
 
-const HeroCard: React.FC<HeroCardProps> = ({item, isActive, standalone, mobile, onItemClick, buildUrl}) => {
+const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, mobile, onItemClick, onSwitch, buildUrl}) => {
     const thumbUrl = getImageUrl(item.thumbnail, 'cover');
     const userAvatar = item.user?.avatar ? getImageUrl(item.user.avatar, 'avatar') : undefined;
     const hasLink = !!(item.shortToken || item.url);
@@ -468,7 +474,7 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, standalone, mobile, 
                 {...wrapperProps}
                 className={cn(
                     'group relative block w-full rounded-2xl md:rounded-[18px] overflow-hidden shadow-lg hover:shadow-2xl transition-shadow',
-                    mobile ? 'aspect-video' : 'aspect-[16/9] md:aspect-[16/9]',
+                    mobile ? 'aspect-video' : 'h-full',
                 )}
                 onClick={(e: React.MouseEvent) => {
                     if (onItemClick) { e.preventDefault(); onItemClick(item); }
@@ -492,6 +498,11 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, standalone, mobile, 
                     <h2 className="text-white text-xl md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 max-w-2xl">
                         {item.title}
                     </h2>
+                    {item.subtitle && (
+                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 max-w-2xl drop-shadow">
+                            {item.subtitle}
+                        </p>
+                    )}
                     <MetaRow item={item} userAvatar={userAvatar} mobile={mobile}/>
                     {item.shortToken && (
                         <Button size={mobile ? 'sm' : 'default'} className="mt-3 md:mt-4 bg-white text-black hover:bg-white/90 gap-1.5 font-medium shadow-lg">
@@ -510,6 +521,11 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, standalone, mobile, 
             data-hero-slide
             className={cn('hero-banner-slide', isActive && 'is-active')}
             onClick={(e: React.MouseEvent) => {
+                if (!isActive) {
+                    e.preventDefault();
+                    if (onSwitch && index != null) onSwitch(index);
+                    return;
+                }
                 if (onItemClick) { e.preventDefault(); onItemClick(item); }
             }}
         >
@@ -528,10 +544,15 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, standalone, mobile, 
                         {item.badge}
                     </Badge>
                 )}
-                <h2 className="text-white text-lg md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 max-w-2xl">
-                    {item.title}
-                </h2>
-                <MetaRow item={item} userAvatar={userAvatar}/>
+                    <h2 className="text-white text-lg md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 max-w-2xl">
+                        {item.title}
+                    </h2>
+                    {item.subtitle && (
+                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 max-w-2xl drop-shadow">
+                            {item.subtitle}
+                        </p>
+                    )}
+                    <MetaRow item={item} userAvatar={userAvatar}/>
                 {item.shortToken && (
                     <Button size="default" className="self-start mt-1 md:mt-2 bg-white text-black hover:bg-white/90 gap-1.5 font-medium shadow-lg">
                         <Play size={15} fill="currentColor"/>

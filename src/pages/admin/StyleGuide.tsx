@@ -316,10 +316,21 @@ export default function StyleGuidePage() {
                     </div>
                     <h4 className="font-semibold text-foreground">{t('styleGuide.statCardIcons', '统计卡片ICON')}</h4>
                   </div>
-                  <p className="text-sm text-muted-foreground">{t('styleGuide.statCardIconsDesc', '统计卡片ICON使用页面主题色的不同色阶（600/500/400/300），保持统一又有视觉层次。禁止同一页面使用多种不同颜色。')}</p>
-                </CardContent>
-              </Card>
-            </div>
+                <p className="text-sm text-muted-foreground">{t('styleGuide.statCardIconsDesc', '统计卡片ICON使用页面主题色的不同色阶（600/500/400/300），保持统一又有视觉层次。禁止同一页面使用多种不同颜色。')}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-l-4 border-l-indigo-500 overflow-hidden">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <MonitorPlay className="h-5 w-5 text-indigo-500" />
+                  </div>
+                  <h4 className="font-semibold text-foreground">{t('styleGuide.homeBannerRule', '首页顶部 Banner')}</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">{t('styleGuide.homeBannerRuleDesc', '首页顶部 Banner 必须用 HeroBanner（card 模式）渲染 portal 配置的 banners（映射为 HeroBannerItem[]）。禁止直接用 BannerCarousel、禁止自造 bannerMode 宽窄切换、禁止内联覆盖 HeroBanner 视觉。内容来自 portal config，视觉来自 HeroBanner，二者通过映射连接，不可混为自定义组件。')}</p>
+              </CardContent>
+            </Card>
+          </div>
           </CardContent>
         </Card>
 
@@ -757,7 +768,7 @@ export default function StyleGuidePage() {
           </TabsContent>
 
           <TabsContent value="media">
-            <Section title="Hero Banner 轮播 - 卡片模式 (16:9)" description="固定高度380px，主卡560px，左右露出预览卡片，自动轮播5秒间隔，hover暂停">
+            <Section title="Hero Banner 轮播 - 卡片模式 (16:9)" description="根容器高度由卡片宽度×比例推导（card 模式 ≈300px、wide 模式 ≈309px），与 HeroBanner.tsx 自动同步，禁止写死根高度；主卡533px，左右露出预览卡片，自动轮播5秒间隔，hover暂停">
               <HeroBanner
                 items={MOCK_HERO_ITEMS}
                 mode="card"
@@ -773,7 +784,7 @@ export default function StyleGuidePage() {
               />
             </Section>
 
-            <Section title="Hero Banner - 单Banner/少Banner处理" description="1个Banner：静态展示，隐藏导航/指示器/进度条；2-3个Banner：正常循环轮播">
+            <Section title="Hero Banner - 单Banner/少Banner处理" description="1个Banner：全宽静态展示，高度与轮播一致（≈300px），隐藏导航/指示器/进度条；2-3个Banner：正常循环轮播">
               <div className="space-y-6">
                 <div>
                   <p className="text-sm font-medium text-foreground mb-2">单个Banner（静态）：</p>
@@ -809,6 +820,23 @@ export default function StyleGuidePage() {
                   ))}
                 </HorizontalScroll>
               </div>
+            </Section>
+
+            <Section title="首页顶部 Banner 使用规范" description="防止重复出现样式错乱：内容来自 portal config，视觉来自 HeroBanner">
+              <DoDont
+                do={
+                  <div>
+                    <p className="text-sm text-foreground mb-1">首页顶部：用 <code>HeroBanner</code> 渲染 <code>usePortalConfig().banners</code> 映射出的 <code>HeroBannerItem[]</code>（<code>mode=&quot;card&quot;</code>）。</p>
+                    <p className="text-sm text-muted-foreground">内容正确（后台配置）+ 视觉正确（YouTube 风格卡轮播）。</p>
+                  </div>
+                }
+                dont={
+                  <div>
+                    <p className="text-sm text-foreground mb-1">直接用 <code>BannerCarousel</code> 渲染首页顶部（样式不符）；</p>
+                    <p className="text-sm text-muted-foreground">或自造 <code>bannerMode</code> 宽/窄切换覆盖 HeroBanner 视觉；或把 featured 视频当成 banner 内容。改动前先 <code>git show 4446047:src/pages/home/index.tsx</code> 对照已知正确基线。</p>
+                  </div>
+                }
+              />
             </Section>
           </TabsContent>
         </Tabs>
