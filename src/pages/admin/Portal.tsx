@@ -562,7 +562,7 @@ const BannersTab: React.FC = () => {
         setEditDialogOpen(true);
     };
 
-    const aspectClass = 'aspect-video';
+    const aspectClass = globalSettings.display_mode === 'narrow' ? 'aspect-video' : 'aspect-[21/9]';
 
     const formatExpiry = (iso?: string): string => {
         if (!iso) return t('admin.noExpiry', 'No Expiry');
@@ -970,21 +970,33 @@ const BannersTab: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px]">
+                                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] gap-2">
                                         <div className={`flex items-center gap-1 ${expired ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
                                             <Calendar className={`w-3 h-3 shrink-0 ${expired ? 'text-red-500' : ''}`}/>
                                             <span>{formatExpiry(banner.end_at)}</span>
                                         </div>
-                                        <Badge
-                                            variant="outline"
-                                            className={`text-[10px] font-bold px-1.5 py-0 rounded ${
-                                                banner.display_mode === 'narrow'
-                                                    ? 'bg-muted text-muted-foreground border-border'
-                                                    : 'bg-primary/10 text-primary border-primary/20'
-                                            }`}
-                                        >
-                                            {banner.display_mode === 'narrow' ? 'STD' : 'WIDE'}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
+                                                <Switch
+                                                    checked={banner.is_active}
+                                                    onCheckedChange={() => handleToggle(banner.id)}
+                                                    className="scale-75 data-[state=checked]:bg-green-500"
+                                                />
+                                                <span className={`text-[10px] font-medium ${banner.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                                    {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '停用')}
+                                                </span>
+                                            </div>
+                                            <Badge
+                                                variant="outline"
+                                                className={`text-[10px] font-bold px-1.5 py-0 rounded ${
+                                                    banner.display_mode === 'narrow'
+                                                        ? 'bg-muted text-muted-foreground border-border'
+                                                        : 'bg-primary/10 text-primary border-primary/20'
+                                                }`}
+                                            >
+                                                {banner.display_mode === 'narrow' ? 'STD' : 'WIDE'}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </div>
                             </Card>
