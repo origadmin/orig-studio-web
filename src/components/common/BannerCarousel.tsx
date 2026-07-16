@@ -111,14 +111,14 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
 
                                         <div className="flex gap-3">
                                             {currentBanner.primary_btn_text && currentBanner.primary_btn_url && (
-                                                <Button asChild className="c-button--primary">
+                                                <Button asChild>
                                                     <Link to={(currentBanner.primary_btn_url.startsWith('/') ? currentBanner.primary_btn_url : '/') as any}>
                                                         {currentBanner.primary_btn_text}
                                                     </Link>
                                                 </Button>
                                             )}
                                             {currentBanner.secondary_btn_text && currentBanner.secondary_btn_url && (
-                                                <Button asChild variant="outline" className="c-button--outline">
+                                                <Button asChild variant="outline">
                                                     <Link to={(currentBanner.secondary_btn_url.startsWith('/') ? currentBanner.secondary_btn_url : '/') as any}>
                                                         {currentBanner.secondary_btn_text}
                                                     </Link>

@@ -127,7 +127,9 @@ const HomePage = () => {
     // Portal-configured hero banners (content managed in admin). Rendered with the
     // standard HeroBanner (YouTube-style) carousel — the correct visual per pre-5be79f8.
     const {data: portalConfig} = usePortalConfig();
-    const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
+    const activeBanners = (portalConfig?.banners || []).filter(
+        (b) => b.is_active && b.type === 'custom' && b.image_url,
+    );
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         const lang = i18n.language;
         return activeBanners.map((b) => ({

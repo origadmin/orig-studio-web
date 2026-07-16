@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {
-    Layout, Plus, Edit, Trash2, ToggleLeft, ToggleRight,
+    Layout, Plus, Edit, Trash2,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -23,6 +23,7 @@ import {
     AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {Label} from '@/components/ui/label';
+import {Switch} from '@/components/ui/switch';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {
@@ -37,6 +38,12 @@ import {useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
     const {t} = useTranslation();
+    const defaultTab = React.useMemo(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab && ['navigation', 'banners', 'ad-placements', 'ads'].includes(tab)) return tab;
+        return 'navigation';
+    }, []);
     return (
         <div className="space-y-4 p-4 md:p-6">
             <Breadcrumb className="mb-4">
@@ -59,7 +66,7 @@ export default function PortalConfigPage() {
                 <p className="text-muted-foreground text-sm mt-1">{t('admin.portalConfigDesc')}</p>
             </div>
 
-            <Tabs defaultValue="navigation">
+            <Tabs defaultValue={defaultTab}>
                 <TabsList>
                     <TabsTrigger value="navigation">{t('admin.navigationTab')}</TabsTrigger>
                     <TabsTrigger value="banners">{t('admin.bannersTab')}</TabsTrigger>
@@ -188,9 +195,15 @@ const NavigationTab: React.FC = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell className="font-medium">{item.label}</TableCell>
-                                        <TableCell><Badge variant="outline">{item.type}</Badge></TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">
+                                                {item.type === 'internal_link' ? t('admin.internalLink', '内部链接')
+                                                    : item.type === 'external_link' ? t('admin.externalLink', '外部链接')
+                                                    : t('admin.categoryEntry', '分类入口')}
+                                            </Badge>
+                                        </TableCell>
                                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.url}</TableCell>
-                                        <TableCell>{item.open_new_tab ? <Badge variant="secondary">{t('admin.enabled')}</Badge> : <span className="text-xs text-muted-foreground">{t('admin.disabled')}</span>}</TableCell>
+                                        <TableCell>{item.open_new_tab ? <Badge variant="secondary">{t('common.yes', '是')}</Badge> : <span className="text-xs text-muted-foreground">{t('common.no', '否')}</span>}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-1">
                                                 <Button variant="ghost" size="icon-sm"
@@ -458,17 +471,17 @@ const BannersTab: React.FC = () => {
                                     </div>
                                     <CardContent className="p-4">
                                         <div className="flex items-center justify-between">
-                                            <div>
-                                                <Badge variant={banner.is_active ? 'default' : 'secondary'}>
-                                                    {banner.is_active ? t('admin.bannerActive') : t('admin.bannerInactive')}
-                                                </Badge>
-                                                {banner.badge_text && <Badge variant="outline" className="ml-2">{banner.badge_text}</Badge>}
+                                            <div className="flex items-center gap-2">
+                                                <Switch
+                                                    checked={banner.is_active}
+                                                    onCheckedChange={() => handleToggle(banner.id)}
+                                                />
+                                                <span className={`text-sm ${banner.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                                    {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
+                                                </span>
+                                                {banner.badge_text && <Badge variant="outline" className="ml-1">{banner.badge_text}</Badge>}
                                             </div>
                                             <div className="flex items-center gap-1">
-                                                <Button variant="ghost" size="icon-sm"
-                                                    onClick={() => handleToggle(banner.id)}>
-                                                    {banner.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
-                                                </Button>
                                                 <Button variant="ghost" size="icon-sm"
                                                     onClick={() => openEditDialog(banner)}>
                                                     <Edit className="w-4 h-4"/>
@@ -571,14 +584,18 @@ const BannersTab: React.FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" checked={createForm.is_active ?? true} onChange={e => setCreateForm({...createForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
-                            <span className="text-sm text-slate-700">{t('admin.bannerIsActive', '是否启用')}</span>
-                        </label>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={createForm.is_active ?? true}
+                                onCheckedChange={(v) => setCreateForm({...createForm, is_active: v})}
+                                id="create-banner-active"
+                            />
+                            <Label htmlFor="create-banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
+                        </div>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" size="lg" className="c-button--outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button size="lg" className="c-button--primary" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                        <Button variant="outline" size="lg" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button size="lg" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -660,14 +677,18 @@ const BannersTab: React.FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input type="checkbox" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
-                            <span className="text-sm text-slate-700">{t('admin.bannerIsActive', '是否启用')}</span>
-                        </label>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                checked={editForm.is_active ?? true}
+                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
+                                id="edit-banner-active"
+                            />
+                            <Label htmlFor="edit-banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
+                        </div>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" size="lg" className="c-button--outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button size="lg" className="c-button--primary" onClick={handleUpdate}>{t('common.save')}</Button>
+                        <Button variant="outline" size="lg" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
+                        <Button size="lg" onClick={handleUpdate}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -809,12 +830,16 @@ const AdPlacementsTab: React.FC = () => {
                                         <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
                                         <TableCell className="text-sm">{p.width}×{p.height}</TableCell>
                                         <TableCell>{p.max_ads}</TableCell>
-                                        <TableCell><Badge variant={p.is_active ? 'default' : 'secondary'}>{p.is_active ? t('admin.enabled') : t('admin.disabled')}</Badge></TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Switch checked={p.is_active} onCheckedChange={() => handleToggle(p.id)}/>
+                                                <span className={`text-sm ${p.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                                    {p.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
+                                                </span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(p.id)}>
-                                                    {p.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
-                                                </Button>
                                                 <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(p)}>
                                                     <Edit className="w-4 h-4"/>
                                                 </Button>
@@ -905,8 +930,12 @@ const AdPlacementsTab: React.FC = () => {
                             <div className="grid gap-2"><Label>{t('admin.placementSequence')}</Label><Input type="number" value={editForm.sequence || 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <input type="checkbox" id="edit-placement-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
-                            <Label htmlFor="edit-placement-active">{t('admin.enabled')}</Label>
+                            <Switch
+                                id="edit-placement-active"
+                                checked={editForm.is_active ?? true}
+                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
+                            />
+                            <Label htmlFor="edit-placement-active" className="cursor-pointer">{t('admin.enabled')}</Label>
                         </div>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
@@ -1059,12 +1088,16 @@ const AdsTab: React.FC = () => {
                                         <TableCell>{ad.priority}</TableCell>
                                         <TableCell className="text-sm">{ad.impressions}/{ad.clicks}</TableCell>
                                         <TableCell className="text-sm">{ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) + '%' : '-'}</TableCell>
-                                        <TableCell><Badge variant={ad.is_active ? 'default' : 'secondary'}>{ad.is_active ? t('admin.enabled') : t('admin.disabled')}</Badge></TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Switch checked={ad.is_active} onCheckedChange={() => handleToggle(ad.id)}/>
+                                                <span className={`text-sm ${ad.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                                    {ad.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
+                                                </span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => handleToggle(ad.id)}>
-                                                    {ad.is_active ? <ToggleRight className="w-4 h-4 text-success"/> : <ToggleLeft className="w-4 h-4 text-muted-foreground"/>}
-                                                </Button>
                                                 <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(ad)}>
                                                     <Edit className="w-4 h-4"/>
                                                 </Button>
@@ -1140,9 +1173,13 @@ const AdsTab: React.FC = () => {
                         <div className="grid gap-2"><Label>{t('admin.adLinkUrl')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.adPriority')}</Label><Input type="number" value={editForm.priority || 0} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
-                            <div className="flex items-end gap-2 pb-1">
-                                <input type="checkbox" id="edit-ad-active" checked={editForm.is_active ?? true} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="h-4 w-4 rounded border-border"/>
-                                <Label htmlFor="edit-ad-active">{t('admin.enabled')}</Label>
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="edit-ad-active"
+                                    checked={editForm.is_active ?? true}
+                                    onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
+                                />
+                                <Label htmlFor="edit-ad-active" className="cursor-pointer">{t('admin.enabled')}</Label>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">

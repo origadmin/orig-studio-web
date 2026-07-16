@@ -23,7 +23,6 @@ import {
     Key,
     CreditCard,
     Megaphone,
-    Target,
     Tv2,
     Layers,
     Layout,
@@ -104,7 +103,6 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', '付费管理'), path: "/admin/payment"}] : []),
                 ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', '推广管理'), path: "/admin/promotion"}] : []),
-                ...(featureFlags.ads ? [{id: "ads", icon: Target, label: t('admin.ads', '广告管理'), path: "/admin/ads"}] : []),
             ],
         },
         {
