@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
-    GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3,
+    GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {Link} from '@tanstack/react-router';
@@ -728,8 +728,9 @@ const BannersTab: React.FC = () => {
                                         {banner.image_url ? (
                                             <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-white/70">
-                                                {banner.title || t('admin.noImage', '无图片')}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/50 bg-white/5 border-2 border-dashed border-white/20 m-2 rounded-md">
+                                                <ImageOff className="w-8 h-8"/>
+                                                <span className="text-xs">{t('admin.noImage', '无图片')}</span>
                                             </div>
                                         )}
                                         {banner.badge_text && (
