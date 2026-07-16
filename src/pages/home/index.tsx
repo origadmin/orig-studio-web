@@ -126,9 +126,12 @@ const HomePage = () => {
 
     // Portal-configured hero banners (content managed in admin). Rendered with the
     // standard HeroBanner (YouTube-style) carousel — the correct visual per pre-5be79f8.
+    // NOTE: type field is managed by admin and defaults to "custom" for all admin-created
+    // banners. Treat empty/undefined type as "custom" for backward compatibility with
+    // legacy/seed data that pre-dates the type field.
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter(
-        (b) => b.is_active && b.type === 'custom' && b.image_url,
+        (b) => b.is_active && (!b.type || b.type === 'custom') && b.image_url,
     );
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         const lang = i18n.language;
