@@ -72,30 +72,30 @@ export default function PortalConfigPage() {
             </div>
 
             <Tabs defaultValue={defaultTab}>
-                <TabsList className="bg-muted/40 backdrop-blur-sm rounded-full p-1.5 h-auto gap-1 w-full sm:w-auto inline-flex overflow-x-auto sm:overflow-visible scrollbar-hide">
-                    <TabsTrigger value="navigation" className="rounded-full px-4 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+                <TabsList className="gap-8 border-b border-border bg-transparent h-auto p-0 rounded-none w-full justify-start mb-6">
+                    <TabsTrigger value="navigation" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <Navigation className="w-4 h-4"/>{t('admin.navigationTab')}
                     </TabsTrigger>
-                    <TabsTrigger value="banners" className="rounded-full px-4 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+                    <TabsTrigger value="banners" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <ImageIcon className="w-4 h-4"/>{t('admin.bannersTab')}
                     </TabsTrigger>
-                    <TabsTrigger value="ad-placements" className="rounded-full px-4 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+                    <TabsTrigger value="ad-placements" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <Layers className="w-4 h-4"/>{t('admin.adPlacementsTab')}
                     </TabsTrigger>
-                    <TabsTrigger value="ads" className="rounded-full px-4 py-2.5 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200 flex items-center gap-2 whitespace-nowrap">
+                    <TabsTrigger value="ads" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <Megaphone className="w-4 h-4"/>{t('admin.adsTab')}
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="navigation" className="mt-4">
+                <TabsContent value="navigation">
                     <NavigationTab/>
                 </TabsContent>
-                <TabsContent value="banners" className="mt-4">
+                <TabsContent value="banners">
                     <BannersTab/>
                 </TabsContent>
-                <TabsContent value="ad-placements" className="mt-4">
+                <TabsContent value="ad-placements">
                     <AdPlacementsTab/>
                 </TabsContent>
-                <TabsContent value="ads" className="mt-4">
+                <TabsContent value="ads">
                     <AdsTab/>
                 </TabsContent>
             </Tabs>
