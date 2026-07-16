@@ -465,7 +465,7 @@ const BannersTab: React.FC = () => {
                 sequence: banners.length > 0 ? Math.max(...banners.map(b => b.sequence ?? 0)) + 1 : 0,
             });
             setAdvancedOpen(false);
-            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
         } catch (err) {
             console.error('Failed to create banner:', err);
             toast.error(t('admin.bannerCreateFail', 'Failed to create banner'));
@@ -482,7 +482,7 @@ const BannersTab: React.FC = () => {
             toast.success(t('admin.bannerUpdateSuccess', 'Banner updated'));
             setEditDialogOpen(false);
             setAdvancedOpen(false);
-            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
         } catch (err) {
             console.error('Failed to update banner:', err);
             toast.error(t('admin.bannerUpdateFail', 'Failed to update banner'));
@@ -507,7 +507,7 @@ const BannersTab: React.FC = () => {
             );
             toast.success(t('admin.bannerGlobalSaveSuccess', 'Carousel settings saved'));
             setGlobalDirty(false);
-            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
         } catch (err) {
             console.error('Failed to save global banner settings:', err);
             toast.error(t('admin.bannerGlobalSaveFail', 'Failed to save carousel settings'));
@@ -519,7 +519,7 @@ const BannersTab: React.FC = () => {
     const handleToggle = async (id: string) => {
         try {
             await toggleMutation.mutateAsync(id);
-            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
         } catch (err) {
             console.error('Failed to toggle banner:', err);
         }
@@ -531,7 +531,7 @@ const BannersTab: React.FC = () => {
             await deleteMutation.mutateAsync(editingBanner.id);
             toast.success(t('admin.bannerDeleteSuccess', 'Banner deleted'));
             setDeleteDialogOpen(false);
-            queryClient.invalidateQueries({queryKey: ['adminBanners']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
         } catch (err) {
             console.error('Failed to delete banner:', err);
             toast.error(t('admin.bannerDeleteFail', 'Failed to delete banner'));
