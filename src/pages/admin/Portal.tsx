@@ -708,6 +708,7 @@ const BannersTab: React.FC = () => {
             </div>
 
             <Card className="relative rounded-2xl overflow-hidden shadow-sm border border-border/40 mb-6 bg-gradient-to-br from-primary/[0.03] via-background to-background">
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary/80 to-primary/30"/>
                 <CardHeader className="pb-3 pt-6 px-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -776,18 +777,21 @@ const BannersTab: React.FC = () => {
                         </div>
 
                         <div className="space-y-4 p-4 rounded-xl bg-background/80 border border-border/50 shadow-sm">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-2 pt-1">
                                     <div className="w-2 h-2 rounded-full bg-blue-500"/>
                                     <Label className="text-xs font-bold uppercase tracking-wider text-foreground/80">{t('admin.autoPlayInterval', '轮播间隔')}</Label>
                                 </div>
-                                <span className="text-lg font-bold text-primary tabular-nums">{globalSettings.auto_slide_interval}s</span>
+                                <div className="flex items-baseline gap-0.5">
+                                    <span className="text-3xl font-black text-primary tabular-nums leading-none">{globalSettings.auto_slide_interval}</span>
+                                    <span className="text-lg font-bold text-primary/70">s</span>
+                                </div>
                             </div>
                             <div className="flex items-center gap-3 pt-2">
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="rounded-full h-9 w-9 shrink-0 shadow-sm"
+                                    className="rounded-full h-10 w-10 shrink-0 shadow-sm hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-colors"
                                     onClick={() => updateGlobal({auto_slide_interval: Math.max(1, globalSettings.auto_slide_interval - 1)})}
                                     disabled={globalSettings.auto_slide_interval <= 1}
                                 >
@@ -804,7 +808,7 @@ const BannersTab: React.FC = () => {
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    className="rounded-full h-9 w-9 shrink-0 shadow-sm"
+                                    className="rounded-full h-10 w-10 shrink-0 shadow-sm hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-colors"
                                     onClick={() => updateGlobal({auto_slide_interval: Math.min(30, globalSettings.auto_slide_interval + 1)})}
                                     disabled={globalSettings.auto_slide_interval >= 30}
                                 >
@@ -916,37 +920,37 @@ const BannersTab: React.FC = () => {
 
                                     <div className="absolute top-3 right-3">
                                         {banner.is_active && !expired ? (
-                                            <div className="flex items-center gap-1.5 bg-background/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-green-500"/>
-                                                <span className="text-[10px] font-semibold">{t('admin.active', 'Active')}</span>
+                                            <div className="flex items-center gap-1.5 bg-green-600 text-white rounded-full px-2.5 py-1 shadow-lg">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"/>
+                                                <span className="text-[10px] font-bold tracking-wide">ACTIVE</span>
                                             </div>
                                         ) : expired ? (
-                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground">
-                                                {t('admin.paused', 'Paused')}
+                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground shadow-sm">
+                                                {t('admin.paused', 'Expired')}
                                             </Badge>
                                         ) : (
-                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground">
-                                                {t('admin.hidden', '已停用')}
+                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground shadow-sm">
+                                                {t('admin.hidden', 'Hidden')}
                                             </Badge>
                                         )}
                                     </div>
 
-                                    <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                    <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
                                         <Button
                                             variant="secondary"
                                             size="icon"
-                                            className="h-10 w-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
+                                            className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 scale-90 group-hover:scale-100 transition-transform"
                                             onClick={() => openEditDialog(banner)}
                                         >
-                                            <Edit className="h-4 w-4"/>
+                                            <Edit className="h-5 w-5"/>
                                         </Button>
                                         <Button
                                             variant="secondary"
                                             size="icon"
-                                            className="h-10 w-10 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-red-50 text-destructive hover:text-destructive"
+                                            className="h-11 w-11 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 scale-90 group-hover:scale-100 transition-transform"
                                             onClick={() => { setEditingBanner(banner); setDeleteDialogOpen(true); }}
                                         >
-                                            <Trash2 className="h-4 w-4"/>
+                                            <Trash2 className="h-5 w-5"/>
                                         </Button>
                                     </div>
                                 </div>
@@ -967,8 +971,8 @@ const BannersTab: React.FC = () => {
                                     )}
 
                                     <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px]">
-                                        <div className={`flex items-center gap-1 ${expired ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
-                                            <Calendar className="w-3 h-3 shrink-0"/>
+                                        <div className={`flex items-center gap-1 ${expired ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
+                                            <Calendar className={`w-3 h-3 shrink-0 ${expired ? 'text-red-500' : ''}`}/>
                                             <span>{formatExpiry(banner.end_at)}</span>
                                         </div>
                                         <Badge
