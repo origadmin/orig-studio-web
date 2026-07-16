@@ -153,6 +153,11 @@ const HomePage = () => {
         return dm === 'wide' ? 'wide' : 'card';
     }, [activeBanners]);
 
+    const heroInterval = useMemo(() => {
+        const v = activeBanners[0]?.auto_slide_interval;
+        return (typeof v === 'number' && v >= 1000) ? v : 5000;
+    }, [activeBanners]);
+
     // Public sponsored ads — fetched from media:8002 (/api/v1/ads?placement=home),
     // bridged by the gateway. Renders nothing if no active ads exist for the placement.
     const [ads, setAds] = useState<Ad[]>([]);
@@ -213,7 +218,7 @@ const HomePage = () => {
         <div className="space-y-8 max-w-[1800px] mx-auto w-full px-1">
             {heroItems.length > 0 && (
                 <section className="mb-2">
-                    <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={5000}/>
+                    <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={heroInterval}/>
                 </section>
             )}
 

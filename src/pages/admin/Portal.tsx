@@ -26,6 +26,7 @@ import {Label} from '@/components/ui/label';
 import {Switch} from '@/components/ui/switch';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
+import {Slider} from '@/components/ui/slider';
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {toast} from 'sonner';
@@ -368,9 +369,13 @@ const BannersTab: React.FC = () => {
     const initialGlobal: GlobalCarouselSettings = React.useMemo(() => {
         if (banners.length === 0) return {display_mode: 'wide', auto_slide_interval: 5};
         const first = banners.find(b => b.is_active) || banners[0];
+        const rawInterval = first.auto_slide_interval;
+        const intervalSec = (typeof rawInterval === 'number' && rawInterval >= 1000)
+            ? Math.max(1, Math.round(rawInterval / 1000))
+            : (typeof rawInterval === 'number' && rawInterval > 0 && rawInterval < 1000 ? rawInterval : 5);
         return {
-            display_mode: first.display_mode || 'wide',
-            auto_slide_interval: first.auto_slide_interval ?? 5,
+            display_mode: (first.display_mode as 'wide' | 'narrow') || 'wide',
+            auto_slide_interval: intervalSec,
         };
     }, [banners]);
 
@@ -440,10 +445,16 @@ const BannersTab: React.FC = () => {
 
     const handleCreate = async () => {
         try {
-            await createMutation.mutateAsync(buildCreatePayload(createForm));
+            const payload = buildCreatePayload(createForm);
+            payload.display_mode = globalSettings.display_mode;
+            payload.auto_slide_interval = Math.max(1000, globalSettings.auto_slide_interval * 1000);
+            await createMutation.mutateAsync(payload);
             toast.success(t('admin.bannerCreateSuccess', 'Banner created'));
             setCreateDialogOpen(false);
-            setCreateForm(emptyBannerForm);
+            setCreateForm({
+                ...emptyBannerForm,
+                sequence: banners.length > 0 ? Math.max(...banners.map(b => b.sequence ?? 0)) + 1 : 0,
+            });
             setAdvancedOpen(false);
             queryClient.invalidateQueries({queryKey: ['adminBanners']});
         } catch (err) {
@@ -473,13 +484,14 @@ const BannersTab: React.FC = () => {
         if (!globalDirty) return;
         setGlobalSaving(true);
         try {
+            const intervalMs = Math.max(1000, globalSettings.auto_slide_interval * 1000);
             await Promise.all(
                 banners.map(b =>
                     updateMutation.mutateAsync({
                         id: b.id,
                         data: {
                             display_mode: globalSettings.display_mode,
-                            auto_slide_interval: globalSettings.auto_slide_interval,
+                            auto_slide_interval: intervalMs,
                         },
                     })
                 )
@@ -651,69 +663,127 @@ const BannersTab: React.FC = () => {
 
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Settings className="h-5 w-5 text-primary"/>
-                        {t('admin.bannerGlobalSettings', '轮播全局设置')}
-                    </CardTitle>
-                    <CardDescription>
-                        {t('admin.bannerGlobalSettingsDesc', '控制所有Banner轮播的展示模式与切换速度。')}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2">
-                        <Label>{t('admin.bannerDisplayMode', '展示模式')}</Label>
-                        <RadioGroup
-                            value={globalSettings.display_mode}
-                            onValueChange={(v: 'wide' | 'narrow') => updateGlobal({display_mode: v})}
-                            className="flex gap-6"
+            <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 via-background to-background rounded-2xl overflow-hidden">
+                <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                            <CardTitle className="text-xl font-semibold flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <Settings className="h-5 w-5 text-primary"/>
+                                </div>
+                                {t('admin.bannerGlobalSettings', '轮播全局设置')}
+                            </CardTitle>
+                            <CardDescription className="text-sm text-muted-foreground max-w-lg">
+                                {t('admin.bannerGlobalSettingsDesc', '控制首页Banner轮播的宽高比例与切换速度，修改后点击保存立即生效。')}
+                            </CardDescription>
+                        </div>
+                        <Button
+                            size="default"
+                            onClick={handleSaveGlobal}
+                            disabled={!globalDirty || globalSaving}
+                            className="rounded-full px-5 shadow-sm"
                         >
-                            <div className="flex items-center gap-2">
-                                <RadioGroupItem value="wide" id="mode-wide"/>
-                                <Label htmlFor="mode-wide" className="cursor-pointer">
-                                    {t('admin.bannerDisplayModeWide', '宽屏 (21:9)')}
-                                </Label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <RadioGroupItem value="narrow" id="mode-narrow"/>
-                                <Label htmlFor="mode-narrow" className="cursor-pointer">
-                                    {t('admin.bannerDisplayModeNarrow', '窄屏 (16:9)')}
-                                </Label>
-                            </div>
-                        </RadioGroup>
+                            {globalSaving ? <Spinner className="w-4 h-4 mr-2"/> : null}
+                            {t('common.save', '保存')}
+                        </Button>
                     </div>
-                    <div className="grid gap-2 max-w-xs">
-                        <Label htmlFor="carousel-interval">{t('admin.bannerAutoSlide', '自动轮播间隔(秒)')}</Label>
-                        <Input
-                            id="carousel-interval"
-                            type="number"
+                </CardHeader>
+                <CardContent className="space-y-6 pb-6">
+                    <div className="grid gap-3">
+                        <Label className="text-sm font-medium">{t('admin.bannerDisplayMode', '展示比例')}</Label>
+                        <div className="inline-flex items-center p-1 bg-muted/60 rounded-full w-fit">
+                            <button
+                                type="button"
+                                onClick={() => updateGlobal({display_mode: 'wide'})}
+                                className={`px-5 py-2 text-sm font-medium rounded-full transition-all ${
+                                    globalSettings.display_mode === 'wide'
+                                        ? 'bg-background text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <span className="w-8 h-3 rounded-sm bg-primary/30 inline-block"/>
+                                    {t('admin.bannerDisplayModeWide', '宽屏 21:9')}
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => updateGlobal({display_mode: 'narrow'})}
+                                className={`px-5 py-2 text-sm font-medium rounded-full transition-all ${
+                                    globalSettings.display_mode === 'narrow'
+                                        ? 'bg-background text-foreground shadow-sm'
+                                        : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                            >
+                                <span className="flex items-center gap-2">
+                                    <span className="w-6 h-4 rounded-sm bg-primary/30 inline-block"/>
+                                    {t('admin.bannerDisplayModeNarrow', '标准 16:9')}
+                                </span>
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            {globalSettings.display_mode === 'wide'
+                                ? t('admin.bannerWideHint', '宽屏模式提供电影感视觉体验，适合高质量大图')
+                                : t('admin.bannerNarrowHint', '标准模式更通用，适合大多数场景')}
+                        </p>
+                    </div>
+                    <div className="grid gap-3 max-w-md">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">{t('admin.bannerAutoSlide', '自动轮播间隔')}</Label>
+                            <div className="flex items-center gap-1.5 bg-muted/60 rounded-full px-3 py-1">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={30}
+                                    value={globalSettings.auto_slide_interval}
+                                    onChange={e => updateGlobal({auto_slide_interval: Math.max(1, Math.min(30, Number(e.target.value) || 5))})}
+                                    className="w-8 text-center text-sm font-medium bg-transparent border-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <span className="text-xs text-muted-foreground">{t('admin.bannerSeconds', '秒')}</span>
+                            </div>
+                        </div>
+                        <Slider
+                            value={[globalSettings.auto_slide_interval]}
                             min={1}
                             max={30}
-                            value={globalSettings.auto_slide_interval}
-                            onChange={e => updateGlobal({auto_slide_interval: Math.max(1, Number(e.target.value) || 5)})}
+                            step={1}
+                            onValueChange={v => updateGlobal({auto_slide_interval: v[0]})}
+                            className="py-1"
                         />
+                        <div className="flex justify-between text-xs text-muted-foreground/70">
+                            <span>1s</span>
+                            <span>15s</span>
+                            <span>30s</span>
+                        </div>
                     </div>
-                    <Button
-                        size="sm"
-                        onClick={handleSaveGlobal}
-                        disabled={!globalDirty || globalSaving}
-                    >
-                        {globalSaving ? <Spinner className="w-4 h-4 mr-2"/> : null}
-                        {t('common.save', '保存')}
-                    </Button>
+                    <div className="flex items-center gap-4 pt-2 border-t border-border/50">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                            {t('admin.activeBannersCount', '当前启用 {{count}} 张Banner', {count: banners.filter(b => b.is_active).length})}
+                        </div>
+                        {globalDirty && (
+                            <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
+                                {t('admin.unsavedChanges', '有未保存的修改')}
+                            </span>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
+            <Card className="border-0 shadow-sm rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle>{t('admin.bannerManagement', 'Banner管理')}</CardTitle>
-                            <CardDescription>{t('admin.bannerManagementDesc', '管理首页轮播Banner')}</CardDescription>
+                            <CardTitle className="text-lg font-semibold">{t('admin.bannerManagement', 'Banner管理')}</CardTitle>
+                            <CardDescription className="text-sm mt-0.5">
+                                {t('admin.bannerManagementDesc', '管理首页轮播Banner，拖拽排序或通过上下箭头调整顺序')}
+                            </CardDescription>
                         </div>
-                        <Button size="sm" onClick={openCreateDialog}>
-                            <Plus className="w-4 h-4 mr-2"/>{t('admin.addBanner', '添加Banner')}
+                        <Button size="default" onClick={openCreateDialog} className="rounded-full px-5 shadow-sm">
+                            <Plus className="w-4 h-4 mr-1.5"/>{t('admin.addBanner', '添加Banner')}
                         </Button>
                     </div>
                 </CardHeader>
@@ -721,100 +791,140 @@ const BannersTab: React.FC = () => {
                     {isLoading ? (
                         <div className="py-12 text-center"><Spinner className="mx-auto"/></div>
                     ) : banners.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {banners.map(banner => (
-                                <Card key={banner.id} className={`overflow-hidden ${!banner.is_active ? 'opacity-60' : ''}`}>
-                                    <div className="relative aspect-video bg-slate-800">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {banners.map((banner, idx) => (
+                                <Card
+                                    key={banner.id}
+                                    className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 ${!banner.is_active ? 'opacity-60' : ''}`}
+                                >
+                                    <div className={`relative ${aspectClass} bg-muted/50 overflow-hidden`}>
                                         {banner.image_url ? (
-                                            <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>
+                                            <img
+                                                src={banner.image_url}
+                                                alt=""
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
                                         ) : (
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white/50 bg-white/5 border-2 border-dashed border-white/20 m-2 rounded-md">
+                                            <div className="absolute inset-2 flex flex-col items-center justify-center gap-2 text-muted-foreground/50 bg-muted/30 border-2 border-dashed border-muted-foreground/20 rounded-lg">
                                                 <ImageOff className="w-8 h-8"/>
-                                                <span className="text-xs">{t('admin.noImage', '无图片')}</span>
+                                                <span className="text-xs font-medium">{t('admin.noImage', '无图片')}</span>
                                             </div>
                                         )}
-                                        {banner.badge_text && (
-                                            <Badge className="absolute top-2 left-2" variant="secondary">
-                                                {banner.badge_text}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"/>
+                                        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                            <Badge className="rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-white/90 text-foreground backdrop-blur-sm shadow-sm" variant="secondary">
+                                                #{idx + 1}
                                             </Badge>
-                                        )}
-                                    </div>
-                                    <CardContent className="p-4 space-y-3">
-                                        <div>
-                                            <h3 className="font-semibold text-sm truncate">{banner.title}</h3>
-                                            {banner.subtitle && (
-                                                <p className="text-xs text-muted-foreground truncate mt-0.5">{banner.subtitle}</p>
+                                            {banner.badge_text && (
+                                                <Badge className="rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-primary text-primary-foreground shadow-sm">
+                                                    {banner.badge_text}
+                                                </Badge>
                                             )}
                                         </div>
-                                        <div className="flex items-center justify-between">
+                                        {!banner.is_active && (
+                                            <div className="absolute top-3 right-3">
+                                                <Badge variant="outline" className="rounded-full bg-background/80 backdrop-blur-sm text-[11px] px-2 py-0.5">
+                                                    {t('admin.hidden', '已停用')}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                        <div className="absolute bottom-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                                            <Button variant="secondary" size="icon-sm"
+                                                onClick={() => openEditDialog(banner)}
+                                                className="rounded-full h-8 w-8 bg-white/90 backdrop-blur-sm shadow-md hover:bg-white">
+                                                <Edit className="w-3.5 h-3.5"/>
+                                            </Button>
+                                            <Button variant="secondary" size="icon-sm"
+                                                onClick={() => { setEditingBanner(banner); setDeleteDialogOpen(true); }}
+                                                className="rounded-full h-8 w-8 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 text-destructive hover:text-destructive">
+                                                <Trash2 className="w-3.5 h-3.5"/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 space-y-3">
+                                        <div className="min-h-[2.5rem]">
+                                            <h3 className="font-semibold text-sm leading-tight line-clamp-1">{banner.title || t('admin.untitled', '未命名')}</h3>
+                                            {banner.subtitle && (
+                                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{banner.subtitle}</p>
+                                            )}
+                                        </div>
+                                        {banner.primary_btn_text && (
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                <span className="inline-flex items-center gap-1 bg-muted/60 rounded-full px-2 py-0.5">
+                                                    <span className="font-medium text-foreground/80">{banner.primary_btn_text}</span>
+                                                </span>
+                                                {banner.primary_btn_url && (
+                                                    <span className="truncate text-[11px] opacity-70">{banner.primary_btn_url}</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div className="flex items-center justify-between pt-1 border-t border-border/40">
                                             <div className="flex items-center gap-2">
                                                 <Switch
                                                     checked={banner.is_active}
                                                     onCheckedChange={() => handleToggle(banner.id)}
                                                     aria-label={banner.is_active ? t('admin.disable', '禁用') : t('admin.enable', '启用')}
                                                 />
-                                                <span className={`text-sm ${banner.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                    {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
+                                                <span className={`text-xs font-medium ${banner.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                                    {banner.is_active ? t('admin.enabled', '启用中') : t('admin.disabled', '已停用')}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-1">
-                                                <Button variant="ghost" size="icon-sm"
-                                                    onClick={() => openEditDialog(banner)}>
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive"
-                                                    onClick={() => { setEditingBanner(banner); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
                                         </div>
-                                        {banner.primary_btn_text && (
-                                            <div className="text-xs text-muted-foreground truncate">
-                                                CTA: {banner.primary_btn_text} {banner.primary_btn_url ? `→ ${banner.primary_btn_url}` : ''}
-                                            </div>
-                                        )}
-                                    </CardContent>
+                                    </div>
                                 </Card>
                             ))}
                         </div>
                     ) : (
-                        <div className="py-12 text-center text-muted-foreground">{t('admin.noBanners', '暂无Banner')}</div>
+                        <div className="py-16 text-center">
+                            <div className="w-14 h-14 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                                <ImageOff className="w-7 h-7 text-muted-foreground/50"/>
+                            </div>
+                            <p className="text-muted-foreground font-medium mb-1">{t('admin.noBanners', '暂无Banner')}</p>
+                            <p className="text-sm text-muted-foreground/60 mb-4">{t('admin.noBannersHint', '添加第一张Banner来展示你的内容')}</p>
+                            <Button onClick={openCreateDialog} className="rounded-full px-5">
+                                <Plus className="w-4 h-4 mr-1.5"/>{t('admin.addBanner', '添加Banner')}
+                            </Button>
+                        </div>
                     )}
                 </CardContent>
             </Card>
 
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-primary"/>
+                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)] rounded-2xl">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Plus className="w-4 h-4 text-primary"/>
+                            </div>
                             {t('admin.createBanner', '添加Banner')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         {renderBannerFormFields(createForm, setCreateForm)}
                     </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title || !createForm.image_url}>{t('common.add', '添加')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/30 border-t border-border/50 flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleCreate} disabled={!createForm.title || !createForm.image_url} className="rounded-full px-6 shadow-sm">{t('common.add', '添加')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Edit className="w-5 h-5 text-primary"/>
+                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)] rounded-2xl">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Edit className="w-4 h-4 text-primary"/>
+                            </div>
                             {t('admin.editBanner', '编辑Banner')}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
                         {renderBannerFormFields(editForm, setEditForm)}
                     </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setEditDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
-                        <Button onClick={handleUpdate}>{t('common.save', '保存')}</Button>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/30 border-t border-border/50 flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleUpdate} className="rounded-full px-6 shadow-sm">{t('common.save', '保存')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
