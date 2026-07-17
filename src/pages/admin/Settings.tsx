@@ -487,18 +487,6 @@ const Settings: React.FC = () => {
                 {key: 'module_videos', value: String(formData.module_videos)},
                 {key: 'module_music', value: String(formData.module_music)},
                 {key: 'homepage_layout', value: formData.homepage_layout},
-                // Feature flags
-                {key: 'feature_articles', value: String(formData.feature_articles)},
-                {key: 'feature_comments', value: String(formData.feature_comments)},
-                {key: 'feature_playlists', value: String(formData.feature_playlists)},
-                {key: 'feature_users', value: String(formData.feature_users)},
-                {key: 'feature_permissions', value: String(formData.feature_permissions)},
-                {key: 'feature_notifications', value: String(formData.feature_notifications)},
-                {key: 'feature_drm', value: String(formData.feature_drm)},
-                {key: 'feature_live_rooms', value: String(formData.feature_live_rooms)},
-                {key: 'feature_payment', value: String(formData.feature_payment)},
-                {key: 'feature_promotion', value: String(formData.feature_promotion)},
-                {key: 'feature_ads', value: String(formData.feature_ads)},
             ];
             await settingsApi.update({settings});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
