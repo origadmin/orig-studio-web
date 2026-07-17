@@ -30,6 +30,7 @@ import {
     Zap,
     PanelLeft,
     Search,
+    BadgeDollarSign,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
@@ -109,6 +110,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             header: t('admin.sectionPortal', '站点与门户'),
             items: [
                 {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal"},
+                ...(featureFlags.ads ? [{id: "ads", icon: BadgeDollarSign, label: t('admin.ads', '广告管理'), path: "/admin/ads"}] : []),
             ],
         },
         {
