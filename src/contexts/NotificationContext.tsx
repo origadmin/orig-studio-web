@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useEffect, useCallback} from 'react';
+import React, {createContext, useContext, useState, useEffect, useCallback, useRef} from 'react';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -22,22 +22,41 @@ const NotificationContext = createContext<NotificationState>({
 
 export const useNotificationState = () => useContext(NotificationContext);
 
+const POLL_INTERVAL = 60000;
+const PAGE_SIZE = 5;
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const {user} = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
     const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const isFetchingRef = useRef(false);
+    const userRef = useRef(user);
+    const recentRef = useRef<Notification[]>([]);
+
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
+
+    useEffect(() => {
+        recentRef.current = recentNotifications;
+    }, [recentNotifications]);
 
     const refresh = useCallback(async () => {
-        if (!user) return;
+        const currentUser = userRef.current;
+        if (!currentUser || isFetchingRef.current) return;
+        isFetchingRef.current = true;
         try {
-            const notifsRes = await notificationApi.getAll({page_size: 5});
+            const notifsRes = await notificationApi.getAll({page_size: PAGE_SIZE});
             const items = Array.isArray(notifsRes?.items) ? notifsRes.items : [];
             setRecentNotifications(items);
             setUnreadCount(notifsRes?.unread_count ?? items.filter((n: Notification) => !n.read).length);
         } catch (err) {
             console.error('Failed to refresh notification state:', err);
+        } finally {
+            isFetchingRef.current = false;
         }
-    }, [user]);
+    }, []);
 
     const markAsRead = useCallback(async (id: number) => {
         try {
@@ -62,22 +81,67 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
     const deleteNotification = useCallback(async (id: number) => {
         try {
             await notificationApi.delete(id);
-            setRecentNotifications(prev => prev.filter(n => n.id !== id));
-            setUnreadCount(prev => {
-                const deleted = recentNotifications.find(n => n.id === id);
-                return deleted && !deleted.read ? Math.max(0, prev - 1) : prev;
+            setRecentNotifications(prev => {
+                const filtered = prev.filter(n => n.id !== id);
+                const deleted = prev.find(n => n.id === id);
+                if (deleted && !deleted.read) {
+                    setUnreadCount(c => Math.max(0, c - 1));
+                }
+                return filtered;
             });
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
-    }, [recentNotifications]);
+    }, []);
 
     useEffect(() => {
-        if (user) {
-            refresh();
-            const interval = setInterval(refresh, 30000);
-            return () => clearInterval(interval);
+        const isLoggedIn = !!user;
+
+        const stopPolling = () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+
+        const doRefresh = () => {
+            if (document.visibilityState === 'visible') {
+                refresh();
+            }
+        };
+
+        const startPolling = () => {
+            stopPolling();
+            if (!isLoggedIn) return;
+            doRefresh();
+            intervalRef.current = setInterval(doRefresh, POLL_INTERVAL);
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                doRefresh();
+                if (!intervalRef.current && isLoggedIn) {
+                    startPolling();
+                }
+            } else {
+                stopPolling();
+            }
+        };
+
+        if (isLoggedIn) {
+            startPolling();
+        } else {
+            stopPolling();
+            setRecentNotifications([]);
+            setUnreadCount(0);
         }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            stopPolling();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [user, refresh]);
 
     return (

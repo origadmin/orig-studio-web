@@ -1,5 +1,5 @@
-import {useEffect, useState, useCallback, useRef} from "react";
-import {encodingApi} from "@/lib/api/media";
+import {useEffect, useState, useRef} from "react";
+import {api} from "@/lib/request";
 
 interface TranscodingEvent {
     media_id: string;
@@ -17,9 +17,7 @@ interface TranscodingSSEStatus {
     disabled: boolean;
 }
 
-const MAX_RECONNECT_ATTEMPTS = 5;
-const INITIAL_RECONNECT_DELAY = 2000;
-const MAX_RECONNECT_DELAY = 30000;
+const SSE_PATH = "/admin/medias/transcoding/events";
 
 export function useTranscoding(mediaId?: string): {
     lastEvent: TranscodingEvent | null;
@@ -33,104 +31,96 @@ export function useTranscoding(mediaId?: string): {
         reconnecting: false,
         disabled: false,
     });
-    const eventSourceRef = useRef<EventSource | null>(null);
+
+    const connectionRef = useRef<{ close: () => void } | null>(null);
     const mountedRef = useRef(true);
-    const reconnectAttemptsRef = useRef(0);
-    const reconnectDelayRef = useRef(INITIAL_RECONNECT_DELAY);
-    const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mediaIdRef = useRef(mediaId);
     const intentionalCloseRef = useRef(false);
 
-    const clearReconnectTimer = useCallback(() => {
-        if (reconnectTimerRef.current) {
-            clearTimeout(reconnectTimerRef.current);
-            reconnectTimerRef.current = null;
-        }
-    }, []);
+    useEffect(() => {
+        mediaIdRef.current = mediaId;
+    }, [mediaId]);
 
-    const scheduleReconnect = useCallback(() => {
-        if (!mountedRef.current || intentionalCloseRef.current) return;
-        if (reconnectAttemptsRef.current >= MAX_RECONNECT_ATTEMPTS) {
-            setSseStatus({connected: false, reconnecting: false, disabled: true});
-            return;
-        }
-        setSseStatus({connected: false, reconnecting: true, disabled: false});
-        const delay = reconnectDelayRef.current;
-        reconnectTimerRef.current = setTimeout(() => {
-            reconnectTimerRef.current = null;
-            if (!mountedRef.current || intentionalCloseRef.current) return;
-            reconnectDelayRef.current = Math.min(reconnectDelayRef.current * 2, MAX_RECONNECT_DELAY);
-            connectRef.current?.();
-        }, delay);
-    }, []);
-
-    const connectRef = useRef<(() => void) | null>(null);
-
-    const disconnect = useCallback(() => {
+    const disconnect = () => {
         intentionalCloseRef.current = true;
-        clearReconnectTimer();
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
+        if (connectionRef.current) {
+            connectionRef.current.close();
+            connectionRef.current = null;
         }
         if (mountedRef.current) {
             setSseStatus({connected: false, reconnecting: false, disabled: false});
         }
-        reconnectAttemptsRef.current = 0;
-        reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
-    }, [clearReconnectTimer]);
+    };
 
-    const connect = useCallback(() => {
+    const connect = () => {
         if (!mountedRef.current) return;
 
         intentionalCloseRef.current = false;
-        clearReconnectTimer();
 
-        if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
+        if (connectionRef.current) {
+            connectionRef.current.close();
+            connectionRef.current = null;
         }
 
-        const sseUrl = encodingApi.getSSEUrl(mediaId);
-        const eventSource = new EventSource(sseUrl);
-        eventSourceRef.current = eventSource;
+        const params: Record<string, unknown> = {};
+        if (mediaIdRef.current) {
+            params.media_id = mediaIdRef.current;
+        }
 
-        eventSource.onopen = () => {
-            if (!mountedRef.current) return;
-            reconnectAttemptsRef.current = 0;
-            reconnectDelayRef.current = INITIAL_RECONNECT_DELAY;
-            setSseStatus({connected: true, reconnecting: false, disabled: false});
-        };
+        if (mountedRef.current) {
+            setSseStatus({connected: false, reconnecting: true, disabled: false});
+        }
 
-        eventSource.onerror = () => {
-            if (!mountedRef.current || intentionalCloseRef.current) return;
-            eventSource.close();
-            eventSourceRef.current = null;
-            reconnectAttemptsRef.current += 1;
-            scheduleReconnect();
-        };
-
-        eventSource.addEventListener("transcoding_progress", (event) => {
-            try {
-                const data: TranscodingEvent = JSON.parse(event.data);
-                if (mountedRef.current) {
-                    setLastEvent(data);
+        const conn = api.sse(SSE_PATH, {
+            params,
+            onOpen: () => {
+                if (mountedRef.current && !intentionalCloseRef.current) {
+                    setSseStatus({connected: true, reconnecting: false, disabled: false});
                 }
-            } catch (err) {
-                console.error("Failed to parse transcoding event:", err);
-            }
+            },
+            onMessage: (event) => {
+                if (event.event === "transcoding_progress" && mountedRef.current && !intentionalCloseRef.current) {
+                    try {
+                        const data: TranscodingEvent = JSON.parse(event.data);
+                        setLastEvent(data);
+                    } catch (err) {
+                        console.error("Failed to parse transcoding event:", err);
+                    }
+                }
+            },
+            onError: () => {
+                if (mountedRef.current && !intentionalCloseRef.current) {
+                    setSseStatus(prev => ({...prev, connected: false}));
+                }
+            },
+            onClose: () => {
+                if (mountedRef.current && !intentionalCloseRef.current) {
+                    setSseStatus({connected: false, reconnecting: false, disabled: false});
+                }
+            },
+            maxReconnectAttempts: 10,
+            initialReconnectDelay: 1000,
+            maxReconnectDelay: 30000,
         });
-    }, [mediaId, clearReconnectTimer, scheduleReconnect]);
 
-    connectRef.current = connect;
+        connectionRef.current = conn;
+    };
 
     useEffect(() => {
         mountedRef.current = true;
         connect();
+
         return () => {
             mountedRef.current = false;
             disconnect();
         };
-    }, [connect, disconnect]);
+    }, []);
+
+    useEffect(() => {
+        if (connectionRef.current && !intentionalCloseRef.current) {
+            connect();
+        }
+    }, [mediaId]);
 
     return {lastEvent, sseStatus, connect, disconnect};
 }

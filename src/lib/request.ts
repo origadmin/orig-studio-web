@@ -468,6 +468,229 @@ export const api = {
         headers?: Record<string, string>
     }) => fetchApi<T>(url, "PATCH", {body, ...options}),
     del: <T>(url: string, params?: Record<string, unknown>) => fetchApi<T>(url, "DELETE", {params}),
+    sse: (url: string, options?: SSEOptions): SSEConnection => createSSEConnection(url, options),
 };
+
+export interface SSEEvent {
+    event: string;
+    data: string;
+}
+
+export interface SSEOptions {
+    params?: Record<string, unknown>;
+    headers?: Record<string, string>;
+    onMessage?: (event: SSEEvent) => void;
+    onOpen?: () => void;
+    onError?: (error: Error) => void;
+    onClose?: () => void;
+    reconnect?: boolean;
+    maxReconnectAttempts?: number;
+    initialReconnectDelay?: number;
+    maxReconnectDelay?: number;
+}
+
+export interface SSEConnection {
+    close: () => void;
+}
+
+function parseSSEChunk(buffer: string): { events: SSEEvent[]; remaining: string } {
+    const events: SSEEvent[] = [];
+    const parts = buffer.split("\n\n");
+    const remaining = parts.pop() || "";
+
+    for (const part of parts) {
+        const lines = part.split("\n");
+        let event = "message";
+        let data = "";
+        for (const line of lines) {
+            if (line.startsWith("event:")) {
+                event = line.slice(6).trim();
+            } else if (line.startsWith("data:")) {
+                data += (data ? "\n" : "") + line.slice(5).trim();
+            }
+        }
+        if (data) {
+            events.push({event, data});
+        }
+    }
+    return {events, remaining};
+}
+
+export function createSSEConnection(url: string, options: SSEOptions = {}): SSEConnection {
+    const {
+        params,
+        headers: customHeaders,
+        onMessage,
+        onOpen,
+        onError,
+        onClose,
+        reconnect = true,
+        maxReconnectAttempts = 10,
+        initialReconnectDelay = 1000,
+        maxReconnectDelay = 30000,
+    } = options;
+
+    let abortController: AbortController | null = null;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let reconnectAttempts = 0;
+    let reconnectDelay = initialReconnectDelay;
+    let intentionalClose = false;
+    let disposed = false;
+
+    const clearReconnectTimer = () => {
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+    };
+
+    const abort = () => {
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    };
+
+    let scheduleReconnect: (delay?: number) => void;
+
+    const connect = async () => {
+        if (intentionalClose || disposed) return;
+
+        abort();
+        const controller = new AbortController();
+        abortController = controller;
+
+        const token = getAccessToken();
+
+        try {
+            const urlObj = new URL(API_PREFIX + url, window.location.origin);
+            if (params) {
+                Object.entries(params).forEach(([key, value]) => {
+                    if (value !== null && value !== undefined && value !== "") {
+                        urlObj.searchParams.set(key, String(value));
+                    }
+                });
+            }
+
+            const response = await fetch(urlObj.toString(), {
+                method: "GET",
+                headers: {
+                    "Accept": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                    ...(token ? {"Authorization": `Bearer ${token}`} : {}),
+                    ...customHeaders,
+                },
+                signal: controller.signal,
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    const refreshed = await attemptRefresh();
+                    if (refreshed) {
+                        scheduleReconnect(0);
+                        return;
+                    }
+                }
+                throw new Error(`SSE HTTP error: ${response.status}`);
+            }
+
+            if (!response.body) {
+                throw new Error("No response body");
+            }
+
+            if (!disposed) {
+                reconnectAttempts = 0;
+                reconnectDelay = initialReconnectDelay;
+                onOpen?.();
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (!intentionalClose && !disposed) {
+                const {done, value} = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, {stream: true});
+                const {events, remaining} = parseSSEChunk(buffer);
+                buffer = remaining;
+
+                for (const event of events) {
+                    if (!intentionalClose && !disposed) {
+                        onMessage?.(event);
+                    }
+                }
+            }
+
+            if (!intentionalClose && !disposed && document.visibilityState === "visible" && reconnect) {
+                scheduleReconnect();
+            } else {
+                onClose?.();
+            }
+        } catch (err: any) {
+            if (err.name === "AbortError") return;
+            if (intentionalClose || disposed) return;
+
+            console.error("SSE connection error:", err);
+            onError?.(err);
+
+            if (reconnect && reconnectAttempts < maxReconnectAttempts && document.visibilityState === "visible") {
+                scheduleReconnect();
+            } else {
+                onClose?.();
+            }
+        } finally {
+            abortController = null;
+        }
+    };
+
+    scheduleReconnect = (delay?: number) => {
+        if (intentionalClose || disposed || document.visibilityState !== "visible") return;
+
+        clearReconnectTimer();
+        reconnectAttempts += 1;
+
+        const effectiveDelay = delay ?? reconnectDelay;
+        reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            if (!intentionalClose && !disposed && document.visibilityState === "visible") {
+                reconnectDelay = Math.min(reconnectDelay * 1.5, maxReconnectDelay);
+                connect();
+            }
+        }, effectiveDelay);
+    };
+
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+            if (!intentionalClose && !abortController && !disposed) {
+                reconnectAttempts = 0;
+                reconnectDelay = initialReconnectDelay;
+                connect();
+            }
+        } else {
+            clearReconnectTimer();
+            abort();
+        }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    if (document.visibilityState === "visible") {
+        connect();
+    }
+
+    return {
+        close: () => {
+            intentionalClose = true;
+            disposed = true;
+            clearReconnectTimer();
+            abort();
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            onClose?.();
+        },
+    };
+}
 
 export type {Token, ApiError};
