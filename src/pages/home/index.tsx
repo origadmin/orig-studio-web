@@ -1,19 +1,20 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle} from 'lucide-react';
+import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
-import {publicAdsApi} from '@/lib/api/ads';
+import {usePublicAdPlacements} from '@/hooks/queries';
 import type {Ad} from '@/lib/api/portal';
 import {FeedAdCard} from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import {usePortalConfig} from '@/hooks/queries';
 import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
+import AdDisplay from '@/components/portal/AdDisplay';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -98,7 +99,30 @@ const SectionHeader: React.FC<{
 );
 
 const VIDEO_CARD_WIDTH = 240;
+const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
+
+const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placement}) => {
+    const {t} = useTranslation();
+    if (!placement.ads || placement.ads.length === 0) return null;
+    const thumbHeight = VIDEO_CARD_WIDTH * 9 / 16;
+    const cardOffset = thumbHeight / 2;
+    return (
+        <section>
+            <SectionHeader
+                title={placement.name || t('ad.sponsoredContent', '赞助推荐')}
+                icon={<Megaphone className="w-5 h-5 text-amber-500" fill="currentColor"/>}
+            />
+            <HorizontalScroll buttonOffset={cardOffset}>
+                {placement.ads.map((ad) => (
+                    <div key={ad.id} style={{width: AD_CARD_WIDTH}}>
+                        <AdDisplay ad={ad} variant="card"/>
+                    </div>
+                ))}
+            </HorizontalScroll>
+        </section>
+    );
+};
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
@@ -152,24 +176,23 @@ const HomePage = () => {
         return (typeof v === 'number' && v >= 1000) ? v : 5000;
     }, [activeBanners]);
 
-    const [feedAds, setFeedAds] = useState<Ad[]>([]);
-    useEffect(() => {
-        let cancelled = false;
-        const slugCandidates = ['home-feed', 'home', 'feed'];
-        const tryFetch = async (idx: number) => {
-            if (idx >= slugCandidates.length) return;
-            try {
-                const res = await publicAdsApi.listActiveAds(slugCandidates[idx]);
-                if (!cancelled && Array.isArray(res) && res.length > 0) {
-                    setFeedAds(res);
-                    return;
-                }
-            } catch {}
-            tryFetch(idx + 1);
-        };
-        tryFetch(0);
-        return () => { cancelled = true; };
-    }, []);
+    const {data: adPlacements = []} = usePublicAdPlacements();
+
+    const sponsoredAd = useMemo<{name: string; ads: Ad[]} | null>(() => {
+        const p = adPlacements.find(x =>
+            x.ads && x.ads.length > 0 && x.type !== 'feed' && x.type !== 'banner' && x.type !== 'leaderboard'
+        );
+        return p ? {name: p.name, ads: p.ads} : null;
+    }, [adPlacements]);
+
+    const feedAds = useMemo<Ad[]>(() => {
+        const feedPlacements = adPlacements.filter(p => p.type === 'feed' || p.slug.includes('feed') || p.slug.includes('stream'));
+        const all: Ad[] = [];
+        for (const p of feedPlacements) {
+            all.push(...(p.ads || []));
+        }
+        return all;
+    }, [adPlacements]);
 
     const {
         data,
@@ -254,6 +277,8 @@ const HomePage = () => {
                     </HorizontalScroll>
                 </section>
             )}
+
+            {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
 
             {recommendVideos.length > 0 && (
                 <section>

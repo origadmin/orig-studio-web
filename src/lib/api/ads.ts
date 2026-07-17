@@ -2,6 +2,7 @@ import {api} from "../request";
 import type {
     Ad,
     AdPlacement,
+    AdPlacementWithAds,
     CreateAdPlacementRequest,
     UpdateAdPlacementRequest,
     CreateAdRequest,
@@ -10,6 +11,7 @@ import type {
 export type {
     AdPlacement,
     Ad,
+    AdPlacementWithAds,
     CreateAdPlacementRequest,
     UpdateAdPlacementRequest,
     CreateAdRequest,
@@ -49,6 +51,9 @@ export const adminAdsApi = {
 };
 
 export const publicAdsApi = {
+    listActivePlacements: () =>
+        api.get<AdPlacementWithAds[]>('/ads/placements'),
+
     listActiveAds: (slug: string) =>
         api.get<Ad[]>(`/ads/placement/${encodeURIComponent(slug)}`),
 };

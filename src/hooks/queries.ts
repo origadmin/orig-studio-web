@@ -12,6 +12,7 @@ import {configApi, type SettingCategory} from '@/lib/api/config';
 import {adminPermissionApi} from '@/lib/api/permission';
 import {adminDrmApi} from '@/lib/api/drm';
 import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
+import {publicAdsApi, type AdPlacementWithAds} from '@/lib/api/ads';
 import {adminLiveApi, type CreateLiveRoomRequest, type UpdateLiveRoomRequest} from '@/lib/api/live';
 import {adminPromotionApi, type CreatePromotionRequest, type UpdatePromotionRequest, type CreatePromotionChannelRequest, type CreatePromotionTemplateRequest, type CreatePromotionTaskRequest, type UpdatePromotionChannelRequest, type UpdatePromotionTemplateRequest} from '@/lib/api/promotion';
 import {adminAdsApi} from '@/lib/api/ads';
@@ -1500,6 +1501,22 @@ export function useDeletePromotion() {
         onSuccess: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'promotions']});
         },
+    });
+}
+
+// ==================== Public Ad Hooks ====================
+
+export function usePublicAdPlacements() {
+    return useQuery({
+        queryKey: ['public', 'ad-placements'],
+        queryFn: async (): Promise<AdPlacementWithAds[]> => {
+            try {
+                return await publicAdsApi.listActivePlacements();
+            } catch {
+                return [];
+            }
+        },
+        staleTime: 60_000,
     });
 }
 

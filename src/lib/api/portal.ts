@@ -214,6 +214,18 @@ export interface Ad {
     clicks: number;
 }
 
+export interface AdPlacementWithAds {
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    description?: string;
+    width: number;
+    height: number;
+    sequence: number;
+    ads: Ad[];
+}
+
 export interface AdClickLog {
     id: string;
     ad_id: string;

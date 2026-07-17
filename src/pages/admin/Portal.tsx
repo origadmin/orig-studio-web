@@ -1243,6 +1243,29 @@ const AdPlacementsTab: React.FC = () => {
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
 
+    const handleCreateDefaults = async () => {
+        const defaults: CreateAdPlacementRequest[] = [
+            {name: t('admin.defaultPlacementHomeBanner', '首页横幅'), slug: 'home-banner', type: 'banner', width: 1280, height: 200, max_ads: 3, is_active: true, sequence: 1},
+            {name: t('admin.defaultPlacementHomeSponsored', '首页赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 2},
+            {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 3},
+            {name: t('admin.defaultPlacementSidebar', '侧边栏'), slug: 'sidebar', type: 'rectangle', width: 300, height: 250, max_ads: 2, is_active: true, sequence: 4},
+        ];
+        const existingSlugs = new Set(placements.map(p => p.slug));
+        let created = 0;
+        for (const d of defaults) {
+            if (existingSlugs.has(d.slug)) continue;
+            try {
+                await createMutation.mutateAsync(d);
+                created++;
+            } catch {}
+        }
+        if (created > 0) {
+            toast.success(t('admin.defaultPlacementsCreated', '已创建 {{count}} 个默认广告位', {count: created}));
+        } else {
+            toast.info(t('admin.defaultPlacementsExist', '默认广告位已存在'));
+        }
+    };
+
     const handleCreate = async () => {
         try {
             await createMutation.mutateAsync(createForm);
@@ -1301,6 +1324,7 @@ const AdPlacementsTab: React.FC = () => {
         card: t('admin.placementTypeCard'),
         rectangle: t('admin.placementTypeRectangle'),
         leaderboard: t('admin.placementTypeLeaderboard'),
+        feed: t('admin.placementTypeFeed', '信息流'),
     };
 
     return (
@@ -1312,7 +1336,10 @@ const AdPlacementsTab: React.FC = () => {
                             <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5"/>{t('admin.adPlacementManagement')}</CardTitle>
                             <CardDescription>{t('admin.adPlacementDesc')}</CardDescription>
                         </div>
-                        <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAdPlacement')}</Button>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={handleCreateDefaults}><Layers className="w-4 h-4 mr-2"/>{t('admin.createDefaultPlacements', '创建默认广告位')}</Button>
+                            <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAdPlacement')}</Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -1387,6 +1414,7 @@ const AdPlacementsTab: React.FC = () => {
                                     <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
                                     <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
                                     <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
+                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -1425,6 +1453,7 @@ const AdPlacementsTab: React.FC = () => {
                                     <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
                                     <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
                                     <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
+                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
