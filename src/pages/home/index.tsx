@@ -9,7 +9,7 @@ import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
 import {publicAdsApi} from '@/lib/api/ads';
 import type {Ad} from '@/lib/api/portal';
-import AdDisplay from '@/components/portal/AdDisplay';
+import {FeedAdCard} from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import {usePortalConfig} from '@/hooks/queries';
 import {getLocalizedText} from '@/lib/i18n-utils';
@@ -98,6 +98,7 @@ const SectionHeader: React.FC<{
 );
 
 const VIDEO_CARD_WIDTH = 240;
+const AD_INSERT_INTERVAL = 6;
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
@@ -109,9 +110,6 @@ const HomePage = () => {
     });
     const featuredVideos = featuredData?.items || [];
 
-    // Q5 (M2-3a): independent "推荐" section. v1 = random shuffle of the latest pool;
-    // the recommendationSource abstraction reserves a profile-based strategy later
-    // (reusing watch history / interactions to build a user portrait).
     const {data: recommendData} = useMediaList({page: 1, page_size: 24});
     const [recoSeed, setRecoSeed] = useState(0);
     const recommendVideos = useMemo<Media[]>(() => {
@@ -144,9 +142,6 @@ const HomePage = () => {
         });
     }, [activeBanners, i18n.language]);
 
-    // P0 fix: homepage HeroBanner must honor the operator's display_mode toggle in
-    // admin Portal. It was previously hardcoded to "card", silently breaking the
-    // wide/narrow switch. narrow -> card (16:9), wide -> wide (21:9).
     const heroMode = useMemo<'card' | 'wide'>(() => {
         const dm = activeBanners[0]?.display_mode;
         return dm === 'wide' ? 'wide' : 'card';
@@ -157,14 +152,22 @@ const HomePage = () => {
         return (typeof v === 'number' && v >= 1000) ? v : 5000;
     }, [activeBanners]);
 
-    // Public sponsored ads — fetched from media:8002 (/api/v1/ads?placement=home),
-    // bridged by the gateway. Renders nothing if no active ads exist for the placement.
-    const [ads, setAds] = useState<Ad[]>([]);
+    const [feedAds, setFeedAds] = useState<Ad[]>([]);
     useEffect(() => {
         let cancelled = false;
-        publicAdsApi.listActiveAds('home')
-            .then((res) => { if (!cancelled) setAds(Array.isArray(res) ? (res as unknown as Ad[]) : []); })
-            .catch(() => { if (!cancelled) setAds([]); });
+        const slugCandidates = ['home-feed', 'home', 'feed'];
+        const tryFetch = async (idx: number) => {
+            if (idx >= slugCandidates.length) return;
+            try {
+                const res = await publicAdsApi.listActiveAds(slugCandidates[idx]);
+                if (!cancelled && Array.isArray(res) && res.length > 0) {
+                    setFeedAds(res);
+                    return;
+                }
+            } catch {}
+            tryFetch(idx + 1);
+        };
+        tryFetch(0);
         return () => { cancelled = true; };
     }, []);
 
@@ -188,6 +191,20 @@ const HomePage = () => {
         }
         return result;
     }, [data]);
+
+    const mergedItems: (Media | {__ad: true; ad: Ad; key: string})[] = useMemo(() => {
+        if (feedAds.length === 0) return items;
+        const result: (Media | {__ad: true; ad: Ad; key: string})[] = [];
+        let adIdx = 0;
+        for (let i = 0; i < items.length; i++) {
+            result.push(items[i]);
+            if ((i + 1) % AD_INSERT_INTERVAL === 0 && adIdx < feedAds.length) {
+                result.push({__ad: true, ad: feedAds[adIdx], key: `ad-${feedAds[adIdx].id}-${i}`});
+                adIdx++;
+            }
+        }
+        return result;
+    }, [items, feedAds]);
 
     const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -264,31 +281,26 @@ const HomePage = () => {
                 </section>
             )}
 
-            {ads.length > 0 && (
-                <section>
-                    <SectionHeader title={t('home.sponsored', '赞助内容')}/>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                        {ads.map((ad) => (
-                            <AdDisplay key={ad.id} ad={ad}/>
-                        ))}
-                    </div>
-                </section>
-            )}
-
             <section>
                 <SectionHeader
                     title={t('home.latestVideos', '最新视频')}
                     viewAllLink="/latest"
                 />
 
-                {items.length === 0 && !isFetchingNextPage ? (
+                {mergedItems.length === 0 && !isFetchingNextPage ? (
                     <div className="py-20 text-center text-muted-foreground">
                         <p>{t('common.noData', '暂无数据')}</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                        {items.map(media => (
-                            <VideoCard key={media.id} media={media} size="md"/>
+                        {mergedItems.map((item) => (
+                            '__ad' in item ? (
+                                <div key={item.key}>
+                                    <FeedAdCard ad={item.ad}/>
+                                </div>
+                            ) : (
+                                <VideoCard key={item.id} media={item} size="md"/>
+                            )
                         ))}
                     </div>
                 )}
@@ -301,7 +313,7 @@ const HomePage = () => {
                         <span className="text-sm">{t('common.loading', '加载中...')}</span>
                     </div>
                 )}
-                {!hasNextPage && items.length > 0 && (
+                {!hasNextPage && mergedItems.length > 0 && (
                     <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
                 )}
             </div>

@@ -1488,10 +1488,12 @@ const AdsTab: React.FC = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editingAd, setEditingAd] = useState<Ad | null>(null);
     const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdRequest>({placement_id: '', title: ''});
+    const [createForm, setCreateForm] = useState<CreateAdRequest>({placement_id: '', title: '', image_url: ''});
     const [editForm, setEditForm] = useState<UpdateAdRequest>({
-        title: '', image_url: '', link_url: '', priority: 0, is_active: true, start_at: '', end_at: '',
+        title: '', image_url: '', image_mobile_url: '', link_url: '', badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
     });
+    const [createAdvancedOpen, setCreateAdvancedOpen] = useState(false);
+    const [editAdvancedOpen, setEditAdvancedOpen] = useState(false);
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
     const ads = adsData?.items || [];
@@ -1500,9 +1502,12 @@ const AdsTab: React.FC = () => {
         try {
             await createMutation.mutateAsync({...createForm, placement_id: selectedPlacement});
             setCreateDialogOpen(false);
-            setCreateForm({placement_id: '', title: ''});
+            setCreateForm({placement_id: '', title: '', image_url: ''});
+            setCreateAdvancedOpen(false);
+            toast.success(t('admin.adCreateSuccess', 'Advertisement created'));
         } catch (err) {
             console.error('Failed to create ad:', err);
+            toast.error(t('admin.adCreateFail', 'Failed to create advertisement'));
         }
     };
 
@@ -1511,12 +1516,15 @@ const AdsTab: React.FC = () => {
         setEditForm({
             title: ad.title,
             image_url: ad.image_url || '',
+            image_mobile_url: ad.image_mobile_url || '',
             link_url: ad.link_url || '',
+            badge_text: ad.badge_text || '',
             priority: ad.priority,
             is_active: ad.is_active,
             start_at: ad.start_at || '',
             end_at: ad.end_at || '',
         });
+        setEditAdvancedOpen(false);
         setEditDialogOpen(true);
     };
 
@@ -1525,8 +1533,10 @@ const AdsTab: React.FC = () => {
         try {
             await updateMutation.mutateAsync({id: editingAd.id, data: editForm});
             setEditDialogOpen(false);
+            toast.success(t('admin.adUpdateSuccess', 'Advertisement updated'));
         } catch (err) {
             console.error('Failed to update ad:', err);
+            toast.error(t('admin.adUpdateFail', 'Failed to update advertisement'));
         }
     };
 
@@ -1543,8 +1553,10 @@ const AdsTab: React.FC = () => {
         try {
             await deleteMutation.mutateAsync(deletingAd.id);
             setDeleteDialogOpen(false);
+            toast.success(t('admin.adDeleteSuccess', 'Advertisement deleted'));
         } catch (err) {
             console.error('Failed to delete:', err);
+            toast.error(t('admin.adDeleteFail', 'Failed to delete advertisement'));
         }
     };
 
@@ -1639,22 +1651,36 @@ const AdsTab: React.FC = () => {
                         <ImageUploadField
                             value={createForm.image_url || ''}
                             onChange={url => setCreateForm({...createForm, image_url: url})}
-                            label={t('admin.adImageUrl')}
+                            label={t('admin.adImageUrl', '广告图片')}
+                            aspect="video"
                         />
-                        <ImageUploadField
-                            value={createForm.image_mobile_url || ''}
-                            onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
-                            label={t('admin.adMobileImageUrl')}
-                        />
-                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl')}</Label><Input value={createForm.link_url || ''} onChange={e => setCreateForm({...createForm, link_url: e.target.value})} placeholder="https://..."/></div>
+                        <p className="text-xs text-muted-foreground -mt-1">{t('admin.adImageDesc', '建议尺寸 1280×720（16:9），将自动适配桌面和移动端显示')}</p>
+                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={createForm.link_url || ''} onChange={e => setCreateForm({...createForm, link_url: e.target.value})} placeholder="https://..."/></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adBadgeText')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="NEW"/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adPriority')}</Label><Input type="number" value={createForm.priority || 0} onChange={e => setCreateForm({...createForm, priority: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT"/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adPriority', '优先级')}</Label><Input type="number" value={createForm.priority || 0} onChange={e => setCreateForm({...createForm, priority: Number(e.target.value)})}/></div>
                         </div>
+                        <Collapsible open={createAdvancedOpen} onOpenChange={setCreateAdvancedOpen}>
+                            <CollapsibleTrigger asChild>
+                                <Button type="button" variant="ghost" size="sm" className="px-0 text-sm flex items-center gap-1 -ml-1">
+                                    <ChevronDown className={`h-4 w-4 transition-transform ${createAdvancedOpen ? 'rotate-180' : ''}`}/>
+                                    {t('admin.adAdvanced', '高级设置')}
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-4 pt-2">
+                                <ImageUploadField
+                                    value={createForm.image_mobile_url || ''}
+                                    onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
+                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选）')}
+                                    aspect="video"
+                                />
+                                <p className="text-xs text-muted-foreground -mt-1">{t('admin.adMobileImageDesc', '留空则自动使用上方广告图片，移动端浏览器将自动适配裁剪')}</p>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title}>{t('common.add')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title || !createForm.image_url}>{t('common.add')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1675,28 +1701,48 @@ const AdsTab: React.FC = () => {
                         <ImageUploadField
                             value={editForm.image_url || ''}
                             onChange={url => setEditForm({...editForm, image_url: url})}
-                            label={t('admin.adImageUrl')}
+                            label={t('admin.adImageUrl', '广告图片')}
+                            aspect="video"
                         />
-                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
+                        <p className="text-xs text-muted-foreground -mt-1">{t('admin.adImageDesc', '建议尺寸 1280×720（16:9），将自动适配桌面和移动端显示')}</p>
+                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adPriority')}</Label><Input type="number" value={editForm.priority || 0} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
-                            <div className="flex items-center gap-2">
-                                <Switch
-                                    id="edit-ad-active"
-                                    checked={editForm.is_active ?? true}
-                                    onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
+                            <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={editForm.badge_text || ''} onChange={e => setEditForm({...editForm, badge_text: e.target.value})} placeholder="HOT"/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adPriority', '优先级')}</Label><Input type="number" value={editForm.priority || 0} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="edit-ad-active"
+                                checked={editForm.is_active ?? true}
+                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
+                            />
+                            <Label htmlFor="edit-ad-active" className="cursor-pointer">{t('admin.enabled', '启用')}</Label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2"><Label>{t('admin.adStartAt', '开始时间')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
+                            <div className="grid gap-2"><Label>{t('admin.adEndAt', '结束时间')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
+                        </div>
+                        <Collapsible open={editAdvancedOpen} onOpenChange={setEditAdvancedOpen}>
+                            <CollapsibleTrigger asChild>
+                                <Button type="button" variant="ghost" size="sm" className="px-0 text-sm flex items-center gap-1 -ml-1">
+                                    <ChevronDown className={`h-4 w-4 transition-transform ${editAdvancedOpen ? 'rotate-180' : ''}`}/>
+                                    {t('admin.adAdvanced', '高级设置')}
+                                </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-4 pt-2">
+                                <ImageUploadField
+                                    value={editForm.image_mobile_url || ''}
+                                    onChange={url => setEditForm({...editForm, image_mobile_url: url})}
+                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选）')}
+                                    aspect="video"
                                 />
-                                <Label htmlFor="edit-ad-active" className="cursor-pointer">{t('admin.enabled')}</Label>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adStartAt')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adEndAt')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
-                        </div>
+                                <p className="text-xs text-muted-foreground -mt-1">{t('admin.adMobileImageDesc', '留空则自动使用上方广告图片，移动端浏览器将自动适配裁剪')}</p>
+                            </CollapsibleContent>
+                        </Collapsible>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.title}>{t('common.save')}</Button>
+                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.title || !editForm.image_url}>{t('common.save')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
