@@ -127,8 +127,12 @@ const NavigationTab: React.FC = () => {
             await createMutation.mutateAsync(createForm);
             setCreateDialogOpen(false);
             setCreateForm({type: 'internal_link', label: '', url: '', sequence: 0, open_new_tab: false});
+            queryClient.invalidateQueries({queryKey: ['adminNavItems']});
+            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            toast.success(t('admin.navItemCreated', '导航项创建成功'));
         } catch (err) {
             console.error('Failed to create nav item:', err);
+            toast.error(t('admin.navItemCreateFail', '导航项创建失败'));
         }
     };
 
@@ -137,8 +141,12 @@ const NavigationTab: React.FC = () => {
         try {
             await updateMutation.mutateAsync({id: editingItem.id, data: editForm});
             setEditDialogOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminNavItems']});
+            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            toast.success(t('admin.navItemUpdated', '导航项更新成功'));
         } catch (err) {
             console.error('Failed to update nav item:', err);
+            toast.error(t('admin.navItemUpdateFail', '导航项更新失败'));
         }
     };
 
@@ -147,8 +155,13 @@ const NavigationTab: React.FC = () => {
         try {
             await deleteMutation.mutateAsync(editingItem.id);
             setDeleteDialogOpen(false);
+            setEditingItem(null);
+            queryClient.invalidateQueries({queryKey: ['adminNavItems']});
+            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            toast.success(t('admin.navItemDeleted', '导航项删除成功'));
         } catch (err) {
             console.error('Failed to delete nav item:', err);
+            toast.error(t('admin.navItemDeleteFail', '导航项删除失败'));
         }
     };
 
