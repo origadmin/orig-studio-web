@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
 import {
@@ -20,11 +20,12 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
     const {i18n} = useTranslation();
     const [isPaused, setIsPaused] = useState(false);
     const [api, setApi] = useState<any>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const {data: portalConfig} = usePortalConfig();
     const banners = portalConfig?.banners || [];
-    const activeBanners = banners.filter(b => b.is_active);
+    const activeBanners = useMemo(() => banners.filter(b => b.is_active), [banners]);
 
     const getLocalizedText = useCallback((text?: string, i18nMap?: Record<string, string>) => {
         if (!text && !i18nMap) return '';
@@ -34,16 +35,29 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
     }, [i18n.language]);
 
     useEffect(() => {
+        if (!api) return;
+        const onSelect = () => {
+            setCurrentIndex(api.selectedScrollSnap());
+        };
+        api.on('select', onSelect);
+        onSelect();
+        return () => {
+            api.off('select', onSelect);
+        };
+    }, [api]);
+
+    useEffect(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
         if (!api || activeBanners.length <= 1 || isPaused) {
-            if (timerRef.current) clearTimeout(timerRef.current);
             return;
         }
-        const interval = activeBanners[api.selectedScrollSnap()]?.auto_slide_interval || 5000;
-        timerRef.current = setTimeout(() => api.scrollNext(), interval);
+        const interval = activeBanners[currentIndex]?.auto_slide_interval || 5000;
+        const normalizedInterval = (typeof interval === 'number' && interval >= 1000) ? interval : (typeof interval === 'number' && interval > 0 ? interval * 1000 : 5000);
+        timerRef.current = setTimeout(() => api.scrollNext(), normalizedInterval);
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [api, isPaused, activeBanners]);
+    }, [api, isPaused, activeBanners, currentIndex]);
 
     if (activeBanners.length === 0) return null;
 

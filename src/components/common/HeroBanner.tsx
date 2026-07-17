@@ -224,8 +224,21 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
         setProgress(0);
     }, [total]);
 
-    const goNext = useCallback(() => goTo(current + 1), [current, goTo]);
-    const goPrev = useCallback(() => goTo(current - 1), [current, goTo]);
+    const goNext = useCallback(() => {
+        setCurrent(prev => {
+            if (total === 0) return prev;
+            return (prev + 1) % total;
+        });
+        setProgress(0);
+    }, [total]);
+
+    const goPrev = useCallback(() => {
+        setCurrent(prev => {
+            if (total === 0) return prev;
+            return (prev - 1 + total) % total;
+        });
+        setProgress(0);
+    }, [total]);
 
     const clearTimers = useCallback(() => {
         if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
@@ -234,21 +247,30 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
     useEffect(() => {
         clearTimers();
-        const prefersReduced = typeof window !== 'undefined'
-            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (isPaused || total <= 1 || prefersReduced || isMobile) {
+        if (isPaused || total <= 1 || isMobile) {
             setProgress(0);
             return;
         }
-        rafStartRef.current = performance.now();
-        const tick = (now: number) => {
-            const elapsed = now - rafStartRef.current;
-            const pct = Math.min(100, (elapsed / autoPlayInterval) * 100);
-            setProgress(pct);
-            if (pct < 100) rafRef.current = requestAnimationFrame(tick);
-        };
-        rafRef.current = requestAnimationFrame(tick);
-        timerRef.current = setTimeout(goNext, autoPlayInterval);
+        const prefersReduced = typeof window !== 'undefined'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!prefersReduced) {
+            rafStartRef.current = performance.now();
+            const tick = (now: number) => {
+                const elapsed = now - rafStartRef.current;
+                const pct = Math.min(100, (elapsed / autoPlayInterval) * 100);
+                setProgress(pct);
+                if (pct < 100) rafRef.current = requestAnimationFrame(tick);
+            };
+            rafRef.current = requestAnimationFrame(tick);
+        } else {
+            setProgress(0);
+        }
+
+        timerRef.current = setTimeout(() => {
+            goNext();
+        }, autoPlayInterval);
+
         return clearTimers;
     }, [current, isPaused, total, autoPlayInterval, goNext, clearTimers, isMobile]);
 

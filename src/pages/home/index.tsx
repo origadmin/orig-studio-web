@@ -111,7 +111,7 @@ const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placem
     return (
         <section>
             <SectionHeader
-                title={placement.name || t('ad.sponsoredContent', '赞助推荐')}
+                title={t('ad.sponsoredContent', '赞助推荐')}
                 icon={<Megaphone className="w-5 h-5 text-amber-500" fill="currentColor"/>}
             />
             <HorizontalScroll buttonOffset={cardOffset}>
@@ -230,13 +230,18 @@ const HomePage = () => {
     }, [activeBanners, i18n.language, hotVideosData, newVideosData]);
 
     const heroMode = useMemo<'card' | 'wide'>(() => {
-        const dm = activeBanners[0]?.display_mode;
+        const firstActive = activeBanners.find(b => b.display_mode);
+        const dm = firstActive?.display_mode || activeBanners[0]?.display_mode;
         return dm === 'wide' ? 'wide' : 'card';
     }, [activeBanners]);
 
     const heroInterval = useMemo(() => {
-        const v = activeBanners[0]?.auto_slide_interval;
-        return (typeof v === 'number' && v >= 1000) ? v : 5000;
+        for (const b of activeBanners) {
+            const v = b.auto_slide_interval;
+            if (typeof v === 'number' && v >= 1000) return v;
+            if (typeof v === 'number' && v > 0 && v < 1000) return v * 1000;
+        }
+        return 5000;
     }, [activeBanners]);
 
     const {data: adPlacements = []} = usePublicAdPlacements();

@@ -1242,7 +1242,7 @@ const AdPlacementsTab: React.FC = () => {
 
     const handleCreateDefaults = async () => {
         const defaults: CreateAdPlacementRequest[] = [
-            {name: t('admin.defaultPlacementHomeSponsored', '首页赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 1},
+            {name: t('admin.defaultPlacementHomeSponsored', '赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 1},
             {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 2},
             {name: t('admin.defaultPlacementWatchSidebar', '播放页侧边栏'), slug: 'watch-sidebar', type: 'card', width: 300, height: 200, max_ads: 3, is_active: false, sequence: 3},
         ];

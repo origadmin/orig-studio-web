@@ -16,7 +16,7 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
 
     if (items.length === 0) return null;
 
-    const isActive = (slug: string) => pathname === `/c/${slug}` || pathname === `/categories`;
+    const isActive = (id: number) => pathname === `/c/${id}`;
 
     const content = (
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto yt-scrollbar">
@@ -36,7 +36,7 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
                     to="/c/$id"
                     params={{id: String(cat.id)}}
                     className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                        isActive(cat.slug)
+                        isActive(cat.id)
                             ? 'bg-foreground text-background'
                             : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
                     }`}
