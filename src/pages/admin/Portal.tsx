@@ -423,8 +423,14 @@ const BannersTab: React.FC = () => {
     };
 
     const buildCreatePayload = (f: BannerFormData): CreateBannerRequest => {
+        let title = f.title;
+        if (!title) {
+            if (f.type === 'hot_videos') title = '最火视频';
+            else if (f.type === 'new_videos') title = '最新上线';
+            else title = 'Banner';
+        }
         const payload: CreateBannerRequest = {
-            title: f.title,
+            title: title,
             type: f.type,
             is_active: f.is_active,
             sequence: f.sequence,
