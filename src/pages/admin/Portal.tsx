@@ -1327,6 +1327,89 @@ const AdPlacementsTab: React.FC = () => {
         feed: t('admin.placementTypeFeed', '信息流'),
     };
 
+    const PlacementPreview: React.FC<{type: string; name: string}> = ({type, name}) => {
+        const previewStyles: Record<string, React.ReactNode> = {
+            banner: (
+                <div className="w-full h-full flex flex-col gap-1 p-1.5">
+                    <div className="h-1/3 bg-purple-500/30 rounded border border-purple-500/50 flex items-center justify-center">
+                        <span className="text-[8px] text-purple-600 font-medium">横幅广告位</span>
+                    </div>
+                    <div className="flex-1 grid grid-cols-4 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                </div>
+            ),
+            card: (
+                <div className="w-full h-full flex flex-col gap-1 p-1.5">
+                    <div className="flex-1 grid grid-cols-4 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-amber-500/30 rounded border-2 border-amber-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-amber-600 font-medium text-center leading-tight">赞助<br/>推荐</span>
+                        </div>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                </div>
+            ),
+            feed: (
+                <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
+                    <div className="flex-1 grid grid-cols-3 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                    <div className="h-1/4 bg-emerald-500/30 rounded border-2 border-emerald-500/50 flex items-center justify-center">
+                        <span className="text-[7px] text-emerald-600 font-medium">信息流广告</span>
+                    </div>
+                    <div className="flex-1 grid grid-cols-3 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                </div>
+            ),
+            rectangle: (
+                <div className="w-full h-full flex gap-1 p-1.5">
+                    <div className="flex-1 grid grid-cols-2 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                    <div className="w-1/3 bg-blue-500/30 rounded border-2 border-blue-500/50 flex items-center justify-center">
+                        <span className="text-[7px] text-blue-600 font-medium text-center leading-tight">侧边栏<br/>广告</span>
+                    </div>
+                </div>
+            ),
+            leaderboard: (
+                <div className="w-full h-full flex flex-col gap-1 p-1.5">
+                    <div className="h-1/4 bg-gray-200/50 rounded"/>
+                    <div className="h-1/4 bg-rose-500/30 rounded border-2 border-rose-500/50 flex items-center justify-center">
+                        <span className="text-[8px] text-rose-600 font-medium">通栏广告位</span>
+                    </div>
+                    <div className="flex-1 grid grid-cols-4 gap-1">
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-gray-200/50 rounded"/>
+                    </div>
+                </div>
+            ),
+        };
+        return (
+            <div className="w-24 h-14 bg-muted/30 rounded border border-border">
+                {previewStyles[type] || (
+                    <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-[10px] text-muted-foreground">{name}</span>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
         <>
             <Card>
@@ -1347,6 +1430,7 @@ const AdPlacementsTab: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>{t('admin.placementPreview', '位置预览')}</TableHead>
                                     <TableHead>{t('admin.placementName')}</TableHead>
                                     <TableHead>{t('admin.placementSlug')}</TableHead>
                                     <TableHead>{t('admin.placementType')}</TableHead>
@@ -1359,6 +1443,7 @@ const AdPlacementsTab: React.FC = () => {
                             <TableBody>
                                 {placements.length > 0 ? placements.map(p => (
                                     <TableRow key={p.id}>
+                                        <TableCell><PlacementPreview type={p.type} name={p.name}/></TableCell>
                                         <TableCell className="font-medium">{p.name}</TableCell>
                                         <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code></TableCell>
                                         <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
@@ -1384,7 +1469,7 @@ const AdPlacementsTab: React.FC = () => {
                                         </TableCell>
                                     </TableRow>
                                 )) : (
-                                    <TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">{t('admin.noAdPlacements')}</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{t('admin.noAdPlacements')}</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>

@@ -222,6 +222,8 @@ export interface AdPlacementWithAds {
     description?: string;
     width: number;
     height: number;
+    max_ads: number;
+    is_active: boolean;
     sequence: number;
     ads: Ad[];
 }
