@@ -287,16 +287,41 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             const n = parseFloat(v);
             return Number.isFinite(n) ? n : def;
         };
-        const step = num(styles.getPropertyValue('--hero-step'), 380);
+
+        const getPixelValue = (cssVar: string, def: number): number => {
+            const val = styles.getPropertyValue(cssVar).trim();
+            if (!val) return def;
+            const n = parseFloat(val);
+            if (Number.isFinite(n)) return n;
+            const probe = document.createElement('div');
+            probe.style.position = 'absolute';
+            probe.style.visibility = 'hidden';
+            probe.style.top = '0';
+            probe.style.left = '0';
+            probe.style.margin = '0';
+            probe.style.padding = '0';
+            probe.style.border = '0';
+            probe.style.boxSizing = 'content-box';
+            probe.style.width = val;
+            document.body.appendChild(probe);
+            const measured = probe.offsetWidth;
+            document.body.removeChild(probe);
+            return Number.isFinite(measured) && measured > 0 ? measured : def;
+        };
+
         const scaleStep = num(styles.getPropertyValue('--hero-scale-step'), 0.14);
         const opacityStep = num(styles.getPropertyValue('--hero-opacity-step'), 0.3);
         const blurStep = num(styles.getPropertyValue('--hero-blur-step'), 1.5);
         const visible = Math.max(0, Math.round(num(styles.getPropertyValue('--hero-visible'), 5)));
-        const cardW = num(styles.getPropertyValue('--hero-card-w'), 560);
+
+        const cardW = getPixelValue('--hero-card-w', 560);
         const ratioParts = (styles.getPropertyValue('--hero-ratio') || '16/9').trim().split('/').map(s => parseFloat(s.trim()));
         const ratio = ratioParts.length === 2 && ratioParts[1] ? ratioParts[0] / ratioParts[1] : 16 / 9;
         const cardH = cardW / ratio;
         el.style.setProperty('--hero-card-h', `${cardH}px`);
+
+        const step = getPixelValue('--hero-step', cardW * 0.72);
+
         const slides = el.querySelectorAll<HTMLElement>('[data-hero-slide]');
         slides.forEach((slide, i) => {
             let d = (i - current + total) % total;
