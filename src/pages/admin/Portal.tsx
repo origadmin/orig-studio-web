@@ -1654,7 +1654,6 @@ const AdsTab: React.FC = () => {
                             label={t('admin.adImageUrl', '广告图片')}
                             aspect="video"
                         />
-                        <p className="text-xs text-muted-foreground -mt-1">{t('admin.adImageDesc', '建议尺寸 1280×720（16:9），将自动适配桌面和移动端显示')}</p>
                         <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={createForm.link_url || ''} onChange={e => setCreateForm({...createForm, link_url: e.target.value})} placeholder="https://..."/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT"/></div>
@@ -1671,10 +1670,9 @@ const AdsTab: React.FC = () => {
                                 <ImageUploadField
                                     value={createForm.image_mobile_url || ''}
                                     onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
-                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选）')}
+                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选，留空自动适配）')}
                                     aspect="video"
                                 />
-                                <p className="text-xs text-muted-foreground -mt-1">{t('admin.adMobileImageDesc', '留空则自动使用上方广告图片，移动端浏览器将自动适配裁剪')}</p>
                             </CollapsibleContent>
                         </Collapsible>
                     </div>
@@ -1704,7 +1702,6 @@ const AdsTab: React.FC = () => {
                             label={t('admin.adImageUrl', '广告图片')}
                             aspect="video"
                         />
-                        <p className="text-xs text-muted-foreground -mt-1">{t('admin.adImageDesc', '建议尺寸 1280×720（16:9），将自动适配桌面和移动端显示')}</p>
                         <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={editForm.badge_text || ''} onChange={e => setEditForm({...editForm, badge_text: e.target.value})} placeholder="HOT"/></div>
@@ -1733,10 +1730,9 @@ const AdsTab: React.FC = () => {
                                 <ImageUploadField
                                     value={editForm.image_mobile_url || ''}
                                     onChange={url => setEditForm({...editForm, image_mobile_url: url})}
-                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选）')}
+                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选，留空自动适配）')}
                                     aspect="video"
                                 />
-                                <p className="text-xs text-muted-foreground -mt-1">{t('admin.adMobileImageDesc', '留空则自动使用上方广告图片，移动端浏览器将自动适配裁剪')}</p>
                             </CollapsibleContent>
                         </Collapsible>
                     </div>
