@@ -32,6 +32,8 @@ import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
 import {colorFromName} from '@/lib/utils/tag-color';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
+import {usePublicAdPlacements} from '@/hooks/queries';
+import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
 
 const WatchPage = () => {
@@ -78,6 +80,12 @@ const WatchPage = () => {
     const recommendations = recData?.items?.filter((m: Media) => m.short_token !== shortToken) || [];
     const loading = isMediaLoading;
     const error = mediaError ? t('watch.failedToLoad') : null;
+
+    const {data: adPlacements = []} = usePublicAdPlacements();
+    const sidebarAds = React.useMemo(() => {
+        const p = adPlacements.find(x => x.slug === 'watch-sidebar' && x.is_active);
+        return p?.ads || [];
+    }, [adPlacements]);
 
     // Next video for YouTube-style autoplay countdown
     const nextVideo: NextVideoInfo | null = recommendations.length > 0 ? {
@@ -376,6 +384,9 @@ const WatchPage = () => {
                 </div>
 
                 <div className="space-y-4">
+                    {sidebarAds.length > 0 && sidebarAds.map((ad) => (
+                        <AdDisplay key={ad.id} ad={ad} variant="sidebar"/>
+                    ))}
                     {recommendations.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-4 italic">{t('watch.noRecommendations')}</p>
                     ) : (

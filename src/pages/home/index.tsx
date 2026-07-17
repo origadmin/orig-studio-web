@@ -149,23 +149,85 @@ const HomePage = () => {
 
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
+
+    const hasHotBanner = activeBanners.some(b => b.type === 'hot_videos');
+    const hasNewBanner = activeBanners.some(b => b.type === 'new_videos');
+    const {data: hotVideosData} = useMediaList({
+        page: 1,
+        page_size: 20,
+        order_by: 'view_count',
+        descending: true,
+    });
+    const {data: newVideosData} = useMediaList({
+        page: 1,
+        page_size: 20,
+        order_by: 'create_time',
+        descending: true,
+    });
+
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         const lang = i18n.language;
-        return activeBanners.map((b) => {
+        const items: HeroBannerItem[] = [];
+        for (const b of activeBanners) {
             const c1 = b.bg_color_start || '#0f172a';
             const c2 = b.bg_color_end || '#1e3a8a';
-            return {
-                id: String(b.id),
-                title: getLocalizedText(b.title, b.title_i18n, lang),
-                subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-                thumbnail: b.image_url || '',
-                videoUrl: b.video_url || undefined,
-                bgGradient: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
-                url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
-                badge: b.badge_text || undefined,
-            };
-        });
-    }, [activeBanners, i18n.language]);
+            const bgGradient = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+
+            if (b.type === 'hot_videos') {
+                const videos = (hotVideosData?.items || []).slice(0, b.count || 5);
+                for (const v of videos) {
+                    items.push({
+                        id: `banner-${b.id}-${v.id}`,
+                        title: v.title || '',
+                        subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+                        thumbnail: v.thumbnail || v.poster || '',
+                        bgGradient,
+                        shortToken: v.short_token,
+                        badge: b.badge_text || 'HOT',
+                        duration: v.duration,
+                        viewCount: v.view_count,
+                        createTime: v.create_time,
+                        user: v.edges?.user?.[0] ? {
+                            name: v.edges.user[0].nickname || v.edges.user[0].username || '',
+                            avatar: v.edges.user[0].avatar,
+                        } : undefined,
+                    });
+                }
+            } else if (b.type === 'new_videos') {
+                const videos = (newVideosData?.items || []).slice(0, b.count || 5);
+                for (const v of videos) {
+                    items.push({
+                        id: `banner-${b.id}-${v.id}`,
+                        title: v.title || '',
+                        subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+                        thumbnail: v.thumbnail || v.poster || '',
+                        bgGradient,
+                        shortToken: v.short_token,
+                        badge: b.badge_text || 'NEW',
+                        duration: v.duration,
+                        viewCount: v.view_count,
+                        createTime: v.create_time,
+                        user: v.edges?.user?.[0] ? {
+                            name: v.edges.user[0].nickname || v.edges.user[0].username || '',
+                            avatar: v.edges.user[0].avatar,
+                        } : undefined,
+                    });
+                }
+            } else {
+                items.push({
+                    id: String(b.id),
+                    title: getLocalizedText(b.title, b.title_i18n, lang),
+                    subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+                    thumbnail: b.image_url || '',
+                    videoUrl: b.video_url || undefined,
+                    bgGradient,
+                    url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
+                    badge: b.badge_text || undefined,
+                });
+            }
+        }
+        return items;
+    }, [activeBanners, i18n.language, hotVideosData, newVideosData]);
 
     const heroMode = useMemo<'card' | 'wide'>(() => {
         const dm = activeBanners[0]?.display_mode;
@@ -184,20 +246,14 @@ const HomePage = () => {
     }, [adPlacements]);
 
     const sponsoredAd = useMemo<{name: string; ads: Ad[]} | null>(() => {
-        const p = activeAdPlacements.find(x =>
-            x.ads && x.ads.length > 0 && x.type !== 'feed' && x.type !== 'banner' && x.type !== 'leaderboard'
-        );
-        if (p) return {name: p.name, ads: p.ads};
+        const p = activeAdPlacements.find(x => x.slug === 'home-sponsored');
+        if (p && p.ads && p.ads.length > 0) return {name: p.name, ads: p.ads};
         return null;
     }, [activeAdPlacements]);
 
     const feedAds = useMemo<Ad[]>(() => {
-        const all: Ad[] = [];
-        for (const p of activeAdPlacements) {
-            if (p.type === 'banner' || p.type === 'leaderboard') continue;
-            all.push(...(p.ads || []));
-        }
-        return all;
+        const p = activeAdPlacements.find(x => x.slug === 'home-feed');
+        return p?.ads || [];
     }, [activeAdPlacements]);
 
     const {

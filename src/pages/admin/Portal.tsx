@@ -337,7 +337,7 @@ type BannerFormData = {
     is_active: boolean;
     start_at: string;
     end_at: string;
-    type: 'custom' | 'hot_videos' | 'new_videos' | 'ad';
+    type: 'custom' | 'hot_videos' | 'new_videos';
     count: number;
     never_expires: boolean;
 };
@@ -429,7 +429,7 @@ const BannersTab: React.FC = () => {
             is_active: f.is_active,
             sequence: f.sequence,
         };
-        if (f.type === 'custom' || f.type === 'ad') {
+        if (f.type === 'custom') {
             if (f.image_url) payload.image_url = f.image_url;
             if (f.video_url) payload.video_url = f.video_url;
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
@@ -456,7 +456,7 @@ const BannersTab: React.FC = () => {
             is_active: f.is_active,
             sequence: f.sequence,
         };
-        if (f.type === 'custom' || f.type === 'ad') {
+        if (f.type === 'custom') {
             payload.image_url = f.image_url || '';
             payload.video_url = f.video_url || '';
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
@@ -612,8 +612,6 @@ const BannersTab: React.FC = () => {
                 return {label: t('admin.bannerTypeHot', '最火视频'), cls: 'bg-red-50 text-red-600 border-red-200'};
             case 'new_videos':
                 return {label: t('admin.bannerTypeNew', '最新上线'), cls: 'bg-blue-50 text-blue-600 border-blue-200'};
-            case 'ad':
-                return {label: t('admin.bannerTypeAd', '广告位'), cls: 'bg-purple-50 text-purple-600 border-purple-200'};
             default:
                 return {label: t('admin.bannerTypeCustom', '自定义'), cls: 'bg-muted text-muted-foreground border-border'};
         }
@@ -634,7 +632,6 @@ const BannersTab: React.FC = () => {
                         <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义Banner')}</SelectItem>
                         <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频（自动聚合）')}</SelectItem>
                         <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新上线（自动聚合）')}</SelectItem>
-                        <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -652,7 +649,7 @@ const BannersTab: React.FC = () => {
                     <p className="text-xs text-muted-foreground">{t('admin.bannerDynamicHint', '动态Banner将自动从视频库中取最火/最新视频作为轮播内容，图片取首个视频的封面')}</p>
                 </div>
             )}
-            {(form.type === 'custom' || form.type === 'ad') && (
+            {(form.type === 'custom') && (
                 <>
                     <div className="grid gap-2">
                         <Label htmlFor="banner-title">{t('admin.bannerTitle', '标题')}</Label>
@@ -1171,7 +1168,7 @@ const BannersTab: React.FC = () => {
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
                         <Button
                             onClick={handleCreate}
-                            disabled={(createForm.type === 'custom' || createForm.type === 'ad') && (!createForm.title || (!createForm.image_url && !createForm.video_url))}
+                            disabled={(createForm.type === 'custom') && (!createForm.title || (!createForm.image_url && !createForm.video_url))}
                             className="rounded-full px-6 shadow-sm"
                         >
                             {t('common.add', '添加')}
@@ -1245,10 +1242,9 @@ const AdPlacementsTab: React.FC = () => {
 
     const handleCreateDefaults = async () => {
         const defaults: CreateAdPlacementRequest[] = [
-            {name: t('admin.defaultPlacementHomeBanner', '首页横幅'), slug: 'home-banner', type: 'banner', width: 1280, height: 200, max_ads: 3, is_active: true, sequence: 1},
-            {name: t('admin.defaultPlacementHomeSponsored', '首页赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 2},
-            {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 3},
-            {name: t('admin.defaultPlacementSidebar', '侧边栏'), slug: 'sidebar', type: 'rectangle', width: 300, height: 250, max_ads: 2, is_active: true, sequence: 4},
+            {name: t('admin.defaultPlacementHomeSponsored', '首页赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 1},
+            {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 2},
+            {name: t('admin.defaultPlacementWatchSidebar', '播放页侧边栏'), slug: 'watch-sidebar', type: 'card', width: 300, height: 200, max_ads: 3, is_active: false, sequence: 3},
         ];
         const existingSlugs = new Set(placements.map(p => p.slug));
         let created = 0;
@@ -1327,81 +1323,67 @@ const AdPlacementsTab: React.FC = () => {
         feed: t('admin.placementTypeFeed', '信息流'),
     };
 
-    const PlacementPreview: React.FC<{type: string; name: string}> = ({type, name}) => {
+    const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug, name}) => {
         const previewStyles: Record<string, React.ReactNode> = {
-            banner: (
+            'home-sponsored': (
                 <div className="w-full h-full flex flex-col gap-1 p-1.5">
-                    <div className="h-1/3 bg-purple-500/30 rounded border border-purple-500/50 flex items-center justify-center">
-                        <span className="text-[8px] text-purple-600 font-medium">横幅广告位</span>
+                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
                     </div>
-                    <div className="flex-1 grid grid-cols-4 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                    </div>
-                </div>
-            ),
-            card: (
-                <div className="w-full h-full flex flex-col gap-1 p-1.5">
-                    <div className="flex-1 grid grid-cols-4 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-amber-500/30 rounded border-2 border-amber-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-amber-600 font-medium text-center leading-tight">赞助<br/>推荐</span>
+                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
+                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-amber-600 font-medium">AD</span>
                         </div>
-                        <div className="bg-gray-200/50 rounded"/>
+                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                    </div>
+                    <div className="flex-1 grid grid-cols-4 gap-0.5">
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
                     </div>
                 </div>
             ),
-            feed: (
+            'home-feed': (
                 <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
-                    <div className="flex-1 grid grid-cols-3 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                    </div>
-                    <div className="h-1/4 bg-emerald-500/30 rounded border-2 border-emerald-500/50 flex items-center justify-center">
-                        <span className="text-[7px] text-emerald-600 font-medium">信息流广告</span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-3 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
+                    <div className="flex-1 grid grid-cols-3 gap-0.5">
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-emerald-500/30 rounded-sm border border-emerald-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-emerald-600 font-medium">AD</span>
+                        </div>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
+                        <div className="bg-gray-200/50 rounded-sm"/>
                     </div>
                 </div>
             ),
-            rectangle: (
+            'watch-sidebar': (
                 <div className="w-full h-full flex gap-1 p-1.5">
-                    <div className="flex-1 grid grid-cols-2 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
+                    <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
+                        <span className="text-[7px] text-muted-foreground">播放器</span>
                     </div>
-                    <div className="w-1/3 bg-blue-500/30 rounded border-2 border-blue-500/50 flex items-center justify-center">
-                        <span className="text-[7px] text-blue-600 font-medium text-center leading-tight">侧边栏<br/>广告</span>
-                    </div>
-                </div>
-            ),
-            leaderboard: (
-                <div className="w-full h-full flex flex-col gap-1 p-1.5">
-                    <div className="h-1/4 bg-gray-200/50 rounded"/>
-                    <div className="h-1/4 bg-rose-500/30 rounded border-2 border-rose-500/50 flex items-center justify-center">
-                        <span className="text-[8px] text-rose-600 font-medium">通栏广告位</span>
-                    </div>
-                    <div className="flex-1 grid grid-cols-4 gap-1">
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
-                        <div className="bg-gray-200/50 rounded"/>
+                    <div className="w-1/3 flex flex-col gap-0.5">
+                        <div className="h-1/4 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-blue-600 font-medium">AD</span>
+                        </div>
+                        <div className="flex-1 bg-gray-200/50 rounded-sm"/>
+                        <div className="flex-1 bg-gray-200/50 rounded-sm"/>
                     </div>
                 </div>
             ),
         };
         return (
             <div className="w-24 h-14 bg-muted/30 rounded border border-border">
-                {previewStyles[type] || (
+                {previewStyles[slug] || (
                     <div className="w-full h-full flex items-center justify-center">
                         <span className="text-[10px] text-muted-foreground">{name}</span>
                     </div>
@@ -1443,7 +1425,7 @@ const AdPlacementsTab: React.FC = () => {
                             <TableBody>
                                 {placements.length > 0 ? placements.map(p => (
                                     <TableRow key={p.id}>
-                                        <TableCell><PlacementPreview type={p.type} name={p.name}/></TableCell>
+                                        <TableCell><PlacementPreview slug={p.slug} name={p.name}/></TableCell>
                                         <TableCell className="font-medium">{p.name}</TableCell>
                                         <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code></TableCell>
                                         <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>

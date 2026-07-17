@@ -9,7 +9,7 @@ import type {Ad} from '@/lib/api/portal';
 
 interface AdCardProps {
     ad: Ad;
-    variant?: 'card' | 'rectangle' | 'leaderboard' | 'feed';
+    variant?: 'card' | 'rectangle' | 'leaderboard' | 'feed' | 'sidebar';
 }
 
 function getAdImageUrl(ad: Ad): string {
@@ -105,6 +105,35 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                     {ad.link_url && (
                         <a href={ad.link_url} target="_blank" rel="noopener noreferrer" onClick={handleClick}
                            className="text-xs text-primary hover:underline mt-2 inline-flex items-center gap-0.5">
+                            {t('ad.viewDetail', '查看详情')} <ExternalLink className="w-3 h-3"/>
+                        </a>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    if (variant === 'sidebar') {
+        return (
+            <div className="bg-muted/20 border border-dashed border-amber-500/40 rounded-lg overflow-hidden group flex gap-3 p-2">
+                {ad.image_url && (
+                    <a
+                        href={ad.link_url || '#'}
+                        target={ad.link_url ? '_blank' : undefined}
+                        rel="noopener noreferrer"
+                        onClick={handleClick}
+                        className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0"
+                    >
+                        <img src={imageUrl} alt={ad.title}
+                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                    </a>
+                )}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <Badge variant="outline" className="text-[10px] mb-1 self-start text-amber-600 border-amber-500/40 bg-amber-500/10">{badgeLabel}</Badge>
+                    <p className="text-sm font-bold text-foreground line-clamp-2 leading-snug">{ad.title}</p>
+                    {ad.link_url && (
+                        <a href={ad.link_url} target="_blank" rel="noopener noreferrer" onClick={handleClick}
+                           className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-0.5">
                             {t('ad.viewDetail', '查看详情')} <ExternalLink className="w-3 h-3"/>
                         </a>
                     )}
