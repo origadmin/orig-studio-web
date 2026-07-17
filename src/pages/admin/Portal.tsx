@@ -336,6 +336,9 @@ type BannerFormData = {
     is_active: boolean;
     start_at: string;
     end_at: string;
+    type: 'custom' | 'hot_videos' | 'new_videos' | 'ad';
+    count: number;
+    never_expires: boolean;
 };
 
 type GlobalCarouselSettings = {
@@ -354,6 +357,9 @@ const emptyBannerForm: BannerFormData = {
     is_active: true,
     start_at: '',
     end_at: '',
+    type: 'custom',
+    count: 5,
+    never_expires: true,
 };
 
 const BannersTab: React.FC = () => {
@@ -409,7 +415,7 @@ const BannersTab: React.FC = () => {
     const fromISO = (v?: string): string => {
         if (!v) return '';
         const d = new Date(v);
-        if (isNaN(d.getTime())) return '';
+        if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '';
         const pad = (n: number) => String(n).padStart(2, '0');
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
@@ -417,38 +423,54 @@ const BannersTab: React.FC = () => {
     const buildCreatePayload = (f: BannerFormData): CreateBannerRequest => {
         const payload: CreateBannerRequest = {
             title: f.title,
-            type: 'custom',
-            image_url: f.image_url || undefined,
+            type: f.type,
             is_active: f.is_active,
             sequence: f.sequence,
         };
+        if (f.type === 'custom' || f.type === 'ad') {
+            if (f.image_url) payload.image_url = f.image_url;
+            if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
+            if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        }
         if (f.subtitle) payload.subtitle = f.subtitle;
         if (f.badge_text) payload.badge_text = f.badge_text;
-        if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
-        if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        if (f.type === 'hot_videos' || f.type === 'new_videos') {
+            payload.count = f.count;
+        }
         const startISO = toISO(f.start_at);
-        const endISO = toISO(f.end_at);
         if (startISO) payload.start_at = startISO;
-        if (endISO) payload.end_at = endISO;
+        if (!f.never_expires) {
+            const endISO = toISO(f.end_at);
+            if (endISO) payload.end_at = endISO;
+        }
         return payload;
     };
 
     const buildUpdatePayload = (f: BannerFormData): UpdateBannerRequest => {
         const payload: UpdateBannerRequest = {
             title: f.title,
-            type: 'custom',
-            image_url: f.image_url || undefined,
+            type: f.type,
             is_active: f.is_active,
             sequence: f.sequence,
         };
+        if (f.type === 'custom' || f.type === 'ad') {
+            payload.image_url = f.image_url || '';
+            if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
+            if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        }
         if (f.subtitle) payload.subtitle = f.subtitle;
         if (f.badge_text) payload.badge_text = f.badge_text;
-        if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
-        if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
+        if (f.type === 'hot_videos' || f.type === 'new_videos') {
+            payload.count = f.count;
+        }
         const startISO = toISO(f.start_at);
-        const endISO = toISO(f.end_at);
         if (startISO) payload.start_at = startISO;
-        if (endISO) payload.end_at = endISO;
+        if (f.never_expires) {
+            payload.clear_end_at = true;
+        } else {
+            const endISO = toISO(f.end_at);
+            if (endISO) payload.end_at = endISO;
+        }
         return payload;
     };
 
@@ -516,13 +538,8 @@ const BannersTab: React.FC = () => {
         }
     };
 
-    const handleToggle = async (id: string) => {
-        try {
-            await toggleMutation.mutateAsync(id);
-            queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
-        } catch (err) {
-            console.error('Failed to toggle banner:', err);
-        }
+    const handleToggle = (id: string) => {
+        toggleMutation.mutate(id);
     };
 
     const handleDelete = async () => {
@@ -546,6 +563,7 @@ const BannersTab: React.FC = () => {
 
     const openEditDialog = (banner: Banner) => {
         setEditingBanner(banner);
+        const bType = (banner.type as BannerFormData['type']) || 'custom';
         setEditForm({
             title: banner.title || '',
             subtitle: banner.subtitle || '',
@@ -557,26 +575,43 @@ const BannersTab: React.FC = () => {
             is_active: banner.is_active,
             start_at: fromISO(banner.start_at),
             end_at: fromISO(banner.end_at),
+            type: bType,
+            count: banner.count || 5,
+            never_expires: !banner.end_at || new Date(banner.end_at).getFullYear() < 2000,
         });
-        setAdvancedOpen(!!(banner.start_at || banner.end_at) || banner.sequence !== 0);
+        setAdvancedOpen(false);
         setEditDialogOpen(true);
     };
 
     const aspectClass = globalSettings.display_mode === 'narrow' ? 'aspect-video' : 'aspect-[21/9]';
 
     const formatExpiry = (iso?: string): string => {
-        if (!iso) return t('admin.noExpiry', 'No Expiry');
+        if (!iso) return t('admin.noExpiry', '永不过期');
         const d = new Date(iso);
-        if (isNaN(d.getTime())) return t('admin.noExpiry', 'No Expiry');
+        if (isNaN(d.getTime()) || d.getFullYear() < 2000) return t('admin.noExpiry', '永不过期');
         const now = new Date();
-        if (d < now) return t('admin.expiredOn', 'Expired {{date}}', {date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`});
-        return t('admin.endsOn', 'Ends {{date}}', {date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`});
+        if (d < now) return t('admin.expiredOn', '已过期 {{date}}', {date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`});
+        return t('admin.endsOn', '至 {{date}}', {date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`});
     };
 
     const isExpired = (iso?: string): boolean => {
         if (!iso) return false;
         const d = new Date(iso);
-        return !isNaN(d.getTime()) && d < new Date();
+        if (isNaN(d.getTime()) || d.getFullYear() < 2000) return false;
+        return d < new Date();
+    };
+
+    const getTypeMeta = (type?: string): { label: string; cls: string } => {
+        switch (type) {
+            case 'hot_videos':
+                return {label: t('admin.bannerTypeHot', '最火视频'), cls: 'bg-red-50 text-red-600 border-red-200'};
+            case 'new_videos':
+                return {label: t('admin.bannerTypeNew', '最新上线'), cls: 'bg-blue-50 text-blue-600 border-blue-200'};
+            case 'ad':
+                return {label: t('admin.bannerTypeAd', '广告位'), cls: 'bg-purple-50 text-purple-600 border-purple-200'};
+            default:
+                return {label: t('admin.bannerTypeCustom', '自定义'), cls: 'bg-muted text-muted-foreground border-border'};
+        }
     };
 
     const renderBannerFormFields = (
@@ -585,55 +620,135 @@ const BannersTab: React.FC = () => {
     ) => (
         <>
             <div className="grid gap-2">
-                <Label htmlFor="banner-title">{t('admin.bannerTitle', '标题')}</Label>
-                <Input
-                    id="banner-title"
-                    value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})}
-                    placeholder={t('admin.bannerTitle', '标题')}
-                />
+                <Label>{t('admin.bannerType', 'Banner类型')}</Label>
+                <Select value={form.type} onValueChange={(v: BannerFormData['type']) => setForm({...form, type: v})}>
+                    <SelectTrigger>
+                        <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义Banner')}</SelectItem>
+                        <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频（自动聚合）')}</SelectItem>
+                        <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新上线（自动聚合）')}</SelectItem>
+                        <SelectItem value="ad">{t('admin.bannerTypeAd', '广告位')}</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="banner-subtitle">{t('admin.bannerSubtitle', '副标题')}</Label>
-                <Input
-                    id="banner-subtitle"
-                    value={form.subtitle}
-                    onChange={e => setForm({...form, subtitle: e.target.value})}
-                    placeholder={t('admin.bannerSubtitle', '副标题')}
+            {(form.type === 'hot_videos' || form.type === 'new_videos') && (
+                <div className="grid gap-2">
+                    <Label htmlFor="banner-count">{t('admin.bannerVideoCount', '展示视频数量')}</Label>
+                    <Input
+                        id="banner-count"
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={form.count}
+                        onChange={e => setForm({...form, count: Number(e.target.value)})}
+                    />
+                    <p className="text-xs text-muted-foreground">{t('admin.bannerDynamicHint', '动态Banner将自动从视频库中取最火/最新视频作为轮播内容，图片取首个视频的封面')}</p>
+                </div>
+            )}
+            {(form.type === 'custom' || form.type === 'ad') && (
+                <>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-title">{t('admin.bannerTitle', '标题')}</Label>
+                        <Input
+                            id="banner-title"
+                            value={form.title}
+                            onChange={e => setForm({...form, title: e.target.value})}
+                            placeholder={t('admin.bannerTitle', '标题')}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-subtitle">{t('admin.bannerSubtitle', '副标题')}</Label>
+                        <Input
+                            id="banner-subtitle"
+                            value={form.subtitle}
+                            onChange={e => setForm({...form, subtitle: e.target.value})}
+                            placeholder={t('admin.bannerSubtitle', '副标题')}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-badge">{t('admin.bannerBadgeText', '角标文字')}</Label>
+                        <Input
+                            id="banner-badge"
+                            value={form.badge_text}
+                            onChange={e => setForm({...form, badge_text: e.target.value})}
+                            placeholder="HOT, NEW"
+                        />
+                    </div>
+                    <ImageUploadField
+                        value={form.image_url}
+                        onChange={url => setForm({...form, image_url: url})}
+                        label={t('admin.bannerImageUrl', 'Banner图片')}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="banner-cta-text">{t('admin.bannerPrimaryBtnText', 'CTA按钮文字')}</Label>
+                            <Input
+                                id="banner-cta-text"
+                                value={form.primary_btn_text}
+                                onChange={e => setForm({...form, primary_btn_text: e.target.value})}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="banner-cta-url">{t('admin.bannerPrimaryBtnUrl', 'CTA按钮链接')}</Label>
+                            <Input
+                                id="banner-cta-url"
+                                value={form.primary_btn_url}
+                                onChange={e => setForm({...form, primary_btn_url: e.target.value})}
+                                placeholder="/featured"
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
+            {(form.type === 'hot_videos' || form.type === 'new_videos') && (
+                <div className="grid gap-2">
+                    <Label htmlFor="banner-title-dyn">{t('admin.bannerTitle', '标题（可选，覆盖默认标题）')}</Label>
+                    <Input
+                        id="banner-title-dyn"
+                        value={form.title}
+                        onChange={e => setForm({...form, title: e.target.value})}
+                        placeholder={form.type === 'hot_videos' ? '最火视频' : '最新上线'}
+                    />
+                </div>
+            )}
+            <div className="flex items-center gap-2">
+                <Switch
+                    checked={form.never_expires}
+                    onCheckedChange={(v) => setForm({...form, never_expires: v, end_at: v ? '' : form.end_at})}
+                    id="banner-never-expires"
                 />
+                <Label htmlFor="banner-never-expires" className="cursor-pointer">{t('admin.bannerNeverExpires', '永不过期')}</Label>
             </div>
-            <div className="grid gap-2">
-                <Label htmlFor="banner-badge">{t('admin.bannerBadgeText', '角标文字')}</Label>
-                <Input
-                    id="banner-badge"
-                    value={form.badge_text}
-                    onChange={e => setForm({...form, badge_text: e.target.value})}
-                    placeholder="HOT, NEW"
-                />
-            </div>
-            <ImageUploadField
-                value={form.image_url}
-                onChange={url => setForm({...form, image_url: url})}
-                label={t('admin.bannerImageUrl', 'Banner图片')}
-            />
             <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                    <Label htmlFor="banner-cta-text">{t('admin.bannerPrimaryBtnText', 'CTA按钮文字')}</Label>
+                    <Label htmlFor="banner-start">{t('admin.bannerStartAt', '开始时间')}</Label>
                     <Input
-                        id="banner-cta-text"
-                        value={form.primary_btn_text}
-                        onChange={e => setForm({...form, primary_btn_text: e.target.value})}
+                        id="banner-start"
+                        type="datetime-local"
+                        value={form.start_at}
+                        onChange={e => setForm({...form, start_at: e.target.value})}
                     />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="banner-cta-url">{t('admin.bannerPrimaryBtnUrl', 'CTA按钮链接')}</Label>
+                    <Label htmlFor="banner-end" className={form.never_expires ? 'text-muted-foreground' : ''}>{t('admin.bannerEndAt', '结束时间')}</Label>
                     <Input
-                        id="banner-cta-url"
-                        value={form.primary_btn_url}
-                        onChange={e => setForm({...form, primary_btn_url: e.target.value})}
-                        placeholder="/featured"
+                        id="banner-end"
+                        type="datetime-local"
+                        value={form.end_at}
+                        onChange={e => setForm({...form, end_at: e.target.value})}
+                        disabled={form.never_expires}
                     />
                 </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <Switch
+                    checked={form.is_active}
+                    onCheckedChange={(v) => setForm({...form, is_active: v})}
+                    id="banner-active"
+                />
+                <Label htmlFor="banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
             </div>
             <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                 <CollapsibleTrigger asChild>
@@ -643,26 +758,6 @@ const BannersTab: React.FC = () => {
                     </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4 pt-2">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="banner-start">{t('admin.bannerStartAt', '开始时间')}</Label>
-                            <Input
-                                id="banner-start"
-                                type="datetime-local"
-                                value={form.start_at}
-                                onChange={e => setForm({...form, start_at: e.target.value})}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="banner-end">{t('admin.bannerEndAt', '结束时间')}</Label>
-                            <Input
-                                id="banner-end"
-                                type="datetime-local"
-                                value={form.end_at}
-                                onChange={e => setForm({...form, end_at: e.target.value})}
-                            />
-                        </div>
-                    </div>
                     <div className="grid gap-2">
                         <Label htmlFor="banner-sequence">{t('admin.bannerSequence', '排序')}</Label>
                         <Input
@@ -674,14 +769,6 @@ const BannersTab: React.FC = () => {
                     </div>
                 </CollapsibleContent>
             </Collapsible>
-            <div className="flex items-center gap-2">
-                <Switch
-                    checked={form.is_active}
-                    onCheckedChange={(v) => setForm({...form, is_active: v})}
-                    id="banner-active"
-                />
-                <Label htmlFor="banner-active" className="cursor-pointer">{t('admin.bannerIsActive', '是否启用')}</Label>
-            </div>
         </>
     );
 
@@ -887,10 +974,13 @@ const BannersTab: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                     {banners.map((banner, idx) => {
                         const expired = isExpired(banner.end_at);
+                        const typeMeta = getTypeMeta(banner.type);
+                        const isDynamic = banner.type === 'hot_videos' || banner.type === 'new_videos';
                         return (
                             <Card
                                 key={banner.id}
-                                className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${(!banner.is_active || expired) ? 'opacity-60' : ''}`}
+                                className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${(!banner.is_active || expired) ? 'opacity-60' : ''}`}
+                                onClick={() => openEditDialog(banner)}
                             >
                                 <div className={`relative ${aspectClass} bg-muted overflow-hidden`}>
                                     {banner.image_url ? (
@@ -899,6 +989,12 @@ const BannersTab: React.FC = () => {
                                             alt=""
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                         />
+                                    ) : isDynamic ? (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-primary/10 to-primary/5">
+                                            <BarChart3 className="w-8 h-8 text-primary/40"/>
+                                            <span className="text-[11px] text-primary/60 font-medium">{typeMeta.label}</span>
+                                            <span className="text-[10px] text-muted-foreground/60">{t('admin.bannerDynamicAuto', '自动聚合内容')}</span>
+                                        </div>
                                     ) : (
                                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-muted/40">
                                             <ImageOff className="w-8 h-8 text-muted-foreground/40"/>
@@ -925,12 +1021,12 @@ const BannersTab: React.FC = () => {
                                                 <span className="text-[10px] font-bold tracking-wide">ACTIVE</span>
                                             </div>
                                         ) : expired ? (
-                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground shadow-sm">
-                                                {t('admin.paused', 'Expired')}
+                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-red-500 shadow-sm">
+                                                {t('admin.expired', '已过期')}
                                             </Badge>
                                         ) : (
                                             <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground shadow-sm">
-                                                {t('admin.hidden', 'Hidden')}
+                                                {t('admin.hidden', '已停用')}
                                             </Badge>
                                         )}
                                     </div>
@@ -940,7 +1036,7 @@ const BannersTab: React.FC = () => {
                                             variant="secondary"
                                             size="icon"
                                             className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 scale-90 group-hover:scale-100 transition-transform"
-                                            onClick={() => openEditDialog(banner)}
+                                            onClick={(e) => { e.stopPropagation(); openEditDialog(banner); }}
                                         >
                                             <Edit className="h-5 w-5"/>
                                         </Button>
@@ -948,7 +1044,7 @@ const BannersTab: React.FC = () => {
                                             variant="secondary"
                                             size="icon"
                                             className="h-11 w-11 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 scale-90 group-hover:scale-100 transition-transform"
-                                            onClick={() => { setEditingBanner(banner); setDeleteDialogOpen(true); }}
+                                            onClick={(e) => { e.stopPropagation(); setEditingBanner(banner); setDeleteDialogOpen(true); }}
                                         >
                                             <Trash2 className="h-5 w-5"/>
                                         </Button>
@@ -957,7 +1053,12 @@ const BannersTab: React.FC = () => {
 
                                 <div className="p-4 space-y-2.5">
                                     <div className="min-h-[2.5rem]">
-                                        <h3 className="font-semibold text-sm leading-tight line-clamp-1">{banner.title || t('admin.untitled', '未命名')}</h3>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="font-semibold text-sm leading-tight line-clamp-1 flex-1">{banner.title || t('admin.untitled', '未命名')}</h3>
+                                            <Badge variant="outline" className={`text-[10px] font-semibold px-1.5 py-0 rounded shrink-0 ${typeMeta.cls}`}>
+                                                {typeMeta.label}
+                                            </Badge>
+                                        </div>
                                         {banner.subtitle && (
                                             <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{banner.subtitle}</p>
                                         )}
@@ -976,13 +1077,14 @@ const BannersTab: React.FC = () => {
                                             <span>{formatExpiry(banner.end_at)}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1.5 cursor-pointer" onClick={(e) => { e.stopPropagation(); handleToggle(banner.id); }}>
                                                 <Switch
                                                     checked={banner.is_active}
                                                     onCheckedChange={() => handleToggle(banner.id)}
                                                     className="scale-75 data-[state=checked]:bg-green-500"
+                                                    onClick={(e) => e.stopPropagation()}
                                                 />
-                                                <span className={`text-[10px] font-medium ${banner.is_active ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                                <span className={`text-[10px] font-medium ${banner.is_active ? 'text-green-600' : 'text-muted-foreground'} select-none`}>
                                                     {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '停用')}
                                                 </span>
                                             </div>
@@ -1039,7 +1141,13 @@ const BannersTab: React.FC = () => {
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/30 border-t border-border/50 flex-row justify-end gap-3">
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
-                        <Button onClick={handleCreate} disabled={!createForm.title || !createForm.image_url} className="rounded-full px-6 shadow-sm">{t('common.add', '添加')}</Button>
+                        <Button
+                            onClick={handleCreate}
+                            disabled={(createForm.type === 'custom' || createForm.type === 'ad') && (!createForm.title || !createForm.image_url)}
+                            className="rounded-full px-6 shadow-sm"
+                        >
+                            {t('common.add', '添加')}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

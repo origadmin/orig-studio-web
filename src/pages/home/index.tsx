@@ -124,25 +124,23 @@ const HomePage = () => {
         return arr.slice(0, 12);
     }, [recommendData?.items, recoSeed]);
 
-    // Portal-configured hero banners (content managed in admin). Rendered with the
-    // standard HeroBanner (YouTube-style) carousel — the correct visual per pre-5be79f8.
-    // NOTE: type field is managed by admin and defaults to "custom" for all admin-created
-    // banners. Treat empty/undefined type as "custom" for backward compatibility with
-    // legacy/seed data that pre-dates the type field.
     const {data: portalConfig} = usePortalConfig();
-    const activeBanners = (portalConfig?.banners || []).filter(
-        (b) => b.is_active && (!b.type || b.type === 'custom') && b.image_url,
-    );
+    const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         const lang = i18n.language;
-        return activeBanners.map((b) => ({
-            id: String(b.id),
-            title: getLocalizedText(b.title, b.title_i18n, lang),
-            subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-            thumbnail: b.image_url || '',
-            url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
-            badge: b.badge_text || undefined,
-        }));
+        return activeBanners.map((b) => {
+            const c1 = b.bg_color_start || '#0f172a';
+            const c2 = b.bg_color_end || '#1e3a8a';
+            return {
+                id: String(b.id),
+                title: getLocalizedText(b.title, b.title_i18n, lang),
+                subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+                thumbnail: b.image_url || '',
+                bgGradient: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
+                url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
+                badge: b.badge_text || undefined,
+            };
+        });
     }, [activeBanners, i18n.language]);
 
     // P0 fix: homepage HeroBanner must honor the operator's display_mode toggle in

@@ -578,7 +578,21 @@ export function useToggleBanner() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => adminPortalApi.toggleBanner(id),
-        onSuccess: () => {
+        onMutate: async (id: string) => {
+            await queryClient.cancelQueries({queryKey: ['admin', 'banners']});
+            const previousBanners = queryClient.getQueryData(['admin', 'banners']);
+            queryClient.setQueryData(['admin', 'banners'], (old: any) => {
+                if (!old || !Array.isArray(old)) return old;
+                return old.map((b: any) => b.id === id ? {...b, is_active: !b.is_active} : b);
+            });
+            return {previousBanners};
+        },
+        onError: (err, id, context) => {
+            if (context?.previousBanners) {
+                queryClient.setQueryData(['admin', 'banners'], context.previousBanners);
+            }
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'banners']});
             queryClient.invalidateQueries({queryKey: ['portal', 'config']});
         },
@@ -621,7 +635,21 @@ export function useToggleAdPlacement() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => adminPortalApi.toggleAdPlacement(id),
-        onSuccess: () => {
+        onMutate: async (id: string) => {
+            await queryClient.cancelQueries({queryKey: ['admin', 'adPlacements']});
+            const previous = queryClient.getQueryData(['admin', 'adPlacements']);
+            queryClient.setQueryData(['admin', 'adPlacements'], (old: any) => {
+                if (!old || !Array.isArray(old)) return old;
+                return old.map((item: any) => item.id === id ? {...item, is_active: !item.is_active} : item);
+            });
+            return {previous};
+        },
+        onError: (err, id, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(['admin', 'adPlacements'], context.previous);
+            }
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
         },
     });
@@ -674,7 +702,21 @@ export function useToggleAd() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (id: string) => adminPortalApi.toggleAd(id),
-        onSuccess: () => {
+        onMutate: async (id: string) => {
+            await queryClient.cancelQueries({queryKey: ['admin', 'ads']});
+            const previous = queryClient.getQueryData(['admin', 'ads']);
+            queryClient.setQueryData(['admin', 'ads'], (old: any) => {
+                if (!old || !Array.isArray(old)) return old;
+                return old.map((item: any) => item.id === id ? {...item, is_active: !item.is_active} : item);
+            });
+            return {previous};
+        },
+        onError: (err, id, context) => {
+            if (context?.previous) {
+                queryClient.setQueryData(['admin', 'ads'], context.previous);
+            }
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({queryKey: ['admin', 'ads']});
         },
     });

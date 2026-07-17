@@ -20,6 +20,7 @@ export interface HeroBannerItem {
     duration?: number;
     viewCount?: number;
     createTime?: string;
+    bgGradient?: string;
     user?: {
         name: string;
         avatar?: string;
@@ -462,11 +463,35 @@ interface HeroCardProps {
 }
 
 const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, mobile, onItemClick, onSwitch, buildUrl}) => {
-    const thumbUrl = getImageUrl(item.thumbnail, 'cover');
+    const hasThumb = !!item.thumbnail;
+    const thumbUrl = hasThumb ? getImageUrl(item.thumbnail, 'cover') : '';
     const userAvatar = item.user?.avatar ? getImageUrl(item.user.avatar, 'avatar') : undefined;
     const hasLink = !!(item.shortToken || item.url);
     const Wrapper: any = hasLink ? Link : 'div';
     const wrapperProps = hasLink ? buildUrl(item) : {};
+
+    const bgStyle: React.CSSProperties = item.bgGradient
+        ? {background: item.bgGradient}
+        : {background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)'};
+
+    const renderMedia = () => {
+        if (hasThumb) {
+            return (
+                <img
+                    src={thumbUrl}
+                    alt={item.title}
+                    onError={(e) => handleImageError(e, 'thumbnail')}
+                    className={cn(
+                        "absolute inset-0 w-full h-full object-cover",
+                        standalone && "group-hover:scale-[1.02] transition-transform duration-700"
+                    )}
+                    draggable={false}
+                    loading="lazy"
+                />
+            );
+        }
+        return <div className="absolute inset-0" style={bgStyle}/>;
+    };
 
     if (standalone) {
         return (
@@ -480,14 +505,7 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                     if (onItemClick) { e.preventDefault(); onItemClick(item); }
                 }}
             >
-                <img
-                    src={thumbUrl}
-                    alt={item.title}
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-700"
-                    draggable={false}
-                    loading="lazy"
-                />
+                {renderMedia()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none"/>
                 <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
                     {item.badge && (
@@ -529,14 +547,7 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                 if (onItemClick) { e.preventDefault(); onItemClick(item); }
             }}
         >
-            <img
-                src={thumbUrl}
-                alt={item.title}
-                onError={(e) => handleImageError(e, 'thumbnail')}
-                className="absolute inset-0 w-full h-full object-cover"
-                draggable={false}
-                loading="lazy"
-            />
+            {renderMedia()}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none"/>
             <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-8">
                 {item.badge && (

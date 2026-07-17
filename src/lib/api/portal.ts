@@ -114,7 +114,9 @@ export interface UpdateBannerRequest {
     sequence?: number;
     is_active?: boolean;
     start_at?: string;
-    end_at?: string;
+    end_at?: string | null;
+    clear_end_at?: boolean;
+    clear_start_at?: boolean;
     auto_slide_interval?: number;
     type?: string;
     count?: number;
