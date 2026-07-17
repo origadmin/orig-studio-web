@@ -345,18 +345,21 @@ export default function UsersPage() {
               <TableRow key={user.id} className="hover:bg-slate-50/50 transition-colors">
                 <TableCell className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <img
-                      alt={user.nickname || user.username}
-                      className="w-10 h-10 rounded-full object-cover border border-border"
-                      src={user.avatar ? getFullUrl(user.avatar) : undefined}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        target.nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
+                    {user.avatar ? (
+                      <img
+                        alt={user.nickname || user.username}
+                        className="w-10 h-10 rounded-full object-cover border border-border"
+                        src={getFullUrl(user.avatar)}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
                     <div
-                      className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm hidden"
+                      className={`w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm ${user.avatar ? 'hidden' : ''}`}
                     >
                       {(user.nickname || user.username || '?').charAt(0).toUpperCase()}
                     </div>
