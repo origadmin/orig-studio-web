@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 export const getFullUrl = (path?: string | null): string | undefined => {
     if (path == null || path === '') return undefined;
     if (path.startsWith('http')) return path;
-    if (path.startsWith('/files/')) return path;
+    if (path.startsWith('/files/') || path.startsWith('/media/')) return path;
     if (path.startsWith('/')) {
         return `/files/${path.slice(1)}`;
     }

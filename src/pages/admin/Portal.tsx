@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
-    Calendar, Minus, Link2, Navigation, Image as ImageIcon, Layers, Clock as ClockIcon,
+    Calendar, Minus, Link2, Navigation, Image as ImageIcon, Layers, Clock as ClockIcon, Film,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {Link} from '@tanstack/react-router';
@@ -330,6 +330,7 @@ type BannerFormData = {
     subtitle: string;
     badge_text: string;
     image_url: string;
+    video_url: string;
     primary_btn_text: string;
     primary_btn_url: string;
     sequence: number;
@@ -351,6 +352,7 @@ const emptyBannerForm: BannerFormData = {
     subtitle: '',
     badge_text: '',
     image_url: '',
+    video_url: '',
     primary_btn_text: '',
     primary_btn_url: '',
     sequence: 0,
@@ -429,6 +431,7 @@ const BannersTab: React.FC = () => {
         };
         if (f.type === 'custom' || f.type === 'ad') {
             if (f.image_url) payload.image_url = f.image_url;
+            if (f.video_url) payload.video_url = f.video_url;
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
             if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
         }
@@ -455,6 +458,7 @@ const BannersTab: React.FC = () => {
         };
         if (f.type === 'custom' || f.type === 'ad') {
             payload.image_url = f.image_url || '';
+            payload.video_url = f.video_url || '';
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
             if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
         }
@@ -569,6 +573,7 @@ const BannersTab: React.FC = () => {
             subtitle: banner.subtitle || '',
             badge_text: banner.badge_text || '',
             image_url: banner.image_url || '',
+            video_url: banner.video_url || '',
             primary_btn_text: banner.primary_btn_text || '',
             primary_btn_url: banner.primary_btn_url || '',
             sequence: banner.sequence ?? 0,
@@ -680,6 +685,13 @@ const BannersTab: React.FC = () => {
                         value={form.image_url}
                         onChange={url => setForm({...form, image_url: url})}
                         label={t('admin.bannerImageUrl', 'Banner图片')}
+                    />
+                    <ImageUploadField
+                        value={form.video_url}
+                        onChange={url => setForm({...form, video_url: url})}
+                        label={t('admin.bannerVideoUrl', 'Banner视频（可选，作为背景视频自动播放）')}
+                        kind="video"
+                        accept="video/*"
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
@@ -983,7 +995,23 @@ const BannersTab: React.FC = () => {
                                 onClick={() => openEditDialog(banner)}
                             >
                                 <div className={`relative ${aspectClass} bg-muted overflow-hidden`}>
-                                    {banner.image_url ? (
+                                    {banner.video_url ? (
+                                        <>
+                                            <video
+                                                src={banner.video_url}
+                                                poster={banner.image_url || undefined}
+                                                muted
+                                                loop
+                                                playsInline
+                                                autoPlay
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            />
+                                            <div className="absolute top-2 right-2 bg-black/60 text-white rounded-md px-1.5 py-0.5 text-[10px] font-medium flex items-center gap-1">
+                                                <Film className="w-3 h-3"/>
+                                                <span>VIDEO</span>
+                                            </div>
+                                        </>
+                                    ) : banner.image_url ? (
                                         <img
                                             src={banner.image_url}
                                             alt=""
@@ -1143,7 +1171,7 @@ const BannersTab: React.FC = () => {
                         <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
                         <Button
                             onClick={handleCreate}
-                            disabled={(createForm.type === 'custom' || createForm.type === 'ad') && (!createForm.title || !createForm.image_url)}
+                            disabled={(createForm.type === 'custom' || createForm.type === 'ad') && (!createForm.title || (!createForm.image_url && !createForm.video_url))}
                             className="rounded-full px-6 shadow-sm"
                         >
                             {t('common.add', '添加')}

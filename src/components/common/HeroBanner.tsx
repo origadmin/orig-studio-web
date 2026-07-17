@@ -4,7 +4,7 @@ import {ChevronLeft, ChevronRight, Play, Eye, Clock} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
-import {cn} from '@/lib/utils';
+import {cn, getFullUrl} from '@/lib/utils';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useTranslation} from 'react-i18next';
@@ -14,6 +14,7 @@ export interface HeroBannerItem {
     title: string;
     subtitle?: string;
     thumbnail: string;
+    videoUrl?: string;
     url?: string;
     shortToken?: string;
     badge?: string;
@@ -488,7 +489,9 @@ interface HeroCardProps {
 }
 
 const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, mobile, onItemClick, onSwitch, buildUrl}) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
     const hasThumb = !!item.thumbnail;
+    const hasVideo = !!item.videoUrl;
     const thumbUrl = hasThumb ? getImageUrl(item.thumbnail, 'cover') : '';
     const userAvatar = item.user?.avatar ? getImageUrl(item.user.avatar, 'avatar') : undefined;
     const hasLink = !!(item.shortToken || item.url);
@@ -499,7 +502,50 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
         ? {background: item.bgGradient}
         : {background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)'};
 
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video || !hasVideo) return;
+        if (isActive || standalone) {
+            const playPromise = video.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        } else {
+            video.pause();
+            try { video.currentTime = 0; } catch {}
+        }
+    }, [isActive, standalone, hasVideo, item.videoUrl]);
+
     const renderMedia = () => {
+        if (hasVideo) {
+            const videoSrc = getFullUrl(item.videoUrl) || item.videoUrl;
+            return (
+                <>
+                    <video
+                        ref={videoRef}
+                        src={videoSrc}
+                        poster={thumbUrl || undefined}
+                        muted
+                        loop
+                        playsInline
+                        autoPlay={isActive || standalone}
+                        preload={isActive || standalone ? 'auto' : 'metadata'}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        draggable={false}
+                    />
+                    {!standalone && !isActive && thumbUrl && (
+                        <img
+                            src={thumbUrl}
+                            alt={item.title}
+                            onError={(e) => handleImageError(e, 'thumbnail')}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            draggable={false}
+                            loading="lazy"
+                        />
+                    )}
+                </>
+            );
+        }
         if (hasThumb) {
             return (
                 <img

@@ -136,6 +136,7 @@ const HomePage = () => {
                 title: getLocalizedText(b.title, b.title_i18n, lang),
                 subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
                 thumbnail: b.image_url || '',
+                videoUrl: b.video_url || undefined,
                 bgGradient: `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`,
                 url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
                 badge: b.badge_text || undefined,

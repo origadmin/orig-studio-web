@@ -1,5 +1,5 @@
 import React, {useState, useRef} from 'react';
-import {Upload, X, Image as ImageIcon} from 'lucide-react';
+import {Upload, X, Image as ImageIcon, Film} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -12,9 +12,18 @@ interface ImageUploadFieldProps {
     onChange: (url: string) => void;
     label?: string;
     placeholder?: string;
+    accept?: string;
+    kind?: 'image' | 'video';
 }
 
-export function ImageUploadField({value, onChange, label, placeholder}: ImageUploadFieldProps) {
+export function ImageUploadField({
+    value,
+    onChange,
+    label,
+    placeholder,
+    accept = 'image/*',
+    kind = 'image',
+}: ImageUploadFieldProps) {
     const {t} = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
@@ -22,8 +31,13 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
 
+    const isVideo = kind === 'video';
+
     const handleFileSelect = async (file: File) => {
-        if (!file.type.startsWith('image/')) return;
+        const isImageFile = file.type.startsWith('image/');
+        const isVideoFile = file.type.startsWith('video/');
+        if (isVideo && !isVideoFile && !isImageFile) return;
+        if (!isVideo && !isImageFile) return;
         setUploading(true);
         setProgress(0);
         try {
@@ -33,12 +47,17 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                 setProgress(percent);
             });
             const media = result.data;
-            const imageUrl = media.url || media.thumbnail || media.poster || '';
-            if (imageUrl) {
-                onChange(imageUrl);
+            let fileUrl = '';
+            if (isVideoFile) {
+                fileUrl = media.url || media.hls_file || media.thumbnail || '';
+            } else {
+                fileUrl = media.url || media.thumbnail || media.poster || '';
+            }
+            if (fileUrl) {
+                onChange(fileUrl);
             }
         } catch (err) {
-            console.error('Image upload failed:', err);
+            console.error('Upload failed:', err);
         } finally {
             setUploading(false);
             setProgress(0);
@@ -59,6 +78,8 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
         }
     };
 
+    const isVideoValue = isVideo || (value && /\.(mp4|webm|mov|m3u8)(\?|$)/i.test(value));
+
     return (
         <div className="grid gap-2">
             {label && <Label className="text-xs font-semibold text-slate-700">{label}</Label>}
@@ -66,7 +87,18 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                 {value && (
                     <div
                         className="relative w-full h-32 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 group">
-                        <img src={getFullUrl(value)} alt="" className="w-full h-full object-cover"/>
+                        {isVideoValue ? (
+                            <video
+                                src={getFullUrl(value)}
+                                className="w-full h-full object-cover"
+                                muted
+                                playsInline
+                                autoPlay
+                                loop
+                            />
+                        ) : (
+                            <img src={getFullUrl(value)} alt="" className="w-full h-full object-cover"/>
+                        )}
                         <Button
                             variant="ghost"
                             size="icon-sm"
@@ -90,7 +122,6 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                     </div>
                 )}
 
-                {/* Compact drop zone — matches Stitch tokens */}
                 <div
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={(e) => {
@@ -111,7 +142,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*"
+                        accept={accept}
                         onChange={handleInputChange}
                         className="hidden"
                     />
@@ -122,12 +153,14 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                             'group-hover:scale-110 transition-transform',
                         )}
                     >
-                        <ImageIcon className="w-5 h-5"/>
+                        {isVideo ? <Film className="w-5 h-5"/> : <ImageIcon className="w-5 h-5"/>}
                     </div>
                     <p className="text-xs font-semibold text-slate-800">
-                        {t('admin.uploadImage')}
+                        {isVideo ? t('admin.uploadVideo', '上传视频') : t('admin.uploadImage')}
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">PNG, JPG, WEBP up to 10MB</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                        {isVideo ? 'MP4, WEBM, MOV up to 100MB' : 'PNG, JPG, WEBP up to 10MB'}
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -138,7 +171,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <Upload className="w-3.5 h-3.5 mr-1.5"/>
-                        {t('admin.uploadImage')}
+                        {isVideo ? t('admin.uploadVideo', '上传视频') : t('admin.uploadImage')}
                     </Button>
                     <Button
                         variant="ghost"
@@ -153,7 +186,7 @@ export function ImageUploadField({value, onChange, label, placeholder}: ImageUpl
                     <Input
                         value={value}
                         onChange={e => onChange(e.target.value)}
-                        placeholder={placeholder || t('admin.imageUrlPlaceholder')}
+                        placeholder={placeholder || (isVideo ? 'https://...' : t('admin.imageUrlPlaceholder'))}
                     />
                 )}
             </div>

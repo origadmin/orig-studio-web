@@ -45,6 +45,7 @@ export interface Banner {
     badge_text?: string;
     image_url?: string;
     image_mobile_url?: string;
+    video_url?: string;
     bg_color_start?: string;
     bg_color_end?: string;
     bg_overlay_opacity?: number;
@@ -78,6 +79,7 @@ export interface CreateBannerRequest {
     badge_text?: string;
     image_url?: string;
     image_mobile_url?: string;
+    video_url?: string;
     bg_color_start?: string;
     bg_color_end?: string;
     bg_overlay_opacity?: number;
@@ -104,6 +106,7 @@ export interface UpdateBannerRequest {
     badge_text?: string;
     image_url?: string;
     image_mobile_url?: string;
+    video_url?: string;
     bg_color_start?: string;
     bg_color_end?: string;
     bg_overlay_opacity?: number;
