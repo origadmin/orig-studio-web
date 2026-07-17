@@ -186,9 +186,9 @@ const HomePage = () => {
     }, [adPlacements]);
 
     const feedAds = useMemo<Ad[]>(() => {
-        const feedPlacements = adPlacements.filter(p => p.type === 'feed' || p.slug.includes('feed') || p.slug.includes('stream'));
         const all: Ad[] = [];
-        for (const p of feedPlacements) {
+        for (const p of adPlacements) {
+            if (p.type === 'banner' || p.type === 'leaderboard') continue;
             all.push(...(p.ads || []));
         }
         return all;
