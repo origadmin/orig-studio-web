@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
-import {Link} from '@tanstack/react-router';
-import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
+import {Link, useSearch} from '@tanstack/react-router';
+import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone, ImageOff} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -15,6 +15,7 @@ import {usePortalConfig} from '@/hooks/queries';
 import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
 import AdDisplay from '@/components/portal/AdDisplay';
+import {Badge} from '@/components/ui/badge';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -102,23 +103,82 @@ const VIDEO_CARD_WIDTH = 240;
 const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
 
-const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placement}) => {
+type AdMode = 'on' | 'off' | 'debug';
+
+const AdDebugPlaceholder: React.FC<{label: string; variant: 'card' | 'feed'}> = ({label, variant}) => {
+    if (variant === 'card') {
+        return (
+            <div className="bg-amber-500/5 border-2 border-dashed border-amber-500/40 rounded-lg overflow-hidden h-full flex flex-col">
+                <div className="aspect-video bg-amber-500/10 flex items-center justify-center">
+                    <ImageOff className="w-8 h-8 text-amber-500/50"/>
+                </div>
+                <div className="p-3 flex-1 flex flex-col">
+                    <Badge variant="outline" className="text-xs mb-1 self-start text-amber-600 border-amber-500/40 bg-amber-500/10">广告位</Badge>
+                    <p className="text-xs text-amber-600/80 font-medium line-clamp-2">{label}</p>
+                    <p className="text-[10px] text-amber-500/60 mt-1">（debug模式：此处无广告时显示占位）</p>
+                </div>
+            </div>
+        );
+    }
+    return (
+        <div className="bg-amber-500/5 border-2 border-dashed border-amber-500/40 rounded-lg overflow-hidden h-full flex flex-col">
+            <div className="aspect-video bg-amber-500/10 flex items-center justify-center">
+                <ImageOff className="w-8 h-8 text-amber-500/50"/>
+            </div>
+            <div className="p-3 flex-1 flex flex-col">
+                <Badge variant="outline" className="text-xs mb-1 self-start text-amber-600 border-amber-500/40 bg-amber-500/10">广告位</Badge>
+                <p className="text-xs text-amber-600/80 font-medium line-clamp-2 flex-1">{label}</p>
+                <p className="text-[10px] text-amber-500/60 mt-1">（信息流广告位置）</p>
+            </div>
+        </div>
+    );
+};
+
+const AdModeBadge: React.FC<{mode: AdMode}> = ({mode}) => {
+    if (mode === 'on') return null;
+    const labels: Record<AdMode, {text: string; cls: string}> = {
+        on: {text: '', cls: ''},
+        off: {text: '广告已关闭', cls: 'bg-gray-500/20 text-gray-500 border-gray-500/30'},
+        debug: {text: '广告调试模式', cls: 'bg-amber-500/20 text-amber-600 border-amber-500/30'},
+    };
+    const l = labels[mode];
+    return (
+        <div className="fixed bottom-4 right-4 z-50">
+            <Badge variant="outline" className={`text-xs px-3 py-1 ${l.cls}`}>{l.text}</Badge>
+        </div>
+    );
+};
+
+const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}; debug?: boolean}> = ({placement, debug}) => {
     const {t} = useTranslation();
-    if (!placement.ads || placement.ads.length === 0) return null;
+    const hasAds = placement.ads && placement.ads.length > 0;
+    if (!hasAds && !debug) return null;
     const thumbHeight = VIDEO_CARD_WIDTH * 9 / 16;
     const cardOffset = thumbHeight / 2;
     return (
-        <section>
+        <section className={debug ? 'relative ring-2 ring-amber-400/50 ring-dashed rounded-lg p-2 -m-2' : ''}>
+            {debug && (
+                <div className="absolute -top-2 left-3 z-10">
+                    <Badge className="text-[10px] bg-amber-500 text-white border-amber-600 px-1.5 py-0 h-4">广告位</Badge>
+                </div>
+            )}
             <SectionHeader
                 title={placement.name || t('ad.sponsoredContent', '赞助推荐')}
-                icon={<Megaphone className="w-5 h-5 text-amber-500" fill="currentColor"/>}
+                icon={<Megaphone className="w-5 h-5 text-amber-500" fill={debug ? 'none' : 'currentColor'}/>}
             />
             <HorizontalScroll buttonOffset={cardOffset}>
-                {placement.ads.map((ad) => (
-                    <div key={ad.id} style={{width: AD_CARD_WIDTH}}>
+                {hasAds ? placement.ads.map((ad) => (
+                    <div key={ad.id} style={{width: AD_CARD_WIDTH}} className={debug ? 'relative' : ''}>
+                        {debug && (
+                            <Badge className="absolute -top-1 -right-1 z-10 text-[9px] bg-amber-500 text-white h-4 px-1">广告</Badge>
+                        )}
                         <AdDisplay ad={ad} variant="card"/>
                     </div>
-                ))}
+                )) : (
+                    <div key="placeholder" style={{width: AD_CARD_WIDTH}}>
+                        <AdDebugPlaceholder label={placement.name || '赞助推荐栏'} variant="card"/>
+                    </div>
+                )}
             </HorizontalScroll>
         </section>
     );
@@ -126,6 +186,10 @@ const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placem
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
+    const search = useSearch({strict: false}) as {ads?: string};
+    const adMode: AdMode = search.ads === 'off' ? 'off' : search.ads === 'debug' ? 'debug' : 'on';
+    const showAds = adMode !== 'off';
+    const debugAds = adMode === 'debug';
 
     const {data: featuredData} = useMediaList({
         page: 1,
@@ -179,20 +243,24 @@ const HomePage = () => {
     const {data: adPlacements = []} = usePublicAdPlacements();
 
     const sponsoredAd = useMemo<{name: string; ads: Ad[]} | null>(() => {
+        if (!showAds) return null;
         const p = adPlacements.find(x =>
             x.ads && x.ads.length > 0 && x.type !== 'feed' && x.type !== 'banner' && x.type !== 'leaderboard'
         );
-        return p ? {name: p.name, ads: p.ads} : null;
-    }, [adPlacements]);
+        if (p) return {name: p.name, ads: p.ads};
+        if (debugAds) return {name: '赞助推荐栏', ads: []};
+        return null;
+    }, [adPlacements, showAds, debugAds]);
 
     const feedAds = useMemo<Ad[]>(() => {
+        if (!showAds) return [];
         const all: Ad[] = [];
         for (const p of adPlacements) {
             if (p.type === 'banner' || p.type === 'leaderboard') continue;
             all.push(...(p.ads || []));
         }
         return all;
-    }, [adPlacements]);
+    }, [adPlacements, showAds]);
 
     const {
         data,
@@ -215,19 +283,25 @@ const HomePage = () => {
         return result;
     }, [data]);
 
-    const mergedItems: (Media | {__ad: true; ad: Ad; key: string})[] = useMemo(() => {
-        if (feedAds.length === 0) return items;
-        const result: (Media | {__ad: true; ad: Ad; key: string})[] = [];
+    const mergedItems: (Media | {__ad: true; ad?: Ad; key: string; __placeholder?: boolean})[] = useMemo(() => {
+        if (!showAds) return items;
+        const result: (Media | {__ad: true; ad?: Ad; key: string; __placeholder?: boolean})[] = [];
         let adIdx = 0;
+        let placeholderIdx = 0;
         for (let i = 0; i < items.length; i++) {
             result.push(items[i]);
-            if ((i + 1) % AD_INSERT_INTERVAL === 0 && adIdx < feedAds.length) {
-                result.push({__ad: true, ad: feedAds[adIdx], key: `ad-${feedAds[adIdx].id}-${i}`});
-                adIdx++;
+            if ((i + 1) % AD_INSERT_INTERVAL === 0) {
+                if (adIdx < feedAds.length) {
+                    result.push({__ad: true, ad: feedAds[adIdx], key: `ad-${feedAds[adIdx].id}-${i}`});
+                    adIdx++;
+                } else if (debugAds) {
+                    result.push({__ad: true, key: `ad-placeholder-${placeholderIdx}-${i}`, __placeholder: true});
+                    placeholderIdx++;
+                }
             }
         }
         return result;
-    }, [items, feedAds]);
+    }, [items, feedAds, showAds, debugAds]);
 
     const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -278,7 +352,7 @@ const HomePage = () => {
                 </section>
             )}
 
-            {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
+            {sponsoredAd && <AdCardSection placement={sponsoredAd} debug={debugAds}/>}
 
             {recommendVideos.length > 0 && (
                 <section>
@@ -320,8 +394,15 @@ const HomePage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                         {mergedItems.map((item) => (
                             '__ad' in item ? (
-                                <div key={item.key}>
-                                    <FeedAdCard ad={item.ad}/>
+                                <div key={item.key} className={debugAds ? 'relative ring-2 ring-amber-400/50 ring-dashed rounded-lg' : ''}>
+                                    {debugAds && (
+                                        <Badge className="absolute -top-1 -right-1 z-10 text-[9px] bg-amber-500 text-white h-4 px-1">广告位</Badge>
+                                    )}
+                                    {item.__placeholder ? (
+                                        <AdDebugPlaceholder label="信息流内插广告位" variant="feed"/>
+                                    ) : (
+                                        <FeedAdCard ad={item.ad!}/>
+                                    )}
                                 </div>
                             ) : (
                                 <VideoCard key={item.id} media={item} size="md"/>
@@ -342,6 +423,7 @@ const HomePage = () => {
                     <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
                 )}
             </div>
+            <AdModeBadge mode={adMode}/>
         </div>
     );
 };
