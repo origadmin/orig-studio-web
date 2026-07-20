@@ -126,7 +126,11 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
         if (search.trim()) navigate({to: '/search', search: {q: search}});
     };
 
-    const isActive = (to: string) => location.pathname === to;
+    const isActive = (to: string, idx: number) => {
+        if (location.pathname !== to) return false;
+        const firstMatchIdx = visibleLinks.findIndex(l => l.to === to);
+        return idx === firstMatchIdx;
+    };
 
     return (
         <>
@@ -161,8 +165,8 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                     </span>
                 </Link>
 
-                {/* 中间: QuickLinks */}
-                <nav className="hidden md:flex items-center gap-1 ml-4">
+                {/* 中间: QuickLinks (下划线tab风格，与分类筛选pills区分) */}
+                <nav className="hidden md:flex items-center gap-1 ml-4 h-full">
                     {visibleLinks.map((link, idx) => {
                         const navItem = dynamicNavItems[idx];
                         const isExternal = navItem?.type === 'external_link' || link.to.startsWith('http');
@@ -173,10 +177,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                     href={link.to}
                                     target={navItem?.open_new_tab ? '_blank' : undefined}
                                     rel={navItem?.open_new_tab ? 'noopener noreferrer' : undefined}
-                                    className="px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap text-muted-foreground hover:bg-accent flex items-center gap-1"
+                                    className="h-full flex items-center px-3 text-sm whitespace-nowrap text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
                                 >
                                     {link.label}
-                                    <ExternalLink className="h-3 w-3"/>
+                                    <ExternalLink className="h-3 w-3 ml-1"/>
                                 </a>
                             );
                         }
@@ -184,10 +188,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                             <Link
                                 key={link.to}
                                 to={link.to}
-                                className={`px-3 py-1.5 text-sm rounded-full transition-colors whitespace-nowrap ${
-                                    isActive(link.to)
-                                        ? 'bg-primary/10 dark:bg-primary/20 text-primary font-medium'
-                                        : 'text-muted-foreground hover:bg-accent'
+                                className={`h-full flex items-center px-3 text-sm whitespace-nowrap transition-colors border-b-2 ${
+                                    isActive(link.to, idx)
+                                        ? 'text-foreground font-medium border-primary'
+                                        : 'text-muted-foreground hover:text-foreground border-transparent'
                                 }`}
                             >
                                 {link.label}
@@ -196,10 +200,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                     })}
 
                     {moreLinks.length > 0 && (
-                        <div className="relative" ref={moreMenuRef}>
+                        <div className="relative h-full flex items-center" ref={moreMenuRef}>
                             <button
                                 onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-                                className="flex items-center gap-1 px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent rounded-full transition-colors"
+                                className="h-full flex items-center gap-1 px-3 text-sm text-muted-foreground hover:text-foreground transition-colors border-b-2 border-transparent"
                             >
                                 {t('nav.more')}
                                 <ChevronDown size={14}
@@ -232,7 +236,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                                 to={link.to}
                                                 onClick={() => setMoreMenuOpen(false)}
                                                 className={`block px-4 py-2 text-sm transition-colors ${
-                                    isActive(link.to)
+                                    isActive(link.to, VISIBLE_QUICK_LINKS + idx)
                                         ? 'bg-primary/10 dark:bg-primary/20 text-primary font-medium'
                                         : 'text-muted-foreground hover:bg-accent'
                                 }`}

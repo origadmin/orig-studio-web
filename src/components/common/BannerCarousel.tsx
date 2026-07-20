@@ -75,10 +75,7 @@ const BannerCarousel: React.FC<BannerCarouselProps> = ({className}) => {
                 <CarouselContent>
                     {activeBanners.map((currentBanner) => (
                         <CarouselItem key={currentBanner.id}>
-                            <div className={cn(
-                                "relative w-full",
-                                currentBanner.display_mode === 'narrow' ? 'aspect-[16/9]' : 'aspect-[21/9]'
-                            )}>
+                            <div className="relative w-full h-[300px]">
                                 {currentBanner.image_url ? (
                                     <img
                                         src={currentBanner.image_url}
@@ -163,6 +160,6 @@ export const BannerCarouselSkeleton: React.FC<{className?: string}> = ({classNam
         'relative w-full overflow-hidden rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse',
         className,
     )}>
-        <div className="aspect-[21/9] w-full"/>
+        <div className="h-[300px] w-full"/>
     </div>
 );
