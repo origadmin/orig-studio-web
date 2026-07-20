@@ -1594,9 +1594,6 @@ const AdManagerTab: React.FC = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <div className="flex justify-center py-2">
-                                <PlacementPreview slug={selectedPlacement.slug} name={selectedPlacement.name}/>
-                            </div>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementName', '名称')}</span><span className="font-medium">{selectedPlacement.name}</span></div>
                                 <div className="flex justify-between"><span className="text-muted-foreground">Slug</span><code className="text-xs bg-muted px-1.5 py-0.5 rounded">{selectedPlacement.slug}</code></div>
