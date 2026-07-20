@@ -1259,6 +1259,75 @@ const AdManagerTab: React.FC = () => {
     const [placementForm, setPlacementForm] = useState<CreateAdPlacementRequest & Partial<UpdateAdPlacementRequest>>({
         name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0, description: '',
     });
+    const [placementPage, setPlacementPage] = useState('home');
+    const [placementPosition, setPlacementPosition] = useState('top-banner');
+
+    const placementPages = [
+        { value: 'home', label: t('admin.pageHome', '首页') },
+        { value: 'player', label: t('admin.pagePlayer', '播放页') },
+        { value: 'category', label: t('admin.pageCategory', '分类页') },
+        { value: 'article', label: t('admin.pageArticle', '文章页') },
+        { value: 'custom', label: t('admin.pageCustom', '其他') },
+    ];
+
+    const placementPositions = [
+        { value: 'top-banner', label: t('admin.positionTopBanner', '顶部横幅'), type: 'banner', width: 960, height: 90 },
+        { value: 'sidebar', label: t('admin.positionSidebar', '侧边栏'), type: 'sidebar', width: 300, height: 600 },
+        { value: 'feed', label: t('admin.positionFeed', '信息流'), type: 'feed', width: 300, height: 250 },
+        { value: 'bottom', label: t('admin.positionBottom', '底部'), type: 'banner', width: 960, height: 90 },
+        { value: 'floating', label: t('admin.positionFloating', '悬浮'), type: 'card', width: 300, height: 250 },
+        { value: 'custom', label: t('admin.positionCustom', '其他'), type: 'banner', width: 0, height: 0 },
+    ];
+
+    const resolvePageAndPositionFromSlug = (slug: string): { page: string; position: string } => {
+        for (const page of placementPages) {
+            for (const pos of placementPositions) {
+                if (slug === `${page.value}-${pos.value}`) {
+                    return { page: page.value, position: pos.value };
+                }
+            }
+        }
+        return { page: 'custom', position: 'custom' };
+    };
+
+    const handlePlacementPageChange = (page: string) => {
+        setPlacementPage(page);
+        const pos = placementPositions.find(p => p.value === placementPosition);
+        const pageInfo = placementPages.find(p => p.value === page);
+        if (pos && pageInfo && page !== 'custom' && pos.value !== 'custom') {
+            setPlacementForm(prev => ({
+                ...prev,
+                name: `${pageInfo.label}${pos.label}广告位`,
+                slug: `${page}-${pos.value}`,
+                type: pos.type,
+                width: pos.width,
+                height: pos.height,
+            }));
+        }
+    };
+
+    const handlePlacementPositionChange = (position: string) => {
+        setPlacementPosition(position);
+        const pos = placementPositions.find(p => p.value === position);
+        const pageInfo = placementPages.find(p => p.value === placementPage);
+        if (pos && pageInfo && placementPage !== 'custom' && position !== 'custom') {
+            setPlacementForm(prev => ({
+                ...prev,
+                name: `${pageInfo.label}${pos.label}广告位`,
+                slug: `${placementPage}-${position}`,
+                type: pos.type,
+                width: pos.width,
+                height: pos.height,
+            }));
+        } else if (pos && position !== 'custom') {
+            setPlacementForm(prev => ({
+                ...prev,
+                type: pos.type,
+                width: pos.width,
+                height: pos.height,
+            }));
+        }
+    };
 
     // 广告弹窗
     const [adDialogMode, setAdDialogMode] = useState<'create' | 'edit'>('create');
@@ -1383,13 +1452,26 @@ const AdManagerTab: React.FC = () => {
     const openCreatePlacementDialog = () => {
         setPlacementDialogMode('create');
         setEditingPlacement(null);
-        setPlacementForm({name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0, description: ''});
+        setPlacementPage('home');
+        setPlacementPosition('top-banner');
+        const defaultPos = placementPositions.find(p => p.value === 'top-banner');
+        setPlacementForm({
+            name: '首页顶部横幅广告位',
+            slug: 'home-top-banner',
+            type: defaultPos?.type || 'banner',
+            width: defaultPos?.width || 0,
+            height: defaultPos?.height || 0,
+            max_ads: 1, is_active: true, sequence: 0, description: '',
+        });
         setPlacementDialogOpen(true);
     };
 
     const openEditPlacementDialog = (p: AdPlacement) => {
         setPlacementDialogMode('edit');
         setEditingPlacement(p);
+        const { page, position } = resolvePageAndPositionFromSlug(p.slug);
+        setPlacementPage(page);
+        setPlacementPosition(position);
         setPlacementForm({
             name: p.name, slug: p.slug, type: p.type,
             width: p.width, height: p.height, max_ads: p.max_ads,
@@ -1706,6 +1788,31 @@ const AdManagerTab: React.FC = () => {
                         </DialogDescription>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementPage', '页面')}</Label>
+                                <Select value={placementPage} onValueChange={handlePlacementPageChange}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        {placementPages.map(p => (
+                                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementPosition', '位置')}</Label>
+                                <Select value={placementPosition} onValueChange={handlePlacementPositionChange}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        {placementPositions.map(p => (
+                                            <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="h-px bg-border -mx-2"/>
                         <div className="grid gap-2">
                             <Label>{t('admin.placementName', '名称')}*</Label>
                             <Input value={placementForm.name} onChange={e => setPlacementForm({...placementForm, name: e.target.value})} placeholder={t('admin.placementNamePlaceholder', '如：首页横幅')}/>
