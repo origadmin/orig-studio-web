@@ -198,17 +198,17 @@ const defaultFormData: FormData = {
     module_videos: true,
     module_music: false,
     homepage_layout: 'auto',
-    // Feature flags - secondary features enabled by default
-    feature_articles: true,
+    // Feature flags - only enabled features default to true, unimplemented features default to false
+    feature_articles: false,
     feature_comments: true,
     feature_playlists: true,
     feature_users: true,
-    feature_permissions: true,
+    feature_permissions: false,
     feature_notifications: true,
-    feature_drm: true,
-    feature_live_rooms: true,
-    feature_payment: true,
-    feature_promotion: true,
+    feature_drm: false,
+    feature_live_rooms: false,
+    feature_payment: false,
+    feature_promotion: false,
     feature_ads: true,
 };
 
@@ -334,17 +334,17 @@ const Settings: React.FC = () => {
                     module_videos: getSettingValue('module_videos') === 'true',
                     module_music: getSettingValue('module_music') === 'true',
                     homepage_layout: getSettingValue('homepage_layout') || prev.homepage_layout,
-                    // Feature flags
-                    feature_articles: getSettingValue('feature_articles') !== 'false',
+                    // Feature flags - implemented features default to true (opt-out), unimplemented default to false (opt-in)
+                    feature_articles: getSettingValue('feature_articles') === 'true',
                     feature_comments: getSettingValue('feature_comments') !== 'false',
                     feature_playlists: getSettingValue('feature_playlists') !== 'false',
                     feature_users: getSettingValue('feature_users') !== 'false',
-                    feature_permissions: getSettingValue('feature_permissions') !== 'false',
+                    feature_permissions: getSettingValue('feature_permissions') === 'true',
                     feature_notifications: getSettingValue('feature_notifications') !== 'false',
-                    feature_drm: getSettingValue('feature_drm') !== 'false',
-                    feature_live_rooms: getSettingValue('feature_live_rooms') !== 'false',
-                    feature_payment: getSettingValue('feature_payment') !== 'false',
-                    feature_promotion: getSettingValue('feature_promotion') !== 'false',
+                    feature_drm: getSettingValue('feature_drm') === 'true',
+                    feature_live_rooms: getSettingValue('feature_live_rooms') === 'true',
+                    feature_payment: getSettingValue('feature_payment') === 'true',
+                    feature_promotion: getSettingValue('feature_promotion') === 'true',
                     feature_ads: getSettingValue('feature_ads') !== 'false',
                 }));
             }
