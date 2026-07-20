@@ -36,6 +36,38 @@ import {usePublicAdPlacements} from '@/hooks/queries';
 import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
 
+const WATCHED_HISTORY_KEY = 'watch_autoplay_history';
+const WATCHED_HISTORY_LIMIT = 20;
+
+const getWatchedHistory = (): string[] => {
+    try {
+        const stored = sessionStorage.getItem(WATCHED_HISTORY_KEY);
+        return stored ? JSON.parse(stored) : [];
+    } catch {
+        return [];
+    }
+};
+
+const addToWatchedHistory = (shortToken: string) => {
+    try {
+        const history = getWatchedHistory();
+        const filtered = history.filter(t => t !== shortToken);
+        filtered.unshift(shortToken);
+        const trimmed = filtered.slice(0, WATCHED_HISTORY_LIMIT);
+        sessionStorage.setItem(WATCHED_HISTORY_KEY, JSON.stringify(trimmed));
+    } catch {
+        // ignore storage errors
+    }
+};
+
+const clearWatchedHistory = () => {
+    try {
+        sessionStorage.removeItem(WATCHED_HISTORY_KEY);
+    } catch {
+        // ignore storage errors
+    }
+};
+
 const WatchPage = () => {
     const {t} = useTranslation();
     const {v: shortToken, autoplay: urlAutoPlay} = useSearch({strict: false});
@@ -50,11 +82,21 @@ const WatchPage = () => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const commentSectionRef = useRef<HTMLDivElement>(null);
     const viewCountedRef = useRef(false);
+    const addedToHistoryRef = useRef(false);
 
-    // Reset view count tracking when shortToken changes
+    // Reset view count and history flag when shortToken changes
     useEffect(() => {
         viewCountedRef.current = false;
+        addedToHistoryRef.current = false;
     }, [shortToken]);
+
+    // Mark current video as watched when playback starts (for autoplay de-duplication)
+    const markAsWatched = () => {
+        if (shortToken && !addedToHistoryRef.current) {
+            addedToHistoryRef.current = true;
+            addToWatchedHistory(shortToken as string);
+        }
+    };
 
     // Video player ref for external control
     const videoPlayerRef = useRef<VideoPlayerHandle>(null);
@@ -76,8 +118,21 @@ const WatchPage = () => {
         status: 'active'
     });
 
-    // 推荐视频过滤：使用 short_token 过滤当前视频
-    const recommendations = recData?.items?.filter((m: Media) => m.short_token !== shortToken) || [];
+    // 推荐视频过滤：过滤当前视频 + 已播放视频（避免A->B->A循环）
+    // 当所有推荐视频都已播放时，重置历史记录
+    const recommendations = React.useMemo(() => {
+        const allItems = recData?.items || [];
+        const watchedHistory = getWatchedHistory();
+        let filtered = allItems.filter((m: Media) =>
+            m.short_token !== shortToken && !watchedHistory.includes(m.short_token || '')
+        );
+        // 如果所有推荐都已播放，重置历史并重新过滤
+        if (filtered.length === 0 && allItems.length > 0) {
+            clearWatchedHistory();
+            filtered = allItems.filter((m: Media) => m.short_token !== shortToken);
+        }
+        return filtered;
+    }, [recData, shortToken]);
     const loading = isMediaLoading;
     const error = mediaError ? t('watch.failedToLoad') : null;
 
@@ -188,6 +243,7 @@ const WatchPage = () => {
                                 viewCountedRef.current = true;
                                 publicMediaApi.incrementViewCount(media.short_token).catch(() => {});
                             }
+                            markAsWatched();
                         }}
                         onError={(error) => {
                             console.error('Video player error:', error);
