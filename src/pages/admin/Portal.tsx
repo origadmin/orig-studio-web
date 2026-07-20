@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
-    Calendar, Minus, Link2, Navigation, Image as ImageIcon, Layers, Clock as ClockIcon, Film,
+    Minus, Link2, Navigation, Image as ImageIcon, Clock as ClockIcon,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {Link} from '@tanstack/react-router';
@@ -35,10 +35,10 @@ import {
     useAdminNavItems, useAdminBanners,
     useCreateNavItem, useUpdateNavItem, useDeleteNavItem,
     useCreateBanner, useUpdateBanner, useToggleBanner, useDeleteBanner,
-    useAdminAdPlacements, useCreateAdPlacement, useUpdateAdPlacement, useToggleAdPlacement, useDeleteAdPlacement,
+    useAdminAdPlacements,
     useAdminAds, useCreateAd, useUpdateAd, useToggleAd, useDeleteAd,
 } from '@/hooks/queries';
-import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
+import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
 import {useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
@@ -46,7 +46,7 @@ export default function PortalConfigPage() {
     const defaultTab = React.useMemo(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
-        if (tab && ['navigation', 'banners', 'ad-placements', 'ads'].includes(tab)) return tab;
+        if (tab && ['navigation', 'banners', 'ads'].includes(tab)) return tab;
         return 'navigation';
     }, []);
     return (
@@ -79,11 +79,8 @@ export default function PortalConfigPage() {
                     <TabsTrigger value="banners" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <ImageIcon className="w-4 h-4"/>{t('admin.bannersTab')}
                     </TabsTrigger>
-                    <TabsTrigger value="ad-placements" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
-                        <Layers className="w-4 h-4"/>{t('admin.adPlacementsTab')}
-                    </TabsTrigger>
                     <TabsTrigger value="ads" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
-                        <Megaphone className="w-4 h-4"/>{t('admin.adsTab')}
+                        <Megaphone className="w-4 h-4"/>{t('admin.adCreativeTab', '广告创意')}
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="navigation">
@@ -91,9 +88,6 @@ export default function PortalConfigPage() {
                 </TabsContent>
                 <TabsContent value="banners">
                     <BannersTab/>
-                </TabsContent>
-                <TabsContent value="ad-placements">
-                    <AdPlacementsTab/>
                 </TabsContent>
                 <TabsContent value="ads">
                     <AdsTab/>
@@ -812,6 +806,10 @@ const BannersTab: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                    <Button size="sm" onClick={openCreateDialog}>
+                        <Plus className="w-4 h-4 mr-2"/>
+                        {t('admin.addNewBanner', 'Add New Banner')}
+                    </Button>
                     <Badge variant="secondary" className="rounded-full px-3 py-1 text-sm font-medium gap-1.5 h-8">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -999,174 +997,97 @@ const BannersTab: React.FC = () => {
             {isLoading ? (
                 <div className="py-16 text-center"><Spinner className="mx-auto"/></div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                    {banners.map((banner, idx) => {
-                        const expired = isExpired(banner.end_at);
-                        const typeMeta = getTypeMeta(banner.type);
-                        const isDynamic = banner.type === 'hot_videos' || banner.type === 'new_videos';
-                        return (
-                            <Card
-                                key={banner.id}
-                                className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${(!banner.is_active || expired) ? 'opacity-60' : ''}`}
-                                onClick={() => openEditDialog(banner)}
-                            >
-                                <div className={`relative ${aspectClass} bg-muted overflow-hidden`}>
-                                    {banner.video_url ? (
-                                        <>
-                                            <video
-                                                src={banner.video_url}
-                                                poster={banner.image_url || undefined}
-                                                muted
-                                                loop
-                                                playsInline
-                                                autoPlay
-                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                            />
-                                            <div className="absolute top-2 right-2 bg-black/60 text-white rounded-md px-1.5 py-0.5 text-[10px] font-medium flex items-center gap-1">
-                                                <Film className="w-3 h-3"/>
-                                                <span>VIDEO</span>
-                                            </div>
-                                        </>
-                                    ) : banner.image_url ? (
-                                        <img
-                                            src={banner.image_url}
-                                            alt=""
-                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                        />
-                                    ) : isDynamic ? (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-primary/10 to-primary/5">
-                                            <BarChart3 className="w-8 h-8 text-primary/40"/>
-                                            <span className="text-[11px] text-primary/60 font-medium">{typeMeta.label}</span>
-                                            <span className="text-[10px] text-muted-foreground/60">{t('admin.bannerDynamicAuto', '自动聚合内容')}</span>
-                                        </div>
-                                    ) : (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-muted/40">
-                                            <ImageOff className="w-8 h-8 text-muted-foreground/40"/>
-                                            <span className="text-[11px] text-muted-foreground/60 font-medium">{t('admin.noImage', '无图片')}</span>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200"/>
-
-                                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                                        <div className="w-7 h-7 rounded-lg bg-primary/90 backdrop-blur-sm text-primary-foreground flex items-center justify-center text-xs font-bold shadow-md">
-                                            {idx + 1}
-                                        </div>
-                                        {banner.badge_text && (
-                                            <Badge className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground shadow-sm">
-                                                {banner.badge_text}
-                                            </Badge>
-                                        )}
-                                    </div>
-
-                                    <div className="absolute top-3 right-3">
-                                        {banner.is_active && !expired ? (
-                                            <div className="flex items-center gap-1.5 bg-green-600 text-white rounded-full px-2.5 py-1 shadow-lg">
-                                                <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"/>
-                                                <span className="text-[10px] font-bold tracking-wide">ACTIVE</span>
-                                            </div>
-                                        ) : expired ? (
-                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-red-500 shadow-sm">
-                                                {t('admin.expired', '已过期')}
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-background/90 backdrop-blur-sm text-muted-foreground shadow-sm">
-                                                {t('admin.hidden', '已停用')}
-                                            </Badge>
-                                        )}
-                                    </div>
-
-                                    <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-200">
-                                        <Button
-                                            variant="secondary"
-                                            size="icon"
-                                            className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 scale-90 group-hover:scale-100 transition-transform"
-                                            onClick={(e) => { e.stopPropagation(); openEditDialog(banner); }}
-                                        >
-                                            <Edit className="h-5 w-5"/>
-                                        </Button>
-                                        <Button
-                                            variant="secondary"
-                                            size="icon"
-                                            className="h-11 w-11 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 scale-90 group-hover:scale-100 transition-transform"
-                                            onClick={(e) => { e.stopPropagation(); setEditingBanner(banner); setDeleteDialogOpen(true); }}
-                                        >
-                                            <Trash2 className="h-5 w-5"/>
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 space-y-2.5">
-                                    <div className="min-h-[2.5rem]">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <h3 className="font-semibold text-sm leading-tight line-clamp-1 flex-1">{banner.title || t('admin.untitled', '未命名')}</h3>
-                                            <Badge variant="outline" className={`text-[10px] font-semibold px-1.5 py-0 rounded shrink-0 ${typeMeta.cls}`}>
-                                                {typeMeta.label}
-                                            </Badge>
-                                        </div>
-                                        {banner.subtitle && (
-                                            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{banner.subtitle}</p>
-                                        )}
-                                    </div>
-
-                                    {banner.primary_btn_url && (
-                                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
-                                            <Link2 className="w-3 h-3 shrink-0"/>
-                                            <span className="truncate">{banner.primary_btn_url}</span>
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] gap-2">
-                                        <div className={`flex items-center gap-1 ${expired ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>
-                                            <Calendar className={`w-3 h-3 shrink-0 ${expired ? 'text-red-500' : ''}`}/>
-                                            <span>{formatExpiry(banner.end_at)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex items-center gap-1.5 cursor-pointer" onClick={(e) => { e.stopPropagation(); handleToggle(banner.id); }}>
-                                                <Switch
-                                                    checked={banner.is_active}
-                                                    onCheckedChange={() => handleToggle(banner.id)}
-                                                    className="scale-75 data-[state=checked]:bg-green-500"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                />
-                                                <span className={`text-[10px] font-medium ${banner.is_active ? 'text-green-600' : 'text-muted-foreground'} select-none`}>
-                                                    {banner.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '停用')}
-                                                </span>
-                                            </div>
-                                            <Badge
-                                                variant="outline"
-                                                className={`text-[10px] font-bold px-1.5 py-0 rounded ${
-                                                    banner.display_mode === 'narrow'
-                                                        ? 'bg-muted text-muted-foreground border-border'
-                                                        : 'bg-primary/10 text-primary border-primary/20'
-                                                }`}
-                                            >
-                                                {banner.display_mode === 'narrow' ? 'STD' : 'WIDE'}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        );
-                    })}
-
-                    <button
-                        type="button"
-                        onClick={openCreateDialog}
-                        className="group flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 min-h-[280px] bg-transparent p-0"
-                    >
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
-                            <Plus className="w-6 h-6 text-primary"/>
-                        </div>
-                        <p className="font-semibold text-sm text-foreground">{t('admin.addNewBanner', 'Add New Banner')}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1">{t('admin.bannerFileHint', 'PNG, JPG or MP4 (Max 10MB)')}</p>
-                    </button>
-                </div>
-            )}
-
-            {banners.length === 0 && !isLoading && (
-                <div className="py-12 text-center mt-4">
-                    <p className="text-sm text-muted-foreground/70">{t('admin.clickAddBannerHint', 'Click the card above to add your first banner')}</p>
-                </div>
+                <Card className="overflow-hidden p-0">
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader className="bg-muted/30">
+                                <TableRow>
+                                    <TableHead className="px-6 py-3">#</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.preview', '预览')}</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.bannerTitle', '标题')}</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.type', '类型')}</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.status', '状态')}</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.ratio', '比例')}</TableHead>
+                                    <TableHead className="px-6 py-3">{t('admin.validity', '有效期')}</TableHead>
+                                    <TableHead className="px-6 py-3 text-right">{t('admin.actions', '操作')}</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {banners.length > 0 ? banners.map((banner, idx) => {
+                                    const expired = isExpired(banner.end_at);
+                                    const typeMeta = getTypeMeta(banner.type);
+                                    const isDynamic = banner.type === 'hot_videos' || banner.type === 'new_videos';
+                                    return (
+                                        <TableRow key={banner.id} className="cursor-pointer" onClick={() => openEditDialog(banner)}>
+                                            <TableCell className="px-6 py-4 text-muted-foreground font-medium">{idx + 1}</TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <div className={`w-24 rounded-md overflow-hidden bg-muted ${aspectClass}`}>
+                                                    {banner.video_url ? (
+                                                        <video src={banner.video_url} poster={banner.image_url || undefined} muted loop playsInline autoPlay className="w-full h-full object-cover"/>
+                                                    ) : banner.image_url ? (
+                                                        <img src={banner.image_url} alt="" className="w-full h-full object-cover"/>
+                                                    ) : isDynamic ? (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5"><BarChart3 className="w-5 h-5 text-primary/40"/></div>
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-muted/40"><ImageOff className="w-5 h-5 text-muted-foreground/40"/></div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <div className="font-semibold text-sm flex items-center gap-2">
+                                                    {banner.title || t('admin.untitled', '未命名')}
+                                                    {banner.badge_text && <Badge className="rounded-full px-2 py-0.5 text-[10px] font-semibold bg-primary text-primary-foreground">{banner.badge_text}</Badge>}
+                                                </div>
+                                                {banner.subtitle && <p className="text-xs text-muted-foreground truncate max-w-[240px] mt-0.5">{banner.subtitle}</p>}
+                                                {banner.primary_btn_url && (
+                                                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground truncate max-w-[240px] mt-1">
+                                                        <Link2 className="w-3 h-3 shrink-0"/>
+                                                        <span className="truncate">{banner.primary_btn_url}</span>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <Badge variant="outline" className={`text-[10px] font-semibold px-1.5 py-0 rounded ${typeMeta.cls}`}>{typeMeta.label}</Badge>
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                {banner.is_active && !expired ? (
+                                                    <Badge variant="secondary" className="rounded-full text-[10px] font-semibold bg-green-600 text-white">{t('admin.enabled', '启用')}</Badge>
+                                                ) : expired ? (
+                                                    <Badge variant="secondary" className="rounded-full text-[10px] font-semibold text-red-500">{t('admin.expired', '已过期')}</Badge>
+                                                ) : (
+                                                    <Badge variant="secondary" className="rounded-full text-[10px] font-semibold text-muted-foreground">{t('admin.disabled', '已停用')}</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="px-6 py-4">
+                                                <Badge variant="outline" className={`text-[10px] font-bold px-1.5 py-0 rounded ${banner.display_mode === 'narrow' ? 'bg-muted text-muted-foreground border-border' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                                                    {banner.display_mode === 'narrow' ? 'STD' : 'WIDE'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className={`px-6 py-4 text-sm ${expired ? 'text-red-500 font-medium' : 'text-muted-foreground'}`}>{formatExpiry(banner.end_at)}</TableCell>
+                                            <TableCell className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <div className="flex items-center gap-1.5 cursor-pointer" onClick={(e) => { e.stopPropagation(); handleToggle(banner.id); }}>
+                                                        <Switch checked={banner.is_active} onCheckedChange={() => handleToggle(banner.id)} className="scale-75 data-[state=checked]:bg-green-500" onClick={(e) => e.stopPropagation()}/>
+                                                    </div>
+                                                    <Button variant="ghost" size="icon-sm" onClick={(e) => { e.stopPropagation(); openEditDialog(banner); }}>
+                                                        <Edit className="h-4 w-4"/>
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={(e) => { e.stopPropagation(); setEditingBanner(banner); setDeleteDialogOpen(true); }}>
+                                                        <Trash2 className="h-4 w-4"/>
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                }) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{t('admin.noBanners', '暂无 Banner')}</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             )}
 
 
@@ -1230,357 +1151,6 @@ const BannersTab: React.FC = () => {
                     <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel', '取消')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete', '删除')}</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    );
-};
-
-const AdPlacementsTab: React.FC = () => {
-    const {t} = useTranslation();
-    const {data: placementsData, isLoading} = useAdminAdPlacements();
-    const createMutation = useCreateAdPlacement();
-    const updateMutation = useUpdateAdPlacement();
-    const toggleMutation = useToggleAdPlacement();
-    const deleteMutation = useDeleteAdPlacement();
-
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editingPlacement, setEditingPlacement] = useState<AdPlacement | null>(null);
-    const [deletingItem, setDeletingItem] = useState<AdPlacement | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdPlacementRequest>({
-        name: '', slug: '', type: 'banner',
-    });
-    const [editForm, setEditForm] = useState<UpdateAdPlacementRequest>({
-        name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0,
-    });
-
-    const placements = (placementsData as AdPlacement[] | undefined) || [];
-
-    const handleCreateDefaults = async () => {
-        const defaults: CreateAdPlacementRequest[] = [
-            {name: t('admin.defaultPlacementHomeSponsored', '赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 1},
-            {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 2},
-            {name: t('admin.defaultPlacementWatchSidebar', '播放页侧边栏'), slug: 'watch-sidebar', type: 'card', width: 300, height: 200, max_ads: 3, is_active: false, sequence: 3},
-        ];
-        const existingSlugs = new Set(placements.map(p => p.slug));
-        let created = 0;
-        for (const d of defaults) {
-            if (existingSlugs.has(d.slug)) continue;
-            try {
-                await createMutation.mutateAsync(d);
-                created++;
-            } catch {}
-        }
-        if (created > 0) {
-            toast.success(t('admin.defaultPlacementsCreated', '已创建 {{count}} 个默认广告位', {count: created}));
-        } else {
-            toast.info(t('admin.defaultPlacementsExist', '默认广告位已存在'));
-        }
-    };
-
-    const handleCreate = async () => {
-        try {
-            await createMutation.mutateAsync(createForm);
-            setCreateDialogOpen(false);
-            setCreateForm({name: '', slug: '', type: 'banner'});
-        } catch (err) {
-            console.error('Failed to create ad placement:', err);
-        }
-    };
-
-    const openEditDialog = (p: AdPlacement) => {
-        setEditingPlacement(p);
-        setEditForm({
-            name: p.name,
-            slug: p.slug,
-            type: p.type,
-            width: p.width,
-            height: p.height,
-            max_ads: p.max_ads,
-            is_active: p.is_active,
-            sequence: p.sequence,
-        });
-        setEditDialogOpen(true);
-    };
-
-    const handleUpdate = async () => {
-        if (!editingPlacement) return;
-        try {
-            await updateMutation.mutateAsync({id: editingPlacement.id, data: editForm});
-            setEditDialogOpen(false);
-        } catch (err) {
-            console.error('Failed to update ad placement:', err);
-        }
-    };
-
-    const handleToggle = async (id: string) => {
-        try {
-            await toggleMutation.mutateAsync(id);
-        } catch (err) {
-            console.error('Failed to toggle:', err);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!deletingItem) return;
-        try {
-            await deleteMutation.mutateAsync(deletingItem.id);
-            setDeleteDialogOpen(false);
-        } catch (err) {
-            console.error('Failed to delete:', err);
-        }
-    };
-
-    const typeLabels: Record<string, string> = {
-        banner: t('admin.placementTypeBanner'),
-        card: t('admin.placementTypeCard'),
-        rectangle: t('admin.placementTypeRectangle'),
-        leaderboard: t('admin.placementTypeLeaderboard'),
-        feed: t('admin.placementTypeFeed', '信息流'),
-    };
-
-    const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug, name}) => {
-        const previewStyles: Record<string, React.ReactNode> = {
-            'home-sponsored': (
-                <div className="w-full h-full flex flex-col gap-1 p-1.5">
-                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                    </div>
-                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-amber-600 font-medium">AD</span>
-                        </div>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                    </div>
-                    <div className="flex-1 grid grid-cols-4 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                    </div>
-                </div>
-            ),
-            'home-feed': (
-                <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
-                    <div className="flex-1 grid grid-cols-3 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-emerald-500/30 rounded-sm border border-emerald-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-emerald-600 font-medium">AD</span>
-                        </div>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                    </div>
-                </div>
-            ),
-            'watch-sidebar': (
-                <div className="w-full h-full flex gap-1 p-1.5">
-                    <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
-                        <span className="text-[7px] text-muted-foreground">播放器</span>
-                    </div>
-                    <div className="w-1/3 flex flex-col gap-0.5">
-                        <div className="h-1/4 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-blue-600 font-medium">AD</span>
-                        </div>
-                        <div className="flex-1 bg-gray-200/50 rounded-sm"/>
-                        <div className="flex-1 bg-gray-200/50 rounded-sm"/>
-                    </div>
-                </div>
-            ),
-        };
-        return (
-            <div className="w-24 h-14 bg-muted/30 rounded border border-border">
-                {previewStyles[slug] || (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[10px] text-muted-foreground">{name}</span>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    return (
-        <>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5"/>{t('admin.adPlacementManagement')}</CardTitle>
-                            <CardDescription>{t('admin.adPlacementDesc')}</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={handleCreateDefaults}><Layers className="w-4 h-4 mr-2"/>{t('admin.createDefaultPlacements', '创建默认广告位')}</Button>
-                            <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAdPlacement')}</Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.placementPreview', '位置预览')}</TableHead>
-                                    <TableHead>{t('admin.placementName')}</TableHead>
-                                    <TableHead>{t('admin.placementSlug')}</TableHead>
-                                    <TableHead>{t('admin.placementType')}</TableHead>
-                                    <TableHead>{t('admin.placementSize')}</TableHead>
-                                    <TableHead>{t('admin.placementMaxAds')}</TableHead>
-                                    <TableHead>{t('admin.placementStatus')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {placements.length > 0 ? placements.map(p => (
-                                    <TableRow key={p.id}>
-                                        <TableCell><PlacementPreview slug={p.slug} name={p.name}/></TableCell>
-                                        <TableCell className="font-medium">{p.name}</TableCell>
-                                        <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code></TableCell>
-                                        <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
-                                        <TableCell className="text-sm">{p.width}×{p.height}</TableCell>
-                                        <TableCell>{p.max_ads}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Switch checked={p.is_active} onCheckedChange={() => handleToggle(p.id)}/>
-                                                <span className={`text-sm ${p.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                    {p.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(p)}>
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingItem(p); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{t('admin.noAdPlacements')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
-
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-primary" />
-                            {t('admin.addAdPlacementTitle', 'Add Ad Placement')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.addAdPlacementDesc', 'Create a new ad placement slot with dimensions and display limits.')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.placementName')}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={createForm.slug} onChange={e => setCreateForm({...createForm, slug: e.target.value})} placeholder="home-banner"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
-                            <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">{t('admin.placementTypeBanner')}</SelectItem>
-                                    <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
-                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
-                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
-                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementWidth')}</Label><Input type="number" value={createForm.width || 0} onChange={e => setCreateForm({...createForm, width: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementHeight')}</Label><Input type="number" value={createForm.height || 0} onChange={e => setCreateForm({...createForm, height: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={createForm.max_ads || 1} onChange={e => setCreateForm({...createForm, max_ads: Number(e.target.value)})}/></div>
-                    </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.name || !createForm.slug}>{t('common.add')}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Edit className="w-5 h-5 text-primary" />
-                            {t('admin.editAdPlacement', 'Edit Ad Placement')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.editAdPlacementDesc', 'Update ad placement dimensions, limits, and active status.')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
-                            <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">{t('admin.placementTypeBanner')}</SelectItem>
-                                    <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
-                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
-                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
-                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementWidth')}</Label><Input type="number" value={editForm.width || 0} onChange={e => setEditForm({...editForm, width: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementHeight')}</Label><Input type="number" value={editForm.height || 0} onChange={e => setEditForm({...editForm, height: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={editForm.max_ads || 1} onChange={e => setEditForm({...editForm, max_ads: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementSequence')}</Label><Input type="number" value={editForm.sequence || 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                id="edit-placement-active"
-                                checked={editForm.is_active ?? true}
-                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
-                            />
-                            <Label htmlFor="edit-placement-active" className="cursor-pointer">{t('admin.enabled')}</Label>
-                        </div>
-                    </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.name || !editForm.slug}>{t('common.save')}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
-                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Trash2 className="w-5 h-5 text-red-500" />
-                            {t('admin.confirmDelete', 'Confirm Delete')}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.deleteAdPlacementConfirm', {name: deletingItem?.name})}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

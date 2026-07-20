@@ -44,6 +44,7 @@ interface NavItem {
     icon: React.ComponentType<{size?: number; className?: string}>;
     label: string;
     path: string;
+    tabMatch?: string;
 }
 
 interface NavSection {
@@ -104,13 +105,16 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', '付费管理'), path: "/admin/payment"}] : []),
                 ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', '推广管理'), path: "/admin/promotion"}] : []),
+                ...(featureFlags.ads ? [
+                    {id: "ad-placements", icon: BadgeDollarSign, label: t('admin.adPlacementsNav', '广告位'), path: "/admin/ads"},
+                    {id: "ad-creative", icon: Megaphone, label: t('admin.adCreativeNav', '广告'), path: "/admin/portal", tabMatch: "ads"},
+                ] : []),
             ],
         },
         {
             header: t('admin.sectionPortal', '站点与门户'),
             items: [
-                {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal"},
-                ...(featureFlags.ads ? [{id: "ads", icon: BadgeDollarSign, label: t('admin.ads', '广告管理'), path: "/admin/ads"}] : []),
+                {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal", tabMatch: "navigation"},
             ],
         },
         {
@@ -123,9 +127,13 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
         },
     ], [t, featureFlags]);
 
-    const isActive = (path: string) => {
-        if (path === "/admin") return pathname === "/admin";
-        return pathname.startsWith(path);
+    const isActive = (item: NavItem) => {
+        if (item.path === "/admin") return pathname === "/admin";
+        if (item.tabMatch) {
+            const sp = new URLSearchParams(window.location.search);
+            return pathname === item.path && sp.get("tab") === item.tabMatch;
+        }
+        return pathname.startsWith(item.path);
     };
 
     return (
@@ -160,7 +168,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                         )}
                         <ul className="space-y-0.5">
                             {section.items.map((item) => {
-                                const active = isActive(item.path);
+                                const active = isActive(item);
                                 return (
                                     <li key={item.path}>
                                         <Link
@@ -237,7 +245,8 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
         if (pathname.startsWith('/admin/permissions')) return t('admin.permissions', '权限管理');
         if (pathname.startsWith('/admin/payment')) return t('admin.payment', '付费管理');
         if (pathname.startsWith('/admin/promotion')) return t('admin.promotion', '推广管理');
-        if (pathname.startsWith('/admin/ads')) return t('admin.ads', '广告管理');
+        if (pathname.startsWith('/admin/ads')) return t('admin.adPlacementsNav', '广告位');
+        if (pathname.startsWith('/admin/portal')) return t('admin.portalConfig', '门户配置');
         if (pathname.startsWith('/admin/playlists')) return t('admin.playlists');
         if (pathname.startsWith('/admin/categories')) return t('admin.categories');
         if (pathname.startsWith('/admin/tags')) return t('admin.tags');
