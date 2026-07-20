@@ -105,16 +105,16 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 ...(featureFlags.payment ? [{id: "payment", icon: CreditCard, label: t('admin.payment', '付费管理'), path: "/admin/payment"}] : []),
                 ...(featureFlags.promotion ? [{id: "promotion", icon: Megaphone, label: t('admin.promotion', '推广管理'), path: "/admin/promotion"}] : []),
-                ...(featureFlags.ads ? [
-                    {id: "ad-placements", icon: BadgeDollarSign, label: t('admin.adPlacementsNav', '广告位'), path: "/admin/ads"},
-                    {id: "ad-creative", icon: Megaphone, label: t('admin.adCreativeNav', '广告'), path: "/admin/portal", tabMatch: "ads"},
-                ] : []),
             ],
         },
         {
             header: t('admin.sectionPortal', '站点与门户'),
             items: [
                 {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal", tabMatch: "navigation"},
+                ...(featureFlags.ads ? [
+                    {id: "ad-placements", icon: BadgeDollarSign, label: t('admin.adPlacementsNav', '广告位'), path: "/admin/portal", tabMatch: "ad-placements"},
+                    {id: "ad-creative", icon: Megaphone, label: t('admin.adCreativeNav', '广告'), path: "/admin/portal", tabMatch: "ads"},
+                ] : []),
             ],
         },
         {
