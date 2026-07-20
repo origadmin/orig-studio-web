@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
-import {Link} from '@tanstack/react-router';
+import {Link, useNavigate, useSearch} from '@tanstack/react-router';
 import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
@@ -15,6 +15,7 @@ import {usePortalConfig} from '@/hooks/queries';
 import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
 import AdDisplay from '@/components/portal/AdDisplay';
+import CategoryChips from '@/components/portal/CategoryChips';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -127,6 +128,10 @@ const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placem
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
+    const navigate = useNavigate();
+    const search = useSearch({strict: false});
+    const categoryParam = (search as {category?: string | number | null}).category;
+    const selectedCategoryId = categoryParam ? Number(categoryParam) || null : null;
 
     const {data: featuredData} = useMediaList({
         page: 1,
@@ -268,6 +273,7 @@ const HomePage = () => {
         isFetchingNextPage,
     } = useInfiniteMediaList({
         page_size: 12,
+        category_id: selectedCategoryId,
     });
 
     const items: Media[] = useMemo(() => {
@@ -374,28 +380,36 @@ const HomePage = () => {
             )}
 
             <section>
-                <SectionHeader
-                    title={t('home.latestVideos', '最新视频')}
-                    viewAllLink="/latest"
+                <CategoryChips
+                    selectedId={selectedCategoryId}
+                    onSelect={(id) => {
+                        navigate({to: '/', search: id != null ? {category: id} : {}});
+                    }}
                 />
+                <div className="mt-4">
+                    <SectionHeader
+                        title={t('home.latestVideos', '最新视频')}
+                        viewAllLink="/latest"
+                    />
 
-                {mergedItems.length === 0 && !isFetchingNextPage ? (
-                    <div className="py-20 text-center text-muted-foreground">
-                        <p>{t('common.noData', '暂无数据')}</p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                        {mergedItems.map((item) => (
-                            '__ad' in item ? (
-                                <div key={item.key}>
-                                    <FeedAdCard ad={item.ad}/>
-                                </div>
-                            ) : (
-                                <VideoCard key={item.id} media={item} size="md"/>
-                            )
-                        ))}
-                    </div>
-                )}
+                    {mergedItems.length === 0 && !isFetchingNextPage ? (
+                        <div className="py-20 text-center text-muted-foreground">
+                            <p>{t('common.noData', '暂无数据')}</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                            {mergedItems.map((item) => (
+                                '__ad' in item ? (
+                                    <div key={item.key}>
+                                        <FeedAdCard ad={item.ad}/>
+                                    </div>
+                                ) : (
+                                    <VideoCard key={item.id} media={item} size="md"/>
+                                )
+                            ))}
+                        </div>
+                    )}
+                </div>
             </section>
 
             <div ref={sentinelRef} className="flex flex-col items-center py-8">
