@@ -776,7 +776,7 @@ export default function StyleGuidePage() {
               />
             </Section>
 
-            <Section title="Hero Banner 轮播 - 宽幅模式 (21:9)" description="宽幅模式使用更宽的卡片比例(21:9)，保持相同高度，适合电影/宣传Banner">
+            <Section title="Hero Banner 轮播 - 宽幅模式 (21:9)" description="宽幅模式使用更宽的卡片比例(21:9)，根容器高度由卡片宽度×比例推导（约309px），比 card 模式（约300px）略高；适合电影/宣传横幅">
               <HeroBanner
                 items={MOCK_HERO_ITEMS.slice(0, 4)}
                 mode="wide"
