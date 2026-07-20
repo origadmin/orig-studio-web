@@ -147,7 +147,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
             tabIndex={0}
         >
             <div
-                className="relative h-[260px] sm:h-[280px] md:h-[320px] lg:h-[400px] rounded-xl md:rounded-2xl overflow-hidden"
+                className="relative h-[300px] rounded-xl md:rounded-2xl overflow-hidden"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -286,7 +286,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({
 };
 
 export const HeroCarouselSkeleton: React.FC = () => (
-    <div className="relative h-[260px] sm:h-[280px] md:h-[320px] lg:h-[400px] rounded-xl md:rounded-2xl overflow-hidden bg-card">
+    <div className="relative h-[300px] rounded-xl md:rounded-2xl overflow-hidden bg-card">
         <div className="relative h-full flex items-center px-5 py-6 sm:px-8 sm:py-8 md:px-10 md:py-10">
             <div className="max-w-lg space-y-4">
                 <Skeleton className="h-6 w-24 rounded-full"/>
