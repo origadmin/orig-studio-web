@@ -1,21 +1,17 @@
-import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
+import React, {useState, useMemo} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, Star, Clock, ChevronRight, LayoutGrid, List, Filter} from 'lucide-react';
+import {Play, Eye, Star, Clock, LayoutGrid, List, Filter} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {Spinner} from '@/components/ui/spinner';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia} from '@/components/ui/empty';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useTranslation} from 'react-i18next';
-import {useMediaList, useInfiniteMediaList} from '@/hooks/queries';
+import {useMediaList} from '@/hooks/queries';
 import ErrorPage from '@/components/common/ErrorPage';
-import HeroCarousel, {HeroCarouselSkeleton} from '@/components/common/HeroCarousel';
-import BannerCarousel, {BannerCarouselSkeleton} from '@/components/common/BannerCarousel';
 import CategoryFilter, {CategoryFilterSkeleton} from '@/components/common/CategoryFilter';
-import HorizontalScroll from '@/components/common/HorizontalScroll';
 import VideoCardSkeleton from '@/components/common/VideoCardSkeleton';
 
 type LayoutMode = 'grid' | 'list';
@@ -24,9 +20,6 @@ const FeaturedPage = () => {
     const {t} = useTranslation();
     const [activeCategoryId, setActiveCategoryId] = useState<number | string | null>(null);
     const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
-    const sectionCRef = useRef<HTMLDivElement>(null);
-    const sectionDRef = useRef<HTMLDivElement>(null);
-    const sentinelRef = useRef<HTMLDivElement>(null);
 
     const {data, isLoading, error} = useMediaList({
         featured: 'true',
@@ -34,17 +27,7 @@ const FeaturedPage = () => {
         status: 'active',
     });
 
-    const {
-        data: infiniteData,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-    } = useInfiniteMediaList({
-        page_size: 20,
-        status: 'active',
-    });
-
-    const featuredMedia = data?.items || [];
+    const featuredMedia: FeaturedItem[] = (data?.items as FeaturedItem[]) || [];
 
     const categories = useMemo(() => {
         const catMap = new Map<number, {id: number; name: string}>();
@@ -66,57 +49,11 @@ const FeaturedPage = () => {
         return featuredMedia.filter((item) => item.category_id === activeCategoryId);
     }, [featuredMedia, activeCategoryId]);
 
-    const heroItems = useMemo(() => featuredMedia.slice(0, 5), [featuredMedia]);
-    const horizontalItems = useMemo(() => filteredMedia.slice(0, 8), [filteredMedia]);
-    const gridItems = useMemo(() => filteredMedia, [filteredMedia]);
-
-    useEffect(() => {
-        if (!sentinelRef.current || !hasNextPage) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    fetchNextPage();
-                }
-            },
-            {rootMargin: '200px'},
-        );
-        observer.observe(sentinelRef.current);
-        return () => observer.disconnect();
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-    const scrollToSectionC = useCallback(() => {
-        sectionCRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
-    }, []);
+    const primaryItem = featuredMedia[0];
+    const editorPickItems = featuredMedia.slice(1, 7);
 
     if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <HeroCarouselSkeleton/>
-                <CategoryFilterSkeleton/>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <Skeleton className="h-6 w-32"/>
-                        <Skeleton className="h-4 w-20"/>
-                    </div>
-                    <div className="flex gap-4 overflow-hidden">
-                        {Array.from({length: 4}).map((_, i) => (
-                            <VideoCardSkeleton key={i}/>
-                        ))}
-                    </div>
-                </div>
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <Skeleton className="h-6 w-32"/>
-                        <Skeleton className="h-4 w-20"/>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                        {Array.from({length: 8}).map((_, i) => (
-                            <VideoCardSkeleton key={i}/>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
+        return <FeaturedPageSkeleton/>;
     }
 
     if (error) {
@@ -125,72 +62,56 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <Empty className="py-20">
-                <EmptyMedia variant="icon">
-                    <Star size={24}/>
-                </EmptyMedia>
-                <EmptyHeader>
-                    <EmptyTitle>{t('featured.emptyTitle')}</EmptyTitle>
-                    <EmptyDescription>{t('featured.emptyDesc')}</EmptyDescription>
-                </EmptyHeader>
-                <Link to="/">
-                    <Button variant="outline">{t('error.backToHome')}</Button>
-                </Link>
-            </Empty>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <Empty className="py-20">
+                    <EmptyMedia variant="icon">
+                        <Star size={24}/>
+                    </EmptyMedia>
+                    <EmptyHeader>
+                        <EmptyTitle>{t('featured.emptyTitle')}</EmptyTitle>
+                        <EmptyDescription>{t('featured.emptyDesc')}</EmptyDescription>
+                    </EmptyHeader>
+                    <Link to="/">
+                        <Button variant="outline">{t('error.backToHome')}</Button>
+                    </Link>
+                </Empty>
+            </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <BannerCarousel className="mb-6" />
-
-            <HeroCarousel
-                items={heroItems}
-                autoPlayInterval={6000}
-                onLearnMore={scrollToSectionC}
-            />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+            <section className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-6 lg:gap-8">
+                <PrimaryFeaturedCard item={primaryItem}/>
+                <aside className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <Star size={18} className="text-warning"/>
+                        <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick')}</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {editorPickItems.length > 0 ? (
+                            editorPickItems.map((item) => <EditorPickListItem key={item.id} item={item}/>)
+                        ) : (
+                            <div className="text-sm text-muted-foreground py-4">
+                                {t('common.noData')}
+                            </div>
+                        )}
+                    </div>
+                </aside>
+            </section>
 
             <CategoryFilter
                 categories={categories}
                 activeId={activeCategoryId}
                 onSelect={setActiveCategoryId}
-                className="mt-6"
             />
 
-            <div ref={sectionCRef} className="mt-6">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                        <Star size={20} className="text-warning"/>
-                        <h2 className="text-xl font-bold text-foreground">{t('featured.editorPick')}</h2>
-                    </div>
-                    <button
-                        onClick={() => sectionDRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'})}
-                        className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
-                    >
-                        {t('home.viewAll')}
-                        <ChevronRight size={16}/>
-                    </button>
-                </div>
-
-                {horizontalItems.length > 0 ? (
-                    <HorizontalScroll>
-                        {horizontalItems.map((item) => (
-                            <FeaturedHorizontalCard key={item.id} item={item}/>
-                        ))}
-                    </HorizontalScroll>
-                ) : (
-                    <div className="py-8 text-center text-muted-foreground text-sm">
-                        {t('common.noData')}
-                    </div>
-                )}
-            </div>
-
-            <div ref={sectionDRef} className="mt-10">
-                <div className="flex items-center justify-between mb-5">
+            <section className="space-y-5">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <h2 className="text-xl font-bold text-foreground">{t('featured.allFeatured')}</h2>
                         <span className="text-sm text-muted-foreground">
-                            {t('featured.featuredCount', {count: gridItems.length})}
+                            {t('featured.featuredCount', {count: filteredMedia.length})}
                         </span>
                     </div>
                     <div className="hidden sm:flex items-center gap-1">
@@ -215,7 +136,7 @@ const FeaturedPage = () => {
                     </div>
                 </div>
 
-                {gridItems.length === 0 ? (
+                {filteredMedia.length === 0 ? (
                     <Empty className="py-12">
                         <EmptyMedia variant="icon">
                             <Filter size={24}/>
@@ -232,34 +153,20 @@ const FeaturedPage = () => {
                     <>
                         {layoutMode === 'grid' ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                                {gridItems.map((item) => (
+                                {filteredMedia.map((item) => (
                                     <FeaturedGridCard key={item.id} item={item}/>
                                 ))}
                             </div>
                         ) : (
                             <div className="flex flex-col gap-3">
-                                {gridItems.map((item) => (
+                                {filteredMedia.map((item) => (
                                     <FeaturedListCard key={item.id} item={item}/>
                                 ))}
                             </div>
                         )}
-
-                        <div ref={sentinelRef} className="py-4">
-                            {isFetchingNextPage && (
-                                <div className="flex items-center justify-center gap-2 py-6">
-                                    <Spinner size="sm"/>
-                                    <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
-                                </div>
-                            )}
-                            {!hasNextPage && gridItems.length > 8 && (
-                                <div className="text-center text-sm text-muted-foreground py-4">
-                                    — {t('common.allLoaded')} —
-                                </div>
-                            )}
-                        </div>
                     </>
                 )}
-            </div>
+            </section>
         </div>
     );
 };
@@ -271,6 +178,7 @@ interface FeaturedCardProps {
         title: string;
         description?: string;
         thumbnail?: string;
+        category_id?: number;
         duration: number;
         view_count: number;
         create_time?: string;
@@ -289,7 +197,9 @@ interface FeaturedCardProps {
     };
 }
 
-const FeaturedHorizontalCard: React.FC<FeaturedCardProps> = ({item}) => {
+type FeaturedItem = FeaturedCardProps['item'];
+
+const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
     const {t} = useTranslation();
     const user = item.edges?.user?.[0];
 
@@ -297,14 +207,14 @@ const FeaturedHorizontalCard: React.FC<FeaturedCardProps> = ({item}) => {
         <Link
             to="/watch"
             search={{v: item.short_token || item.id}}
-            className="group block w-56 sm:w-60 md:w-64 lg:w-72 shrink-0"
+            className="group block"
         >
-            <div className="rounded-card overflow-hidden bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <div className="relative rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-lg transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}
                         alt={item.title}
-                        loading="lazy"
+                        loading="eager"
                         onError={(e) => handleImageError(e, 'thumbnail')}
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />
@@ -315,18 +225,20 @@ const FeaturedHorizontalCard: React.FC<FeaturedCardProps> = ({item}) => {
                         {formatDuration(item.duration)}
                     </Badge>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div
-                            className="w-12 h-12 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg scale-75 group-hover:scale-100 transition-transform duration-300">
-                            <Play className="w-5 h-5 text-foreground ml-0.5" fill="currentColor"/>
+                        <div className="w-14 h-14 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg scale-75 group-hover:scale-100 transition-transform duration-300">
+                            <Play className="w-6 h-6 text-foreground ml-0.5" fill="currentColor"/>
                         </div>
                     </div>
                 </div>
-                <div className="p-3">
-                    <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">
+                <div className="p-5">
+                    <h3 className="text-xl font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                         {item.title}
                     </h3>
-                    <div className="flex items-center gap-2 mb-1">
-                        <Avatar className="h-5 w-5">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                        {item.description || t('watch.noDescription')}
+                    </p>
+                    <div className="flex items-center gap-3 mt-4 text-sm text-muted-foreground">
+                        <Avatar className="h-7 w-7">
                             <AvatarImage
                                 src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
                                 alt={user?.username}
@@ -335,15 +247,56 @@ const FeaturedHorizontalCard: React.FC<FeaturedCardProps> = ({item}) => {
                                 {user?.username?.[0] || 'U'}
                             </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-muted-foreground truncate">
-                            {user?.username || 'Unknown'}
+                        <span className="text-foreground font-medium">{user?.username || 'Unknown'}</span>
+                        <span className="flex items-center gap-1">
+                            <Eye size={14}/>
+                            {formatViews(item.view_count)}
                         </span>
+                        <Badge variant="secondary" className="text-xs">
+                            {formatDuration(item.duration)}
+                        </Badge>
                     </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Eye size={12}/>
-                        {formatViews(item.view_count)}
-                    </div>
+                    <Button size="lg" className="mt-5">
+                        <Play size={18} className="mr-2"/>
+                        {t('featured.watchNow')}
+                    </Button>
                 </div>
+            </div>
+        </Link>
+    );
+};
+
+const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
+    const user = item.edges?.user?.[0];
+
+    return (
+        <Link
+            to="/watch"
+            search={{v: item.short_token || item.id}}
+            className="group flex gap-3 p-2 rounded-xl border border-border bg-card hover:bg-accent/50 transition-colors"
+        >
+            <div className="relative w-32 shrink-0 aspect-video rounded-lg overflow-hidden">
+                <img
+                    src={getImageUrl(item.thumbnail, 'thumbnail')}
+                    alt={item.title}
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, 'thumbnail')}
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                />
+                <Badge
+                    variant="secondary"
+                    className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] backdrop-blur-sm"
+                >
+                    {formatDuration(item.duration)}
+                </Badge>
+            </div>
+            <div className="flex flex-col justify-center min-w-0 py-0.5">
+                <h4 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                    {item.title}
+                </h4>
+                <span className="text-xs text-muted-foreground mt-1 truncate">
+                    {user?.username || 'Unknown'}
+                </span>
             </div>
         </Link>
     );
@@ -355,8 +308,7 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
 
     return (
         <Link to="/watch" search={{v: item.short_token || item.id}} className="group block">
-            <div
-                className="rounded-card bg-card overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+            <div className="rounded-card bg-card overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                 <div className="relative aspect-video overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}
@@ -371,10 +323,8 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
                     >
                         {formatDuration(item.duration)}
                     </Badge>
-                    <div
-                        className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <div
-                            className="w-12 h-12 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <div className="w-12 h-12 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
                             <Play className="w-5 h-5 text-foreground ml-0.5" fill="currentColor"/>
                         </div>
                     </div>
@@ -416,7 +366,6 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
-    const {t} = useTranslation();
     const user = item.edges?.user?.[0];
 
     return (
@@ -461,5 +410,49 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
         </Link>
     );
 };
+
+const FeaturedPageSkeleton: React.FC = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-6 lg:gap-8">
+            <div className="space-y-4">
+                <Skeleton className="aspect-video rounded-2xl"/>
+                <Skeleton className="h-7 w-3/4"/>
+                <Skeleton className="h-4 w-1/2"/>
+                <div className="flex items-center gap-3 pt-2">
+                    <Skeleton className="h-8 w-8 rounded-full"/>
+                    <Skeleton className="h-4 w-24"/>
+                    <Skeleton className="h-4 w-16"/>
+                </div>
+                <Skeleton className="h-10 w-32 rounded-lg"/>
+            </div>
+            <div className="space-y-4">
+                <Skeleton className="h-6 w-32"/>
+                <div className="space-y-3">
+                    {Array.from({length: 5}).map((_, i) => (
+                        <div key={i} className="flex gap-3">
+                            <Skeleton className="w-32 aspect-video rounded-lg"/>
+                            <div className="flex-1 space-y-2 py-1">
+                                <Skeleton className="h-4 w-3/4"/>
+                                <Skeleton className="h-3 w-1/2"/>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+        <CategoryFilterSkeleton/>
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <Skeleton className="h-6 w-32"/>
+                <Skeleton className="h-4 w-20"/>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {Array.from({length: 8}).map((_, i) => (
+                    <VideoCardSkeleton key={i}/>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 export default FeaturedPage;
