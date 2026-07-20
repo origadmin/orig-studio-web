@@ -30,6 +30,7 @@ import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
 import {Slider} from '@/components/ui/slider';
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
+import {getFullUrl} from '@/lib/utils';
 import {toast} from 'sonner';
 import {
     useAdminNavItems, useAdminBanners,
@@ -1010,8 +1011,8 @@ const BannersTab: React.FC = () => {
                                     {banner.video_url ? (
                                         <>
                                             <video
-                                                src={banner.video_url}
-                                                poster={banner.image_url || undefined}
+                                                src={getFullUrl(banner.video_url) || undefined}
+                                                poster={getFullUrl(banner.image_url) || undefined}
                                                 muted
                                                 loop
                                                 playsInline
@@ -1025,7 +1026,7 @@ const BannersTab: React.FC = () => {
                                         </>
                                     ) : banner.image_url ? (
                                         <img
-                                            src={banner.image_url}
+                                            src={getFullUrl(banner.image_url)}
                                             alt=""
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                         />
@@ -1737,7 +1738,7 @@ const AdManagerTab: React.FC = () => {
                                             {/* 缩略图 */}
                                             <div className="w-20 h-12 rounded overflow-hidden bg-muted/30 flex-shrink-0">
                                                 {ad.image_url ? (
-                                                    <img src={ad.image_url} alt={ad.title} className="w-full h-full object-cover"/>
+                                                    <img src={getFullUrl(ad.image_url)} alt={ad.title} className="w-full h-full object-cover"/>
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
                                                         <ImageOff className="w-4 h-4 text-muted-foreground"/>
