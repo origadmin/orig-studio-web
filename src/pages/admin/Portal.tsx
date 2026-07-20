@@ -1344,6 +1344,16 @@ const AdPlacementsTab: React.FC = () => {
 
     const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug, name}) => {
         const previewStyles: Record<string, React.ReactNode> = {
+            'home-banner': (
+                <div className="w-full h-full flex items-stretch gap-1 p-1.5">
+                    <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
+                        <span className="text-[7px] text-muted-foreground">主内容</span>
+                    </div>
+                    <div className="w-2/5 bg-rose-500/30 rounded-sm border border-rose-500/50 flex items-center justify-center">
+                        <span className="text-[7px] text-rose-600 font-medium">AD</span>
+                    </div>
+                </div>
+            ),
             'home-sponsored': (
                 <div className="w-full h-full flex flex-col gap-1 p-1.5">
                     <div className="h-1/4 grid grid-cols-4 gap-0.5">
@@ -1383,6 +1393,15 @@ const AdPlacementsTab: React.FC = () => {
                         <div className="bg-gray-200/50 rounded-sm"/>
                         <div className="bg-gray-200/50 rounded-sm"/>
                     </div>
+                </div>
+            ),
+            'sidebar': (
+                <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
+                    <div className="h-1/3 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
+                        <span className="text-[7px] text-blue-600 font-medium">AD</span>
+                    </div>
+                    <div className="flex-1 bg-gray-200/50 rounded-sm"/>
+                    <div className="flex-1 bg-gray-200/50 rounded-sm"/>
                 </div>
             ),
             'watch-sidebar': (
