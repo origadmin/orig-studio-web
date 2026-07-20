@@ -111,10 +111,6 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             header: t('admin.sectionPortal', '站点与门户'),
             items: [
                 {id: "portal", icon: Layout, label: t('admin.portalConfig', '门户配置'), path: "/admin/portal", tabMatch: "navigation"},
-                ...(featureFlags.ads ? [
-                    {id: "ad-placements", icon: BadgeDollarSign, label: t('admin.adPlacementsNav', '广告位'), path: "/admin/portal", tabMatch: "ad-placements"},
-                    {id: "ad-creative", icon: Megaphone, label: t('admin.adCreativeNav', '广告'), path: "/admin/portal", tabMatch: "ads"},
-                ] : []),
             ],
         },
         {
