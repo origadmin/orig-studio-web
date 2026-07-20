@@ -393,6 +393,9 @@ export const adminPortalApi = {
     deleteAdPlacement: (id: string) =>
         api.del<void>(`/admin/ad-placements/${id}`),
 
+    countAdsByPlacement: (placementId: string) =>
+        api.get<{count: number}>(`/admin/ad-placements/ads-count?placement_id=${placementId}`),
+
     listAds: (placementId: string) =>
         api.get<{items: Ad[]; total: number}>(`/admin/ads?placement_id=${placementId}`),
 

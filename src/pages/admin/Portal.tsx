@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+﻿import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
@@ -46,7 +46,9 @@ export default function PortalConfigPage() {
     const defaultTab = React.useMemo(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
-        if (tab && ['navigation', 'banners', 'ad-placements', 'ads'].includes(tab)) return tab;
+        // 兼容旧tab名：ad-placements 和 ads 统一指向 ad-management
+        if (tab === 'ad-placements' || tab === 'ads') return 'ad-management';
+        if (tab && ['navigation', 'banners', 'ad-management'].includes(tab)) return tab;
         return 'navigation';
     }, []);
     return (
@@ -79,11 +81,8 @@ export default function PortalConfigPage() {
                     <TabsTrigger value="banners" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
                         <ImageIcon className="w-4 h-4"/>{t('admin.bannersTab')}
                     </TabsTrigger>
-                    <TabsTrigger value="ad-placements" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
-                        <Layers className="w-4 h-4"/>{t('admin.adPlacementsTab')}
-                    </TabsTrigger>
-                    <TabsTrigger value="ads" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
-                        <Megaphone className="w-4 h-4"/>{t('admin.adsTab')}
+                    <TabsTrigger value="ad-management" className="pb-3 px-1 border-b-2 flex items-center gap-2 text-sm font-semibold transition-colors rounded-none data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none border-transparent text-muted-foreground hover:text-foreground">
+                        <Megaphone className="w-4 h-4"/>{t('admin.adManagementTab', '广告管理')}
                     </TabsTrigger>
                 </TabsList>
                 <TabsContent value="navigation">
@@ -92,11 +91,8 @@ export default function PortalConfigPage() {
                 <TabsContent value="banners">
                     <BannersTab/>
                 </TabsContent>
-                <TabsContent value="ad-placements">
-                    <AdPlacementsTab/>
-                </TabsContent>
-                <TabsContent value="ads">
-                    <AdsTab/>
+                <TabsContent value="ad-management">
+                    <AdManagerTab/>
                 </TabsContent>
             </Tabs>
         </div>
@@ -1237,112 +1233,65 @@ const BannersTab: React.FC = () => {
     );
 };
 
-const AdPlacementsTab: React.FC = () => {
+const AdManagerTab: React.FC = () => {
     const {t} = useTranslation();
-    const {data: placementsData, isLoading} = useAdminAdPlacements();
-    const createMutation = useCreateAdPlacement();
-    const updateMutation = useUpdateAdPlacement();
-    const toggleMutation = useToggleAdPlacement();
-    const deleteMutation = useDeleteAdPlacement();
-
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editingPlacement, setEditingPlacement] = useState<AdPlacement | null>(null);
-    const [deletingItem, setDeletingItem] = useState<AdPlacement | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdPlacementRequest>({
-        name: '', slug: '', type: 'banner',
-    });
-    const [editForm, setEditForm] = useState<UpdateAdPlacementRequest>({
-        name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0,
-    });
+    const queryClient = useQueryClient();
+    const {data: placementsData, isLoading: placementsLoading} = useAdminAdPlacements();
+    const createPlacementMutation = useCreateAdPlacement();
+    const updatePlacementMutation = useUpdateAdPlacement();
+    const togglePlacementMutation = useToggleAdPlacement();
+    const deletePlacementMutation = useDeleteAdPlacement();
+    const createAdMutation = useCreateAd();
+    const updateAdMutation = useUpdateAd();
+    const toggleAdMutation = useToggleAd();
+    const deleteAdMutation = useDeleteAd();
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
+    const [selectedPlacementId, setSelectedPlacementId] = useState<string>('');
+    const selectedPlacement = placements.find(p => p.id === selectedPlacementId) || null;
+    const {data: adsData, isLoading: adsLoading} = useAdminAds(selectedPlacementId);
+    const ads = adsData?.items || [];
 
-    const handleCreateDefaults = async () => {
-        const defaults: CreateAdPlacementRequest[] = [
-            {name: t('admin.defaultPlacementHomeSponsored', '赞助推荐'), slug: 'home-sponsored', type: 'card', width: 320, height: 180, max_ads: 8, is_active: true, sequence: 1},
-            {name: t('admin.defaultPlacementHomeFeed', '首页信息流'), slug: 'home-feed', type: 'feed', width: 320, height: 180, max_ads: 10, is_active: true, sequence: 2},
-            {name: t('admin.defaultPlacementWatchSidebar', '播放页侧边栏'), slug: 'watch-sidebar', type: 'card', width: 300, height: 200, max_ads: 3, is_active: false, sequence: 3},
-        ];
-        const existingSlugs = new Set(placements.map(p => p.slug));
-        let created = 0;
-        for (const d of defaults) {
-            if (existingSlugs.has(d.slug)) continue;
-            try {
-                await createMutation.mutateAsync(d);
-                created++;
-            } catch {}
-        }
-        if (created > 0) {
-            toast.success(t('admin.defaultPlacementsCreated', '已创建 {{count}} 个默认广告位', {count: created}));
-        } else {
-            toast.info(t('admin.defaultPlacementsExist', '默认广告位已存在'));
-        }
-    };
+    // 广告位弹窗
+    const [placementDialogMode, setPlacementDialogMode] = useState<'create' | 'edit'>('create');
+    const [placementDialogOpen, setPlacementDialogOpen] = useState(false);
+    const [editingPlacement, setEditingPlacement] = useState<AdPlacement | null>(null);
+    const [placementForm, setPlacementForm] = useState<CreateAdPlacementRequest & Partial<UpdateAdPlacementRequest>>({
+        name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0, description: '',
+    });
 
-    const handleCreate = async () => {
-        try {
-            await createMutation.mutateAsync(createForm);
-            setCreateDialogOpen(false);
-            setCreateForm({name: '', slug: '', type: 'banner'});
-        } catch (err) {
-            console.error('Failed to create ad placement:', err);
-        }
-    };
+    // 广告弹窗
+    const [adDialogMode, setAdDialogMode] = useState<'create' | 'edit'>('create');
+    const [adDialogOpen, setAdDialogOpen] = useState(false);
+    const [editingAd, setEditingAd] = useState<Ad | null>(null);
+    const [adForm, setAdForm] = useState<CreateAdRequest & Partial<UpdateAdRequest>>({
+        placement_id: '', title: '', image_url: '', image_mobile_url: '', link_url: '', badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
+    });
 
-    const openEditDialog = (p: AdPlacement) => {
-        setEditingPlacement(p);
-        setEditForm({
-            name: p.name,
-            slug: p.slug,
-            type: p.type,
-            width: p.width,
-            height: p.height,
-            max_ads: p.max_ads,
-            is_active: p.is_active,
-            sequence: p.sequence,
-        });
-        setEditDialogOpen(true);
-    };
+    // 删除弹窗
+    const [deleteType, setDeleteType] = useState<'placement' | 'ad'>('placement');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletingPlacement, setDeletingPlacement] = useState<AdPlacement | null>(null);
+    const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
+    const [cascadeCount, setCascadeCount] = useState(0);
 
-    const handleUpdate = async () => {
-        if (!editingPlacement) return;
-        try {
-            await updateMutation.mutateAsync({id: editingPlacement.id, data: editForm});
-            setEditDialogOpen(false);
-        } catch (err) {
-            console.error('Failed to update ad placement:', err);
+    // 自动选中第一个广告位
+    React.useEffect(() => {
+        if (placements.length > 0 && !selectedPlacementId) {
+            setSelectedPlacementId(placements[0].id);
         }
-    };
-
-    const handleToggle = async (id: string) => {
-        try {
-            await toggleMutation.mutateAsync(id);
-        } catch (err) {
-            console.error('Failed to toggle:', err);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!deletingItem) return;
-        try {
-            await deleteMutation.mutateAsync(deletingItem.id);
-            setDeleteDialogOpen(false);
-        } catch (err) {
-            console.error('Failed to delete:', err);
-        }
-    };
+    }, [placements, selectedPlacementId]);
 
     const typeLabels: Record<string, string> = {
-        banner: t('admin.placementTypeBanner'),
-        card: t('admin.placementTypeCard'),
-        rectangle: t('admin.placementTypeRectangle'),
-        leaderboard: t('admin.placementTypeLeaderboard'),
+        banner: t('admin.placementTypeBanner', '横幅'),
+        card: t('admin.placementTypeCard', '卡片'),
+        rectangle: t('admin.placementTypeRectangle', '矩形'),
+        leaderboard: t('admin.placementTypeLeaderboard', '排行榜'),
         feed: t('admin.placementTypeFeed', '信息流'),
+        sidebar: t('admin.placementTypeSidebar', '侧边栏'),
     };
 
-    const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug, name}) => {
+    const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug}) => {
         const previewStyles: Record<string, React.ReactNode> = {
             'home-banner': (
                 <div className="w-full h-full flex items-stretch gap-1 p-1.5">
@@ -1420,234 +1369,97 @@ const AdPlacementsTab: React.FC = () => {
             ),
         };
         return (
-            <div className="w-24 h-14 bg-muted/30 rounded border border-border">
+            <div className="w-20 h-12 bg-muted/30 rounded border border-border">
                 {previewStyles[slug] || (
                     <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-[10px] text-muted-foreground">{name}</span>
+                        <Megaphone className="w-3 h-3 text-muted-foreground"/>
                     </div>
                 )}
             </div>
         );
     };
 
-    return (
-        <>
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5"/>{t('admin.adPlacementManagement')}</CardTitle>
-                            <CardDescription>{t('admin.adPlacementDesc')}</CardDescription>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="sm" onClick={handleCreateDefaults}><Layers className="w-4 h-4 mr-2"/>{t('admin.createDefaultPlacements', '创建默认广告位')}</Button>
-                            <Button size="sm" onClick={() => setCreateDialogOpen(true)}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAdPlacement')}</Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.placementPreview', '位置预览')}</TableHead>
-                                    <TableHead>{t('admin.placementName')}</TableHead>
-                                    <TableHead>{t('admin.placementSlug')}</TableHead>
-                                    <TableHead>{t('admin.placementType')}</TableHead>
-                                    <TableHead>{t('admin.placementSize')}</TableHead>
-                                    <TableHead>{t('admin.placementMaxAds')}</TableHead>
-                                    <TableHead>{t('admin.placementStatus')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {placements.length > 0 ? placements.map(p => (
-                                    <TableRow key={p.id}>
-                                        <TableCell><PlacementPreview slug={p.slug} name={p.name}/></TableCell>
-                                        <TableCell className="font-medium">{p.name}</TableCell>
-                                        <TableCell><code className="text-xs bg-muted px-1 py-0.5 rounded">{p.slug}</code></TableCell>
-                                        <TableCell><Badge variant="outline">{typeLabels[p.type] || p.type}</Badge></TableCell>
-                                        <TableCell className="text-sm">{p.width}×{p.height}</TableCell>
-                                        <TableCell>{p.max_ads}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Switch checked={p.is_active} onCheckedChange={() => handleToggle(p.id)}/>
-                                                <span className={`text-sm ${p.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                    {p.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(p)}>
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingItem(p); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{t('admin.noAdPlacements')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+    // ========== 广告位操作 ==========
+    const openCreatePlacementDialog = () => {
+        setPlacementDialogMode('create');
+        setEditingPlacement(null);
+        setPlacementForm({name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0, description: ''});
+        setPlacementDialogOpen(true);
+    };
 
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-primary" />
-                            {t('admin.addAdPlacementTitle', 'Add Ad Placement')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.addAdPlacementDesc', 'Create a new ad placement slot with dimensions and display limits.')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={createForm.name} onChange={e => setCreateForm({...createForm, name: e.target.value})} placeholder={t('admin.placementName')}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={createForm.slug} onChange={e => setCreateForm({...createForm, slug: e.target.value})} placeholder="home-banner"/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
-                            <Select value={createForm.type} onValueChange={v => setCreateForm({...createForm, type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">{t('admin.placementTypeBanner')}</SelectItem>
-                                    <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
-                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
-                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
-                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementWidth')}</Label><Input type="number" value={createForm.width || 0} onChange={e => setCreateForm({...createForm, width: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementHeight')}</Label><Input type="number" value={createForm.height || 0} onChange={e => setCreateForm({...createForm, height: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={createForm.max_ads || 1} onChange={e => setCreateForm({...createForm, max_ads: Number(e.target.value)})}/></div>
-                    </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.name || !createForm.slug}>{t('common.add')}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+    const openEditPlacementDialog = (p: AdPlacement) => {
+        setPlacementDialogMode('edit');
+        setEditingPlacement(p);
+        setPlacementForm({
+            name: p.name, slug: p.slug, type: p.type,
+            width: p.width, height: p.height, max_ads: p.max_ads,
+            is_active: p.is_active, sequence: p.sequence,
+            description: (p as {description?: string}).description || '',
+        });
+        setPlacementDialogOpen(true);
+    };
 
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Edit className="w-5 h-5 text-primary" />
-                            {t('admin.editAdPlacement', 'Edit Ad Placement')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.editAdPlacementDesc', 'Update ad placement dimensions, limits, and active status.')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.placementName')}</Label><Input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementSlug')}</Label><Input value={editForm.slug} onChange={e => setEditForm({...editForm, slug: e.target.value})}/></div>
-                        <div className="grid gap-2"><Label>{t('admin.placementType')}</Label>
-                            <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="banner">{t('admin.placementTypeBanner')}</SelectItem>
-                                    <SelectItem value="card">{t('admin.placementTypeCard')}</SelectItem>
-                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle')}</SelectItem>
-                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard')}</SelectItem>
-                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流（视频流内插入）')}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementWidth')}</Label><Input type="number" value={editForm.width || 0} onChange={e => setEditForm({...editForm, width: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementHeight')}</Label><Input type="number" value={editForm.height || 0} onChange={e => setEditForm({...editForm, height: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.placementMaxAds')}</Label><Input type="number" value={editForm.max_ads || 1} onChange={e => setEditForm({...editForm, max_ads: Number(e.target.value)})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.placementSequence')}</Label><Input type="number" value={editForm.sequence || 0} onChange={e => setEditForm({...editForm, sequence: Number(e.target.value)})}/></div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                id="edit-placement-active"
-                                checked={editForm.is_active ?? true}
-                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
-                            />
-                            <Label htmlFor="edit-placement-active" className="cursor-pointer">{t('admin.enabled')}</Label>
-                        </div>
-                    </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.name || !editForm.slug}>{t('common.save')}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
-                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Trash2 className="w-5 h-5 text-red-500" />
-                            {t('admin.confirmDelete', 'Confirm Delete')}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.deleteAdPlacementConfirm', {name: deletingItem?.name})}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    );
-};
-
-const AdsTab: React.FC = () => {
-    const {t} = useTranslation();
-    const {data: placementsData} = useAdminAdPlacements();
-    const [selectedPlacement, setSelectedPlacement] = useState<string>('');
-    const {data: adsData, isLoading} = useAdminAds(selectedPlacement);
-    const createMutation = useCreateAd();
-    const updateMutation = useUpdateAd();
-    const toggleMutation = useToggleAd();
-    const deleteMutation = useDeleteAd();
-
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editingAd, setEditingAd] = useState<Ad | null>(null);
-    const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
-    const [createForm, setCreateForm] = useState<CreateAdRequest>({placement_id: '', title: '', image_url: ''});
-    const [editForm, setEditForm] = useState<UpdateAdRequest>({
-        title: '', image_url: '', image_mobile_url: '', link_url: '', badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
-    });
-    const [createAdvancedOpen, setCreateAdvancedOpen] = useState(false);
-    const [editAdvancedOpen, setEditAdvancedOpen] = useState(false);
-
-    const placements = (placementsData as AdPlacement[] | undefined) || [];
-    const ads = adsData?.items || [];
-
-    const handleCreate = async () => {
+    const handleSavePlacement = async () => {
         try {
-            await createMutation.mutateAsync({...createForm, placement_id: selectedPlacement});
-            setCreateDialogOpen(false);
-            setCreateForm({placement_id: '', title: '', image_url: ''});
-            setCreateAdvancedOpen(false);
-            toast.success(t('admin.adCreateSuccess', 'Advertisement created'));
+            if (placementDialogMode === 'create') {
+                await createPlacementMutation.mutateAsync(placementForm);
+                toast.success(t('admin.placementCreateSuccess', '广告位创建成功'));
+            } else if (editingPlacement) {
+                await updatePlacementMutation.mutateAsync({id: editingPlacement.id, data: placementForm});
+                toast.success(t('admin.placementUpdateSuccess', '广告位更新成功'));
+            }
+            setPlacementDialogOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminAdPlacements']});
         } catch (err) {
-            console.error('Failed to create ad:', err);
-            toast.error(t('admin.adCreateFail', 'Failed to create advertisement'));
+            console.error('Failed to save placement:', err);
+            toast.error(t('admin.placementSaveFail', '广告位保存失败'));
         }
     };
 
-    const openEditDialog = (ad: Ad) => {
+    const handleTogglePlacement = async (id: string) => {
+        try {
+            await togglePlacementMutation.mutateAsync(id);
+            queryClient.invalidateQueries({queryKey: ['adminAdPlacements']});
+        } catch (err) {
+            console.error('Failed to toggle:', err);
+        }
+    };
+
+    const openDeletePlacementDialog = async (p: AdPlacement) => {
+        setDeleteType('placement');
+        setDeletingPlacement(p);
+        setDeletingAd(null);
+        // 查询关联广告数量
+        try {
+            const resp = await adminPortalApi.countAdsByPlacement(p.id);
+            setCascadeCount(resp.count || 0);
+        } catch {
+            setCascadeCount(0);
+        }
+        setDeleteDialogOpen(true);
+    };
+
+    // ========== 广告操作 ==========
+    const openCreateAdDialog = () => {
+        if (!selectedPlacementId) {
+            toast.info(t('admin.selectPlacementFirst', '请先选择广告位'));
+            return;
+        }
+        setAdDialogMode('create');
+        setEditingAd(null);
+        setAdForm({
+            placement_id: selectedPlacementId,
+            title: '', image_url: '', image_mobile_url: '', link_url: '',
+            badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
+        });
+        setAdDialogOpen(true);
+    };
+
+    const openEditAdDialog = (ad: Ad) => {
+        setAdDialogMode('edit');
         setEditingAd(ad);
-        setEditForm({
+        setAdForm({
+            placement_id: ad.placement_id,
             title: ad.title,
             image_url: ad.image_url || '',
             image_mobile_url: ad.image_mobile_url || '',
@@ -1658,239 +1470,413 @@ const AdsTab: React.FC = () => {
             start_at: ad.start_at || '',
             end_at: ad.end_at || '',
         });
-        setEditAdvancedOpen(false);
-        setEditDialogOpen(true);
+        setAdDialogOpen(true);
     };
 
-    const handleUpdate = async () => {
-        if (!editingAd) return;
+    const handleSaveAd = async () => {
         try {
-            await updateMutation.mutateAsync({id: editingAd.id, data: editForm});
-            setEditDialogOpen(false);
-            toast.success(t('admin.adUpdateSuccess', 'Advertisement updated'));
+            if (adDialogMode === 'create') {
+                await createAdMutation.mutateAsync(adForm);
+                toast.success(t('admin.adCreateSuccess', '广告创建成功'));
+            } else if (editingAd) {
+                await updateAdMutation.mutateAsync({id: editingAd.id, data: adForm});
+                toast.success(t('admin.adUpdateSuccess', '广告更新成功'));
+            }
+            setAdDialogOpen(false);
+            queryClient.invalidateQueries({queryKey: ['adminAds']});
         } catch (err) {
-            console.error('Failed to update ad:', err);
-            toast.error(t('admin.adUpdateFail', 'Failed to update advertisement'));
+            console.error('Failed to save ad:', err);
+            toast.error(t('admin.adSaveFail', '广告保存失败'));
         }
     };
 
-    const handleToggle = async (id: string) => {
+    const handleToggleAd = async (id: string) => {
         try {
-            await toggleMutation.mutateAsync(id);
+            await toggleAdMutation.mutateAsync(id);
+            queryClient.invalidateQueries({queryKey: ['adminAds']});
         } catch (err) {
             console.error('Failed to toggle:', err);
         }
     };
 
-    const handleDelete = async () => {
-        if (!deletingAd) return;
+    const openDeleteAdDialog = (ad: Ad) => {
+        setDeleteType('ad');
+        setDeletingAd(ad);
+        setDeletingPlacement(null);
+        setCascadeCount(0);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
         try {
-            await deleteMutation.mutateAsync(deletingAd.id);
+            if (deleteType === 'placement' && deletingPlacement) {
+                await deletePlacementMutation.mutateAsync(deletingPlacement.id);
+                toast.success(t('admin.placementDeleteSuccess', '广告位已删除'));
+                // 如果删除的是当前选中的广告位，清空选中
+                if (selectedPlacementId === deletingPlacement.id) {
+                    setSelectedPlacementId('');
+                }
+                queryClient.invalidateQueries({queryKey: ['adminAdPlacements']});
+            } else if (deleteType === 'ad' && deletingAd) {
+                await deleteAdMutation.mutateAsync(deletingAd.id);
+                toast.success(t('admin.adDeleteSuccess', '广告已删除'));
+                queryClient.invalidateQueries({queryKey: ['adminAds']});
+            }
             setDeleteDialogOpen(false);
-            toast.success(t('admin.adDeleteSuccess', 'Advertisement deleted'));
         } catch (err) {
             console.error('Failed to delete:', err);
-            toast.error(t('admin.adDeleteFail', 'Failed to delete advertisement'));
+            toast.error(t('admin.deleteFail', '删除失败'));
         }
     };
 
     return (
         <>
-            <Card>
+            {/* 顶部：广告位切换器 */}
+            <Card className="mb-4">
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="flex items-center gap-2"><BarChart3 className="w-5 h-5"/>{t('admin.adManagement')}</CardTitle>
-                            <CardDescription>{t('admin.adManagementDesc')}</CardDescription>
+                            <CardTitle className="flex items-center gap-2"><Megaphone className="w-5 h-5"/>{t('admin.adManagement', '广告管理')}</CardTitle>
+                            <CardDescription>{t('admin.adManagementDesc', '管理广告位与广告创意')}</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Select value={selectedPlacement} onValueChange={setSelectedPlacement}>
-                                <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('admin.selectAdPlacement')}/></SelectTrigger>
-                                <SelectContent>
-                                    {placements.filter(p => p.id).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                            <Button size="sm" onClick={() => setCreateDialogOpen(true)} disabled={!selectedPlacement}><Plus className="w-4 h-4 mr-2"/>{t('admin.addAd')}</Button>
-                        </div>
+                        <Button size="sm" onClick={openCreatePlacementDialog}>
+                            <Plus className="w-4 h-4 mr-2"/>{t('admin.addAdPlacement', '添加广告位')}
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {isLoading ? <div className="py-12 text-center"><Spinner className="mx-auto"/></div> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>{t('admin.adTitle')}</TableHead>
-                                    <TableHead>{t('admin.adImageUrl')}</TableHead>
-                                    <TableHead>{t('admin.adLinkUrl')}</TableHead>
-                                    <TableHead>{t('admin.adPriority')}</TableHead>
-                                    <TableHead>{t('admin.adImpressions')}/{t('admin.adClicks')}</TableHead>
-                                    <TableHead>{t('admin.adCtr')}</TableHead>
-                                    <TableHead>{t('admin.placementStatus')}</TableHead>
-                                    <TableHead className="text-right">{t('admin.actions')}</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {ads.length > 0 ? ads.map(ad => (
-                                    <TableRow key={ad.id}>
-                                        <TableCell className="font-medium">
-                                            {ad.title}
-                                            {ad.badge_text && <Badge variant="outline" className="ml-2">{ad.badge_text}</Badge>}
-                                        </TableCell>
-                                        <TableCell>{ad.image_url ? <span className="text-xs text-green-600">✓</span> : <span className="text-xs text-muted-foreground">-</span>}</TableCell>
-                                        <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{ad.link_url || '-'}</TableCell>
-                                        <TableCell>{ad.priority}</TableCell>
-                                        <TableCell className="text-sm">{ad.impressions}/{ad.clicks}</TableCell>
-                                        <TableCell className="text-sm">{ad.impressions > 0 ? ((ad.clicks / ad.impressions) * 100).toFixed(1) + '%' : '-'}</TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <Switch checked={ad.is_active} onCheckedChange={() => handleToggle(ad.id)}/>
-                                                <span className={`text-sm ${ad.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                                    {ad.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
-                                                </span>
+                    {placementsLoading ? (
+                        <div className="py-8 text-center"><Spinner className="mx-auto"/></div>
+                    ) : placements.length === 0 ? (
+                        <div className="py-12 text-center text-muted-foreground">
+                            <Megaphone className="w-12 h-12 mx-auto mb-2 opacity-30"/>
+                            <p>{t('admin.noAdPlacements', '暂无广告位，请先创建')}</p>
+                        </div>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {placements.map(p => {
+                                const isSelected = p.id === selectedPlacementId;
+                                const currentAds = selectedPlacementId === p.id ? ads.length : 0;
+                                return (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => setSelectedPlacementId(p.id)}
+                                        className={`px-4 py-2 rounded-lg border-2 transition-all flex items-center gap-2 ${
+                                            isSelected
+                                                ? 'border-primary bg-primary/10 text-primary'
+                                                : 'border-border bg-background hover:bg-muted/50 text-foreground'
+                                        }`}
+                                    >
+                                        <PlacementPreview slug={p.slug} name={p.name}/>
+                                        <div className="text-left">
+                                            <div className="font-medium text-sm">{p.name}</div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {currentAds}/{p.max_ads}
+                                                {!p.is_active && <span className="ml-1 text-red-500">({t('admin.disabled', '禁用')})</span>}
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditDialog(ad)}>
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeletingAd(ad); setDeleteDialogOpen(true); }}>
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={8} className="h-24 text-center text-muted-foreground">{selectedPlacement ? t('admin.noAds') : t('admin.selectPlacementFirst')}</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     )}
                 </CardContent>
             </Card>
 
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
-                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
-                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Plus className="w-5 h-5 text-primary" />
-                            {t('admin.addAdTitle', 'Add Advertisement')}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.addAdDesc', 'Create a new advertisement with creative assets, target link, and priority.')}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={createForm.title} onChange={e => setCreateForm({...createForm, title: e.target.value})} placeholder={t('admin.adTitle')}/></div>
-                        <ImageUploadField
-                            value={createForm.image_url || ''}
-                            onChange={url => setCreateForm({...createForm, image_url: url})}
-                            label={t('admin.adImageUrl', '广告图片')}
-                            aspect="video"
-                        />
-                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={createForm.link_url || ''} onChange={e => setCreateForm({...createForm, link_url: e.target.value})} placeholder="https://..."/></div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={createForm.badge_text || ''} onChange={e => setCreateForm({...createForm, badge_text: e.target.value})} placeholder="HOT"/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adPriority', '优先级')}</Label><Input type="number" value={createForm.priority || 0} onChange={e => setCreateForm({...createForm, priority: Number(e.target.value)})}/></div>
-                        </div>
-                        <Collapsible open={createAdvancedOpen} onOpenChange={setCreateAdvancedOpen}>
-                            <CollapsibleTrigger asChild>
-                                <Button type="button" variant="ghost" size="sm" className="px-0 text-sm flex items-center gap-1 -ml-1">
-                                    <ChevronDown className={`h-4 w-4 transition-transform ${createAdvancedOpen ? 'rotate-180' : ''}`}/>
-                                    {t('admin.adAdvanced', '高级设置')}
-                                </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-4 pt-2">
-                                <ImageUploadField
-                                    value={createForm.image_mobile_url || ''}
-                                    onChange={url => setCreateForm({...createForm, image_mobile_url: url})}
-                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选，留空自动适配）')}
-                                    aspect="video"
-                                />
-                            </CollapsibleContent>
-                        </Collapsible>
-                    </div>
-                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setCreateDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleCreate} disabled={!createForm.title || !createForm.image_url}>{t('common.add')}</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* 左右布局：广告位信息 + 广告列表 */}
+            {selectedPlacement && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* 左侧：广告位信息卡片 */}
+                    <Card className="lg:col-span-1">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Layers className="w-5 h-5"/>{t('admin.placementInfo', '广告位信息')}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="flex justify-center py-2">
+                                <PlacementPreview slug={selectedPlacement.slug} name={selectedPlacement.name}/>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementName', '名称')}</span><span className="font-medium">{selectedPlacement.name}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">Slug</span><code className="text-xs bg-muted px-1.5 py-0.5 rounded">{selectedPlacement.slug}</code></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementType', '类型')}</span><Badge variant="outline">{typeLabels[selectedPlacement.type] || selectedPlacement.type}</Badge></div>
+                                {(selectedPlacement.width > 0 || selectedPlacement.height > 0) && (
+                                    <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementSize', '建议尺寸')}</span><span className="font-medium">{selectedPlacement.width}×{selectedPlacement.height}</span></div>
+                                )}
+                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementMaxAds', '最大广告数')}</span><span className="font-medium">{selectedPlacement.max_ads}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.currentAds', '当前广告数')}</span><span className="font-medium">{ads.length}</span></div>
+                                <div className="flex items-center justify-between pt-2 border-t border-border">
+                                    <span className="text-muted-foreground">{t('admin.placementStatus', '状态')}</span>
+                                    <div className="flex items-center gap-2">
+                                        <Switch checked={selectedPlacement.is_active} onCheckedChange={() => handleTogglePlacement(selectedPlacement.id)}/>
+                                        <span className={`text-sm ${selectedPlacement.is_active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                            {selectedPlacement.is_active ? t('admin.enabled', '启用') : t('admin.disabled', '禁用')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardContent className="pt-0 flex gap-2">
+                            <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditPlacementDialog(selectedPlacement)}>
+                                <Edit className="w-4 h-4 mr-2"/>{t('admin.edit', '编辑')}
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => openDeletePlacementDialog(selectedPlacement)}>
+                                <Trash2 className="w-4 h-4 mr-2"/>{t('admin.delete', '删除')}
+                            </Button>
+                        </CardContent>
+                    </Card>
 
-            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                    {/* 右侧：广告列表 */}
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2 text-lg"><BarChart3 className="w-5 h-5"/>{t('admin.adList', '广告列表')}</CardTitle>
+                                    <CardDescription>{t('admin.adListDesc', '该广告位下的广告创意')}</CardDescription>
+                                </div>
+                                <Button size="sm" onClick={openCreateAdDialog}>
+                                    <Plus className="w-4 h-4 mr-2"/>{t('admin.addAd', '添加广告')}
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {adsLoading ? (
+                                <div className="py-8 text-center"><Spinner className="mx-auto"/></div>
+                            ) : ads.length === 0 ? (
+                                <div className="py-12 text-center text-muted-foreground">
+                                    <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-30"/>
+                                    <p>{t('admin.noAds', '暂无广告')}</p>
+                                    <Button variant="outline" size="sm" className="mt-3" onClick={openCreateAdDialog}>
+                                        <Plus className="w-4 h-4 mr-2"/>{t('admin.addAd', '添加广告')}
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {ads.map(ad => (
+                                        <div key={ad.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
+                                            {/* 缩略图 */}
+                                            <div className="w-20 h-12 rounded overflow-hidden bg-muted/30 flex-shrink-0">
+                                                {ad.image_url ? (
+                                                    <img src={ad.image_url} alt={ad.title} className="w-full h-full object-cover"/>
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <ImageOff className="w-4 h-4 text-muted-foreground"/>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* 信息 */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium truncate">{ad.title}</span>
+                                                    {ad.badge_text && <Badge variant="secondary" className="text-xs">{ad.badge_text}</Badge>}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3">
+                                                    <span>{t('admin.priority', '优先级')}: {ad.priority}</span>
+                                                    {ad.start_at && <span>{t('admin.startAt', '开始')}: {ad.start_at}</span>}
+                                                    {ad.end_at && <span>{t('admin.endAt', '结束')}: {ad.end_at}</span>}
+                                                </div>
+                                            </div>
+                                            {/* 状态 */}
+                                            <div className="flex items-center gap-2">
+                                                <Switch checked={ad.is_active} onCheckedChange={() => handleToggleAd(ad.id)}/>
+                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditAdDialog(ad)}>
+                                                    <Edit className="w-4 h-4"/>
+                                                </Button>
+                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => openDeleteAdDialog(ad)}>
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* 广告位创建/编辑弹窗 */}
+            <Dialog open={placementDialogOpen} onOpenChange={setPlacementDialogOpen}>
                 <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Edit className="w-5 h-5 text-primary" />
-                            {t('admin.editAd', 'Edit Advertisement')}
+                            {placementDialogMode === 'create' ? <Plus className="w-5 h-5 text-primary"/> : <Edit className="w-5 h-5 text-primary"/>}
+                            {placementDialogMode === 'create' ? t('admin.addAdPlacementTitle', '添加广告位') : t('admin.editAdPlacement', '编辑广告位')}
                         </DialogTitle>
                         <DialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.editAdDesc', 'Update advertisement creative, targeting, and scheduling settings.')}
+                            {t('admin.adPlacementDesc', '配置广告展示位置的尺寸、类型和数量限制')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2"><Label>{t('admin.adTitle')}</Label><Input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})}/></div>
-                        <ImageUploadField
-                            value={editForm.image_url || ''}
-                            onChange={url => setEditForm({...editForm, image_url: url})}
-                            label={t('admin.adImageUrl', '广告图片')}
-                            aspect="video"
-                        />
-                        <div className="grid gap-2"><Label>{t('admin.adLinkUrl', '跳转链接')}</Label><Input value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="https://..."/></div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.placementName', '名称')}*</Label>
+                            <Input value={placementForm.name} onChange={e => setPlacementForm({...placementForm, name: e.target.value})} placeholder={t('admin.placementNamePlaceholder', '如：首页横幅')}/>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>Slug*</Label>
+                            <Input value={placementForm.slug} onChange={e => setPlacementForm({...placementForm, slug: e.target.value})} placeholder="home-banner"/>
+                            <p className="text-xs text-muted-foreground">{t('admin.slugHint', '英文标识，用于前端匹配展示样式')}</p>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.placementType', '类型')}</Label>
+                            <Select value={placementForm.type} onValueChange={v => setPlacementForm({...placementForm, type: v})}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="banner">{t('admin.placementTypeBanner', '横幅')}</SelectItem>
+                                    <SelectItem value="feed">{t('admin.placementTypeFeed', '信息流')}</SelectItem>
+                                    <SelectItem value="sidebar">{t('admin.placementTypeSidebar', '侧边栏')}</SelectItem>
+                                    <SelectItem value="card">{t('admin.placementTypeCard', '卡片')}</SelectItem>
+                                    <SelectItem value="rectangle">{t('admin.placementTypeRectangle', '矩形')}</SelectItem>
+                                    <SelectItem value="leaderboard">{t('admin.placementTypeLeaderboard', '排行榜')}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adBadgeText', '角标文字')}</Label><Input value={editForm.badge_text || ''} onChange={e => setEditForm({...editForm, badge_text: e.target.value})} placeholder="HOT"/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adPriority', '优先级')}</Label><Input type="number" value={editForm.priority || 0} onChange={e => setEditForm({...editForm, priority: Number(e.target.value)})}/></div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementWidth', '宽度（px）')}</Label>
+                                <Input type="number" value={placementForm.width || 0} onChange={e => setPlacementForm({...placementForm, width: Number(e.target.value)})}/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementHeight', '高度（px）')}</Label>
+                                <Input type="number" value={placementForm.height || 0} onChange={e => setPlacementForm({...placementForm, height: Number(e.target.value)})}/>
+                            </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{t('admin.sizeHint', '尺寸用于提示上传图片的建议大小，不会强制校验')}</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementMaxAds', '最大广告数')}</Label>
+                                <Input type="number" value={placementForm.max_ads || 1} onChange={e => setPlacementForm({...placementForm, max_ads: Number(e.target.value)})}/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.placementSequence', '排序')}</Label>
+                                <Input type="number" value={placementForm.sequence || 0} onChange={e => setPlacementForm({...placementForm, sequence: Number(e.target.value)})}/>
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>{t('admin.placementDescription', '描述')}</Label>
+                            <Input value={placementForm.description || ''} onChange={e => setPlacementForm({...placementForm, description: e.target.value})} placeholder={t('admin.placementDescriptionPlaceholder', '广告位用途说明')}/>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Switch
-                                id="edit-ad-active"
-                                checked={editForm.is_active ?? true}
-                                onCheckedChange={(v) => setEditForm({...editForm, is_active: v})}
-                            />
-                            <Label htmlFor="edit-ad-active" className="cursor-pointer">{t('admin.enabled', '启用')}</Label>
+                            <Switch checked={placementForm.is_active ?? true} onCheckedChange={v => setPlacementForm({...placementForm, is_active: v})}/>
+                            <Label>{t('admin.enabled', '启用')}</Label>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2"><Label>{t('admin.adStartAt', '开始时间')}</Label><Input type="datetime-local" value={editForm.start_at || ''} onChange={e => setEditForm({...editForm, start_at: e.target.value})}/></div>
-                            <div className="grid gap-2"><Label>{t('admin.adEndAt', '结束时间')}</Label><Input type="datetime-local" value={editForm.end_at || ''} onChange={e => setEditForm({...editForm, end_at: e.target.value})}/></div>
-                        </div>
-                        <Collapsible open={editAdvancedOpen} onOpenChange={setEditAdvancedOpen}>
-                            <CollapsibleTrigger asChild>
-                                <Button type="button" variant="ghost" size="sm" className="px-0 text-sm flex items-center gap-1 -ml-1">
-                                    <ChevronDown className={`h-4 w-4 transition-transform ${editAdvancedOpen ? 'rotate-180' : ''}`}/>
-                                    {t('admin.adAdvanced', '高级设置')}
-                                </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="space-y-4 pt-2">
-                                <ImageUploadField
-                                    value={editForm.image_mobile_url || ''}
-                                    onChange={url => setEditForm({...editForm, image_mobile_url: url})}
-                                    label={t('admin.adMobileImageUrl', '移动端自定义图片（可选，留空自动适配）')}
-                                    aspect="video"
-                                />
-                            </CollapsibleContent>
-                        </Collapsible>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
-                        <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleUpdate} disabled={!editForm.title || !editForm.image_url}>{t('common.save')}</Button>
+                        <Button variant="outline" onClick={() => setPlacementDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleSavePlacement} disabled={!placementForm.name || !placementForm.slug}>
+                            {placementDialogMode === 'create' ? t('common.add', '添加') : t('common.save', '保存')}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
+            {/* 广告创建/编辑弹窗 */}
+            <Dialog open={adDialogOpen} onOpenChange={setAdDialogOpen}>
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            {adDialogMode === 'create' ? <Plus className="w-5 h-5 text-primary"/> : <Edit className="w-5 h-5 text-primary"/>}
+                            {adDialogMode === 'create' ? t('admin.addAdTitle', '添加广告') : t('admin.editAd', '编辑广告')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {selectedPlacement && (
+                                <span>{t('admin.placement', '广告位')}: <strong>{selectedPlacement.name}</strong>
+                                {(selectedPlacement.width > 0 || selectedPlacement.height > 0) &&
+                                    ` (${t('admin.suggestedSize', '建议尺寸')}: ${selectedPlacement.width}×${selectedPlacement.height})`}</span>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
+                        <div className="grid gap-2">
+                            <Label>{t('admin.adTitle', '广告标题')}*</Label>
+                            <Input value={adForm.title} onChange={e => setAdForm({...adForm, title: e.target.value})} placeholder={t('admin.adTitlePlaceholder', '如：夏季促销')}/>
+                        </div>
+                        <ImageUploadField
+                            value={adForm.image_url || ''}
+                            onChange={url => setAdForm({...adForm, image_url: url})}
+                            label={t('admin.adImageUrlPC', '广告图片（PC端）') + (selectedPlacement && (selectedPlacement.width > 0 || selectedPlacement.height > 0) ? ` (${t('admin.suggestedSize', '建议尺寸')}: ${selectedPlacement.width}×${selectedPlacement.height})` : '')}
+                            aspect="video"
+                        />
+                        <ImageUploadField
+                            value={adForm.image_mobile_url || ''}
+                            onChange={url => setAdForm({...adForm, image_mobile_url: url})}
+                            label={t('admin.adImageUrlMobile', '广告图片（移动端，可选，留空自动适配）')}
+                            aspect="video"
+                        />
+                        <div className="grid gap-2">
+                            <Label>{t('admin.adLinkUrl', '跳转链接')}</Label>
+                            <Input value={adForm.link_url || ''} onChange={e => setAdForm({...adForm, link_url: e.target.value})} placeholder="https://..."/>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label>{t('admin.adBadgeText', '角标文字')}</Label>
+                                <Input value={adForm.badge_text || ''} onChange={e => setAdForm({...adForm, badge_text: e.target.value})} placeholder="HOT"/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.adPriority', '优先级')}</Label>
+                                <Input type="number" value={adForm.priority || 0} onChange={e => setAdForm({...adForm, priority: Number(e.target.value)})}/>
+                                <p className="text-xs text-muted-foreground">{t('admin.priorityHint', '数字越大越靠前显示')}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Switch checked={adForm.is_active ?? true} onCheckedChange={v => setAdForm({...adForm, is_active: v})}/>
+                            <Label>{t('admin.enabled', '启用')}</Label>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label>{t('admin.adStartAt', '开始时间（可选）')}</Label>
+                                <Input type="datetime-local" value={adForm.start_at || ''} onChange={e => setAdForm({...adForm, start_at: e.target.value})}/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>{t('admin.adEndAt', '结束时间（可选）')}</Label>
+                                <Input type="datetime-local" value={adForm.end_at || ''} onChange={e => setAdForm({...adForm, end_at: e.target.value})}/>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setAdDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleSaveAd} disabled={!adForm.title || !adForm.image_url}>
+                            {adDialogMode === 'create' ? t('common.add', '添加') : t('common.save', '保存')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 删除确认弹窗 */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
                     <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            <Trash2 className="w-5 h-5 text-red-500" />
-                            {t('admin.confirmDelete', 'Confirm Delete')}
+                            <Trash2 className="w-5 h-5 text-red-500"/>
+                            {t('admin.confirmDelete', '确认删除')}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
-                            {t('admin.deleteAdConfirm', 'Are you sure you want to delete this advertisement? This action cannot be undone.')}
+                            {deleteType === 'placement' && deletingPlacement ? (
+                                cascadeCount > 0 ? (
+                                    <span>{t('admin.deletePlacementCascadeWarning', {
+                                        name: deletingPlacement.name,
+                                        count: cascadeCount,
+                                        defaultValue: `广告位"${deletingPlacement.name}"下有 ${cascadeCount} 条广告。删除广告位后，这些广告将一并删除。此操作不可撤销，是否继续？`
+                                    })}</span>
+                                ) : (
+                                    <span>{t('admin.deleteAdPlacementConfirm', {
+                                        name: deletingPlacement.name,
+                                        defaultValue: `确定要删除广告位"${deletingPlacement.name}"吗？此操作不可撤销。`
+                                    })}</span>
+                                )
+                            ) : deletingAd ? (
+                                <span>{t('admin.deleteAdConfirm', {
+                                    defaultValue: `确定要删除广告"${deletingAd.title}"吗？此操作不可撤销。`
+                                })}</span>
+                            ) : null}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">{t('admin.delete')}</AlertDialogAction>
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel', '取消')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">
+                            {t('admin.confirmDelete', '确认删除')}
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
