@@ -58,7 +58,7 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-[21/9] overflow-hidden rounded-2xl">
+            <div className="relative aspect-[21/9] overflow-hidden rounded-xl">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
@@ -236,7 +236,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
+            <div className="w-full px-4 md:px-6 lg:px-8 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -257,8 +257,8 @@ const FeaturedPage = () => {
 
     return (
         <div className="w-full">
-            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-6">
+            <div className="w-full px-4 md:px-6 lg:px-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
                             <Star className="w-6 h-6 md:w-7 md:h-7 text-orange-500" fill="currentColor"/>
@@ -296,7 +296,7 @@ const FeaturedPage = () => {
                 </div>
 
                 {categories.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 mb-8">
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
                         <button
                             onClick={() => setSelectedCategory(null)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
@@ -322,46 +322,46 @@ const FeaturedPage = () => {
                         ))}
                     </div>
                 )}
-
-                {filteredAndSortedMedia.length === 0 ? (
-                    <div className="py-20 text-center text-muted-foreground">
-                        <Filter className="w-16 h-16 mx-auto mb-4 opacity-50"/>
-                        <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
-                    </div>
-                ) : (
-                    <div className="space-y-10 pb-12">
-                        {heroItem && (
-                            <section>
-                                <FeaturedHero item={heroItem}/>
-                            </section>
-                        )}
-
-                        {gridItems.length > 0 && (
-                            <section>
-                                <div className="flex items-center justify-between mb-5">
-                                    <h2 className="text-lg font-bold text-foreground">
-                                        {t('featured.moreFeatured', '更多精选')}
-                                    </h2>
-                                    <Badge variant="secondary">{gridItems.length}</Badge>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-5 gap-y-8">
-                                    {gridItems.map((item) => (
-                                        <VideoCard key={item.id} item={item}/>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </div>
-                )}
             </div>
+
+            {filteredAndSortedMedia.length === 0 ? (
+                <div className="w-full px-4 md:px-6 lg:px-8 py-20 text-center text-muted-foreground">
+                    <Filter className="w-16 h-16 mx-auto mb-4 opacity-50"/>
+                    <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
+                </div>
+            ) : (
+                <div className="space-y-8 pb-12">
+                    {heroItem && (
+                        <section className="w-full px-4 md:px-6 lg:px-8">
+                            <FeaturedHero item={heroItem}/>
+                        </section>
+                    )}
+
+                    {gridItems.length > 0 && (
+                        <section className="w-full px-4 md:px-6 lg:px-8">
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-lg font-bold text-foreground">
+                                    {t('featured.moreFeatured', '更多精选')}
+                                </h2>
+                                <Badge variant="secondary">{gridItems.length}</Badge>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-3 gap-y-4">
+                                {gridItems.map((item) => (
+                                    <VideoCard key={item.id} item={item}/>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full">
-        <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-6">
+        <div className="w-full px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
                 <div>
                     <div className="flex items-center gap-2">
                         <Skeleton className="w-7 h-7 rounded"/>
@@ -372,15 +372,15 @@ const FeaturedPageSkeleton: React.FC = () => (
                 <Skeleton className="h-10 w-40 rounded-lg"/>
             </div>
 
-            <div className="flex flex-wrap gap-2 mb-8">
+            <div className="flex flex-wrap gap-2 mb-6">
                 {Array.from({length: 6}).map((_, i) => (
                     <Skeleton key={i} className="h-8 w-16 rounded-full"/>
                 ))}
             </div>
 
-            <div className="space-y-10 pb-12">
+            <div className="space-y-8 pb-12">
                 <section>
-                    <Skeleton className="aspect-[21/9] rounded-2xl"/>
+                    <Skeleton className="aspect-[21/9] rounded-xl"/>
                 </section>
 
                 <section>
@@ -388,8 +388,8 @@ const FeaturedPageSkeleton: React.FC = () => (
                         <Skeleton className="h-6 w-32"/>
                         <Skeleton className="h-5 w-12 rounded-full"/>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-5 gap-y-8">
-                        {Array.from({length: 12}).map((_, i) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-3 gap-y-4">
+                        {Array.from({length: 14}).map((_, i) => (
                             <div key={i}>
                                 <Skeleton className="aspect-video rounded-xl"/>
                                 <div className="pt-3 space-y-2">
