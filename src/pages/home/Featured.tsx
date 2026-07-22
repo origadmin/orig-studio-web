@@ -58,7 +58,7 @@ const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-card border border-border/60 hover:shadow-xl transition-all duration-300">
+            <div className="relative aspect-[16/10] max-w-[1200px] mx-auto overflow-hidden rounded-xl bg-card border border-border/60 hover:shadow-xl transition-all duration-300">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
