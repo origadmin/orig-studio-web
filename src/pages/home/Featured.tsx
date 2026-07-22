@@ -233,7 +233,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
+            <div className="w-full px-4 md:px-6 lg:px-8 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -253,82 +253,80 @@ const FeaturedPage = () => {
     }
 
     return (
-        <div className="w-full">
-            <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
-                            <Star className="w-6 h-6 md:w-7 md:h-7 text-orange-500" fill="currentColor"/>
-                            {t('featured.pageTitle', '精选')}
-                        </h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {t('featured.pageDesc', '编辑团队精心挑选的高质量内容')}
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
-                        <button
-                            onClick={() => setSortMode('latest')}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                sortMode === 'latest'
-                                    ? 'bg-background text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                        >
-                            <Clock size={14}/>
-                            {t('featured.sortLatest', '最新')}
-                        </button>
-                        <button
-                            onClick={() => setSortMode('popular')}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                                sortMode === 'popular'
-                                    ? 'bg-background text-foreground shadow-sm'
-                                    : 'text-muted-foreground hover:text-foreground'
-                            }`}
-                        >
-                            <TrendingUp size={14}/>
-                            {t('featured.sortPopular', '最热')}
-                        </button>
-                    </div>
+        <div className="w-full px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+                        <Star className="w-6 h-6 md:w-7 md:h-7 text-orange-500" fill="currentColor"/>
+                        {t('featured.pageTitle', '精选')}
+                    </h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        {t('featured.pageDesc', '编辑团队精心挑选的高质量内容')}
+                    </p>
                 </div>
 
-                {categories.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
+                    <button
+                        onClick={() => setSortMode('latest')}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            sortMode === 'latest'
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Clock size={14}/>
+                        {t('featured.sortLatest', '最新')}
+                    </button>
+                    <button
+                        onClick={() => setSortMode('popular')}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            sortMode === 'popular'
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <TrendingUp size={14}/>
+                        {t('featured.sortPopular', '最热')}
+                    </button>
+                </div>
+            </div>
+
+            {categories.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-6">
+                    <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                            selectedCategory === null
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                        }`}
+                    >
+                        {t('home.all', '全部')}
+                    </button>
+                    {categories.map((cat) => (
                         <button
-                            onClick={() => setSelectedCategory(null)}
+                            key={cat.id}
+                            onClick={() => setSelectedCategory(cat.id)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                                selectedCategory === null
+                                selectedCategory === cat.id
                                     ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                             }`}
                         >
-                            {t('home.all', '全部')}
+                            {cat.name}
                         </button>
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setSelectedCategory(cat.id)}
-                                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                                    selectedCategory === cat.id
-                                        ? 'bg-primary text-primary-foreground shadow-sm'
-                                        : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                                }`}
-                            >
-                                {cat.name}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {filteredAndSortedMedia.length === 0 ? (
-                <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 py-20 text-center text-muted-foreground">
+                <div className="py-20 text-center text-muted-foreground">
                     <Filter className="w-16 h-16 mx-auto mb-4 opacity-50"/>
                     <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
                 </div>
             ) : (
-                <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 pb-12">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-7">
+                <div className="pb-12">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-5 gap-y-7">
                         {filteredAndSortedMedia.map((item) => (
                             <VideoCard key={item.id} item={item}/>
                         ))}
@@ -340,41 +338,39 @@ const FeaturedPage = () => {
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
-    <div className="w-full">
-        <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <Skeleton className="w-7 h-7 rounded"/>
-                        <Skeleton className="h-8 w-24"/>
-                    </div>
-                    <Skeleton className="h-4 w-48 mt-2"/>
+    <div className="w-full px-4 md:px-6 lg:px-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
+            <div>
+                <div className="flex items-center gap-2">
+                    <Skeleton className="w-7 h-7 rounded"/>
+                    <Skeleton className="h-8 w-24"/>
                 </div>
-                <Skeleton className="h-10 w-40 rounded-lg"/>
+                <Skeleton className="h-4 w-48 mt-2"/>
             </div>
+            <Skeleton className="h-10 w-40 rounded-lg"/>
+        </div>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-                {Array.from({length: 6}).map((_, i) => (
-                    <Skeleton key={i} className="h-8 w-16 rounded-full"/>
-                ))}
-            </div>
+        <div className="flex flex-wrap gap-2 mb-6">
+            {Array.from({length: 6}).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-16 rounded-full"/>
+            ))}
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-7 pb-12">
-                {Array.from({length: 10}).map((_, i) => (
-                    <div key={i}>
-                        <Skeleton className="aspect-video rounded-xl"/>
-                        <div className="pt-3 space-y-2">
-                            <Skeleton className="h-4 w-full"/>
-                            <Skeleton className="h-4 w-3/4"/>
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="w-5 h-5 rounded-full"/>
-                                <Skeleton className="h-3 w-24"/>
-                            </div>
-                            <Skeleton className="h-3 w-20"/>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-5 gap-y-7 pb-12">
+            {Array.from({length: 14}).map((_, i) => (
+                <div key={i}>
+                    <Skeleton className="aspect-video rounded-xl"/>
+                    <div className="pt-3 space-y-2">
+                        <Skeleton className="h-4 w-full"/>
+                        <Skeleton className="h-4 w-3/4"/>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="w-5 h-5 rounded-full"/>
+                            <Skeleton className="h-3 w-24"/>
                         </div>
+                        <Skeleton className="h-3 w-20"/>
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
         </div>
     </div>
 );
