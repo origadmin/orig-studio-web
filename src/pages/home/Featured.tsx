@@ -58,13 +58,13 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative w-full overflow-hidden rounded-xl" style={{maxHeight: '400px'}}>
+            <div className="relative w-full max-w-[1600px] mx-auto aspect-[21/9] overflow-hidden rounded-xl">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
                     loading="eager"
                     onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="object-cover w-full h-full min-h-[280px] group-hover:scale-105 transition-transform duration-700"
+                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
                 <div className="absolute top-6 left-6">
@@ -127,7 +127,7 @@ const VideoCard: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-video overflow-hidden rounded-xl">
+            <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
@@ -236,7 +236,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="w-full px-4 md:px-6 lg:px-8 py-12">
+            <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -257,7 +257,7 @@ const FeaturedPage = () => {
 
     return (
         <div className="w-full">
-            <div className="w-full px-4 md:px-6 lg:px-8">
+            <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
@@ -325,27 +325,27 @@ const FeaturedPage = () => {
             </div>
 
             {filteredAndSortedMedia.length === 0 ? (
-                <div className="w-full px-4 md:px-6 lg:px-8 py-20 text-center text-muted-foreground">
+                <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 py-20 text-center text-muted-foreground">
                     <Filter className="w-16 h-16 mx-auto mb-4 opacity-50"/>
                     <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
                 </div>
             ) : (
                 <div className="space-y-8 pb-12">
                     {heroItem && (
-                        <section className="w-full px-4 md:px-6 lg:px-8">
+                        <section className="w-full">
                             <FeaturedHero item={heroItem}/>
                         </section>
                     )}
 
                     {gridItems.length > 0 && (
-                        <section className="w-full px-4 md:px-6 lg:px-8">
+                        <section className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-lg font-bold text-foreground">
                                     {t('featured.moreFeatured', '更多精选')}
                                 </h2>
                                 <Badge variant="secondary">{gridItems.length}</Badge>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'}}>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
                                 {gridItems.map((item) => (
                                     <VideoCard key={item.id} item={item}/>
                                 ))}
@@ -360,7 +360,7 @@ const FeaturedPage = () => {
 
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full">
-        <div className="w-full px-4 md:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
                 <div>
                     <div className="flex items-center gap-2">
@@ -380,7 +380,7 @@ const FeaturedPageSkeleton: React.FC = () => (
 
             <div className="space-y-8 pb-12">
                 <section>
-                    <Skeleton className="w-full h-64 rounded-xl"/>
+                    <Skeleton className="w-full max-w-[1600px] mx-auto aspect-[21/9] rounded-xl"/>
                 </section>
 
                 <section>
@@ -388,7 +388,7 @@ const FeaturedPageSkeleton: React.FC = () => (
                         <Skeleton className="h-6 w-32"/>
                         <Skeleton className="h-5 w-12 rounded-full"/>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'}}>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
                         {Array.from({length: 12}).map((_, i) => (
                             <div key={i}>
                                 <Skeleton className="aspect-video rounded-xl"/>
