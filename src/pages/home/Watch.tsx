@@ -113,8 +113,7 @@ const WatchPage = () => {
     });
 
     const {data: recData} = useMediaList({
-        page_size: 10,
-        category_id: media?.edges?.category?.id || undefined,
+        page_size: 30,
         status: 'active'
     });
 
@@ -137,17 +136,10 @@ const WatchPage = () => {
     const error = mediaError ? t('watch.failedToLoad') : null;
 
     const {data: adPlacements = []} = usePublicAdPlacements();
-    // 各广告位的展示概率（0~1）。概率 < 1 时按概率展示，并非每次加载都显示。
-    const PLACEMENT_DISPLAY_PROBABILITY: Record<string, number> = {
-        'watch-sidebar': 0.6,
-    };
     const sidebarAds = React.useMemo(() => {
         const p = adPlacements.find(x => x.slug === 'watch-sidebar');
         // 合并 legacy ads 与创意库 items（G6-3：创意一次定义，可被广告位复用）
         const items = [...(p?.ads || []), ...(p?.creatives || [])];
-        if (items.length === 0) return [];
-        const prob = PLACEMENT_DISPLAY_PROBABILITY[p?.slug] ?? 1;
-        if (Math.random() > prob) return [];
         return items;
     }, [adPlacements]);
 
@@ -449,9 +441,9 @@ const WatchPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {sidebarAds.length > 0 && sidebarAds.map((ad) => (
-                        <AdDisplay key={ad.id} ad={ad} variant="sidebar"/>
-                    ))}
+                    {sidebarAds.length > 0 && (
+                        <AdDisplay key={sidebarAds[0].id} ad={sidebarAds[0]} variant="sidebar"/>
+                    )}
                     {recommendations.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-4 italic">{t('watch.noRecommendations')}</p>
                     ) : (

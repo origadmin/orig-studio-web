@@ -48,6 +48,12 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     const imageUrl = getAdImageUrl(ad);
     const badgeLabel = ad.badge_text || t('ad.sponsored', '赞助');
 
+    // 统一兜底：图片加载失败（如服务端资源 404）时隐藏 <img>，避免破图/空白方块；
+    // 卡片仍展示背景渐变 + badge + 标题，视觉上保持完整。
+    const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        e.currentTarget.style.display = 'none';
+    };
+
     if (variant === 'leaderboard') {
         return (
             <div className="w-full bg-muted/30 border border-border/40 rounded-lg px-4 py-2 flex items-center justify-between">
@@ -71,7 +77,7 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
         return (
             <div className="w-full max-w-[300px] bg-card border border-border/40 rounded-lg overflow-hidden">
                 {ad.image_url && (
-                    <img src={imageUrl} alt={ad.title} className="w-full h-[150px] object-cover"/>
+                    <img src={imageUrl} alt={ad.title} className="w-full h-[150px] object-cover" onError={handleImgError}/>
                 )}
                 <div className="p-3">
                     <Badge variant="outline" className="text-xs mb-1">{badgeLabel}</Badge>
@@ -99,7 +105,8 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                         className="relative aspect-video overflow-hidden block"
                     >
                         <img src={imageUrl} alt={ad.title}
-                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                             onError={handleImgError}/>
                         <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
                             {badgeLabel}
                         </Badge>
@@ -121,30 +128,26 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
 
     if (variant === 'sidebar') {
         return (
-            <div className="bg-muted/20 border border-dashed border-amber-500/40 rounded-lg overflow-hidden group flex gap-3 p-2">
+            <a
+                href={ad.link_url || '#'}
+                target={ad.link_url ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                onClick={handleClick}
+                className="relative block w-full aspect-[4/3] rounded-lg overflow-hidden border border-dashed border-amber-500/40 group bg-muted/20"
+            >
                 {ad.image_url && (
-                    <a
-                        href={ad.link_url || '#'}
-                        target={ad.link_url ? '_blank' : undefined}
-                        rel="noopener noreferrer"
-                        onClick={handleClick}
-                        className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0"
-                    >
-                        <img src={imageUrl} alt={ad.title}
-                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
-                    </a>
+                    <img src={imageUrl} alt={ad.title}
+                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         onError={handleImgError}/>
                 )}
-                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <Badge variant="outline" className="text-[10px] mb-1 self-start text-amber-600 border-amber-500/40 bg-amber-500/10">{badgeLabel}</Badge>
-                    <p className="text-sm font-bold text-foreground line-clamp-2 leading-snug">{ad.title}</p>
-                    {ad.link_url && (
-                        <a href={ad.link_url} target="_blank" rel="noopener noreferrer" onClick={handleClick}
-                           className="text-xs text-primary hover:underline mt-1 inline-flex items-center gap-0.5">
-                            {t('ad.viewDetail', '查看详情')} <ExternalLink className="w-3 h-3"/>
-                        </a>
-                    )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
+                <Badge variant="secondary" className="absolute top-2 right-2 text-xs bg-background/80 backdrop-blur-sm text-amber-600 border-amber-500/40">
+                    {badgeLabel}
+                </Badge>
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-sm font-bold text-white line-clamp-2 leading-snug drop-shadow-sm">{ad.title}</p>
                 </div>
-            </div>
+            </a>
         );
     }
 
@@ -159,7 +162,8 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                     className="relative aspect-video overflow-hidden block"
                 >
                     <img src={imageUrl} alt={ad.title}
-                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
+                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         onError={handleImgError}/>
                     <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
                         {badgeLabel}
                     </Badge>

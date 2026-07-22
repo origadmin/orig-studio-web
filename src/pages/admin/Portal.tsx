@@ -31,16 +31,17 @@ import {Slider} from '@/components/ui/slider';
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {getFullUrl} from '@/lib/utils';
+import {generateSlug} from '@/lib/utils/slug';
 import {toast} from 'sonner';
 import {
     useAdminNavItems, useAdminBanners,
     useCreateNavItem, useUpdateNavItem, useDeleteNavItem,
     useCreateBanner, useUpdateBanner, useToggleBanner, useDeleteBanner,
     useAdminAdPlacements, useCreateAdPlacement, useUpdateAdPlacement, useToggleAdPlacement, useDeleteAdPlacement,
-    useAdminAds, useCreateAd, useUpdateAd, useToggleAd, useDeleteAd,
 } from '@/hooks/queries';
-import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type Ad, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, type CreateAdRequest, type UpdateAdRequest, adminPortalApi} from '@/lib/api/portal';
-import {useQueryClient} from '@tanstack/react-query';
+import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, adminPortalApi, type AdCreative, type CreateAdCreativeRequest, type UpdateAdCreativeRequest} from '@/lib/api/portal';
+import {adminCreativesApi, adminPlacementCreativesApi} from '@/lib/api/ads';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
     const {t} = useTranslation();
@@ -1242,16 +1243,23 @@ const AdManagerTab: React.FC = () => {
     const updatePlacementMutation = useUpdateAdPlacement();
     const togglePlacementMutation = useToggleAdPlacement();
     const deletePlacementMutation = useDeleteAdPlacement();
-    const createAdMutation = useCreateAd();
-    const updateAdMutation = useUpdateAd();
-    const toggleAdMutation = useToggleAd();
-    const deleteAdMutation = useDeleteAd();
 
     const placements = (placementsData as AdPlacement[] | undefined) || [];
     const [selectedPlacementId, setSelectedPlacementId] = useState<string>('');
     const selectedPlacement = placements.find(p => p.id === selectedPlacementId) || null;
-    const {data: adsData, isLoading: adsLoading} = useAdminAds(selectedPlacementId);
-    const ads = adsData?.items || [];
+
+    // D2（G6-3 重构）：广告列表改为展示「绑定该广告位的创意 AdCreative」，后端 M2M 不动
+    const {data: boundIds = [], isLoading: boundLoading} = useQuery({
+        queryKey: ['admin', 'placementCreatives', selectedPlacementId],
+        queryFn: () => adminPlacementCreativesApi.list(selectedPlacementId),
+        enabled: !!selectedPlacementId,
+    });
+    const {data: allCreatives = []} = useQuery({
+        queryKey: ['admin', 'creatives'],
+        queryFn: () => adminCreativesApi.list(),
+    });
+    const creatives = allCreatives.filter(c => boundIds.includes(c.id));
+    const adsLoading = boundLoading;
 
     // 广告位弹窗
     const [placementDialogMode, setPlacementDialogMode] = useState<'create' | 'edit'>('create');
@@ -1261,6 +1269,8 @@ const AdManagerTab: React.FC = () => {
         name: '', slug: '', type: 'banner', width: 0, height: 0, max_ads: 1, is_active: true, sequence: 0, description: '',
     });
     const [placementPage, setPlacementPage] = useState('home');
+    const [placementSlugManuallyEdited, setPlacementSlugManuallyEdited] = useState(false);
+    const [placementNameFromPreset, setPlacementNameFromPreset] = useState(false);
     const [placementPosition, setPlacementPosition] = useState('top-banner');
 
     const placementPages = [
@@ -1273,7 +1283,7 @@ const AdManagerTab: React.FC = () => {
 
     const placementPositions = [
         { value: 'top-banner', label: t('admin.positionTopBanner', '顶部横幅'), type: 'banner', width: 960, height: 90 },
-        { value: 'sidebar', label: t('admin.positionSidebar', '侧边栏'), type: 'sidebar', width: 300, height: 600 },
+        { value: 'sidebar', label: t('admin.positionSidebar', '侧边栏'), type: 'sidebar', width: 320, height: 240 },
         { value: 'feed', label: t('admin.positionFeed', '信息流'), type: 'feed', width: 300, height: 250 },
         { value: 'bottom', label: t('admin.positionBottom', '底部'), type: 'banner', width: 960, height: 90 },
         { value: 'floating', label: t('admin.positionFloating', '悬浮'), type: 'card', width: 300, height: 250 },
@@ -1296,6 +1306,8 @@ const AdManagerTab: React.FC = () => {
         const pos = placementPositions.find(p => p.value === placementPosition);
         const pageInfo = placementPages.find(p => p.value === page);
         if (pos && pageInfo && page !== 'custom' && pos.value !== 'custom') {
+            setPlacementNameFromPreset(true);
+            setPlacementSlugManuallyEdited(false);
             setPlacementForm(prev => ({
                 ...prev,
                 name: `${pageInfo.label}${pos.label}广告位`,
@@ -1312,6 +1324,8 @@ const AdManagerTab: React.FC = () => {
         const pos = placementPositions.find(p => p.value === position);
         const pageInfo = placementPages.find(p => p.value === placementPage);
         if (pos && pageInfo && placementPage !== 'custom' && position !== 'custom') {
+            setPlacementNameFromPreset(true);
+            setPlacementSlugManuallyEdited(false);
             setPlacementForm(prev => ({
                 ...prev,
                 name: `${pageInfo.label}${pos.label}广告位`,
@@ -1330,19 +1344,23 @@ const AdManagerTab: React.FC = () => {
         }
     };
 
-    // 广告弹窗
-    const [adDialogMode, setAdDialogMode] = useState<'create' | 'edit'>('create');
-    const [adDialogOpen, setAdDialogOpen] = useState(false);
-    const [editingAd, setEditingAd] = useState<Ad | null>(null);
-    const [adForm, setAdForm] = useState<CreateAdRequest & Partial<UpdateAdRequest>>({
-        placement_id: '', title: '', image_url: '', image_mobile_url: '', link_url: '', badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
+    // 创意弹窗（D2：新建创意并关联 / 从创意库选择复用）
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [addMode, setAddMode] = useState<'create' | 'library'>('create');
+    const [creativeForm, setCreativeForm] = useState<CreateAdCreativeRequest>({
+        title: '', image_url: '', image_mobile_url: '', link_url: '', link_target: '_blank',
+        badge_text: '', priority: 0, is_active: true,
     });
+    const [editingCreative, setEditingCreative] = useState<AdCreative | null>(null);
+    const [creativeEditOpen, setCreativeEditOpen] = useState(false);
+    // 轻量创意库查看/管理弹窗
+    const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
 
     // 删除弹窗
-    const [deleteType, setDeleteType] = useState<'placement' | 'ad'>('placement');
+    const [deleteType, setDeleteType] = useState<'placement' | 'creative'>('placement');
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deletingPlacement, setDeletingPlacement] = useState<AdPlacement | null>(null);
-    const [deletingAd, setDeletingAd] = useState<Ad | null>(null);
+    const [deletingCreative, setDeletingCreative] = useState<AdCreative | null>(null);
     const [cascadeCount, setCascadeCount] = useState(0);
 
     // 自动选中第一个广告位
@@ -1351,6 +1369,14 @@ const AdManagerTab: React.FC = () => {
             setSelectedPlacementId(placements[0].id);
         }
     }, [placements, selectedPlacementId]);
+
+    // 非预设状态下，根据名称自动生成 slug
+    React.useEffect(() => {
+        if (!placementNameFromPreset && !placementSlugManuallyEdited && placementForm.name) {
+            const generated = generateSlug(placementForm.name);
+            setPlacementForm(prev => (generated && generated !== prev.slug ? {...prev, slug: generated} : prev));
+        }
+    }, [placementForm.name, placementNameFromPreset, placementSlugManuallyEdited]);
 
     const typeLabels: Record<string, string> = {
         banner: t('admin.placementTypeBanner', '横幅'),
@@ -1455,6 +1481,8 @@ const AdManagerTab: React.FC = () => {
         setEditingPlacement(null);
         setPlacementPage('home');
         setPlacementPosition('top-banner');
+        setPlacementSlugManuallyEdited(false);
+        setPlacementNameFromPreset(true);
         const defaultPos = placementPositions.find(p => p.value === 'top-banner');
         setPlacementForm({
             name: '首页顶部横幅广告位',
@@ -1473,6 +1501,8 @@ const AdManagerTab: React.FC = () => {
         const { page, position } = resolvePageAndPositionFromSlug(p.slug);
         setPlacementPage(page);
         setPlacementPosition(position);
+        setPlacementSlugManuallyEdited(true);
+        setPlacementNameFromPreset(false);
         setPlacementForm({
             name: p.name, slug: p.slug, type: p.type,
             width: p.width, height: p.height, max_ads: p.max_ads,
@@ -1511,80 +1541,86 @@ const AdManagerTab: React.FC = () => {
     const openDeletePlacementDialog = async (p: AdPlacement) => {
         setDeleteType('placement');
         setDeletingPlacement(p);
-        setDeletingAd(null);
-        // 查询关联广告数量
+        setDeletingCreative(null);
+        // D2：统计该广告位已绑定的创意数量（绑定关系而非 legacy Ad）
         try {
-            const resp = await adminPortalApi.countAdsByPlacement(p.id);
-            setCascadeCount(resp.count || 0);
+            const bound = await adminPlacementCreativesApi.list(p.id);
+            setCascadeCount(bound.length);
         } catch {
             setCascadeCount(0);
         }
         setDeleteDialogOpen(true);
     };
 
-    // ========== 广告操作 ==========
-    const openCreateAdDialog = () => {
+    // ========== 创意操作（D2：G6-3 重构） ==========
+    const resetCreativeForm = () =>
+        setCreativeForm({
+            title: '', image_url: '', image_mobile_url: '', link_url: '', link_target: '_blank',
+            badge_text: '', priority: 0, is_active: true,
+        });
+
+    const openAddDialog = (mode: 'create' | 'library' = 'create') => {
         if (!selectedPlacementId) {
             toast.info(t('admin.selectPlacementFirst', '请先选择广告位'));
             return;
         }
-        setAdDialogMode('create');
-        setEditingAd(null);
-        setAdForm({
-            placement_id: selectedPlacementId,
-            title: '', image_url: '', image_mobile_url: '', link_url: '',
-            badge_text: '', priority: 0, is_active: true, start_at: '', end_at: '',
-        });
-        setAdDialogOpen(true);
+        setAddMode(mode);
+        resetCreativeForm();
+        setAddDialogOpen(true);
     };
 
-    const openEditAdDialog = (ad: Ad) => {
-        setAdDialogMode('edit');
-        setEditingAd(ad);
-        setAdForm({
-            placement_id: ad.placement_id,
-            title: ad.title,
-            image_url: ad.image_url || '',
-            image_mobile_url: ad.image_mobile_url || '',
-            link_url: ad.link_url || '',
-            badge_text: ad.badge_text || '',
-            priority: ad.priority,
-            is_active: ad.is_active,
-            start_at: ad.start_at || '',
-            end_at: ad.end_at || '',
-        });
-        setAdDialogOpen(true);
-    };
-
-    const handleSaveAd = async () => {
+    const handleCreateAndAssign = async () => {
+        if (!selectedPlacementId) return;
         try {
-            if (adDialogMode === 'create') {
-                await createAdMutation.mutateAsync(adForm);
-                toast.success(t('admin.adCreateSuccess', '广告创建成功'));
-            } else if (editingAd) {
-                await updateAdMutation.mutateAsync({id: editingAd.id, data: adForm});
-                toast.success(t('admin.adUpdateSuccess', '广告更新成功'));
-            }
-            setAdDialogOpen(false);
-            queryClient.invalidateQueries({queryKey: ['adminAds']});
+            const created = await adminCreativesApi.create(creativeForm);
+            await adminPlacementCreativesApi.assign(selectedPlacementId, created.id);
+            toast.success(t('admin.creativeCreateAndAssignSuccess', '创意已创建并关联到当前广告位'));
+            setAddDialogOpen(false);
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'placementCreatives', selectedPlacementId]});
         } catch (err) {
-            console.error('Failed to save ad:', err);
-            toast.error(t('admin.adSaveFail', '广告保存失败'));
+            console.error('Failed to create & assign creative:', err);
+            toast.error(t('admin.creativeSaveFail', '创意保存失败'));
         }
     };
 
-    const handleToggleAd = async (id: string) => {
+    const openEditCreativeDialog = (c: AdCreative) => {
+        setEditingCreative(c);
+        setCreativeForm({
+            title: c.title, image_url: c.image_url || '', image_mobile_url: c.image_mobile_url || '',
+            link_url: c.link_url || '', link_target: c.link_target || '_blank', badge_text: c.badge_text || '',
+            priority: c.priority, is_active: c.is_active,
+        });
+        setCreativeEditOpen(true);
+    };
+
+    const handleUpdateCreative = async () => {
+        if (!editingCreative) return;
         try {
-            await toggleAdMutation.mutateAsync(id);
-            queryClient.invalidateQueries({queryKey: ['adminAds']});
+            await adminCreativesApi.update(editingCreative.id, creativeForm);
+            toast.success(t('admin.creativeUpdateSuccess', '创意更新成功'));
+            setCreativeEditOpen(false);
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'placementCreatives', selectedPlacementId]});
         } catch (err) {
-            console.error('Failed to toggle:', err);
+            console.error('Failed to update creative:', err);
+            toast.error(t('admin.creativeSaveFail', '创意保存失败'));
         }
     };
 
-    const openDeleteAdDialog = (ad: Ad) => {
-        setDeleteType('ad');
-        setDeletingAd(ad);
+    const handleToggleCreative = async (c: AdCreative) => {
+        try {
+            await adminCreativesApi.update(c.id, {is_active: !c.is_active});
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+            queryClient.invalidateQueries({queryKey: ['admin', 'placementCreatives', selectedPlacementId]});
+        } catch (err) {
+            console.error('Failed to toggle creative:', err);
+        }
+    };
+
+    const openRemoveCreativeDialog = (c: AdCreative) => {
+        setDeleteType('creative');
+        setDeletingCreative(c);
         setDeletingPlacement(null);
         setCascadeCount(0);
         setDeleteDialogOpen(true);
@@ -1600,10 +1636,12 @@ const AdManagerTab: React.FC = () => {
                     setSelectedPlacementId('');
                 }
                 queryClient.invalidateQueries({queryKey: ['adminAdPlacements']});
-            } else if (deleteType === 'ad' && deletingAd) {
-                await deleteAdMutation.mutateAsync(deletingAd.id);
-                toast.success(t('admin.adDeleteSuccess', '广告已删除'));
-                queryClient.invalidateQueries({queryKey: ['adminAds']});
+            } else if (deleteType === 'creative' && deletingCreative) {
+                if (selectedPlacementId) {
+                    await adminPlacementCreativesApi.unassign(selectedPlacementId, deletingCreative.id);
+                }
+                toast.success(t('admin.creativeUnassignSuccess', '已从该广告位移除创意'));
+                queryClient.invalidateQueries({queryKey: ['admin', 'placementCreatives', selectedPlacementId]});
             }
             setDeleteDialogOpen(false);
         } catch (err) {
@@ -1639,7 +1677,7 @@ const AdManagerTab: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                             {placements.map(p => {
                                 const isSelected = p.id === selectedPlacementId;
-                                const currentAds = selectedPlacementId === p.id ? ads.length : 0;
+                                const currentAds = selectedPlacementId === p.id ? creatives.length : 0;
                                 return (
                                     <button
                                         key={p.id}
@@ -1685,7 +1723,7 @@ const AdManagerTab: React.FC = () => {
                                     <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementSize', '建议尺寸')}</span><span className="font-medium">{selectedPlacement.width}×{selectedPlacement.height}</span></div>
                                 )}
                                 <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.placementMaxAds', '最大广告数')}</span><span className="font-medium">{selectedPlacement.max_ads}</span></div>
-                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.currentAds', '当前广告数')}</span><span className="font-medium">{ads.length}</span></div>
+                                <div className="flex justify-between"><span className="text-muted-foreground">{t('admin.currentAds', '当前广告数')}</span><span className="font-medium">{creatives.length}</span></div>
                                 <div className="flex items-center justify-between pt-2 border-t border-border">
                                     <span className="text-muted-foreground">{t('admin.placementStatus', '状态')}</span>
                                     <div className="flex items-center gap-2">
@@ -1707,63 +1745,69 @@ const AdManagerTab: React.FC = () => {
                         </CardContent>
                     </Card>
 
-                    {/* 右侧：广告列表 */}
+                    {/* 右侧：该广告位下的创意列表（D2：绑定 AdCreative） */}
                     <Card className="lg:col-span-2">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <CardTitle className="flex items-center gap-2 text-lg"><BarChart3 className="w-5 h-5"/>{t('admin.adList', '广告列表')}</CardTitle>
-                                    <CardDescription>{t('admin.adListDesc', '该广告位下的广告创意')}</CardDescription>
+                                    <CardTitle className="flex items-center gap-2 text-lg"><Layers className="w-5 h-5"/>{t('admin.creativeList', '创意列表')}</CardTitle>
+                                    <CardDescription>{t('admin.creativeListDesc', '该广告位下绑定的广告创意（可一次定义、多处复用）')}</CardDescription>
                                 </div>
-                                <Button size="sm" onClick={openCreateAdDialog}>
-                                    <Plus className="w-4 h-4 mr-2"/>{t('admin.addAd', '添加广告')}
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => setLibraryDialogOpen(true)}>
+                                        <Layers className="w-4 h-4 mr-2"/>{t('admin.creativeLibrary', '创意库')}
+                                    </Button>
+                                    <Button size="sm" onClick={() => openAddDialog('create')}>
+                                        <Plus className="w-4 h-4 mr-2"/>{t('admin.addCreative', '添加创意')}
+                                    </Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent>
                             {adsLoading ? (
                                 <div className="py-8 text-center"><Spinner className="mx-auto"/></div>
-                            ) : ads.length === 0 ? (
+                            ) : creatives.length === 0 ? (
                                 <div className="py-12 text-center text-muted-foreground">
                                     <ImageOff className="w-12 h-12 mx-auto mb-2 opacity-30"/>
-                                    <p>{t('admin.noAds', '暂无广告')}</p>
-                                    <Button variant="outline" size="sm" className="mt-3" onClick={openCreateAdDialog}>
-                                        <Plus className="w-4 h-4 mr-2"/>{t('admin.addAd', '添加广告')}
-                                    </Button>
+                                    <p>{t('admin.noCreativesBound', '该广告位尚未绑定创意')}</p>
+                                    <div className="flex items-center justify-center gap-2 mt-3">
+                                        <Button variant="outline" size="sm" onClick={() => openAddDialog('create')}>
+                                            <Plus className="w-4 h-4 mr-2"/>{t('admin.createCreative', '新建创意')}
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => openAddDialog('library')}>
+                                            <Layers className="w-4 h-4 mr-2"/>{t('admin.assignFromLibrary', '从创意库选择')}
+                                        </Button>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    {ads.map(ad => (
-                                        <div key={ad.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-                                            {/* 缩略图 */}
+                                    {creatives.map(c => (
+                                        <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
                                             <div className="w-20 h-12 rounded overflow-hidden bg-muted/30 flex-shrink-0">
-                                                {ad.image_url ? (
-                                                    <img src={getFullUrl(ad.image_url)} alt={ad.title} className="w-full h-full object-cover"/>
+                                                {c.image_url ? (
+                                                    <img src={c.image_url} alt={c.title} className="w-full h-full object-cover"/>
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
                                                         <ImageOff className="w-4 h-4 text-muted-foreground"/>
                                                     </div>
                                                 )}
                                             </div>
-                                            {/* 信息 */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium truncate">{ad.title}</span>
-                                                    {ad.badge_text && <Badge variant="secondary" className="text-xs">{ad.badge_text}</Badge>}
+                                                    <span className="font-medium truncate">{c.title}</span>
+                                                    {c.badge_text && <Badge variant="secondary" className="text-xs">{c.badge_text}</Badge>}
+                                                    {!c.is_active && <Badge variant="soft-neutral" className="text-xs">{t('admin.inactive', '禁用')}</Badge>}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3">
-                                                    <span>{t('admin.priority', '优先级')}: {ad.priority}</span>
-                                                    {ad.start_at && <span>{t('admin.startAt', '开始')}: {ad.start_at}</span>}
-                                                    {ad.end_at && <span>{t('admin.endAt', '结束')}: {ad.end_at}</span>}
+                                                    <span>{t('admin.priority', '优先级')}: {c.priority}</span>
+                                                    {c.link_url && <a href={c.link_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1"><Link2 className="w-3 h-3"/>{t('ad.viewDetail', '查看')}</a>}
                                                 </div>
                                             </div>
-                                            {/* 状态 */}
                                             <div className="flex items-center gap-2">
-                                                <Switch checked={ad.is_active} onCheckedChange={() => handleToggleAd(ad.id)}/>
-                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditAdDialog(ad)}>
+                                                <Button variant="ghost" size="icon-sm" onClick={() => openEditCreativeDialog(c)}>
                                                     <Edit className="w-4 h-4"/>
                                                 </Button>
-                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => openDeleteAdDialog(ad)}>
+                                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => openRemoveCreativeDialog(c)}>
                                                     <Trash2 className="w-4 h-4"/>
                                                 </Button>
                                             </div>
@@ -1816,12 +1860,12 @@ const AdManagerTab: React.FC = () => {
                         <div className="h-px bg-border -mx-2"/>
                         <div className="grid gap-2">
                             <Label>{t('admin.placementName', '名称')}*</Label>
-                            <Input value={placementForm.name} onChange={e => setPlacementForm({...placementForm, name: e.target.value})} placeholder={t('admin.placementNamePlaceholder', '如：首页横幅')}/>
+                            <Input value={placementForm.name} onChange={e => { setPlacementForm({...placementForm, name: e.target.value}); setPlacementNameFromPreset(false); }} placeholder={t('admin.placementNamePlaceholder', '如：首页横幅')}/>
                         </div>
                         <div className="grid gap-2">
                             <Label>Slug*</Label>
-                            <Input value={placementForm.slug} onChange={e => setPlacementForm({...placementForm, slug: e.target.value})} placeholder="home-banner"/>
-                            <p className="text-xs text-muted-foreground">{t('admin.slugHint', '英文标识，用于前端匹配展示样式')}</p>
+                            <Input value={placementForm.slug} onChange={e => { setPlacementForm({...placementForm, slug: e.target.value}); setPlacementSlugManuallyEdited(true); }} placeholder="home-banner"/>
+                            <p className="text-xs text-muted-foreground">{t('admin.slugHint', '英文标识，用于前端匹配展示样式；输入名称时会自动根据名称生成，也可手动覆盖')}</p>
                         </div>
                         <div className="grid gap-2">
                             <Label>{t('admin.placementType', '类型')}</Label>
@@ -1877,73 +1921,85 @@ const AdManagerTab: React.FC = () => {
             </Dialog>
 
             {/* 广告创建/编辑弹窗 */}
-            <Dialog open={adDialogOpen} onOpenChange={setAdDialogOpen}>
+            {/* 添加创意弹窗（D2：新建并关联 / 从创意库选择复用） */}
+            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
                     <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
                         <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                            {adDialogMode === 'create' ? <Plus className="w-5 h-5 text-primary"/> : <Edit className="w-5 h-5 text-primary"/>}
-                            {adDialogMode === 'create' ? t('admin.addAdTitle', '添加广告') : t('admin.editAd', '编辑广告')}
+                            <Plus className="w-5 h-5 text-primary"/>
+                            {t('admin.addCreative', '添加创意')}
                         </DialogTitle>
                         <DialogDescription className="text-sm text-muted-foreground mt-1">
                             {selectedPlacement && (
-                                <span>{t('admin.placement', '广告位')}: <strong>{selectedPlacement.name}</strong>
-                                {(selectedPlacement.width > 0 || selectedPlacement.height > 0) &&
-                                    ` (${t('admin.suggestedSize', '建议尺寸')}: ${selectedPlacement.width}×${selectedPlacement.height})`}</span>
+                                <span>{t('admin.placement', '广告位')}: <strong>{selectedPlacement.name}</strong></span>
                             )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
-                        <div className="grid gap-2">
-                            <Label>{t('admin.adTitle', '广告标题')}*</Label>
-                            <Input value={adForm.title} onChange={e => setAdForm({...adForm, title: e.target.value})} placeholder={t('admin.adTitlePlaceholder', '如：夏季促销')}/>
-                        </div>
-                        <ImageUploadField
-                            value={adForm.image_url || ''}
-                            onChange={url => setAdForm({...adForm, image_url: url})}
-                            label={t('admin.adImageUrlPC', '广告图片（PC端）') + (selectedPlacement && (selectedPlacement.width > 0 || selectedPlacement.height > 0) ? ` (${t('admin.suggestedSize', '建议尺寸')}: ${selectedPlacement.width}×${selectedPlacement.height})` : '')}
-                            aspect="video"
-                        />
-                        <ImageUploadField
-                            value={adForm.image_mobile_url || ''}
-                            onChange={url => setAdForm({...adForm, image_mobile_url: url})}
-                            label={t('admin.adImageUrlMobile', '广告图片（移动端，可选，留空自动适配）')}
-                            aspect="video"
-                        />
-                        <div className="grid gap-2">
-                            <Label>{t('admin.adLinkUrl', '跳转链接')}</Label>
-                            <Input value={adForm.link_url || ''} onChange={e => setAdForm({...adForm, link_url: e.target.value})} placeholder="https://..."/>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label>{t('admin.adBadgeText', '角标文字')}</Label>
-                                <Input value={adForm.badge_text || ''} onChange={e => setAdForm({...adForm, badge_text: e.target.value})} placeholder="HOT"/>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>{t('admin.adPriority', '优先级')}</Label>
-                                <Input type="number" value={adForm.priority || 0} onChange={e => setAdForm({...adForm, priority: Number(e.target.value)})}/>
-                                <p className="text-xs text-muted-foreground">{t('admin.priorityHint', '数字越大越靠前显示')}</p>
-                            </div>
-                        </div>
                         <div className="flex items-center gap-2">
-                            <Switch checked={adForm.is_active ?? true} onCheckedChange={v => setAdForm({...adForm, is_active: v})}/>
-                            <Label>{t('admin.enabled', '启用')}</Label>
+                            <Button variant={addMode === 'create' ? 'default' : 'outline'} size="sm" onClick={() => setAddMode('create')}>
+                                {t('admin.createCreative', '新建创意')}
+                            </Button>
+                            <Button variant={addMode === 'library' ? 'default' : 'outline'} size="sm" onClick={() => setAddMode('library')}>
+                                {t('admin.assignFromLibrary', '从创意库选择')}
+                            </Button>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label>{t('admin.adStartAt', '开始时间（可选）')}</Label>
-                                <Input type="datetime-local" value={adForm.start_at || ''} onChange={e => setAdForm({...adForm, start_at: e.target.value})}/>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>{t('admin.adEndAt', '结束时间（可选）')}</Label>
-                                <Input type="datetime-local" value={adForm.end_at || ''} onChange={e => setAdForm({...adForm, end_at: e.target.value})}/>
-                            </div>
-                        </div>
+                        {addMode === 'create' ? (
+                            <CreativeFormFields form={creativeForm} setForm={setCreativeForm}/>
+                        ) : (
+                            <AssignCreativesInline
+                                placementId={selectedPlacementId}
+                                onDone={() => setAddDialogOpen(false)}
+                            />
+                        )}
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
-                        <Button variant="outline" onClick={() => setAdDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
-                        <Button onClick={handleSaveAd} disabled={!adForm.title || !adForm.image_url}>
-                            {adDialogMode === 'create' ? t('common.add', '添加') : t('common.save', '保存')}
+                        <Button variant="outline" onClick={() => setAddDialogOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        {addMode === 'create' && (
+                            <Button onClick={handleCreateAndAssign} disabled={!creativeForm.title || !creativeForm.image_url}>
+                                {t('common.add', '添加')}
+                            </Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 编辑创意弹窗 */}
+            <Dialog open={creativeEditOpen} onOpenChange={setCreativeEditOpen}>
+                <DialogContent className="max-w-2xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Edit className="w-5 h-5 text-primary"/>{t('admin.editCreative', '编辑创意')}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="px-6 py-5 space-y-4 overflow-y-auto min-h-0">
+                        <CreativeFormFields form={creativeForm} setForm={setCreativeForm}/>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setCreativeEditOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleUpdateCreative} disabled={!creativeForm.title}>
+                            {t('common.save', '保存')}
                         </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 轻量创意库查看/管理弹窗 */}
+            <Dialog open={libraryDialogOpen} onOpenChange={setLibraryDialogOpen}>
+                <DialogContent className="max-w-3xl p-0 gap-0 grid grid-rows-[auto_1fr_auto] overflow-hidden max-h-[calc(100vh-4rem)]">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Layers className="w-5 h-5 text-primary"/>{t('admin.creativeLibrary', '创意库')}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.creativeLibraryDesc', '定义一次创意，即可复用到多个广告位（G6-3）')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="px-6 py-5 overflow-y-auto min-h-0">
+                        <CreativeLibraryList/>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setLibraryDialogOpen(false)}>{t('common.close', '关闭')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -1962,7 +2018,7 @@ const AdManagerTab: React.FC = () => {
                                     <span>{t('admin.deletePlacementCascadeWarning', {
                                         name: deletingPlacement.name,
                                         count: cascadeCount,
-                                        defaultValue: `广告位"${deletingPlacement.name}"下有 ${cascadeCount} 条广告。删除广告位后，这些广告将一并删除。此操作不可撤销，是否继续？`
+                                        defaultValue: `广告位"${deletingPlacement.name}"下绑定了 ${cascadeCount} 条创意。删除广告位后，这些创意的绑定将一并解除。此操作不可撤销，是否继续？`
                                     })}</span>
                                 ) : (
                                     <span>{t('admin.deleteAdPlacementConfirm', {
@@ -1970,9 +2026,9 @@ const AdManagerTab: React.FC = () => {
                                         defaultValue: `确定要删除广告位"${deletingPlacement.name}"吗？此操作不可撤销。`
                                     })}</span>
                                 )
-                            ) : deletingAd ? (
-                                <span>{t('admin.deleteAdConfirm', {
-                                    defaultValue: `确定要删除广告"${deletingAd.title}"吗？此操作不可撤销。`
+                            ) : deletingCreative ? (
+                                <span>{t('admin.deleteCreativeFromPlacementConfirm', {
+                                    defaultValue: `确定将创意"${deletingCreative.title}"从该广告位移除吗？此操作仅解除绑定，不影响创意库中的创意。`
                                 })}</span>
                             ) : null}
                         </AlertDialogDescription>
@@ -1986,5 +2042,318 @@ const AdManagerTab: React.FC = () => {
                 </AlertDialogContent>
             </AlertDialog>
         </>
+    );
+};
+
+// ═════════════════════════════════════════════════════════════
+// D2 复用组件：创意表单 / 从创意库选择（分配） / 轻量创意库（G6-3）
+// ═════════════════════════════════════════════════════════════
+
+const CreativeFormFields: React.FC<{
+    form: CreateAdCreativeRequest;
+    setForm: React.Dispatch<React.SetStateAction<CreateAdCreativeRequest>>;
+}> = ({form, setForm}) => {
+    const {t} = useTranslation();
+    return (
+        <>
+            <div className="grid gap-2">
+                <Label>{t('admin.creativeTitle', '创意标题')}*</Label>
+                <Input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder={t('admin.adTitlePlaceholder', '如：夏季促销')}/>
+            </div>
+            <div className="grid gap-2">
+                <Label>{t('admin.creativeImage', '图片 URL')}</Label>
+                <Input value={form.image_url || ''} onChange={e => setForm({...form, image_url: e.target.value})} placeholder="https://..."/>
+            </div>
+            <div className="grid gap-2">
+                <Label>{t('admin.creativeMobileImage', '移动端图片 URL')}</Label>
+                <Input value={form.image_mobile_url || ''} onChange={e => setForm({...form, image_mobile_url: e.target.value})} placeholder="https://..."/>
+            </div>
+            <div className="grid gap-2">
+                <Label>{t('admin.creativeLink', '跳转链接')}</Label>
+                <Input value={form.link_url || ''} onChange={e => setForm({...form, link_url: e.target.value})} placeholder="https://..."/>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                    <Label>{t('admin.creativeBadge', '角标文案')}</Label>
+                    <Input value={form.badge_text || ''} onChange={e => setForm({...form, badge_text: e.target.value})} placeholder="HOT"/>
+                </div>
+                <div className="grid gap-2">
+                    <Label>{t('admin.priority', '优先级')}</Label>
+                    <Input type="number" value={form.priority} onChange={e => setForm({...form, priority: Number(e.target.value)})}/>
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <Switch checked={!!form.is_active} onCheckedChange={v => setForm({...form, is_active: v})}/>
+                <Label>{t('admin.isActive', '启用')}</Label>
+            </div>
+        </>
+    );
+};
+
+const AssignCreativesInline: React.FC<{
+    placementId?: string;
+    onDone?: () => void;
+}> = ({placementId, onDone}) => {
+    const {t} = useTranslation();
+    const queryClient = useQueryClient();
+    const [creatives, setCreatives] = useState<AdCreative[]>([]);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    React.useEffect(() => {
+        if (!placementId) return;
+        let cancelled = false;
+        (async () => {
+            setLoading(true);
+            try {
+                const [all, assigned] = await Promise.all([
+                    adminCreativesApi.list(),
+                    adminPlacementCreativesApi.list(placementId),
+                ]);
+                if (cancelled) return;
+                setCreatives(all);
+                setSelected(new Set(assigned));
+            } catch (err) {
+                console.error('Failed to load creatives:', err);
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [placementId]);
+
+    const toggle = (id: string) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
+
+    const handleSave = async () => {
+        if (!placementId) return;
+        setSaving(true);
+        try {
+            const assigned = await adminPlacementCreativesApi.list(placementId);
+            const toAdd = [...selected].filter(id => !assigned.includes(id));
+            const toRemove = assigned.filter(id => !selected.has(id));
+            await Promise.all([
+                ...toAdd.map(id => adminPlacementCreativesApi.assign(placementId, id)),
+                ...toRemove.map(id => adminPlacementCreativesApi.unassign(placementId, id)),
+            ]);
+            queryClient.invalidateQueries({queryKey: ['admin', 'placementCreatives', placementId]});
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+            onDone?.();
+        } catch (err) {
+            console.error('Failed to assign creatives:', err);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return <div className="py-12 flex justify-center"><Spinner className="h-7 w-7"/></div>;
+    }
+    if (creatives.length === 0) {
+        return <p className="text-sm text-muted-foreground py-8 text-center">{t('admin.noCreatives', '创意库还是空的，请先新建创意')}</p>;
+    }
+    return (
+        <div className="space-y-2">
+            {creatives.map(c => (
+                <label key={c.id}
+                       className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:bg-muted/40 cursor-pointer">
+                    <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
+                           className="h-4 w-4 accent-primary"/>
+                    {c.image_url && (
+                        <img src={c.image_url} alt={c.title}
+                             className="w-16 h-10 object-cover rounded-md border border-border/40"/>
+                    )}
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
+                        {c.badge_text && <span className="text-xs text-muted-foreground">{c.badge_text}</span>}
+                    </div>
+                    {!c.is_active && <Badge variant="soft-neutral">{t('admin.inactive', '禁用')}</Badge>}
+                </label>
+            ))}
+            <div className="flex justify-end pt-2">
+                <Button onClick={handleSave} disabled={saving}>
+                    {saving ? t('common.saving', '保存中…') : t('common.save', '保存')}
+                </Button>
+            </div>
+        </div>
+    );
+};
+
+const CreativeLibraryList: React.FC = () => {
+    const {t} = useTranslation();
+    const queryClient = useQueryClient();
+    const [creatives, setCreatives] = useState<AdCreative[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [createOpen, setCreateOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
+    const [editing, setEditing] = useState<AdCreative | null>(null);
+    const [deleting, setDeleting] = useState<AdCreative | null>(null);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [form, setForm] = useState<CreateAdCreativeRequest>({
+        title: '', image_url: '', image_mobile_url: '', link_url: '', link_target: '_blank',
+        badge_text: '', priority: 0, is_active: true,
+    });
+
+    const load = async () => {
+        setLoading(true);
+        try {
+            setCreatives(await adminCreativesApi.list());
+        } catch (err) {
+            console.error('Failed to load creatives:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    React.useEffect(() => { load(); }, []);
+
+    const openEdit = (c: AdCreative) => {
+        setEditing(c);
+        setForm({
+            title: c.title, image_url: c.image_url || '', image_mobile_url: c.image_mobile_url || '',
+            link_url: c.link_url || '', link_target: c.link_target || '_blank', badge_text: c.badge_text || '',
+            priority: c.priority, is_active: c.is_active,
+        });
+        setEditOpen(true);
+    };
+    const resetForm = () => setForm({
+        title: '', image_url: '', image_mobile_url: '', link_url: '', link_target: '_blank',
+        badge_text: '', priority: 0, is_active: true,
+    });
+    const handleCreate = async () => {
+        try {
+            await adminCreativesApi.create(form);
+            setCreateOpen(false);
+            resetForm();
+            await load();
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+        } catch (err) {
+            console.error('Failed to create creative:', err);
+        }
+    };
+    const handleUpdate = async () => {
+        if (!editing) return;
+        try {
+            await adminCreativesApi.update(editing.id, form);
+            setEditOpen(false);
+            await load();
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+        } catch (err) {
+            console.error('Failed to update creative:', err);
+        }
+    };
+    const handleDelete = async () => {
+        if (!deleting) return;
+        try {
+            await adminCreativesApi.remove(deleting.id);
+            setDeleteOpen(false);
+            await load();
+            queryClient.invalidateQueries({queryKey: ['admin', 'creatives']});
+        } catch (err) {
+            console.error('Failed to delete creative:', err);
+        }
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex justify-end">
+                <Button size="sm" onClick={() => { resetForm(); setCreateOpen(true); }}>
+                    <Plus className="w-4 h-4 mr-2"/>{t('admin.createCreative', '新建创意')}
+                </Button>
+            </div>
+            {loading ? (
+                <div className="py-12 flex justify-center"><Spinner className="h-7 w-7"/></div>
+            ) : creatives.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-8 text-center">{t('admin.noCreatives', '创意库还是空的')}</p>
+            ) : (
+                <div className="space-y-2">
+                    {creatives.map(c => (
+                        <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30">
+                            <div className="w-16 h-10 rounded overflow-hidden bg-muted/30 flex-shrink-0">
+                                {c.image_url ? (
+                                    <img src={c.image_url} alt={c.title} className="w-full h-full object-cover"/>
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <ImageOff className="w-4 h-4 text-muted-foreground"/>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium truncate">{c.title}</span>
+                                    {c.badge_text && <Badge variant="secondary" className="text-xs">{c.badge_text}</Badge>}
+                                    {!c.is_active && <Badge variant="soft-neutral" className="text-xs">{t('admin.inactive', '禁用')}</Badge>}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                    <span>{t('admin.priority', '优先级')}: {c.priority}</span>
+                                    {c.link_url && <a href={c.link_url} target="_blank" rel="noopener noreferrer" className="ml-3 text-primary hover:underline inline-flex items-center gap-1"><Link2 className="w-3 h-3"/>{t('ad.viewDetail', '查看')}</a>}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)}><Edit className="w-4 h-4"/></Button>
+                                <Button variant="ghost" size="icon-sm" className="text-destructive" onClick={() => { setDeleting(c); setDeleteOpen(true); }}><Trash2 className="w-4 h-4"/></Button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* 新建创意 */}
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2"><Plus className="w-5 h-5 text-primary"/>{t('admin.createCreative', '新建创意')}</DialogTitle>
+                    </DialogHeader>
+                    <div className="px-6 py-5 grid gap-4">
+                        <CreativeFormFields form={form} setForm={setForm}/>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setCreateOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleCreate} disabled={!form.title || !form.image_url}>{t('common.create', '创建')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 编辑创意 */}
+            <Dialog open={editOpen} onOpenChange={setEditOpen}>
+                <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2"><Edit className="w-5 h-5 text-primary"/>{t('admin.editCreative', '编辑创意')}</DialogTitle>
+                    </DialogHeader>
+                    <div className="px-6 py-5 grid gap-4">
+                        <CreativeFormFields form={form} setForm={setForm}/>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <Button variant="outline" onClick={() => setEditOpen(false)}>{t('common.cancel', '取消')}</Button>
+                        <Button onClick={handleUpdate} disabled={!form.title}>{t('common.save', '保存')}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 删除创意 */}
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <AlertDialogContent className="max-w-sm p-0 gap-0 overflow-hidden">
+                    <AlertDialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <AlertDialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Trash2 className="w-5 h-5 text-red-500"/>{t('admin.deleteCreative', '删除创意')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-sm text-muted-foreground mt-1">
+                            {t('admin.deleteCreativeConfirm', {defaultValue: `确定删除创意"${deleting?.title}"？已分配到广告位的引用会一并解除。`})}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
+                        <AlertDialogCancel className="rounded-lg h-10 px-5 border-border/60 mt-0">{t('common.cancel', '取消')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium">
+                            {t('admin.confirmDelete', '确认删除')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
     );
 };

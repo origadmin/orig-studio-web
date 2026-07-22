@@ -241,7 +241,6 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
         if (pathname.startsWith('/admin/permissions')) return t('admin.permissions', '权限管理');
         if (pathname.startsWith('/admin/payment')) return t('admin.payment', '付费管理');
         if (pathname.startsWith('/admin/promotion')) return t('admin.promotion', '推广管理');
-        if (pathname.startsWith('/admin/ads')) return t('admin.adPlacementsNav', '广告位');
         if (pathname.startsWith('/admin/portal')) return t('admin.portalConfig', '门户配置');
         if (pathname.startsWith('/admin/playlists')) return t('admin.playlists');
         if (pathname.startsWith('/admin/categories')) return t('admin.categories');

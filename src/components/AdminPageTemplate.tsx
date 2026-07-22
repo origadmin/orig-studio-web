@@ -38,7 +38,6 @@ const ROUTE_PATH_MAP: Record<string, string> = {
   '/admin/permissions': '/admin/permissions',
   '/admin/payment': '/admin/payment',
   '/admin/promotion': '/admin/promotion',
-  '/admin/ads': '/admin/ads',
   '/admin/live-rooms': '/admin/live-rooms',
   '/admin/portal': '/admin/portal',
   '/admin/pages': '/admin/pages',
