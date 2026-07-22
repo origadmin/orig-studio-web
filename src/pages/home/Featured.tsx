@@ -1,6 +1,6 @@
 import React, {useState, useMemo} from 'react';
 import {Link, useSearch} from '@tanstack/react-router';
-import {Play, Eye, Star, Clock, LayoutGrid, List, Filter} from 'lucide-react';
+import {Play, Eye, Star, Clock, LayoutGrid, List, Filter, Flame} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
@@ -12,13 +12,11 @@ import {useTranslation} from 'react-i18next';
 import {useMediaList} from '@/hooks/queries';
 import ErrorPage from '@/components/common/ErrorPage';
 import VideoCardSkeleton from '@/components/common/VideoCardSkeleton';
-import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
-import {getLocalizedText} from '@/lib/i18n-utils';
 
 type LayoutMode = 'grid' | 'list';
 
 const FeaturedPage = () => {
-    const {t, i18n} = useTranslation();
+    const {t} = useTranslation();
     const search = useSearch({strict: false}) as {category_id?: number};
     const activeCategoryId = search.category_id;
     const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
@@ -50,30 +48,8 @@ const FeaturedPage = () => {
 
     const filteredMedia = featuredMedia;
 
-    const heroItems = useMemo<HeroBannerItem[]>(() => {
-        const lang = i18n.language;
-        const items: HeroBannerItem[] = [];
-        for (const item of featuredMedia.slice(0, 5)) {
-            const user = item.edges?.user?.[0] || item.user;
-            items.push({
-                id: item.id,
-                title: item.title || item.short_token || '',
-                subtitle: t('featured.subtitle', '这是编辑团队从海量内容中为您精心挑选的高质量视频，每日更新。'),
-                thumbnail: item.thumbnail || item.poster || '',
-                bgGradient: 'linear-gradient(135deg, #0f172a 0%, #312e81 100%)',
-                shortToken: item.short_token || undefined,
-                badge: '精选',
-                duration: item.duration,
-                viewCount: item.view_count,
-                createTime: item.create_time,
-                user: user ? {
-                    name: user.nickname || user.username || '',
-                    avatar: user.avatar,
-                } : undefined,
-            });
-        }
-        return items;
-    }, [featuredMedia, i18n.language, t]);
+    const primaryItem = featuredMedia[0];
+    const editorPickItems = featuredMedia.slice(1, 10);
 
     if (isLoading) {
         return <FeaturedPageSkeleton/>;
@@ -104,17 +80,37 @@ const FeaturedPage = () => {
 
     return (
         <div className="w-full py-6">
-            {heroItems.length > 0 && (
-                <section className="mb-8 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
-                    <HeroBanner items={heroItems} mode="wide" autoPlayInterval={5000}/>
-                </section>
-            )}
+            <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_460px] gap-6">
+                    {primaryItem && <PrimaryFeaturedCard item={primaryItem}/>}
+                    <aside className="flex flex-col min-h-0">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Flame size={18} className="text-orange-500"/>
+                            <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick', '编辑精选')}</h2>
+                            <Badge variant="secondary" className="ml-auto">
+                                {editorPickItems.length}
+                            </Badge>
+                        </div>
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 -mr-1" style={{scrollbarWidth: 'thin'}}>
+                            {editorPickItems.length > 0 ? (
+                                editorPickItems.map((item, idx) => (
+                                    <EditorPickListItem key={item.id} item={item} rank={idx + 1}/>
+                                ))
+                            ) : (
+                                <div className="text-sm text-muted-foreground py-8 text-center">
+                                    {t('common.noData')}
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+                </div>
+            </section>
 
             <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Star className="w-5 h-5 text-warning"/>
-                        <h2 className="text-xl font-bold text-foreground">{t('featured.allFeatured')}</h2>
+                        <h2 className="text-xl font-bold text-foreground">{t('featured.allFeatured', '全部精选')}</h2>
                         <span className="text-sm text-muted-foreground">
                             {t('featured.featuredCount', {count: filteredMedia.length})}
                         </span>
@@ -281,16 +277,23 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
     );
 };
 
-const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
+const EditorPickListItem: React.FC<FeaturedCardProps & {rank?: number}> = ({item, rank}) => {
     const user = item.edges?.user?.[0] || item.user;
 
     return (
         <Link
             to="/watch"
             search={{v: item.short_token || item.id}}
-            className="group flex gap-3 p-2 rounded-xl border border-border bg-card hover:bg-accent/50 transition-colors"
+            className="group flex gap-3 p-2.5 rounded-xl border border-border/60 bg-card/50 hover:bg-accent/50 hover:border-border transition-all"
         >
-            <div className="relative w-32 shrink-0 aspect-video rounded-lg overflow-hidden">
+            {rank != null && (
+                <div className={`flex-shrink-0 w-5 text-center font-bold text-sm ${
+                    rank <= 3 ? 'text-orange-500' : 'text-muted-foreground'
+                }`}>
+                    {rank}
+                </div>
+            )}
+            <div className="relative w-28 shrink-0 aspect-video rounded-lg overflow-hidden">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
@@ -305,13 +308,18 @@ const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
                     {formatDuration(item.duration)}
                 </Badge>
             </div>
-            <div className="flex flex-col justify-center min-w-0 py-0.5">
-                <h4 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+            <div className="flex flex-col justify-center min-w-0 py-0.5 flex-1">
+                <h4 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                     {item.title || item.short_token || ''}
                 </h4>
                 <span className="text-xs text-muted-foreground mt-1 truncate">
                     {user?.nickname || user?.username || 'Unknown'}
                 </span>
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                    <span className="flex items-center gap-0.5">
+                        <Eye size={10}/>{formatViews(item.view_count)}
+                    </span>
+                </div>
             </div>
         </Link>
     );
@@ -428,14 +436,40 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full py-6">
-        <section className="mb-8 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
-            <div className="aspect-[21/9] rounded-xl bg-muted/50 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"/>
-                <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-                    <Skeleton className="h-5 w-20 rounded-full"/>
-                    <Skeleton className="h-9 w-3/4 rounded"/>
-                    <Skeleton className="h-4 w-1/2 rounded"/>
-                    <Skeleton className="h-9 w-28 rounded-lg mt-2"/>
+        <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_460px] gap-6">
+                <div className="aspect-video lg:aspect-[16/10] rounded-xl bg-muted/50 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"/>
+                    <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
+                        <Skeleton className="h-5 w-20 rounded-full"/>
+                        <Skeleton className="h-8 w-3/4 rounded"/>
+                        <Skeleton className="h-4 w-1/2 rounded"/>
+                        <div className="flex items-center gap-3 pt-2">
+                            <Skeleton className="h-9 w-28 rounded-lg"/>
+                            <Skeleton className="h-8 w-8 rounded-full"/>
+                            <Skeleton className="h-4 w-24 rounded"/>
+                        </div>
+                    </div>
+                </div>
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-5 rounded-full"/>
+                        <Skeleton className="h-5 w-24 rounded"/>
+                        <Skeleton className="h-5 w-10 rounded-full ml-auto"/>
+                    </div>
+                    <div className="space-y-2">
+                        {Array.from({length: 7}).map((_, i) => (
+                            <div key={i} className="flex gap-3 p-2.5 rounded-xl border border-border/60 bg-card/50">
+                                <Skeleton className="w-5 h-5 rounded"/>
+                                <Skeleton className="w-28 aspect-video rounded-lg"/>
+                                <div className="flex-1 flex flex-col justify-center gap-1.5">
+                                    <Skeleton className="h-4 w-full rounded"/>
+                                    <Skeleton className="h-4 w-2/3 rounded"/>
+                                    <Skeleton className="h-3 w-1/3 rounded"/>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>
