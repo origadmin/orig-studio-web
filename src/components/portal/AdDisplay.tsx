@@ -5,14 +5,14 @@ import {Badge} from '@/components/ui/badge';
 import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
 import {useTranslation} from 'react-i18next';
-import type {Ad} from '@/lib/api/portal';
+import type {Ad, AdCreative} from '@/lib/api/portal';
 
 interface AdCardProps {
-    ad: Ad;
+    ad: Ad | AdCreative;
     variant?: 'card' | 'rectangle' | 'leaderboard' | 'feed' | 'sidebar';
 }
 
-function getAdImageUrl(ad: Ad): string {
+function getAdImageUrl(ad: Ad | AdCreative): string {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     if (isMobile && ad.image_mobile_url) {
         return getFullUrl(ad.image_mobile_url) || '';
@@ -20,16 +20,22 @@ function getAdImageUrl(ad: Ad): string {
     return getFullUrl(ad.image_url || '') || '';
 }
 
+// 仅 legacy Ad 有关联广告位，才上报曝光/点击；创意库 item 无独立曝光/点击端点。
+const isTrackableAd = (item: Ad | AdCreative): item is Ad =>
+    'placement_id' in item && !!item.placement_id;
+
 const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     const {t} = useTranslation();
 
     const handleImpression = async () => {
+        if (!isTrackableAd(ad)) return;
         try {
             await api.post(`/ads/${ad.id}/impression`);
         } catch {}
     };
 
     const handleClick = async () => {
+        if (!isTrackableAd(ad)) return;
         try {
             await api.post(`/ads/${ad.id}/click`);
         } catch {}
@@ -175,6 +181,6 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
 
 export default AdDisplay;
 
-export const FeedAdCard: React.FC<{ad: Ad}> = ({ad}) => {
+export const FeedAdCard: React.FC<{ad: Ad | AdCreative}> = ({ad}) => {
     return <AdDisplay ad={ad} variant="feed"/>;
 };

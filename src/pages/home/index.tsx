@@ -8,7 +8,7 @@ import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
 import {usePublicAdPlacements} from '@/hooks/queries';
-import type {Ad} from '@/lib/api/portal';
+import type {Ad, AdCreative} from '@/lib/api/portal';
 import {FeedAdCard} from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import {usePortalConfig} from '@/hooks/queries';
@@ -103,7 +103,7 @@ const VIDEO_CARD_WIDTH = 240;
 const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
 
-const AdCardSection: React.FC<{placement: {name: string; ads: Ad[]}}> = ({placement}) => {
+const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}}> = ({placement}) => {
     const {t} = useTranslation();
     const hasAds = placement.ads && placement.ads.length > 0;
     if (!hasAds) return null;
@@ -255,15 +255,16 @@ const HomePage = () => {
         return adPlacements.filter(p => p.is_active);
     }, [adPlacements]);
 
-    const sponsoredAd = useMemo<{name: string; ads: Ad[]} | null>(() => {
+    const sponsoredAd = useMemo<{name: string; ads: (Ad | AdCreative)[]} | null>(() => {
         const p = activeAdPlacements.find(x => x.slug === 'home-sponsored');
-        if (p && p.ads && p.ads.length > 0) return {name: p.name, ads: p.ads};
+        const items = [...(p?.ads || []), ...(p?.creatives || [])];
+        if (items.length > 0) return {name: p?.name || '', ads: items};
         return null;
     }, [activeAdPlacements]);
 
-    const feedAds = useMemo<Ad[]>(() => {
+    const feedAds = useMemo<(Ad | AdCreative)[]>(() => {
         const p = activeAdPlacements.find(x => x.slug === 'home-feed');
-        return p?.ads || [];
+        return [...(p?.ads || []), ...(p?.creatives || [])];
     }, [activeAdPlacements]);
 
     const {
@@ -288,9 +289,9 @@ const HomePage = () => {
         return result;
     }, [data]);
 
-    const mergedItems: (Media | {__ad: true; ad: Ad; key: string})[] = useMemo(() => {
+    const mergedItems: (Media | {__ad: true; ad: Ad | AdCreative; key: string})[] = useMemo(() => {
         if (feedAds.length === 0) return items;
-        const result: (Media | {__ad: true; ad: Ad; key: string})[] = [];
+        const result: (Media | {__ad: true; ad: Ad | AdCreative; key: string})[] = [];
         let adIdx = 0;
         for (let i = 0; i < items.length; i++) {
             result.push(items[i]);

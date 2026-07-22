@@ -143,10 +143,12 @@ const WatchPage = () => {
     };
     const sidebarAds = React.useMemo(() => {
         const p = adPlacements.find(x => x.slug === 'watch-sidebar');
-        if (!p?.ads || p.ads.length === 0) return [];
-        const prob = PLACEMENT_DISPLAY_PROBABILITY[p.slug] ?? 1;
+        // 合并 legacy ads 与创意库 items（G6-3：创意一次定义，可被广告位复用）
+        const items = [...(p?.ads || []), ...(p?.creatives || [])];
+        if (items.length === 0) return [];
+        const prob = PLACEMENT_DISPLAY_PROBABILITY[p?.slug] ?? 1;
         if (Math.random() > prob) return [];
-        return p.ads;
+        return items;
     }, [adPlacements]);
 
     // Next video for YouTube-style autoplay countdown

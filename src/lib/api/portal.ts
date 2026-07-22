@@ -226,6 +226,23 @@ export interface AdPlacementWithAds {
     is_active: boolean;
     sequence: number;
     ads: Ad[];
+    creatives?: AdCreative[];
+}
+
+// 创意库：一次定义、可被多个广告位复用（G6-3）
+export interface AdCreative {
+    id: string;
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target: string;
+    badge_text?: string;
+    is_active: boolean;
+    priority: number;
+    impressions: number;
+    clicks: number;
 }
 
 export interface AdClickLog {
@@ -290,6 +307,31 @@ export interface UpdateAdRequest {
     is_active?: boolean;
     start_at?: string;
     end_at?: string;
+}
+
+// 创意库请求体（G6-3）
+export interface CreateAdCreativeRequest {
+    title: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
+}
+
+export interface UpdateAdCreativeRequest {
+    title?: string;
+    title_i18n?: Record<string, string>;
+    image_url?: string;
+    image_mobile_url?: string;
+    link_url?: string;
+    link_target?: string;
+    badge_text?: string;
+    priority?: number;
+    is_active?: boolean;
 }
 
 export interface PortalConfig {
