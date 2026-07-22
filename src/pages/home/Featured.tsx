@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Link, useSearch} from '@tanstack/react-router';
-import {Play, Eye, Flame, Star, Clock, TrendingUp, Filter} from 'lucide-react';
+import {Play, Eye, Star, Clock, TrendingUp, Filter} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Skeleton} from '@/components/ui/skeleton';
 import {Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia} from '@/components/ui/empty';
@@ -48,7 +48,7 @@ interface FeaturedItem {
 
 type SortMode = 'latest' | 'popular';
 
-const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
+const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
     const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
 
@@ -58,7 +58,7 @@ const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-[16/10] max-w-[1200px] mx-auto overflow-hidden rounded-xl bg-card border border-border/60 hover:shadow-xl transition-all duration-300">
+            <div className="relative aspect-[21/9] overflow-hidden rounded-2xl">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
@@ -66,45 +66,50 @@ const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
                     onError={(e) => handleImageError(e, 'thumbnail')}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
-                <Badge
-                    variant="secondary"
-                    className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-semibold backdrop-blur-sm"
-                >
-                    <Star size={12} className="mr-1 fill-current"/>
-                    {t('featured.badge', '精选')}
-                </Badge>
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="text-xl font-bold text-white line-clamp-2 drop-shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
+                <div className="absolute top-6 left-6">
+                    <Badge className="bg-orange-500 text-white border-0 font-semibold px-3 py-1">
+                        <Star size={12} className="mr-1 fill-current"/>
+                        {t('featured.badge', '精选推荐')}
+                    </Badge>
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-10">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white line-clamp-2 drop-shadow-lg leading-tight">
                         {item.title || item.short_token || ''}
-                    </h3>
-                    <p className="text-sm text-white/70 line-clamp-1 mt-2">
+                    </h1>
+                    <p className="text-sm md:text-base text-white/70 line-clamp-2 mt-3 max-w-2xl">
                         {item.description || t('watch.noDescription')}
                     </p>
-                    <div className="flex items-center gap-3 mt-3 text-sm text-white/80">
-                        <Avatar className="h-8 w-8 border-2 border-white/30">
-                            <AvatarImage
-                                src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
-                                alt={user?.username}
-                            />
-                            <AvatarFallback className="text-xs bg-white/20">
-                                {user?.username?.[0] || 'U'}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
-                        <span className="flex items-center gap-1">
-                            <Eye size={14}/>
+                    <div className="flex flex-wrap items-center gap-4 mt-5 text-sm text-white/80">
+                        <div className="flex items-center gap-2">
+                            <Avatar className="h-9 w-9 border-2 border-white/30">
+                                <AvatarImage
+                                    src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
+                                    alt={user?.username}
+                                />
+                                <AvatarFallback className="text-xs bg-white/20 text-white">
+                                    {user?.username?.[0] || 'U'}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Eye size={16}/>
                             {formatViews(item.view_count)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                            <Clock size={14}/>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Clock size={16}/>
                             {formatDate(item.create_time)}
-                        </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Play size={16} fill="currentColor"/>
+                            {formatDuration(item.duration)}
+                        </div>
                     </div>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
-                        <Play className="w-7 h-7 text-gray-900 ml-0.5" fill="currentColor"/>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/95 flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
+                        <Play className="w-9 h-9 md:w-10 md:h-10 text-gray-900 ml-1" fill="currentColor"/>
                     </div>
                 </div>
             </div>
@@ -112,7 +117,7 @@ const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
     );
 };
 
-const MediumFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
+const VideoCard: React.FC<{item: FeaturedItem}> = ({item}) => {
     const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
 
@@ -122,62 +127,7 @@ const MediumFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-card border border-border/60 hover:shadow-lg transition-all duration-300">
-                <img
-                    src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
-                    alt={item.title}
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"/>
-                <Badge
-                    variant="secondary"
-                    className="absolute top-3 left-3 bg-orange-500/90 text-white text-[10px] font-semibold"
-                >
-                    <Star size={10} className="mr-1 fill-current"/>
-                    {t('featured.badge', '精选')}
-                </Badge>
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="text-sm font-bold text-white line-clamp-2">
-                        {item.title || item.short_token || ''}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-2">
-                        <Avatar className="h-5 w-5 border border-white/30">
-                            <AvatarImage
-                                src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
-                                alt={user?.username}
-                            />
-                            <AvatarFallback className="text-[9px] bg-white/20">
-                                {user?.username?.[0] || 'U'}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-white/70 truncate">
-                            {user?.nickname || user?.username || 'Unknown'}
-                        </span>
-                    </div>
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-xl scale-75 group-hover:scale-100 transition-transform duration-300">
-                        <Play className="w-5 h-5 text-gray-900 ml-0.5" fill="currentColor"/>
-                    </div>
-                </div>
-            </div>
-        </Link>
-    );
-};
-
-const SmallFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
-    const {t} = useTranslation();
-    const user = item.edges?.user?.[0] || item.user;
-
-    return (
-        <Link
-            to="/watch"
-            search={{v: item.short_token || item.id}}
-            className="group block"
-        >
-            <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
+            <div className="relative aspect-video overflow-hidden rounded-xl">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
@@ -185,36 +135,44 @@ const SmallFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                 />
-                <Badge
-                    variant="secondary"
-                    className="absolute top-1.5 left-1.5 bg-orange-500/90 text-white text-[9px] font-semibold px-1.5"
-                >
-                    <Star size={9} className="mr-0.5 fill-current"/>
-                    {t('featured.badge', '精选')}
-                </Badge>
-                <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1 py-0.5 rounded">
+                <div className="absolute top-2.5 left-2.5">
+                    <Badge variant="secondary" className="bg-orange-500/90 text-white border-0 text-[10px] font-semibold px-2 py-0.5">
+                        <Star size={9} className="mr-0.5 fill-current"/>
+                        {t('featured.badgeShort', '精选')}
+                    </Badge>
+                </div>
+                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded">
                     {formatDuration(item.duration)}
                 </div>
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                    <div className="w-9 h-9 bg-white/90 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300">
-                        <Play className="w-4 h-4 text-gray-900 ml-0.5" fill="currentColor"/>
+                    <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-300">
+                        <Play className="w-5 h-5 text-gray-900 ml-0.5" fill="currentColor"/>
                     </div>
                 </div>
             </div>
-            <div className="pt-2">
-                <h3 className="font-semibold text-foreground text-xs line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+            <div className="pt-3">
+                <h3 className="font-semibold text-foreground text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-snug">
                     {item.title || item.short_token || ''}
                 </h3>
-                <div className="flex items-center gap-1">
-                    <img
-                        src={getImageUrl(user?.avatar, 'avatar')}
-                        alt={user?.username}
-                        onError={(e) => handleImageError(e, 'avatar')}
-                        className="w-4 h-4 rounded-full object-cover flex-shrink-0"
-                    />
-                    <span className="text-[11px] text-muted-foreground truncate">
+                <div className="flex items-center gap-2 mb-1.5">
+                    <Avatar className="w-5 h-5">
+                        <AvatarImage
+                            src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
+                            alt={user?.username}
+                        />
+                        <AvatarFallback className="text-[9px] bg-muted">
+                            {user?.username?.[0] || 'U'}
+                        </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground truncate">
                         {user?.nickname || user?.username || 'Unknown'}
                     </span>
+                </div>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-0.5">
+                        <Eye size={11}/>{formatViews(item.view_count)}
+                    </span>
+                    {item.create_time && <span>{formatDate(item.create_time)}</span>}
                 </div>
             </div>
         </Link>
@@ -229,7 +187,7 @@ const FeaturedPage = () => {
 
     const {data, isLoading, error} = useMediaList({
         featured: 'true',
-        page_size: 50,
+        page_size: 48,
         status: 'active',
     });
 
@@ -265,10 +223,8 @@ const FeaturedPage = () => {
         return sorted;
     }, [featuredMedia, selectedCategory, sortMode]);
 
-    const topFeatured = filteredAndSortedMedia[0];
-    const largeCards = filteredAndSortedMedia.slice(1, 3);
-    const mediumCards = filteredAndSortedMedia.slice(3, 7);
-    const smallCards = filteredAndSortedMedia.slice(7);
+    const heroItem = filteredAndSortedMedia[0];
+    const gridItems = filteredAndSortedMedia.slice(1);
 
     if (isLoading) {
         return <FeaturedPageSkeleton/>;
@@ -280,7 +236,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
+            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -301,22 +257,22 @@ const FeaturedPage = () => {
 
     return (
         <div className="w-full">
-            <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-                            <Star className="w-5 h-5 text-white" fill="currentColor"/>
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold text-foreground">{t('featured.pageTitle', '精选')}</h1>
-                            <p className="text-sm text-muted-foreground">{t('featured.pageDesc', '编辑团队精心挑选的高质量内容')}</p>
-                        </div>
+            <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-6">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
+                            <Star className="w-6 h-6 md:w-7 md:h-7 text-orange-500" fill="currentColor"/>
+                            {t('featured.pageTitle', '精选')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {t('featured.pageDesc', '编辑团队精心挑选的高质量内容')}
+                        </p>
                     </div>
 
                     <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
                         <button
                             onClick={() => setSortMode('latest')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                 sortMode === 'latest'
                                     ? 'bg-background text-foreground shadow-sm'
                                     : 'text-muted-foreground hover:text-foreground'
@@ -327,7 +283,7 @@ const FeaturedPage = () => {
                         </button>
                         <button
                             onClick={() => setSortMode('popular')}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                 sortMode === 'popular'
                                     ? 'bg-background text-foreground shadow-sm'
                                     : 'text-muted-foreground hover:text-foreground'
@@ -340,12 +296,12 @@ const FeaturedPage = () => {
                 </div>
 
                 {categories.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-8">
                         <button
                             onClick={() => setSelectedCategory(null)}
-                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                                 selectedCategory === null
-                                    ? 'bg-primary text-primary-foreground'
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
                                     : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                             }`}
                         >
@@ -355,9 +311,9 @@ const FeaturedPage = () => {
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
-                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                                     selectedCategory === cat.id
-                                        ? 'bg-primary text-primary-foreground'
+                                        ? 'bg-primary text-primary-foreground shadow-sm'
                                         : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
                                 }`}
                             >
@@ -373,44 +329,29 @@ const FeaturedPage = () => {
                         <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
                     </div>
                 ) : (
-                    <>
-                        {topFeatured && (
+                    <div className="space-y-10 pb-12">
+                        {heroItem && (
                             <section>
-                                <LargeFeaturedCard item={topFeatured}/>
+                                <FeaturedHero item={heroItem}/>
                             </section>
                         )}
 
-                        {largeCards.length > 0 && (
-                            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {largeCards.map((item) => (
-                                    <MediumFeaturedCard key={item.id} item={item}/>
-                                ))}
-                            </section>
-                        )}
-
-                        {mediumCards.length > 0 && (
-                            <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {mediumCards.map((item) => (
-                                    <MediumFeaturedCard key={item.id} item={item}/>
-                                ))}
-                            </section>
-                        )}
-
-                        {smallCards.length > 0 && (
+                        {gridItems.length > 0 && (
                             <section>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>
-                                    <h2 className="text-lg font-bold text-foreground">{t('featured.moreFeatured', '更多精选')}</h2>
-                                    <Badge variant="secondary">{smallCards.length}</Badge>
+                                <div className="flex items-center justify-between mb-5">
+                                    <h2 className="text-lg font-bold text-foreground">
+                                        {t('featured.moreFeatured', '更多精选')}
+                                    </h2>
+                                    <Badge variant="secondary">{gridItems.length}</Badge>
                                 </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-3 gap-y-4">
-                                    {smallCards.map((item) => (
-                                        <SmallFeaturedCard key={item.id} item={item}/>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-5 gap-y-8">
+                                    {gridItems.map((item) => (
+                                        <VideoCard key={item.id} item={item}/>
                                     ))}
                                 </div>
                             </section>
                         )}
-                    </>
+                    </div>
                 )}
             </div>
         </div>
@@ -419,58 +360,52 @@ const FeaturedPage = () => {
 
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full">
-        <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-8">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-xl"/>
-                    <div className="space-y-1">
-                        <Skeleton className="h-6 w-32"/>
-                        <Skeleton className="h-4 w-48"/>
+        <div className="max-w-[1400px] mx-auto w-full px-4 md:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pt-6">
+                <div>
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="w-7 h-7 rounded"/>
+                        <Skeleton className="h-8 w-24"/>
                     </div>
+                    <Skeleton className="h-4 w-48 mt-2"/>
                 </div>
-                <Skeleton className="h-9 w-40 rounded-lg"/>
+                <Skeleton className="h-10 w-40 rounded-lg"/>
             </div>
 
-            <div className="flex gap-2">
-                {Array.from({length: 5}).map((_, i) => (
-                    <Skeleton key={i} className="h-8 w-20 rounded-full"/>
+            <div className="flex flex-wrap gap-2 mb-8">
+                {Array.from({length: 6}).map((_, i) => (
+                    <Skeleton key={i} className="h-8 w-16 rounded-full"/>
                 ))}
             </div>
 
-            <section>
-                <Skeleton className="aspect-[16/10] rounded-xl"/>
-            </section>
+            <div className="space-y-10 pb-12">
+                <section>
+                    <Skeleton className="aspect-[21/9] rounded-2xl"/>
+                </section>
 
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Array.from({length: 2}).map((_, i) => (
-                    <Skeleton key={i} className="aspect-[4/3] rounded-xl"/>
-                ))}
-            </section>
-
-            <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Array.from({length: 4}).map((_, i) => (
-                    <Skeleton key={i} className="aspect-[4/3] rounded-xl"/>
-                ))}
-            </section>
-
-            <section>
-                <div className="flex items-center gap-2 mb-4">
-                    <Skeleton className="h-5 w-5 rounded-full"/>
-                    <Skeleton className="h-6 w-32"/>
-                    <Skeleton className="h-5 w-10 rounded-full"/>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-3 gap-y-4">
-                    {Array.from({length: 12}).map((_, i) => (
-                        <div key={i}>
-                            <Skeleton className="aspect-video rounded-lg"/>
-                            <div className="pt-2 space-y-1">
-                                <Skeleton className="h-4 w-full"/>
-                                <Skeleton className="h-3 w-3/4"/>
+                <section>
+                    <div className="flex items-center justify-between mb-5">
+                        <Skeleton className="h-6 w-32"/>
+                        <Skeleton className="h-5 w-12 rounded-full"/>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-x-5 gap-y-8">
+                        {Array.from({length: 12}).map((_, i) => (
+                            <div key={i}>
+                                <Skeleton className="aspect-video rounded-xl"/>
+                                <div className="pt-3 space-y-2">
+                                    <Skeleton className="h-4 w-full"/>
+                                    <Skeleton className="h-4 w-3/4"/>
+                                    <div className="flex items-center gap-2">
+                                        <Skeleton className="w-5 h-5 rounded-full"/>
+                                        <Skeleton className="h-3 w-24"/>
+                                    </div>
+                                    <Skeleton className="h-3 w-20"/>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+                        ))}
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 );
