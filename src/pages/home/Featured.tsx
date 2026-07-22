@@ -223,9 +223,6 @@ const FeaturedPage = () => {
         return sorted;
     }, [featuredMedia, selectedCategory, sortMode]);
 
-    const heroItem = filteredAndSortedMedia[0];
-    const gridItems = filteredAndSortedMedia.slice(1);
-
     if (isLoading) {
         return <FeaturedPageSkeleton/>;
     }
@@ -330,28 +327,12 @@ const FeaturedPage = () => {
                     <p className="text-lg">{t('featured.noResultsTitle', '暂无符合条件的内容')}</p>
                 </div>
             ) : (
-                <div className="space-y-8 pb-12">
-                    {heroItem && (
-                        <section className="w-full">
-                            <FeaturedHero item={heroItem}/>
-                        </section>
-                    )}
-
-                    {gridItems.length > 0 && (
-                        <section className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8">
-                            <div className="flex items-center justify-between mb-5">
-                                <h2 className="text-lg font-bold text-foreground">
-                                    {t('featured.moreFeatured', '更多精选')}
-                                </h2>
-                                <Badge variant="secondary">{gridItems.length}</Badge>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
-                                {gridItems.map((item) => (
-                                    <VideoCard key={item.id} item={item}/>
-                                ))}
-                            </div>
-                        </section>
-                    )}
+                <div className="max-w-[1600px] mx-auto w-full px-4 md:px-6 lg:px-8 pb-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-7">
+                        {filteredAndSortedMedia.map((item) => (
+                            <VideoCard key={item.id} item={item}/>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>
@@ -378,33 +359,21 @@ const FeaturedPageSkeleton: React.FC = () => (
                 ))}
             </div>
 
-            <div className="space-y-8 pb-12">
-                <section>
-                    <Skeleton className="w-full max-w-[1600px] mx-auto aspect-[21/9] rounded-xl"/>
-                </section>
-
-                <section>
-                    <div className="flex items-center justify-between mb-5">
-                        <Skeleton className="h-6 w-32"/>
-                        <Skeleton className="h-5 w-12 rounded-full"/>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
-                        {Array.from({length: 12}).map((_, i) => (
-                            <div key={i}>
-                                <Skeleton className="aspect-video rounded-xl"/>
-                                <div className="pt-3 space-y-2">
-                                    <Skeleton className="h-4 w-full"/>
-                                    <Skeleton className="h-4 w-3/4"/>
-                                    <div className="flex items-center gap-2">
-                                        <Skeleton className="w-5 h-5 rounded-full"/>
-                                        <Skeleton className="h-3 w-24"/>
-                                    </div>
-                                    <Skeleton className="h-3 w-20"/>
-                                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-5 gap-y-7 pb-12">
+                {Array.from({length: 10}).map((_, i) => (
+                    <div key={i}>
+                        <Skeleton className="aspect-video rounded-xl"/>
+                        <div className="pt-3 space-y-2">
+                            <Skeleton className="h-4 w-full"/>
+                            <Skeleton className="h-4 w-3/4"/>
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="w-5 h-5 rounded-full"/>
+                                <Skeleton className="h-3 w-24"/>
                             </div>
-                        ))}
+                            <Skeleton className="h-3 w-20"/>
+                        </div>
                     </div>
-                </section>
+                ))}
             </div>
         </div>
     </div>
