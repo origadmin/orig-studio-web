@@ -441,11 +441,15 @@ export function useChannelVideos(channelToken: string | null, params?: {sort?: s
     return useQuery({
         queryKey: ['channelVideos', channelToken, params],
         queryFn: async () => {
-            // Build params conditionally to avoid passing page: undefined
-            const listParams: { page?: number; limit?: number } = {};
+            const listParams: { sort_by?: string; page?: number; limit?: number; keyword?: string } = {};
             if (params?.page !== undefined) listParams.page = params.page;
             if (params?.page_size !== undefined) listParams.limit = params.page_size;
-            const res = await channelApi.listAll(listParams);
+            if (params?.sort) listParams.sort_by = params.sort;
+            if (params?.keyword) listParams.keyword = params.keyword;
+            const res = await channelApi.getVideos(channelToken!, listParams);
+            if (res?.items) {
+                res.items = normalizeMediaList(res.items);
+            }
             return res;
         },
         enabled: !!channelToken,

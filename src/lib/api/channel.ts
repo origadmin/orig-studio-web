@@ -1,6 +1,7 @@
 // Channel API v4.1 (short_token as primary identifier)
 import {api} from "../request";
 import {PaginatedResponse} from "./types";
+import type {Media} from "./media";
 
 export interface ChannelLink {
     type: 'website' | 'social' | 'custom';
@@ -170,4 +171,7 @@ export const channelApi = {
 
     getPlaylists: (token: string, params?: {page?: number; page_size?: number}) =>
         api.get<{items: ChannelPlaylist[]; total: number; page: number; page_size: number}>(`/channels/${token}/playlists`, params as Record<string, unknown>),
+
+    getVideos: (token: string, params?: {sort_by?: string; page?: number; limit?: number; keyword?: string}) =>
+        api.get<{items: Media[]; total: number; page: number; page_size: number}>(`/channels/${token}/videos`, params as Record<string, unknown>),
 };

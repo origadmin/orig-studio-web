@@ -26,6 +26,7 @@ import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDate} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
+import {getFullUrl} from '@/lib/utils';
 import ChannelHeader from './ChannelHeader';
 import ChannelNav from './ChannelNav';
 import VideoCard from './widgets/VideoCard';
@@ -774,17 +775,32 @@ function mapMediaToVideo(media: any): {
     duration?: number;
     view_count?: number;
     published_at?: string;
+    create_time?: string;
     progress?: number;
+    user?: {
+        id?: string;
+        username?: string;
+        nickname?: string;
+        avatar?: string;
+    };
 } {
+    const userEdge = media.edges?.user?.[0] || media.user;
     return {
         id: media.id,
         short_token: media.short_token,
-        title: media.title,
-        thumbnail: media.thumbnail || media.poster,
-        duration: media.duration,
-        view_count: media.view_count,
-        published_at: media.published_at || media.create_time,
+        title: media.title || media.filename || media.id,
+        thumbnail: getFullUrl(media.thumbnail || media.poster),
+        duration: typeof media.duration === 'string' ? parseInt(media.duration, 10) : media.duration,
+        view_count: typeof media.view_count === 'string' ? parseInt(media.view_count, 10) : media.view_count,
+        published_at: media.published_at,
+        create_time: media.create_time,
         progress: 0,
+        user: userEdge ? {
+            id: userEdge.id,
+            username: userEdge.username,
+            nickname: userEdge.nickname || userEdge.username,
+            avatar: getFullUrl(userEdge.avatar),
+        } : undefined,
     };
 }
 
