@@ -233,7 +233,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="w-full px-4 md:px-6 lg:px-8 py-12">
+            <div className="w-full py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -253,7 +253,7 @@ const FeaturedPage = () => {
     }
 
     return (
-        <div className="w-full px-4 md:px-6 lg:px-8">
+        <div className="w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2">
@@ -326,7 +326,7 @@ const FeaturedPage = () => {
                 </div>
             ) : (
                 <div className="pb-12">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-5 gap-y-7">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
                         {filteredAndSortedMedia.map((item) => (
                             <VideoCard key={item.id} item={item}/>
                         ))}
@@ -338,7 +338,7 @@ const FeaturedPage = () => {
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
-    <div className="w-full px-4 md:px-6 lg:px-8">
+    <div className="w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pt-4">
             <div>
                 <div className="flex items-center gap-2">
@@ -356,8 +356,8 @@ const FeaturedPageSkeleton: React.FC = () => (
             ))}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-5 gap-y-7 pb-12">
-            {Array.from({length: 14}).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7 pb-12">
+            {Array.from({length: 12}).map((_, i) => (
                 <div key={i}>
                     <Skeleton className="aspect-video rounded-xl"/>
                     <div className="pt-3 space-y-2">

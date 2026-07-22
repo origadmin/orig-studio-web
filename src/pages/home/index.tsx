@@ -324,12 +324,12 @@ const HomePage = () => {
     return (
         <div className="w-full">
             {heroItems.length > 0 && (
-                <section className="mb-6 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
+                <section className="mb-6 max-w-[1800px] mx-auto">
                     <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={heroInterval}/>
                 </section>
             )}
 
-            <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-8">
+            <div className="max-w-[1800px] mx-auto w-full space-y-8">
                 {featuredVideos.length > 0 && (
                     <section>
                         <SectionHeader
