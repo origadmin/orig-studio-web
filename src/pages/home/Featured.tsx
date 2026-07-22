@@ -58,13 +58,13 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-[21/9] overflow-hidden rounded-xl">
+            <div className="relative w-full overflow-hidden rounded-xl" style={{maxHeight: '400px'}}>
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
                     loading="eager"
                     onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                    className="object-cover w-full h-full min-h-[280px] group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
                 <div className="absolute top-6 left-6">
@@ -345,7 +345,7 @@ const FeaturedPage = () => {
                                 </h2>
                                 <Badge variant="secondary">{gridItems.length}</Badge>
                             </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-3 gap-y-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'}}>
                                 {gridItems.map((item) => (
                                     <VideoCard key={item.id} item={item}/>
                                 ))}
@@ -380,7 +380,7 @@ const FeaturedPageSkeleton: React.FC = () => (
 
             <div className="space-y-8 pb-12">
                 <section>
-                    <Skeleton className="aspect-[21/9] rounded-xl"/>
+                    <Skeleton className="w-full h-64 rounded-xl"/>
                 </section>
 
                 <section>
@@ -388,8 +388,8 @@ const FeaturedPageSkeleton: React.FC = () => (
                         <Skeleton className="h-6 w-32"/>
                         <Skeleton className="h-5 w-12 rounded-full"/>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-3 gap-y-4">
-                        {Array.from({length: 14}).map((_, i) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'}}>
+                        {Array.from({length: 12}).map((_, i) => (
                             <div key={i}>
                                 <Skeleton className="aspect-video rounded-xl"/>
                                 <div className="pt-3 space-y-2">
