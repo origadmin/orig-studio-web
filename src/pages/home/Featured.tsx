@@ -224,7 +224,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
             className="group block"
         >
             <div className="relative rounded-xl overflow-hidden border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
-                <div className="relative aspect-[16/10] max-h-[500px] md:max-h-[520px] lg:max-h-[560px] overflow-hidden">
+                <div className="relative aspect-[16/10] overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
