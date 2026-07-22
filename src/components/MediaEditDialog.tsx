@@ -14,6 +14,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 
 interface MediaEditDialogProps {
     open: boolean;
@@ -43,7 +44,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
             setFormData({
                 title: media.title || '',
                 description: media.description || '',
-                tags: media.tags?.join(', ') || '',
+                tags: serializeTags(media.tags || []),
                 state: media.state || 'active',
             });
         }
@@ -55,7 +56,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
 
         setLoading(true);
         try {
-            const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+            const tags = parseTagsInput(formData.tags);
             await mediaApi.update(media.id?.toString() || '', {
                 title: formData.title,
                 description: formData.description,
@@ -106,7 +107,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                                 id="tags"
                                 value={formData.tags}
                                 onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                                placeholder="tag1, tag2, tag3"
+                                placeholder="#tag1 #tag2 #tag3"
                             />
                         </div>
                         <div className="grid gap-2">

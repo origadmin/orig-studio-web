@@ -27,6 +27,7 @@ import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
+import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
 import {useQueryClient} from '@tanstack/react-query';
 import type {Media} from '@/lib/api/media';
@@ -270,7 +271,7 @@ export default function MediaEditPage() {
                 description: media.description || '',
                 state: media.state || 'draft',
                 category_id: media.category_id ?? '',
-                tags: media.tags?.join(', ') || '',
+                tags: serializeTags(media.tags || []),
                 privacy: normalizePrivacy(media.privacy),
                 featured: media.featured || false,
                 enable_comments: media.enable_comments ?? true,
@@ -312,7 +313,7 @@ export default function MediaEditPage() {
                     description: form.description,
                     state: form.state,
                     category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
-                    tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+                    tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     featured: form.featured,
                     enable_comments: form.enable_comments,

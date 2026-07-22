@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
+import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
 import {cn, getFullUrl} from '@/lib/utils';
 
@@ -288,7 +289,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                     category_id: data.category_id ?? '',
                     media_id: data.media_id || '',
                     thumbnail: data.thumbnail || '',
-                    tags: data.tags?.join(', ') || '',
+                    tags: serializeTags(data.tags || []),
                     featured: data.featured || false,
                     visibility: 'public' as const,
                     meta_title: '',
@@ -330,7 +331,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
 
     // Parsed tags
     const tagsList = useMemo(() => {
-        return form.tags.split(',').map(s => s.trim()).filter(Boolean);
+        return parseTagsInput(form.tags);
     }, [form.tags]);
 
     // Save handler
@@ -338,7 +339,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
         if (isSaving) return;
         setSaving();
         try {
-            const tagsArray = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+            const tagsArray = parseTagsInput(form.tags);
             const categoryId = form.category_id !== '' && form.category_id !== undefined
                 ? Number(form.category_id) : undefined;
 
@@ -396,7 +397,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
         // Directly save with draft state
         setSaving();
         try {
-            const tagsArray = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+            const tagsArray = parseTagsInput(form.tags);
             const categoryId = form.category_id !== '' && form.category_id !== undefined
                 ? Number(form.category_id) : undefined;
             const data = mode === 'create'
@@ -458,7 +459,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
         setForm(prev => ({...prev, state: 'published'}));
         setSaving();
         try {
-            const tagsArray = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+            const tagsArray = parseTagsInput(form.tags);
             const categoryId = form.category_id !== '' && form.category_id !== undefined
                 ? Number(form.category_id) : undefined;
             const data = mode === 'create'
@@ -579,23 +580,23 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
 
     // Tag management
     const addTag = useCallback((tag: string) => {
-        const trimmed = tag.trim();
+        const trimmed = tag.trim().replace(/^#/, '');
         if (!trimmed) return;
-        const currentTags = form.tags.split(',').map(s => s.trim()).filter(Boolean);
+        const currentTags = parseTagsInput(form.tags);
         if (currentTags.includes(trimmed)) return;
-        const newTags = currentTags.length > 0 ? [...currentTags, trimmed].join(', ') : trimmed;
+        const newTags = serializeTags([...currentTags, trimmed]);
         setForm(prev => ({...prev, tags: newTags}));
         setTagInput('');
     }, [form.tags, setForm]);
 
     const removeTag = useCallback((tagToRemove: string) => {
-        const currentTags = form.tags.split(',').map(s => s.trim()).filter(Boolean);
-        const newTags = currentTags.filter(t => t !== tagToRemove).join(', ');
+        const currentTags = parseTagsInput(form.tags);
+        const newTags = serializeTags(currentTags.filter(t => t !== tagToRemove));
         setForm(prev => ({...prev, tags: newTags}));
     }, [form.tags, setForm]);
 
     const handleTagKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' || e.key === ',') {
+        if (e.key === 'Enter' || e.key === ',' || e.key === ' ' || e.key === '#') {
             e.preventDefault();
             addTag(tagInput);
         }

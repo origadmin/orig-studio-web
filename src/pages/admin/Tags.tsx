@@ -36,6 +36,7 @@ import {generateSlug} from '@/lib/utils/slug';
 import {getTagColor} from '@/lib/utils/tag-color';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 import TagColorPicker from '@/components/common/TagColorPicker';
+import {TablePagination} from '@/components/common/TablePagination';
 
 type SortKey = 'latest' | 'oldest' | 'name_asc' | 'name_desc' | 'count_desc';
 
@@ -417,45 +418,13 @@ const Tags: React.FC = () => {
                 </Table>
 
                 {/* Pagination */}
-                {total > searchParams.page_size && (
-                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/30">
-                        <p className="text-xs text-muted-foreground">
-                            {t('admin.showingRange', 'Showing {{from}} to {{to}} of {{total}} tags')
-                                .replace('{{from}}', String(startItem))
-                                .replace('{{to}}', String(endItem))
-                                .replace('{{total}}', String(total))}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="outline"
-                                size="icon-sm"
-                                disabled={searchParams.page <= 1}
-                                onClick={() => setSearchParams({...searchParams, page: searchParams.page - 1})}
-                            >
-                                <ChevronLeft className="w-4 h-4"/>
-                            </Button>
-                            {Array.from({length: Math.min(totalPages, 3)}, (_, i) => i + 1).map(p => (
-                                <Button
-                                    key={p}
-                                    variant={p === searchParams.page ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() => setSearchParams({...searchParams, page: p})}
-                                >
-                                    {p}
-                                </Button>
-                            ))}
-                            {totalPages > 3 && (
-                                <Button
-                                    variant="outline"
-                                    size="icon-sm"
-                                    disabled={searchParams.page >= totalPages}
-                                    onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
-                                >
-                                    <ChevronRight className="w-4 h-4"/>
-                                </Button>
-                            )}
-                        </div>
-                    </div>
+                {total > 0 && (
+                    <TablePagination
+                        page={searchParams.page}
+                        pageSize={searchParams.page_size}
+                        total={total}
+                        onPageChange={(page) => setSearchParams({...searchParams, page})}
+                    />
                 )}
             </Card>
 

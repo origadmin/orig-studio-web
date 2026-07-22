@@ -60,6 +60,7 @@ import {getFullUrl, cn} from '@/lib/utils';
 import {formatFileSize, formatDateTime} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
+import {TablePagination} from '@/components/common/TablePagination';
 
 export default function MediaPage() {
     const {t} = useTranslation();
@@ -508,53 +509,12 @@ export default function MediaPage() {
 
                 {/* Pagination */}
                 {total > 0 && (
-                    <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-card">
-                        <p className="text-xs text-muted-foreground">{t('admin.showingItems', {start: startItem, end: endItem, total, defaultValue: '显示第 {{start}} 到 {{end}} 项，共 {{total}} 项'})}</p>
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="outline"
-                                size="icon-sm"
-                                className="text-muted-foreground"
-                                onClick={() => setSearchParams({...searchParams, page: searchParams.page - 1})}
-                                disabled={searchParams.page <= 1}
-                            >
-                                <ChevronLeft className="w-4 h-4"/>
-                            </Button>
-                            <Button size="sm" className="shadow-sm">{searchParams.page}</Button>
-                            {searchParams.page < totalPages && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-muted-foreground"
-                                    onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
-                                >
-                                    {searchParams.page + 1}
-                                </Button>
-                            )}
-                            {totalPages > 2 && searchParams.page < totalPages - 1 && (
-                                <Button variant="ghost" size="sm" className="text-muted-foreground">...</Button>
-                            )}
-                            {totalPages > 2 && searchParams.page < totalPages - 1 && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-muted-foreground"
-                                    onClick={() => setSearchParams({...searchParams, page: totalPages})}
-                                >
-                                    {totalPages}
-                                </Button>
-                            )}
-                            <Button
-                                variant="outline"
-                                size="icon-sm"
-                                className="text-muted-foreground"
-                                onClick={() => setSearchParams({...searchParams, page: searchParams.page + 1})}
-                                disabled={searchParams.page >= totalPages}
-                            >
-                                <ChevronRight className="w-4 h-4"/>
-                            </Button>
-                        </div>
-                    </div>
+                    <TablePagination
+                        page={searchParams.page}
+                        pageSize={searchParams.page_size}
+                        total={total}
+                        onPageChange={(page) => setSearchParams({...searchParams, page})}
+                    />
                 )}
             </div>
 

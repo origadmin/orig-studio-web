@@ -6,6 +6,7 @@ import {Badge} from '@/components/ui/badge';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Separator} from '@/components/ui/separator';
 import {formatFileSize, formatDuration} from '@/lib/format';
+import {parseTagsInput} from '@/lib/utils/hashtag';
 import type {Media} from '@/lib/api/media';
 
 export interface MediaEditFormState {
@@ -87,17 +88,17 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="tags">{t('media.editForm.tags', 'Tags (comma separated)')}</Label>
+                <Label htmlFor="tags">{t('media.editForm.tags', 'Tags')}</Label>
                 <Input
                     id="tags"
                     value={form.tags}
                     onChange={e => setForm({...form, tags: e.target.value})}
-                    placeholder={t('media.editForm.tagsPlaceholder', 'e.g. tutorial, coding, devops')}
+                    placeholder={t('media.editForm.tagsPlaceholder', '#tag1 #tag2 #tag3')}
                 />
                 {form.tags && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                        {form.tags.split(',').map((tag, i) => tag.trim() && (
-                            <Badge key={i} variant="secondary" className="text-xs">{tag.trim()}</Badge>
+                        {parseTagsInput(form.tags).map((tag, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">#{tag}</Badge>
                         ))}
                     </div>
                 )}

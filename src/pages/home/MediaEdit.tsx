@@ -12,6 +12,7 @@ import {Button} from '@/components/ui/button';
 import {AlertTriangle, ArrowLeft, Play, Pencil} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl} from '@/lib/utils';
+import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {useQueryClient} from '@tanstack/react-query';
 
 /**
@@ -119,7 +120,7 @@ export default function MediaEditPage() {
                 title: media.title || '',
                 description: media.description || '',
                 category_id: media.category_id ?? '',
-                tags: media.tags?.join(', ') || '',
+                tags: serializeTags(media.tags || []),
                 privacy: normalizePrivacy(media.privacy),
                 state: media.state || 'draft',
                 enable_comments: media.enable_comments ?? true,
@@ -140,7 +141,7 @@ export default function MediaEditPage() {
                     title: form.title,
                     description: form.description,
                     category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
-                    tags: form.tags.split(',').map(s => s.trim()).filter(Boolean),
+                    tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     state: isAdmin ? form.state : undefined,
                     enable_comments: form.enable_comments,

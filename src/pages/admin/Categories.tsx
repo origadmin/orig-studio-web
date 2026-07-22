@@ -555,29 +555,12 @@ const Categories: React.FC = () => {
               )}
             </TableBody>
           </Table>
-          {/* Pagination */}
-          <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+          {/* Stats */}
+          <div className="px-6 py-4 border-t border-border bg-muted/30">
             <p className="text-xs text-muted-foreground">
               {t('admin.showing') || 'Showing'} {startItem} {t('admin.to') || 'to'} {endItem}{' '}
               {t('admin.of') || 'of'} {totalCount} {t('admin.categories') || 'categories'}
             </p>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon-sm">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button variant="default" size="icon-sm" className="font-medium">
-                1
-              </Button>
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                2
-              </Button>
-              <Button variant="ghost" size="icon-sm" className="text-muted-foreground">
-                3
-              </Button>
-              <Button variant="outline" size="icon-sm">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
           </div>
         </Card>
       </div>

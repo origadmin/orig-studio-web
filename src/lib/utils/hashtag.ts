@@ -7,6 +7,24 @@ export function parseHashtags(text: string): string[] {
     return matches.map(tag => tag.slice(1));
 }
 
+export function serializeTags(tags: string[]): string {
+    if (!tags || tags.length === 0) return '';
+    return tags.map(tag => `#${tag}`).join(' ');
+}
+
+export function parseTagsInput(text: string): string[] {
+    if (!text) return [];
+    const trimmed = text.trim();
+    if (!trimmed) return [];
+
+    const hashtagMatches = trimmed.match(HASHTAG_REGEX);
+    if (hashtagMatches && hashtagMatches.length > 0) {
+        return hashtagMatches.map(tag => tag.slice(1));
+    }
+
+    return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+}
+
 export function mergeTagsWithHashtags(existingTags: string[], title: string, description?: string): string[] {
     const seen = new Set<string>();
     const result: string[] = [];
