@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
+import {Play, Eye, Sparkles, Shuffle, Megaphone} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -76,31 +76,18 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
     );
 };
 
-const SectionHeader: React.FC<{
-    title: string;
-    icon?: React.ReactNode;
-    viewAllLink?: string;
-}> = ({title, icon, viewAllLink}) => (
-    <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            {icon}
-            {title}
-        </h2>
-        {viewAllLink && (
-            <Link
-                to={viewAllLink}
-                className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-0.5 transition-colors"
-            >
-                查看全部
-                <ChevronRight size={14}/>
-            </Link>
-        )}
-    </div>
-);
-
 const VIDEO_CARD_WIDTH = 240;
 const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
+
+type FeedFilter = 'all' | 'featured' | 'latest' | 'hot';
+
+const FILTER_TABS: {key: FeedFilter; label: string}[] = [
+    {key: 'all', label: '全部'},
+    {key: 'featured', label: '精选'},
+    {key: 'latest', label: '最新'},
+    {key: 'hot', label: '热门'},
+];
 
 const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}}> = ({placement}) => {
     const {t} = useTranslation();
@@ -110,10 +97,12 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
     const cardOffset = thumbHeight / 2;
     return (
         <section>
-            <SectionHeader
-                title={t('ad.sponsoredContent', '赞助推荐')}
-                icon={<Megaphone className="w-5 h-5 text-amber-500" fill="currentColor"/>}
-            />
+            <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-amber-500" fill="currentColor"/>
+                    {t('ad.sponsoredContent', '赞助推荐')}
+                </h2>
+            </div>
             <HorizontalScroll buttonOffset={cardOffset}>
                 {placement.ads.map((ad) => (
                     <div key={ad.id} style={{width: AD_CARD_WIDTH}}>
@@ -127,13 +116,7 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
-
-    const {data: featuredData} = useMediaList({
-        page: 1,
-        page_size: 12,
-        featured: true,
-    });
-    const featuredVideos = featuredData?.items || [];
+    const [activeFilter, setActiveFilter] = useState<FeedFilter>('all');
 
     const {data: recommendData} = useMediaList({page: 1, page_size: 24});
     const [recoSeed, setRecoSeed] = useState(0);
@@ -262,14 +245,32 @@ const HomePage = () => {
         return [...(p?.ads || []), ...(p?.creatives || [])];
     }, [activeAdPlacements]);
 
+    const feedQueryParams = useMemo(() => {
+        const params: {
+            page_size: number;
+            featured?: boolean;
+            order_by?: string;
+            descending?: boolean;
+        } = {page_size: 12};
+        if (activeFilter === 'featured') {
+            params.featured = true;
+        } else if (activeFilter === 'latest') {
+            params.order_by = 'create_time';
+            params.descending = true;
+        } else if (activeFilter === 'hot') {
+            params.order_by = 'view_count';
+            params.descending = true;
+        }
+        return params;
+    }, [activeFilter]);
+
     const {
         data,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useInfiniteMediaList({
-        page_size: 12,
-    });
+        isFetching,
+    } = useInfiniteMediaList(feedQueryParams);
 
     const items: Media[] = useMemo(() => {
         let result: Media[] = [];
@@ -329,27 +330,26 @@ const HomePage = () => {
                 </section>
             )}
 
-            <div className="w-full space-y-8">
-                {featuredVideos.length > 0 && (
-                    <section>
-                        <SectionHeader
-                            title={t('home.featuredVideos', '精选推荐')}
-                            icon={<Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>}
-                            viewAllLink="/featured"
-                        />
-                        <HorizontalScroll buttonOffset={cardOffset}>
-                            {featuredVideos.map((media: Media) => (
-                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
-                                    <VideoCard media={media} size="md"/>
-                                </div>
-                            ))}
-                        </HorizontalScroll>
-                    </section>
-                )}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                {FILTER_TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setActiveFilter(tab.key)}
+                        className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            activeFilter === tab.key
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted hover:bg-muted/80 text-foreground'
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
 
+            <div className="w-full space-y-8">
                 {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
 
-                {recommendVideos.length > 0 && (
+                {activeFilter === 'all' && recommendVideos.length > 0 && (
                     <section>
                         <div className="flex items-center justify-between mb-3">
                             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -376,12 +376,11 @@ const HomePage = () => {
                 )}
 
                 <section>
-                    <SectionHeader
-                        title={t('home.latestVideos', '最新视频')}
-                        viewAllLink="/latest"
-                    />
-
-                    {mergedItems.length === 0 && !isFetchingNextPage ? (
+                    {isFetching && mergedItems.length === 0 ? (
+                        <div className="py-20 text-center text-muted-foreground">
+                            <Spinner size="sm"/>
+                        </div>
+                    ) : mergedItems.length === 0 && !isFetchingNextPage ? (
                         <div className="py-20 text-center text-muted-foreground">
                             <p>{t('common.noData', '暂无数据')}</p>
                         </div>

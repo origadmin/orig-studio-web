@@ -113,19 +113,23 @@ export function useInfiniteMediaList(params: {
     type?: string;
     category_id?: number | null;
     user_id?: string | number;
+    featured?: boolean;
+    order_by?: string;
+    descending?: boolean;
 }) {
     return useInfiniteQuery({
         queryKey: mediaKeys.list(params),
         queryFn: async ({pageParam = 1}) => {
-            // Explicitly construct API params to avoid leaking unrecognized fields
             const apiParams: Record<string, unknown> = {
                 page: pageParam,
                 page_size: params.page_size,
                 type: params.type,
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
                 user_id: params.user_id ? Number(params.user_id) : undefined,
-                // Map status → state (backend field name)
                 state: params.status,
+                featured: params.featured ? '1' : undefined,
+                order_by: params.order_by,
+                descending: params.descending,
             };
             // Remove undefined values to keep URL clean
             Object.keys(apiParams).forEach(key => {

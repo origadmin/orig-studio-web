@@ -24,8 +24,6 @@ export const NAV_CONFIG: NavSection[] = [
         title: 'nav.browse',
         items: [
             {id: 'home', label: 'nav.home', to: '/', icon: Home},
-            {id: 'featured', label: 'nav.featured', to: '/featured', icon: Star, module: 'videos'},
-            {id: 'latest', label: 'nav.latest', to: '/latest', icon: Clock, module: 'videos'},
             {id: 'live', label: 'nav.live', to: '/live', icon: Radio, module: 'live'},
         ],
     },
