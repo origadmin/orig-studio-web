@@ -81,7 +81,7 @@ const FeaturedPage = () => {
     return (
         <div className="w-full py-6">
             <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_460px] gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-6">
                     {primaryItem && <PrimaryFeaturedCard item={primaryItem}/>}
                     <aside className="flex flex-col min-h-0">
                         <div className="flex items-center gap-2 mb-3">
@@ -437,7 +437,7 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full py-6">
         <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] 2xl:grid-cols-[1fr_460px] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] gap-6">
                 <div className="aspect-video lg:aspect-[16/10] rounded-xl bg-muted/50 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"/>
                     <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
