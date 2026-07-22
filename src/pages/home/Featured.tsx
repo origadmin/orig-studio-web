@@ -58,7 +58,7 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative w-full max-w-[1600px] mx-auto aspect-[21/9] overflow-hidden rounded-xl">
+            <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl">
                 <img
                     src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}

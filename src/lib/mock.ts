@@ -260,7 +260,19 @@ const mockRoutes: [RegExp, MockHandler][] = [
     [/\/portal\/config$/, () => ({
         // PortalConfig fields
         navigation: {items: [], visible_count: 8},
-        banners: [],
+        banners: [
+            {
+                id: 1,
+                type: 'hot_videos',
+                is_active: true,
+                display_mode: 'wide',
+                count: 8,
+                badge_text: 'HOT',
+                bg_color_start: '#0f172a',
+                bg_color_end: '#7c3aed',
+                auto_slide_interval: 5000,
+            },
+        ],
         featured_users: [],
         site: {
             name: 'OrigStudio',
@@ -278,7 +290,7 @@ const mockRoutes: [RegExp, MockHandler][] = [
         },
         // ModulePortalConfig fields
         modules: {articles: true, videos: true, music: false},
-        layout: 'mixed' as const,
+        layout: 'video' as const,
     })],
 
     // Dashboard stats

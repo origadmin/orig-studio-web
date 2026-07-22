@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Play, Eye, Sparkles, Shuffle, Megaphone} from 'lucide-react';
+import {Play, Eye, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -80,15 +80,6 @@ const VIDEO_CARD_WIDTH = 240;
 const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
 
-type FeedFilter = 'all' | 'featured' | 'latest' | 'hot';
-
-const FILTER_TABS: {key: FeedFilter; label: string}[] = [
-    {key: 'all', label: '全部'},
-    {key: 'featured', label: '精选'},
-    {key: 'latest', label: '最新'},
-    {key: 'hot', label: '热门'},
-];
-
 const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}}> = ({placement}) => {
     const {t} = useTranslation();
     const hasAds = placement.ads && placement.ads.length > 0;
@@ -116,7 +107,13 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
-    const [activeFilter, setActiveFilter] = useState<FeedFilter>('all');
+
+    const {data: featuredData} = useMediaList({
+        page: 1,
+        page_size: 12,
+        featured: true,
+    });
+    const featuredVideos = featuredData?.items || [];
 
     const {data: recommendData} = useMediaList({page: 1, page_size: 24});
     const [recoSeed, setRecoSeed] = useState(0);
@@ -245,32 +242,15 @@ const HomePage = () => {
         return [...(p?.ads || []), ...(p?.creatives || [])];
     }, [activeAdPlacements]);
 
-    const feedQueryParams = useMemo(() => {
-        const params: {
-            page_size: number;
-            featured?: boolean;
-            order_by?: string;
-            descending?: boolean;
-        } = {page_size: 12};
-        if (activeFilter === 'featured') {
-            params.featured = true;
-        } else if (activeFilter === 'latest') {
-            params.order_by = 'create_time';
-            params.descending = true;
-        } else if (activeFilter === 'hot') {
-            params.order_by = 'view_count';
-            params.descending = true;
-        }
-        return params;
-    }, [activeFilter]);
-
     const {
         data,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
         isFetching,
-    } = useInfiniteMediaList(feedQueryParams);
+    } = useInfiniteMediaList({
+        page_size: 12,
+    });
 
     const items: Media[] = useMemo(() => {
         let result: Media[] = [];
@@ -330,26 +310,26 @@ const HomePage = () => {
                 </section>
             )}
 
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                {FILTER_TABS.map((tab) => (
-                    <button
-                        key={tab.key}
-                        onClick={() => setActiveFilter(tab.key)}
-                        className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                            activeFilter === tab.key
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted hover:bg-muted/80 text-foreground'
-                        }`}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
             <div className="w-full space-y-8">
-                {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
+                {featuredVideos.length > 0 && (
+                    <section>
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                <Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>
+                                {t('home.featuredVideos', '精选推荐')}
+                            </h2>
+                        </div>
+                        <HorizontalScroll buttonOffset={cardOffset}>
+                            {featuredVideos.map((media: Media) => (
+                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
+                                    <VideoCard media={media} size="md"/>
+                                </div>
+                            ))}
+                        </HorizontalScroll>
+                    </section>
+                )}
 
-                {activeFilter === 'all' && recommendVideos.length > 0 && (
+                {recommendVideos.length > 0 && (
                     <section>
                         <div className="flex items-center justify-between mb-3">
                             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -375,6 +355,8 @@ const HomePage = () => {
                     </section>
                 )}
 
+                {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
+
                 <section>
                     {isFetching && mergedItems.length === 0 ? (
                         <div className="py-20 text-center text-muted-foreground">
@@ -385,7 +367,7 @@ const HomePage = () => {
                             <p>{t('common.noData', '暂无数据')}</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                        <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                             {mergedItems.map((item) => (
                                 '__ad' in item ? (
                                     <div key={item.key}>

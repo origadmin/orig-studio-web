@@ -58,15 +58,12 @@ const CSS = `
   background: radial-gradient(ellipse at center, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0) 70%);
 }
 .hero-banner-root[data-mode="wide"] {
-  --hero-card-w: min(720px, 82vw);
   --hero-ratio: 21/9;
-  --hero-card-h: 309px;
-  --hero-step: min(560px, 64vw);
-  --hero-scale-step: 0.08;
-  --hero-opacity-step: 0.5;
+  --hero-scale-step: 0.15;
+  --hero-opacity-step: 0.15;
   --hero-blur-step: 1px;
   --hero-radius: 14px;
-  --hero-visible: 3;
+  --hero-visible: 2;
   height: calc(var(--hero-card-h) + var(--hero-pad-y) * 2);
 }
 .hero-banner-slide {
@@ -332,18 +329,43 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             return Number.isFinite(measured) && measured > 0 ? measured : def;
         };
 
-        const scaleStep = num(styles.getPropertyValue('--hero-scale-step'), 0.14);
-        const opacityStep = num(styles.getPropertyValue('--hero-opacity-step'), 0.3);
-        const blurStep = num(styles.getPropertyValue('--hero-blur-step'), 1.5);
+        const containerW = el.clientWidth;
+        const isWideMode = el.getAttribute('data-mode') === 'wide';
         const visible = Math.max(0, Math.round(num(styles.getPropertyValue('--hero-visible'), 5)));
 
-        const cardW = getPixelValue('--hero-card-w', 560);
+        let cardW: number;
+        let step: number;
+        let scaleStep: number;
+        let opacityStep: number;
+        let blurStep: number;
+
+        if (isWideMode) {
+            const wideVisible = 2;
+            cardW = Math.min(620, containerW * 0.36);
+            scaleStep = 0.1;
+            opacityStep = 0.1;
+            blurStep = 0.5;
+            const sOuter = 1 - wideVisible * scaleStep;
+            const overflow = cardW * 0.1;
+            step = (containerW / 2 - (cardW * sOuter) / 2 + overflow) / wideVisible;
+            el.style.setProperty('--hero-card-w', `${cardW}px`);
+            el.style.setProperty('--hero-step', `${step}px`);
+            el.style.setProperty('--hero-scale-step', String(scaleStep));
+            el.style.setProperty('--hero-opacity-step', String(opacityStep));
+            el.style.setProperty('--hero-blur-step', `${blurStep}px`);
+            el.style.setProperty('--hero-visible', String(wideVisible));
+        } else {
+            scaleStep = num(styles.getPropertyValue('--hero-scale-step'), 0.14);
+            opacityStep = num(styles.getPropertyValue('--hero-opacity-step'), 0.3);
+            blurStep = num(styles.getPropertyValue('--hero-blur-step'), 1.5);
+            cardW = getPixelValue('--hero-card-w', 560);
+            step = getPixelValue('--hero-step', cardW * 0.72);
+        }
+
         const ratioParts = (styles.getPropertyValue('--hero-ratio') || '16/9').trim().split('/').map(s => parseFloat(s.trim()));
         const ratio = ratioParts.length === 2 && ratioParts[1] ? ratioParts[0] / ratioParts[1] : 16 / 9;
         const cardH = cardW / ratio;
         el.style.setProperty('--hero-card-h', `${cardH}px`);
-
-        const step = getPixelValue('--hero-step', cardW * 0.72);
 
         const slides = el.querySelectorAll<HTMLElement>('[data-hero-slide]');
         slides.forEach((slide, i) => {
