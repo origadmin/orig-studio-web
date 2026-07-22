@@ -83,15 +83,15 @@ const FeaturedPage = () => {
             <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
                     {primaryItem && <PrimaryFeaturedCard item={primaryItem}/>}
-                    <aside className="flex flex-col min-h-0">
-                        <div className="flex items-center gap-2 mb-3">
+                    <aside className="flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden">
+                        <div className="flex items-center gap-2 p-4 border-b border-border/40">
                             <Flame size={18} className="text-orange-500"/>
                             <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick', '编辑精选')}</h2>
                             <Badge variant="secondary" className="ml-auto">
                                 {editorPickItems.length}
                             </Badge>
                         </div>
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 -mr-1" style={{scrollbarWidth: 'thin'}}>
+                        <div className="flex-1 overflow-y-auto space-y-2 p-4 pt-3" style={{scrollbarWidth: 'thin'}}>
                             {editorPickItems.length > 0 ? (
                                 editorPickItems.map((item, idx) => (
                                     <EditorPickListItem key={item.id} item={item} rank={idx + 1}/>
