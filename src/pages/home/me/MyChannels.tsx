@@ -99,11 +99,11 @@ const MyChannels = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between mb-8">
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold">{t('channel.myChannels')}</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-2xl font-bold text-foreground">{t('channel.myChannels')}</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
                         {t('channel.myChannelsDescription', {
                             current: currentCount,
                             max: maxChannels === -1 ? t('common.unlimited') : maxChannels,
@@ -113,6 +113,7 @@ const MyChannels = () => {
                 <Button
                     onClick={() => setCreateDialogOpen(true)}
                     disabled={!canCreate}
+                    className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto shrink-0"
                 >
                     <Plus size={16} className="mr-2"/>
                     {t('channel.create.title')}
@@ -120,30 +121,32 @@ const MyChannels = () => {
             </div>
 
             {channelList.length === 0 ? (
-                <div className="flex flex-col items-center justify-center min-h-[400px] text-center gap-6">
-                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                        <Tv size={40} className="text-muted-foreground/50"/>
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-medium text-foreground">{t('channel.noChannelsTitle')}</h2>
-                        <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-                            {t('channel.noChannelsDescription')}
-                        </p>
-                    </div>
-                    {canCreate && (
-                        <Button size="lg" onClick={() => setCreateDialogOpen(true)}>
-                            <Plus size={16} className="mr-2"/>
-                            {t('channel.create.title')}
-                        </Button>
-                    )}
-                </div>
+                <Card className="border-dashed border-2">
+                    <CardContent className="flex flex-col items-center justify-center py-20 space-y-4">
+                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                            <Tv size={32} className="text-muted-foreground"/>
+                        </div>
+                        <div className="text-center">
+                            <h3 className="text-lg font-medium text-foreground">{t('channel.noChannelsTitle')}</h3>
+                            <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+                                {t('channel.noChannelsDescription')}
+                            </p>
+                        </div>
+                        {canCreate && (
+                            <Button onClick={() => setCreateDialogOpen(true)}>
+                                <Plus size={16} className="mr-2"/>
+                                {t('channel.create.title')}
+                            </Button>
+                        )}
+                    </CardContent>
+                </Card>
             ) : (
                 <div className="grid gap-4">
                     {channelList.map(channel => (
-                        <Card key={channel.id} className="hover:shadow-md transition-shadow">
+                        <Card key={channel.id} className="hover:shadow-md transition-shadow overflow-hidden">
                             <CardContent className="p-0">
                                 <div className="flex flex-col sm:flex-row">
-                                    <div className="sm:w-48 h-24 sm:h-auto flex-shrink-0 overflow-hidden">
+                                    <div className="sm:w-48 h-32 sm:h-auto flex-shrink-0 overflow-hidden">
                                     {channel.banner ? (
                                         <img
                                             src={getImageUrl(channel.banner, 'cover')}
@@ -154,9 +157,9 @@ const MyChannels = () => {
                                         <div className="w-full h-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500"/>
                                     )}
                                     </div>
-                                    <div className="flex-1 p-4 sm:p-5">
-                                        <div className="flex items-start gap-4">
-                                            <Avatar className="w-16 h-16 border-2 border-background shadow">
+                                    <div className="flex-1 p-4 sm:p-5 flex flex-col gap-3">
+                                        <div className="flex items-start gap-3">
+                                            <Avatar className="w-14 h-14 border-2 border-background shadow flex-shrink-0 -mt-8 sm:mt-0 ring-4 ring-background z-10">
                                                 <AvatarImage
                                                     src={getImageUrl(channel.avatar, 'avatar')}
                                                     alt={channel.name}
@@ -165,11 +168,11 @@ const MyChannels = () => {
                                                     {channel.name?.charAt(0)?.toUpperCase() || '?'}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="flex-1 min-w-0">
+                                            <div className="flex-1 min-w-0 pt-1 sm:pt-0">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <h3 className="text-lg font-semibold truncate">{channel.name}</h3>
                                                     {channel.is_verified && (
-                                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+                                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs dark:bg-blue-900 dark:text-blue-200">
                                                             ✓ {t('channel.verified')}
                                                         </Badge>
                                                     )}
@@ -182,7 +185,7 @@ const MyChannels = () => {
                                                 {channel.description && (
                                                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{channel.description}</p>
                                                 )}
-                                                <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground flex-nowrap">
+                                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
                                                     <span className="flex items-center gap-1 whitespace-nowrap">
                                                         <Users size={14}/> {channel.subscriber_count || 0} {t('channel.subscribers')}
                                                     </span>
@@ -201,21 +204,21 @@ const MyChannels = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <Link
-                                                    to="/c/$id"
-                                                    params={{id: channel.short_token || channel.id}}
-                                                >
-                                                    <Button variant="outline" size="sm">
-                                                        <ExternalLink size={14} className="mr-1"/>
-                                                        {t('channel.viewChannel')}
-                                                    </Button>
-                                                </Link>
-                                                <Button variant="ghost" size="sm" onClick={() => openEditDialog(channel)}>
-                                                    <Settings size={14} className="mr-1"/>
-                                                    {t('channel.channelSettings')}
+                                        </div>
+                                        <div className="flex items-center gap-2 pt-2 sm:pt-0 sm:ml-0 sm:self-end">
+                                            <Link
+                                                to="/c/$id"
+                                                params={{id: channel.short_token || channel.id}}
+                                            >
+                                                <Button variant="outline" size="sm">
+                                                    <ExternalLink size={14} className="mr-1"/>
+                                                    {t('channel.viewChannel')}
                                                 </Button>
-                                            </div>
+                                            </Link>
+                                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(channel)}>
+                                                <Settings size={14} className="mr-1"/>
+                                                {t('channel.channelSettings')}
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
