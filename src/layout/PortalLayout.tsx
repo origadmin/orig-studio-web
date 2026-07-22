@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {Outlet} from '@tanstack/react-router';
+import {Outlet, useLocation} from '@tanstack/react-router';
 import Header from '@/components/portal/Header';
 import Sidebar from '@/components/portal/Sidebar';
+import CategoryChips from '@/components/portal/CategoryChips';
 import Footer from '@/components/portal/Footer';
 import UploadDialog from '@/components/upload/UploadDialog';
 import {useTheme} from '@/themes';
@@ -10,6 +11,9 @@ const PortalLayout = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const {isDark, toggleDark} = useTheme();
+    const location = useLocation();
+
+    const hideCategoryChips = location.pathname.startsWith('/categories');
 
     useEffect(() => {
         const saved = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -53,6 +57,11 @@ const PortalLayout = () => {
                     paddingTop: 56,
                 }}
             >
+                {!hideCategoryChips && (
+                    <div className="sticky top-14 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
+                        <CategoryChips embedded={true}/>
+                    </div>
+                )}
                 <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 flex-1">
                     <Outlet/>
                 </div>

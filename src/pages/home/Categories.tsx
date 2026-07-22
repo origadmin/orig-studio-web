@@ -64,16 +64,16 @@ const CategoryFilter: React.FC<{
     const {t} = useTranslation();
 
     return (
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
             <button
                 onClick={() => onSelect(null)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                     selectedId === null
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
+                        ? 'bg-foreground text-background'
+                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
                 }`}
             >
-                {t('categories.all', 'All')}
+                {t('home.all', '全部')}
             </button>
             {tree.map(parent => (
                 <CategoryGroup
@@ -100,17 +100,17 @@ const CategoryGroup: React.FC<{
             <div className="flex items-center gap-1">
                 <button
                     onClick={() => onSelect(selectedId === node.id ? null : node.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         selectedId === node.id
-                            ? 'bg-emerald-600 text-white shadow-sm'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
+                            ? 'bg-foreground text-background'
+                            : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
                     }`}
                 >
                     {node.name}
                 </button>
                 <button
                     onClick={() => setOpen(!open)}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-secondary/80 transition-colors"
                 >
                     {open ? <ChevronDown size={12}/> : <ChevronRight size={12}/>}
                 </button>
@@ -120,10 +120,10 @@ const CategoryGroup: React.FC<{
                             <button
                                 key={child.id}
                                 onClick={() => onSelect(selectedId === child.id ? null : child.id)}
-                                className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                                className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs transition-colors ${
                                     selectedId === child.id
-                                        ? 'bg-emerald-500 text-white shadow-sm'
-                                        : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-gray-700'
+                                        ? 'bg-foreground text-background'
+                                        : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
                                 }`}
                             >
                                 {child.name}
@@ -138,10 +138,10 @@ const CategoryGroup: React.FC<{
     return (
         <button
             onClick={() => onSelect(selectedId === node.id ? null : node.id)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 selectedId === node.id
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-gray-600'
+                    ? 'bg-foreground text-background'
+                    : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
             }`}
         >
             {node.name}
