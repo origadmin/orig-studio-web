@@ -223,8 +223,8 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all duration-300">
-                <div className="relative aspect-video overflow-hidden">
+            <div className="relative rounded-xl overflow-hidden border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
+                <div className="relative aspect-[16/10] overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
@@ -232,45 +232,46 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                         onError={(e) => handleImageError(e, 'thumbnail')}
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"/>
                     <Badge
                         variant="secondary"
-                        className="absolute bottom-2 right-2 bg-black/80 text-white text-xs backdrop-blur-sm"
+                        className="absolute top-3 right-3 bg-black/70 text-white text-xs backdrop-blur-sm"
                     >
                         {formatDuration(item.duration)}
                     </Badge>
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-14 h-14 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-lg scale-75 group-hover:scale-100 transition-transform duration-300">
-                            <Play className="w-6 h-6 text-foreground ml-0.5" fill="currentColor"/>
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                        <Badge variant="outline" className="mb-2 bg-orange-500/20 text-orange-400 border-orange-500/50">
+                            <Star size={12} className="mr-1 fill-current"/>
+                            精选
+                        </Badge>
+                        <h3 className="text-xl font-bold text-white line-clamp-2 drop-shadow-md">
+                            {item.title || item.short_token || ''}
+                        </h3>
+                        <p className="text-sm text-white/70 line-clamp-1 mt-1">
+                            {item.description || t('watch.noDescription')}
+                        </p>
+                        <div className="flex items-center gap-3 mt-2 text-sm text-white/80">
+                            <Avatar className="h-7 w-7 border-2 border-white/30">
+                                <AvatarImage
+                                    src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
+                                    alt={user?.username}
+                                />
+                                <AvatarFallback className="text-[10px] bg-white/20">
+                                    {user?.username?.[0] || 'U'}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
+                            <span className="flex items-center gap-1">
+                                <Eye size={13}/>
+                                {formatViews(item.view_count)}
+                            </span>
                         </div>
                     </div>
-                </div>
-                <div className="p-4">
-                    <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                        {item.title || item.short_token || ''}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5">
-                        {item.description || t('watch.noDescription')}
-                    </p>
-                    <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage
-                                src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
-                                alt={user?.username}
-                            />
-                            <AvatarFallback className="text-[10px]">
-                                {user?.username?.[0] || 'U'}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="text-foreground font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
-                        <span className="flex items-center gap-1">
-                            <Eye size={14}/>
-                            {formatViews(item.view_count)}
-                        </span>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-xl scale-75 group-hover:scale-100 transition-transform duration-300">
+                            <Play className="w-7 h-7 text-foreground ml-0.5" fill="currentColor"/>
+                        </div>
                     </div>
-                    <Button size="sm" className="mt-4">
-                        <Play size={16} className="mr-1.5"/>
-                        {t('featured.watchNow')}
-                    </Button>
                 </div>
             </div>
         </Link>
