@@ -137,9 +137,16 @@ const WatchPage = () => {
     const error = mediaError ? t('watch.failedToLoad') : null;
 
     const {data: adPlacements = []} = usePublicAdPlacements();
+    // 各广告位的展示概率（0~1）。概率 < 1 时按概率展示，并非每次加载都显示。
+    const PLACEMENT_DISPLAY_PROBABILITY: Record<string, number> = {
+        'watch-sidebar': 0.6,
+    };
     const sidebarAds = React.useMemo(() => {
-        const p = adPlacements.find(x => x.slug === 'watch-sidebar' && x.is_active);
-        return p?.ads || [];
+        const p = adPlacements.find(x => x.slug === 'watch-sidebar');
+        if (!p?.ads || p.ads.length === 0) return [];
+        const prob = PLACEMENT_DISPLAY_PROBABILITY[p.slug] ?? 1;
+        if (Math.random() > prob) return [];
+        return p.ads;
     }, [adPlacements]);
 
     // Next video for YouTube-style autoplay countdown

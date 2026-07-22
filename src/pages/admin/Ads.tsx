@@ -5,6 +5,11 @@ import {
     Edit,
     Trash2,
     LayoutGrid,
+    RectangleHorizontal,
+    Square,
+    List,
+    PanelRight,
+    Minus,
     Filter,
     MoreHorizontal,
     Search,
@@ -39,6 +44,17 @@ import {type AdPlacement, type CreateAdPlacementRequest, type UpdateAdPlacementR
 const placementBadgeVariant = (p: AdPlacement): 'soft-success' | 'soft-neutral' => {
     if (!p.is_active) return 'soft-neutral';
     return 'soft-success';
+};
+
+const placementTypeIcon = (type: string): React.ComponentType<{className?: string; size?: number}> => {
+    switch (type) {
+        case 'banner': return RectangleHorizontal;
+        case 'sidebar': return PanelRight;
+        case 'inline': return Minus;
+        case 'card': return Square;
+        case 'feed': return List;
+        default: return LayoutGrid;
+    }
 };
 
 const PAGE_SIZE = 20;
@@ -193,7 +209,10 @@ const SlotsTab: React.FC = () => {
                                     <TableCell className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-muted/50 rounded-lg flex items-center justify-center border border-border">
-                                                <LayoutGrid className="h-5 w-5 text-muted-foreground"/>
+                                                {(() => {
+                                                    const Icon = placementTypeIcon(placement.type);
+                                                    return <Icon className="h-5 w-5 text-muted-foreground" />;
+                                                })()}
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-foreground text-sm">{placement.name}</p>
