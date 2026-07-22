@@ -4,13 +4,13 @@
  */
 
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {Link} from '@tanstack/react-router';
+import {Link, useSearch} from '@tanstack/react-router';
 import {Clock, Play, Eye} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
-import {useMediaList, useCategoryList} from '@/hooks/queries';
+import {useMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import ErrorPage from '@/components/common/ErrorPage';
 
@@ -18,15 +18,13 @@ const PAGE_SIZE = 12;
 
 const LatestPage = () => {
     const {t} = useTranslation();
+    const search = useSearch({strict: false}) as {category_id?: number};
+    const activeCategoryId = search.category_id;
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
-
-    // 获取分类列表
-    const {data: categories} = useCategoryList();
 
     const {data, isLoading, error} = useMediaList({
         page,
@@ -37,14 +35,12 @@ const LatestPage = () => {
         category_id: activeCategoryId || undefined
     });
 
-    // 当分类切换时重置页面和数据
     useEffect(() => {
         setPage(1);
         setItems([]);
         setHasMore(true);
     }, [activeCategoryId]);
 
-    // Load initial data and append when page changes
     useEffect(() => {
         if (data?.items && data.items.length > 0) {
             if (page === 1) {
@@ -87,25 +83,6 @@ const LatestPage = () => {
                 <Clock size={24} className="text-primary"/>
                 <h1 className="text-2xl font-bold text-foreground">{t('latest.title')}</h1>
             </div>
-
-            {/* 分类标签 */}
-            <section className="flex flex-wrap gap-2 mb-6">
-                <Button
-                    variant={activeCategoryId === null ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActiveCategoryId(null)}
-                    className={activeCategoryId === null ? 'bg-primary hover:bg-primary/90' : ''}
-                >{t('home.all')}</Button>
-                {categories?.items?.map((cat) => (
-                    <Button
-                        key={cat.id}
-                        variant={activeCategoryId === cat.id ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setActiveCategoryId(cat.id)}
-                        className={activeCategoryId === cat.id ? 'bg-primary hover:bg-primary/90' : ''}
-                    >{cat.name}</Button>
-                ))}
-            </section>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                 {items.map((media) => (

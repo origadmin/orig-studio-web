@@ -32,6 +32,7 @@ import {getLocalizedText} from '@/lib/i18n-utils';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {usePortalConfig} from '@/hooks/queries';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import {NAV_CONFIG} from '@/config/navigation';
 
 /* ── QuickLink 定义 ──────────────────────────────────────────────────────── */
 
@@ -93,15 +94,26 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     // 后端 /portal/config 的 navigation 是 NavItem 扁平数组(非 {items} 对象)。
     // 兼容两种形态,避免后台配置的导航在门户页整列丢失(配置与门户页脱离的根因)。
     const rawNav = portalConfig?.navigation;
-    const navItems = Array.isArray(rawNav) ? rawNav : (rawNav?.items ?? []);
-    const dynamicNavItems = (Array.isArray(navItems) ? navItems : [])
+    let navItems: any[] = [];
+    if (Array.isArray(rawNav)) {
+        navItems = rawNav;
+    } else if (rawNav && typeof rawNav === 'object') {
+        navItems = (rawNav as any).items ?? [];
+    }
+    const dynamicNavItems = navItems
         .filter(item => item.is_visible !== false && item.type !== 'category')
         .sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
 
-    const quickLinks: QuickLink[] = dynamicNavItems.map(item => ({
-        label: getLocalizedText(item.label, item.label_i18n, i18n.language),
-        to: item.url,
-    }));
+    const sidebarBrowsePaths = NAV_CONFIG
+        .find(section => section.id === 'browse')
+        ?.items.map(item => item.to) || [];
+
+    const quickLinks: QuickLink[] = dynamicNavItems
+        .filter(item => !sidebarBrowsePaths.includes(item.url))
+        .map(item => ({
+            label: getLocalizedText(item.label, item.label_i18n, i18n.language),
+            to: item.url,
+        }));
 
     const allLinks = [...quickLinks];
     const visibleLinks = allLinks.slice(0, VISIBLE_QUICK_LINKS);

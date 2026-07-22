@@ -1,5 +1,5 @@
 import React, {useState, useMemo} from 'react';
-import {Link} from '@tanstack/react-router';
+import {Link, useSearch} from '@tanstack/react-router';
 import {Play, Eye, Star, Clock, LayoutGrid, List, Filter} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -11,20 +11,21 @@ import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useTranslation} from 'react-i18next';
 import {useMediaList} from '@/hooks/queries';
 import ErrorPage from '@/components/common/ErrorPage';
-import CategoryFilter, {CategoryFilterSkeleton} from '@/components/common/CategoryFilter';
 import VideoCardSkeleton from '@/components/common/VideoCardSkeleton';
 
 type LayoutMode = 'grid' | 'list';
 
 const FeaturedPage = () => {
     const {t} = useTranslation();
-    const [activeCategoryId, setActiveCategoryId] = useState<number | string | null>(null);
+    const search = useSearch({strict: false}) as {category_id?: number};
+    const activeCategoryId = search.category_id;
     const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
 
     const {data, isLoading, error} = useMediaList({
         featured: 'true',
         page_size: 20,
         status: 'active',
+        category_id: activeCategoryId || undefined,
     });
 
     const featuredMedia: FeaturedItem[] = (data?.items as FeaturedItem[]) || [];
@@ -44,10 +45,7 @@ const FeaturedPage = () => {
         return Array.from(catMap.values());
     }, [featuredMedia]);
 
-    const filteredMedia = useMemo(() => {
-        if (activeCategoryId === null) return featuredMedia;
-        return featuredMedia.filter((item) => item.category_id === activeCategoryId);
-    }, [featuredMedia, activeCategoryId]);
+    const filteredMedia = featuredMedia;
 
     const primaryItem = featuredMedia[0];
     const editorPickItems = featuredMedia.slice(1, 7);
@@ -100,12 +98,6 @@ const FeaturedPage = () => {
                 </aside>
             </section>
 
-            <CategoryFilter
-                categories={categories}
-                activeId={activeCategoryId}
-                onSelect={setActiveCategoryId}
-            />
-
             <section className="space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -145,9 +137,11 @@ const FeaturedPage = () => {
                             <EmptyTitle>{t('featured.noResultsTitle')}</EmptyTitle>
                             <EmptyDescription>{t('featured.noResultsDesc')}</EmptyDescription>
                         </EmptyHeader>
-                        <Button variant="outline" onClick={() => setActiveCategoryId(null)}>
-                            {t('featured.clearFilter')}
-                        </Button>
+                        <Link to="/featured">
+                            <Button variant="outline">
+                                {t('featured.clearFilter')}
+                            </Button>
+                        </Link>
                     </Empty>
                 ) : (
                     <>
@@ -437,7 +431,6 @@ const FeaturedPageSkeleton: React.FC = () => (
                 </div>
             </div>
         </div>
-        <CategoryFilterSkeleton/>
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <Skeleton className="h-6 w-32"/>
