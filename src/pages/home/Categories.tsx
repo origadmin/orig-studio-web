@@ -1,7 +1,7 @@
 import {Spinner} from "@/components/ui/spinner"
 
 import React, {useState, useEffect, useMemo} from 'react';
-import {Link} from '@tanstack/react-router';
+import {Link, useSearch} from '@tanstack/react-router';
 import {Play, Eye, ChevronDown, ChevronRight, Folder} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {formatDuration, formatViews} from '@/lib/format';
@@ -151,10 +151,12 @@ const CategoryGroup: React.FC<{
 
 const CategoriesPage = () => {
     const {t} = useTranslation();
+    const search = useSearch({strict: false});
+    const urlCategoryId = search.category_id ? Number(search.category_id) : null;
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const [selectedId, setSelectedId] = useState<number | null>(urlCategoryId);
     const [page, setPage] = useState(1);
     const pageSize = 12;
 
