@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useMemo, useState} from 'react';
-import {Link, useNavigate, useSearch} from '@tanstack/react-router';
+import {Link} from '@tanstack/react-router';
 import {Play, Eye, ChevronRight, Flame, Sparkles, Shuffle, Megaphone} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
@@ -15,7 +15,6 @@ import {usePortalConfig} from '@/hooks/queries';
 import {getLocalizedText} from '@/lib/i18n-utils';
 import HorizontalScroll from '@/components/common/HorizontalScroll';
 import AdDisplay from '@/components/portal/AdDisplay';
-import CategoryChips from '@/components/portal/CategoryChips';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
@@ -128,10 +127,6 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
-    const navigate = useNavigate();
-    const search = useSearch({strict: false});
-    const categoryParam = (search as {category?: string | number | null}).category;
-    const selectedCategoryId = categoryParam ? Number(categoryParam) || null : null;
 
     const {data: featuredData} = useMediaList({
         page: 1,
@@ -274,7 +269,6 @@ const HomePage = () => {
         isFetchingNextPage,
     } = useInfiniteMediaList({
         page_size: 12,
-        category_id: selectedCategoryId,
     });
 
     const items: Media[] = useMemo(() => {
@@ -328,66 +322,60 @@ const HomePage = () => {
     }, []);
 
     return (
-        <div className="space-y-8 max-w-[1800px] mx-auto w-full px-1">
+        <div className="w-full">
             {heroItems.length > 0 && (
-                <section className="mb-2">
+                <section className="mb-6 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
                     <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={heroInterval}/>
                 </section>
             )}
 
-            {featuredVideos.length > 0 && (
+            <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-8">
+                {featuredVideos.length > 0 && (
+                    <section>
+                        <SectionHeader
+                            title={t('home.featuredVideos', '精选推荐')}
+                            icon={<Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>}
+                            viewAllLink="/featured"
+                        />
+                        <HorizontalScroll buttonOffset={cardOffset}>
+                            {featuredVideos.map((media: Media) => (
+                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
+                                    <VideoCard media={media} size="md"/>
+                                </div>
+                            ))}
+                        </HorizontalScroll>
+                    </section>
+                )}
+
+                {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
+
+                {recommendVideos.length > 0 && (
+                    <section>
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                <Sparkles className="w-5 h-5 text-sky-500" fill="currentColor"/>
+                                {t('home.recommended', '为您推荐')}
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={() => setRecoSeed((s) => s + 1)}
+                                className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-1 transition-colors"
+                            >
+                                <Shuffle size={14}/>
+                                {t('home.refresh', '换一批')}
+                            </button>
+                        </div>
+                        <HorizontalScroll buttonOffset={cardOffset}>
+                            {recommendVideos.map((media: Media) => (
+                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
+                                    <VideoCard media={media} size="md"/>
+                                </div>
+                            ))}
+                        </HorizontalScroll>
+                    </section>
+                )}
+
                 <section>
-                    <SectionHeader
-                        title={t('home.featuredVideos', '精选推荐')}
-                        icon={<Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>}
-                        viewAllLink="/featured"
-                    />
-                    <HorizontalScroll buttonOffset={cardOffset}>
-                        {featuredVideos.map((media: Media) => (
-                            <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
-                                <VideoCard media={media} size="md"/>
-                            </div>
-                        ))}
-                    </HorizontalScroll>
-                </section>
-            )}
-
-            {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
-
-            {recommendVideos.length > 0 && (
-                <section>
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                            <Sparkles className="w-5 h-5 text-sky-500" fill="currentColor"/>
-                            {t('home.recommended', '为您推荐')}
-                        </h2>
-                        <button
-                            type="button"
-                            onClick={() => setRecoSeed((s) => s + 1)}
-                            className="text-primary hover:text-primary/80 text-sm font-medium flex items-center gap-1 transition-colors"
-                        >
-                            <Shuffle size={14}/>
-                            {t('home.refresh', '换一批')}
-                        </button>
-                    </div>
-                    <HorizontalScroll buttonOffset={cardOffset}>
-                        {recommendVideos.map((media: Media) => (
-                            <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
-                                <VideoCard media={media} size="md"/>
-                            </div>
-                        ))}
-                    </HorizontalScroll>
-                </section>
-            )}
-
-            <section>
-                <CategoryChips
-                    selectedId={selectedCategoryId}
-                    onSelect={(id) => {
-                        navigate({to: '/', search: id != null ? {category: id} : {}});
-                    }}
-                />
-                <div className="mt-4">
                     <SectionHeader
                         title={t('home.latestVideos', '最新视频')}
                         viewAllLink="/latest"
@@ -410,19 +398,19 @@ const HomePage = () => {
                             ))}
                         </div>
                     )}
-                </div>
-            </section>
+                </section>
 
-            <div ref={sentinelRef} className="flex flex-col items-center py-8">
-                {isFetchingNextPage && (
-                    <div className="flex items-center gap-3 text-muted-foreground py-2">
-                        <Spinner size="sm"/>
-                        <span className="text-sm">{t('common.loading', '加载中...')}</span>
-                    </div>
-                )}
-                {!hasNextPage && mergedItems.length > 0 && (
-                    <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                )}
+                <div ref={sentinelRef} className="flex flex-col items-center py-8">
+                    {isFetchingNextPage && (
+                        <div className="flex items-center gap-3 text-muted-foreground py-2">
+                            <Spinner size="sm"/>
+                            <span className="text-sm">{t('common.loading', '加载中...')}</span>
+                        </div>
+                    )}
+                    {!hasNextPage && mergedItems.length > 0 && (
+                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                    )}
+                </div>
             </div>
         </div>
     );
