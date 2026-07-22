@@ -78,27 +78,29 @@ const FeaturedPage = () => {
     }
 
     return (
-        <div className="max-w-[1800px] mx-auto w-full px-1 py-6 space-y-8">
-            <section className="grid grid-cols-1 lg:grid-cols-[7fr,3fr] gap-6 lg:gap-8">
-                <PrimaryFeaturedCard item={primaryItem}/>
-                <aside className="space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Star size={18} className="text-warning"/>
-                        <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick')}</h2>
-                    </div>
-                    <div className="space-y-3">
-                        {editorPickItems.length > 0 ? (
-                            editorPickItems.map((item) => <EditorPickListItem key={item.id} item={item}/>)
-                        ) : (
-                            <div className="text-sm text-muted-foreground py-4">
-                                {t('common.noData')}
-                            </div>
-                        )}
-                    </div>
-                </aside>
+        <div className="w-full py-6 space-y-8">
+            <section className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-[6fr,4fr] xl:grid-cols-[5fr,5fr] gap-6 lg:gap-8">
+                    <PrimaryFeaturedCard item={primaryItem}/>
+                    <aside className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <Star size={18} className="text-warning"/>
+                            <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick')}</h2>
+                        </div>
+                        <div className="space-y-3">
+                            {editorPickItems.length > 0 ? (
+                                editorPickItems.map((item) => <EditorPickListItem key={item.id} item={item}/>)
+                            ) : (
+                                <div className="text-sm text-muted-foreground py-4">
+                                    {t('common.noData')}
+                                </div>
+                            )}
+                        </div>
+                    </aside>
+                </div>
             </section>
 
-            <section className="space-y-5">
+            <section className="max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <h2 className="text-xl font-bold text-foreground">{t('featured.allFeatured')}</h2>
@@ -403,35 +405,37 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
-    <div className="max-w-[1800px] mx-auto w-full px-1 py-6 space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[7fr,3fr] gap-6 lg:gap-8">
-            <div className="space-y-4">
-                <Skeleton className="aspect-video rounded-lg"/>
-                <Skeleton className="h-7 w-3/4"/>
-                <Skeleton className="h-4 w-1/2"/>
-                <div className="flex items-center gap-3 pt-2">
-                    <Skeleton className="h-8 w-8 rounded-full"/>
-                    <Skeleton className="h-4 w-24"/>
-                    <Skeleton className="h-4 w-16"/>
+    <div className="w-full py-6 space-y-8">
+        <section className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[6fr,4fr] xl:grid-cols-[5fr,5fr] gap-6 lg:gap-8">
+                <div className="space-y-4">
+                    <Skeleton className="aspect-video rounded-lg"/>
+                    <Skeleton className="h-7 w-3/4"/>
+                    <Skeleton className="h-4 w-1/2"/>
+                    <div className="flex items-center gap-3 pt-2">
+                        <Skeleton className="h-8 w-8 rounded-full"/>
+                        <Skeleton className="h-4 w-24"/>
+                        <Skeleton className="h-4 w-16"/>
+                    </div>
+                    <Skeleton className="h-10 w-32 rounded-lg"/>
                 </div>
-                <Skeleton className="h-10 w-32 rounded-lg"/>
-            </div>
-            <div className="space-y-4">
-                <Skeleton className="h-6 w-32"/>
-                <div className="space-y-3">
-                    {Array.from({length: 5}).map((_, i) => (
-                        <div key={i} className="flex gap-3">
-                            <Skeleton className="w-32 aspect-video rounded-lg"/>
-                            <div className="flex-1 space-y-2 py-1">
-                                <Skeleton className="h-4 w-3/4"/>
-                                <Skeleton className="h-3 w-1/2"/>
+                <div className="space-y-4">
+                    <Skeleton className="h-6 w-32"/>
+                    <div className="space-y-3">
+                        {Array.from({length: 5}).map((_, i) => (
+                            <div key={i} className="flex gap-3">
+                                <Skeleton className="w-32 aspect-video rounded-lg"/>
+                                <div className="flex-1 space-y-2 py-1">
+                                    <Skeleton className="h-4 w-3/4"/>
+                                    <Skeleton className="h-3 w-1/2"/>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
-        </div>
-        <div className="space-y-4">
+        </section>
+        <section className="max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 space-y-4">
             <div className="flex items-center justify-between">
                 <Skeleton className="h-6 w-32"/>
                 <Skeleton className="h-4 w-20"/>
@@ -441,7 +445,7 @@ const FeaturedPageSkeleton: React.FC = () => (
                     <VideoCardSkeleton key={i}/>
                 ))}
             </div>
-        </div>
+        </section>
     </div>
 );
 
