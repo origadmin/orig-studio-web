@@ -326,7 +326,7 @@ const FeaturedPage = () => {
                 </div>
             ) : (
                 <div className="pb-12">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7">
+                    <div className="grid gap-x-5 gap-y-7" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                         {filteredAndSortedMedia.map((item) => (
                             <VideoCard key={item.id} item={item}/>
                         ))}
@@ -356,8 +356,8 @@ const FeaturedPageSkeleton: React.FC = () => (
             ))}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-5 gap-y-7 pb-12">
-            {Array.from({length: 12}).map((_, i) => (
+        <div className="grid gap-x-5 gap-y-7 pb-12" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+            {Array.from({length: 14}).map((_, i) => (
                 <div key={i}>
                     <Skeleton className="aspect-video rounded-xl"/>
                     <div className="pt-3 space-y-2">
