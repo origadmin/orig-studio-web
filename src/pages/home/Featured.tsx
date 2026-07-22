@@ -62,7 +62,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-[1800px] mx-auto w-full px-1 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -80,8 +80,8 @@ const FeaturedPage = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-            <section className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-6 lg:gap-8">
+        <div className="max-w-[1800px] mx-auto w-full px-1 py-6 space-y-8">
+            <section className="grid grid-cols-1 lg:grid-cols-[7fr,3fr] gap-6 lg:gap-8">
                 <PrimaryFeaturedCard item={primaryItem}/>
                 <aside className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ const FeaturedPage = () => {
                 ) : (
                     <>
                         {layoutMode === 'grid' ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                                 {filteredMedia.map((item) => (
                                     <FeaturedGridCard key={item.id} item={item}/>
                                 ))}
@@ -209,7 +209,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-lg transition-all duration-300">
+            <div className="relative rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                     <img
                         src={getImageUrl(item.thumbnail, 'thumbnail')}
@@ -230,15 +230,15 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                         </div>
                     </div>
                 </div>
-                <div className="p-5">
-                    <h3 className="text-xl font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                <div className="p-4">
+                    <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                         {item.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5">
                         {item.description || t('watch.noDescription')}
                     </p>
-                    <div className="flex items-center gap-3 mt-4 text-sm text-muted-foreground">
-                        <Avatar className="h-7 w-7">
+                    <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
+                        <Avatar className="h-6 w-6">
                             <AvatarImage
                                 src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
                                 alt={user?.username}
@@ -252,12 +252,9 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                             <Eye size={14}/>
                             {formatViews(item.view_count)}
                         </span>
-                        <Badge variant="secondary" className="text-xs">
-                            {formatDuration(item.duration)}
-                        </Badge>
                     </div>
-                    <Button size="lg" className="mt-5">
-                        <Play size={18} className="mr-2"/>
+                    <Button size="sm" className="mt-4">
+                        <Play size={16} className="mr-1.5"/>
                         {t('featured.watchNow')}
                     </Button>
                 </div>
@@ -412,10 +409,10 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-6 lg:gap-8">
+    <div className="max-w-[1800px] mx-auto w-full px-1 py-6 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[7fr,3fr] gap-6 lg:gap-8">
             <div className="space-y-4">
-                <Skeleton className="aspect-video rounded-2xl"/>
+                <Skeleton className="aspect-video rounded-lg"/>
                 <Skeleton className="h-7 w-3/4"/>
                 <Skeleton className="h-4 w-1/2"/>
                 <div className="flex items-center gap-3 pt-2">
@@ -446,7 +443,7 @@ const FeaturedPageSkeleton: React.FC = () => (
                 <Skeleton className="h-6 w-32"/>
                 <Skeleton className="h-4 w-20"/>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                 {Array.from({length: 8}).map((_, i) => (
                     <VideoCardSkeleton key={i}/>
                 ))}
