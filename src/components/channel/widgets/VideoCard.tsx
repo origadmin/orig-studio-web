@@ -9,6 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 
 interface Video {
     id: string;
@@ -105,18 +106,13 @@ const VideoCard: React.FC<VideoCardProps> = ({
         >
             {/* Thumbnail */}
             <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                {video.thumbnail ? (
-                    <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        className={`w-full h-full object-cover transition-transform duration-300 ${isHovered ? 'scale-105' : 'scale-100'}`}
-                        loading="lazy"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-muted">
-                        <Film className="w-10 h-10 opacity-50"/>
-                    </div>
-                )}
+                <img
+                    src={getImageUrl(video.thumbnail, 'thumbnail')}
+                    alt={video.title}
+                    className={`w-full h-full object-cover transition-transform duration-300 ${isHovered ? 'scale-105' : 'scale-100'}`}
+                    loading="lazy"
+                    onError={(e) => handleImageError(e, 'thumbnail')}
+                />
 
                 {/* Duration badge */}
                 {video.duration && (
@@ -177,7 +173,12 @@ const VideoCard: React.FC<VideoCardProps> = ({
                 {!showChannelInfo && (
                     <div className="hidden sm:block w-9 h-9 rounded-full bg-primary/10 flex-shrink-0 mt-0.5 overflow-hidden">
                         {video.user?.avatar ? (
-                            <img src={video.user.avatar} alt="" className="w-full h-full object-cover"/>
+                            <img
+                                src={getImageUrl(video.user.avatar, 'avatar')}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                onError={(e) => handleImageError(e, 'avatar')}
+                            />
                         ) : (
                             <div className="w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-xs font-bold text-primary">
                                 {(video.user?.nickname || video.user?.username || 'U').charAt(0).toUpperCase()}

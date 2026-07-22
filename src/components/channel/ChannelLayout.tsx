@@ -26,7 +26,7 @@ import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDate} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
-import {getFullUrl} from '@/lib/utils';
+import {getImageUrl} from '@/lib/imageUtils';
 import ChannelHeader from './ChannelHeader';
 import ChannelNav from './ChannelNav';
 import VideoCard from './widgets/VideoCard';
@@ -784,22 +784,23 @@ function mapMediaToVideo(media: any): {
         avatar?: string;
     };
 } {
-    const userEdge = media.edges?.user?.[0] || media.user;
+    // Proto JSON uses snake_case: user is direct field (not edges.user array)
+    const userData = media.user || media.User;
     return {
         id: media.id,
         short_token: media.short_token,
         title: media.title || media.filename || media.id,
-        thumbnail: getFullUrl(media.thumbnail || media.poster),
+        thumbnail: getImageUrl(media.thumbnail || media.poster, 'thumbnail'),
         duration: typeof media.duration === 'string' ? parseInt(media.duration, 10) : media.duration,
         view_count: typeof media.view_count === 'string' ? parseInt(media.view_count, 10) : media.view_count,
-        published_at: media.published_at,
-        create_time: media.create_time,
+        published_at: media.published_at || media.publishedAt,
+        create_time: media.create_time || media.createTime,
         progress: 0,
-        user: userEdge ? {
-            id: userEdge.id,
-            username: userEdge.username,
-            nickname: userEdge.nickname || userEdge.username,
-            avatar: getFullUrl(userEdge.avatar),
+        user: userData ? {
+            id: userData.id,
+            username: userData.username,
+            nickname: userData.nickname || userData.username,
+            avatar: getImageUrl(userData.avatar || userData.logo, 'avatar'),
         } : undefined,
     };
 }
