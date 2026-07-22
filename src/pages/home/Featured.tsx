@@ -12,11 +12,13 @@ import {useTranslation} from 'react-i18next';
 import {useMediaList} from '@/hooks/queries';
 import ErrorPage from '@/components/common/ErrorPage';
 import VideoCardSkeleton from '@/components/common/VideoCardSkeleton';
+import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
+import {getLocalizedText} from '@/lib/i18n-utils';
 
 type LayoutMode = 'grid' | 'list';
 
 const FeaturedPage = () => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const search = useSearch({strict: false}) as {category_id?: number};
     const activeCategoryId = search.category_id;
     const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
@@ -33,11 +35,12 @@ const FeaturedPage = () => {
     const categories = useMemo(() => {
         const catMap = new Map<number, {id: number; name: string}>();
         featuredMedia.forEach((item) => {
-            if (item.category_id && item.edges?.category?.name) {
+            if (item.category_id && (item.edges?.category?.name || item.category?.name)) {
+                const catName = item.edges?.category?.name || item.category?.name || '';
                 if (!catMap.has(item.category_id)) {
                     catMap.set(item.category_id, {
                         id: item.category_id,
-                        name: item.edges.category.name,
+                        name: catName,
                     });
                 }
             }
@@ -47,8 +50,30 @@ const FeaturedPage = () => {
 
     const filteredMedia = featuredMedia;
 
-    const primaryItem = featuredMedia[0];
-    const editorPickItems = featuredMedia.slice(1, 7);
+    const heroItems = useMemo<HeroBannerItem[]>(() => {
+        const lang = i18n.language;
+        const items: HeroBannerItem[] = [];
+        for (const item of featuredMedia.slice(0, 5)) {
+            const user = item.edges?.user?.[0] || item.user;
+            items.push({
+                id: item.id,
+                title: item.title || item.short_token || '',
+                subtitle: t('featured.subtitle', '这是编辑团队从海量内容中为您精心挑选的高质量视频，每日更新。'),
+                thumbnail: item.thumbnail || item.poster || '',
+                bgGradient: 'linear-gradient(135deg, #0f172a 0%, #312e81 100%)',
+                shortToken: item.short_token || undefined,
+                badge: '精选',
+                duration: item.duration,
+                viewCount: item.view_count,
+                createTime: item.create_time,
+                user: user ? {
+                    name: user.nickname || user.username || '',
+                    avatar: user.avatar,
+                } : undefined,
+            });
+        }
+        return items;
+    }, [featuredMedia, i18n.language, t]);
 
     if (isLoading) {
         return <FeaturedPageSkeleton/>;
@@ -60,7 +85,7 @@ const FeaturedPage = () => {
 
     if (featuredMedia.length === 0) {
         return (
-            <div className="max-w-[1800px] mx-auto w-full px-1 py-12">
+            <div className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 py-12">
                 <Empty className="py-20">
                     <EmptyMedia variant="icon">
                         <Star size={24}/>
@@ -78,31 +103,17 @@ const FeaturedPage = () => {
     }
 
     return (
-        <div className="w-full py-6 space-y-8">
-            <section className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-[6fr,4fr] xl:grid-cols-[5fr,5fr] gap-6 lg:gap-8">
-                    <PrimaryFeaturedCard item={primaryItem}/>
-                    <aside className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <Star size={18} className="text-warning"/>
-                            <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick')}</h2>
-                        </div>
-                        <div className="space-y-3">
-                            {editorPickItems.length > 0 ? (
-                                editorPickItems.map((item) => <EditorPickListItem key={item.id} item={item}/>)
-                            ) : (
-                                <div className="text-sm text-muted-foreground py-4">
-                                    {t('common.noData')}
-                                </div>
-                            )}
-                        </div>
-                    </aside>
-                </div>
-            </section>
+        <div className="w-full py-6">
+            {heroItems.length > 0 && (
+                <section className="mb-8 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
+                    <HeroBanner items={heroItems} mode="wide" autoPlayInterval={5000}/>
+                </section>
+            )}
 
-            <section className="max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8 space-y-5">
+            <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-warning"/>
                         <h2 className="text-xl font-bold text-foreground">{t('featured.allFeatured')}</h2>
                         <span className="text-sm text-muted-foreground">
                             {t('featured.featuredCount', {count: filteredMedia.length})}
@@ -174,10 +185,21 @@ interface FeaturedCardProps {
         title: string;
         description?: string;
         thumbnail?: string;
+        poster?: string;
         category_id?: number;
         duration: number;
         view_count: number;
         create_time?: string;
+        user?: {
+            id: string;
+            username: string;
+            nickname?: string;
+            avatar?: string;
+        };
+        category?: {
+            id: number;
+            name: string;
+        };
         edges?: {
             user?: Array<{
                 id: string;
@@ -197,7 +219,7 @@ type FeaturedItem = FeaturedCardProps['item'];
 
 const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
     const {t} = useTranslation();
-    const user = item.edges?.user?.[0];
+    const user = item.edges?.user?.[0] || item.user;
 
     return (
         <Link
@@ -208,7 +230,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
             <div className="relative rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                     <img
-                        src={getImageUrl(item.thumbnail, 'thumbnail')}
+                        src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
                         loading="eager"
                         onError={(e) => handleImageError(e, 'thumbnail')}
@@ -228,7 +250,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                 </div>
                 <div className="p-4">
                     <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                        {item.title}
+                        {item.title || item.short_token || ''}
                     </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-1.5">
                         {item.description || t('watch.noDescription')}
@@ -243,7 +265,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                                 {user?.username?.[0] || 'U'}
                             </AvatarFallback>
                         </Avatar>
-                        <span className="text-foreground font-medium">{user?.username || 'Unknown'}</span>
+                        <span className="text-foreground font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
                         <span className="flex items-center gap-1">
                             <Eye size={14}/>
                             {formatViews(item.view_count)}
@@ -260,7 +282,7 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
-    const user = item.edges?.user?.[0];
+    const user = item.edges?.user?.[0] || item.user;
 
     return (
         <Link
@@ -270,7 +292,7 @@ const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
         >
             <div className="relative w-32 shrink-0 aspect-video rounded-lg overflow-hidden">
                 <img
-                    src={getImageUrl(item.thumbnail, 'thumbnail')}
+                    src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                     alt={item.title}
                     loading="lazy"
                     onError={(e) => handleImageError(e, 'thumbnail')}
@@ -285,10 +307,10 @@ const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
             </div>
             <div className="flex flex-col justify-center min-w-0 py-0.5">
                 <h4 className="text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                    {item.title}
+                    {item.title || item.short_token || ''}
                 </h4>
                 <span className="text-xs text-muted-foreground mt-1 truncate">
-                    {user?.username || 'Unknown'}
+                    {user?.nickname || user?.username || 'Unknown'}
                 </span>
             </div>
         </Link>
@@ -297,14 +319,14 @@ const EditorPickListItem: React.FC<FeaturedCardProps> = ({item}) => {
 
 const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
     const {t} = useTranslation();
-    const user = item.edges?.user?.[0];
+    const user = item.edges?.user?.[0] || item.user;
 
     return (
         <Link to="/watch" search={{v: item.short_token || item.id}} className="group block">
             <div className="rounded-card bg-card overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                 <div className="relative aspect-video overflow-hidden">
                     <img
-                        src={getImageUrl(item.thumbnail, 'thumbnail')}
+                        src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
                         loading="lazy"
                         onError={(e) => handleImageError(e, 'thumbnail')}
@@ -324,7 +346,7 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
                 </div>
                 <div className="p-3">
                     <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">
-                        {item.title}
+                        {item.title || item.short_token || ''}
                     </h3>
                     <div className="flex items-center gap-2 mb-1">
                         <Avatar className="h-5 w-5">
@@ -337,7 +359,7 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
                             </AvatarFallback>
                         </Avatar>
                         <span className="text-xs text-muted-foreground truncate">
-                            {user?.username || 'Unknown'}
+                            {user?.nickname || user?.username || 'Unknown'}
                         </span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -359,14 +381,14 @@ const FeaturedGridCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
-    const user = item.edges?.user?.[0];
+    const user = item.edges?.user?.[0] || item.user;
 
     return (
         <Link to="/watch" search={{v: item.short_token || item.id}} className="group block">
             <div className="flex gap-3 rounded-card bg-card overflow-hidden border border-border p-2 hover:shadow-md transition-all duration-200">
                 <div className="w-40 shrink-0 aspect-video rounded-lg overflow-hidden relative">
                     <img
-                        src={getImageUrl(item.thumbnail, 'thumbnail')}
+                        src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
                         loading="lazy"
                         onError={(e) => handleImageError(e, 'thumbnail')}
@@ -381,10 +403,10 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
                 </div>
                 <div className="flex flex-col justify-center py-1 min-w-0">
                     <h3 className="text-sm font-medium text-foreground line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                        {item.title}
+                        {item.title || item.short_token || ''}
                     </h3>
                     <span className="text-xs text-muted-foreground mb-0.5">
-                        {user?.username || 'Unknown'}
+                        {user?.nickname || user?.username || 'Unknown'}
                     </span>
                     <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <span className="flex items-center gap-1">
@@ -405,33 +427,15 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 };
 
 const FeaturedPageSkeleton: React.FC = () => (
-    <div className="w-full py-6 space-y-8">
-        <section className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-[6fr,4fr] xl:grid-cols-[5fr,5fr] gap-6 lg:gap-8">
-                <div className="space-y-4">
-                    <Skeleton className="aspect-video rounded-lg"/>
-                    <Skeleton className="h-7 w-3/4"/>
-                    <Skeleton className="h-4 w-1/2"/>
-                    <div className="flex items-center gap-3 pt-2">
-                        <Skeleton className="h-8 w-8 rounded-full"/>
-                        <Skeleton className="h-4 w-24"/>
-                        <Skeleton className="h-4 w-16"/>
-                    </div>
-                    <Skeleton className="h-10 w-32 rounded-lg"/>
-                </div>
-                <div className="space-y-4">
-                    <Skeleton className="h-6 w-32"/>
-                    <div className="space-y-3">
-                        {Array.from({length: 5}).map((_, i) => (
-                            <div key={i} className="flex gap-3">
-                                <Skeleton className="w-32 aspect-video rounded-lg"/>
-                                <div className="flex-1 space-y-2 py-1">
-                                    <Skeleton className="h-4 w-3/4"/>
-                                    <Skeleton className="h-3 w-1/2"/>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+    <div className="w-full py-6">
+        <section className="mb-8 max-w-[1800px] mx-auto px-4 md:px-6 lg:px-8">
+            <div className="aspect-[21/9] rounded-xl bg-muted/50 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"/>
+                <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
+                    <Skeleton className="h-5 w-20 rounded-full"/>
+                    <Skeleton className="h-9 w-3/4 rounded"/>
+                    <Skeleton className="h-4 w-1/2 rounded"/>
+                    <Skeleton className="h-9 w-28 rounded-lg mt-2"/>
                 </div>
             </div>
         </section>
