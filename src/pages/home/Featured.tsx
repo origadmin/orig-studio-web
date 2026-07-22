@@ -81,9 +81,9 @@ const FeaturedPage = () => {
     return (
         <div className="w-full py-6">
             <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6 items-stretch">
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-6 items-start">
                     {primaryItem && <PrimaryFeaturedCard item={primaryItem}/>}
-                    <aside className="h-full flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden">
+                    <aside className="flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden h-full min-h-[400px]">
                         <div className="flex items-center gap-2 p-4 border-b border-border/40">
                             <Flame size={18} className="text-orange-500"/>
                             <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick', '编辑精选')}</h2>
@@ -223,8 +223,8 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative rounded-xl overflow-hidden border border-border/60 bg-card hover:shadow-lg transition-all duration-300">
-                <div className="relative aspect-[16/10] overflow-hidden">
+            <div className="relative rounded-xl overflow-hidden border border-border/60 bg-card hover:shadow-lg transition-all duration-300 max-w-[1300px]">
+                <div className="relative aspect-[16/10] overflow-hidden max-h-[730px]">
                     <img
                         src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
                         alt={item.title}
@@ -239,37 +239,37 @@ const PrimaryFeaturedCard: React.FC<FeaturedCardProps> = ({item}) => {
                     >
                         {formatDuration(item.duration)}
                     </Badge>
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                        <Badge variant="outline" className="mb-2 bg-orange-500/20 text-orange-400 border-orange-500/50">
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <Badge variant="outline" className="mb-3 bg-orange-500/20 text-orange-400 border-orange-500/50">
                             <Star size={12} className="mr-1 fill-current"/>
                             精选
                         </Badge>
-                        <h3 className="text-xl font-bold text-white line-clamp-2 drop-shadow-md">
+                        <h3 className="text-2xl font-bold text-white line-clamp-2 drop-shadow-md">
                             {item.title || item.short_token || ''}
                         </h3>
-                        <p className="text-sm text-white/70 line-clamp-1 mt-1">
+                        <p className="text-sm text-white/70 line-clamp-1 mt-2">
                             {item.description || t('watch.noDescription')}
                         </p>
-                        <div className="flex items-center gap-3 mt-2 text-sm text-white/80">
-                            <Avatar className="h-7 w-7 border-2 border-white/30">
+                        <div className="flex items-center gap-3 mt-3 text-sm text-white/80">
+                            <Avatar className="h-8 w-8 border-2 border-white/30">
                                 <AvatarImage
                                     src={user?.avatar ? getImageUrl(user.avatar, 'avatar') : undefined}
                                     alt={user?.username}
                                 />
-                                <AvatarFallback className="text-[10px] bg-white/20">
+                                <AvatarFallback className="text-xs bg-white/20">
                                     {user?.username?.[0] || 'U'}
                                 </AvatarFallback>
                             </Avatar>
                             <span className="font-medium">{user?.nickname || user?.username || 'Unknown'}</span>
                             <span className="flex items-center gap-1">
-                                <Eye size={13}/>
+                                <Eye size={14}/>
                                 {formatViews(item.view_count)}
                             </span>
                         </div>
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-xl scale-75 group-hover:scale-100 transition-transform duration-300">
-                            <Play className="w-7 h-7 text-foreground ml-0.5" fill="currentColor"/>
+                        <div className="w-20 h-20 rounded-full bg-white/90 dark:bg-gray-800/90 flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
+                            <Play className="w-9 h-9 text-foreground ml-0.5" fill="currentColor"/>
                         </div>
                     </div>
                 </div>
@@ -438,8 +438,8 @@ const FeaturedListCard: React.FC<FeaturedCardProps> = ({item}) => {
 const FeaturedPageSkeleton: React.FC = () => (
     <div className="w-full py-6">
         <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
-                <div className="aspect-video md:aspect-[16/10] rounded-xl bg-muted/50 relative overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-6">
+                <div className="aspect-video md:aspect-[16/10] rounded-xl bg-muted/50 relative overflow-hidden max-w-[1300px]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"/>
                     <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
                         <Skeleton className="h-5 w-20 rounded-full"/>
