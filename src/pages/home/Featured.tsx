@@ -113,6 +113,7 @@ const LargeFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
 };
 
 const MediumFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
+    const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
 
     return (
@@ -167,6 +168,7 @@ const MediumFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
 };
 
 const SmallFeaturedCard: React.FC<{item: FeaturedItem}> = ({item}) => {
+    const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
 
     return (
