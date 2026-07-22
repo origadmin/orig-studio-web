@@ -81,9 +81,9 @@ const FeaturedPage = () => {
     return (
         <div className="w-full py-6">
             <section className="max-w-[1800px] mx-auto w-full px-4 md:px-6 lg:px-8 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-[7fr_3fr] gap-6 items-stretch">
                     {primaryItem && <PrimaryFeaturedCard item={primaryItem}/>}
-                    <aside className="flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden">
+                    <aside className="h-full flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden">
                         <div className="flex items-center gap-2 p-4 border-b border-border/40">
                             <Flame size={18} className="text-orange-500"/>
                             <h2 className="text-lg font-bold text-foreground">{t('featured.editorPick', '编辑精选')}</h2>
