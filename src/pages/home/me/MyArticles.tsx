@@ -191,7 +191,7 @@ const MyArticles = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                     {items.map((article) => (
                         <Card key={article.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
                             <div className="relative aspect-video bg-muted">
