@@ -179,14 +179,43 @@ export interface PublicProfile {
     is_subscribed?: boolean;
 }
 
+function normalizeUser(raw: any): User {
+    if (!raw || typeof raw !== 'object') return raw;
+    const safe = (val: unknown, defaultVal: any = ''): any => {
+        if (val === null || val === undefined) return defaultVal;
+        if (typeof val === 'object') return defaultVal;
+        return val;
+    };
+    return {
+        id: String(raw.id || ''),
+        username: String(raw.username || raw.name || ''),
+        nickname: safe(raw.nickname),
+        email: String(raw.email || ''),
+        avatar: safe(raw.avatar),
+        cover: safe(raw.cover || raw.logo),
+        bio: safe(raw.bio || raw.description),
+        phone: safe(raw.phone),
+        role: String(raw.role || ''),
+        status: raw.status,
+        is_me: typeof raw.is_me === 'boolean' ? raw.is_me : undefined,
+        subscriber_count: typeof raw.subscriber_count === 'number' ? raw.subscriber_count : (typeof raw.follower_count === 'number' ? raw.follower_count : 0),
+        total_views: typeof raw.total_views === 'number' ? raw.total_views : (typeof raw.view_count === 'number' ? raw.view_count : 0),
+        is_verified: typeof raw.is_verified === 'boolean' ? raw.is_verified : false,
+        channel_id: safe(raw.channel_id, undefined),
+        links: Array.isArray(raw.links) ? raw.links : undefined,
+        create_time: String(raw.create_time || raw.date_joined || raw.date_added || ''),
+        update_time: safe(raw.update_time, undefined),
+    };
+}
+
 function normalizeUserList(raw: unknown): unknown {
     if (raw === null || raw === undefined) return {items: [], total: 0, page: 1, page_size: 0};
-    if (Array.isArray(raw)) return {items: raw, total: raw.length, page: 1, page_size: raw.length};
+    if (Array.isArray(raw)) return {items: raw.map(normalizeUser), total: raw.length, page: 1, page_size: raw.length};
     if (typeof raw === 'object') {
         const obj = raw as Record<string, unknown>;
         const items = Array.isArray(obj.items) ? obj.items : Array.isArray(obj.users) ? obj.users : [];
         return {
-            items,
+            items: (items as any[]).map(normalizeUser),
             total: obj.total ?? items.length,
             page: obj.page ?? 1,
             page_size: obj.page_size ?? items.length,
@@ -206,31 +235,31 @@ export const userApi = {
     // 获取用户详情（公开，使用 slug）
     get: async (slug: string) => {
         const res = await api.get<{user: User}>(`/users/${slug}`);
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 通过 username/slug/ID 获取用户（智能查找：slug→username→ID）
     getByUsername: async (identifier: string) => {
         const res = await api.get<{user: User}>(`/users/${identifier}`);
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 获取公开个人资料 (F016: 含 is_owner/is_subscribed) - 通过 username/slug/ID
     getPublicProfile: async (identifier: string) => {
-        const res = await api.get<{user: PublicProfile}>(`/users/${identifier}`);
-        return res.user;
+        const res = await api.get<{user: any}>(`/users/${identifier}`);
+        return normalizeUser(res.user) as PublicProfile;
     },
 
     // 创建用户
     create: async (data: CreateUserRequest) => {
         const res = await api.post<{user: User}>("/users", data);
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 更新用户（使用 slug）
     update: async (slug: string, data: UpdateUserRequest) => {
         const res = await api.put<{user: User}>(`/users/${slug}`, data);
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 删除用户（使用 slug）
@@ -245,13 +274,13 @@ export const userApi = {
     // 获取当前用户信息 - 使用 /me 路径
     getMe: async () => {
         const res = await api.get<{user: User}>("/me");
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 更新当前用户信息 - 使用 /me 路径
     updateMe: async (data: UpdateProfileRequest) => {
         const res = await api.put<{user: User}>("/me", data);
-        return res.user;
+        return normalizeUser(res.user);
     },
 
     // 修改密码 - 使用 /me/password 路径 (后端为 PUT 方法)
