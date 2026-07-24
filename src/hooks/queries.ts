@@ -63,6 +63,7 @@ export function useMediaList(params: {
     sort?: string;
     /** @deprecated Use descending instead */
     order?: string;
+    enabled?: boolean;
 }) {
     return useQuery({
         queryKey: mediaKeys.list(params),
@@ -98,6 +99,7 @@ export function useMediaList(params: {
             }
             return res;
         },
+        enabled: params.enabled ?? true,
     });
 }
 
@@ -366,11 +368,13 @@ export function useMyChannel(enabled: boolean) {
     });
 }
 
-export function useMyChannels(enabled: boolean) {
+export function useMyChannels(enabled: boolean, userId?: string) {
     return useQuery({
-        queryKey: ['channels', 'me'],
+        queryKey: ['channels', userId || 'me'],
         queryFn: async () => {
-            const res = await channelApi.listAll();
+            const res = userId
+                ? await channelApi.list({user_id: userId})
+                : await channelApi.listAll();
             return res.items as Channel[];
         },
         enabled,

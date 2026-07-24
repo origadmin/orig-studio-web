@@ -102,15 +102,21 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const isOwner = profile?.is_owner === true
         || (isAuthenticated && !!currentUser && !!profile && currentUser.username === profile.username);
 
+    const isProfileLoaded = !!profile && profile.username === username;
+
     const {data: videosData, isLoading: videosLoading} = useMediaList({
-        user_id: profile?.id,
+        user_id: isProfileLoaded ? profile.id : undefined,
         page_size: 6,
         order_by: 'create_time',
         descending: true,
+        enabled: isProfileLoaded,
     });
     const videos = (Array.isArray((videosData as any)?.items) ? (videosData as any).items : Array.isArray((videosData as any)?.medias) ? (videosData as any).medias : []);
 
-    const {data: channelsData, isLoading: channelsLoading} = useMyChannels(isOwner);
+    const {data: channelsData, isLoading: channelsLoading} = useMyChannels(
+        isProfileLoaded,
+        isProfileLoaded ? profile.id : undefined
+    );
     const channels = Array.isArray(channelsData) ? channelsData : (Array.isArray((channelsData as any)?.items) ? (channelsData as any).items : []);
 
     const {data: favoritesData, isLoading: favoritesLoading} = useFavoriteList(
@@ -122,7 +128,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {data: historyData, isLoading: historyLoading} = useHistoryList({
         page_size: 6,
         isAuthenticated,
-        userId: profile?.id,
+        userId: isOwner ? profile?.id : undefined,
     });
     const historyItems = (Array.isArray((historyData as any)?.items) ? (historyData as any).items : Array.isArray((historyData as any)?.histories) ? (historyData as any).histories : []);
 
