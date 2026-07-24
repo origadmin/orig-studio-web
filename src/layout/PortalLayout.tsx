@@ -13,7 +13,10 @@ const PortalLayout = () => {
     const {isDark, toggleDark} = useTheme();
     const location = useLocation();
 
-    const hideCategoryChips = location.pathname.startsWith('/categories');
+    const hideCategoryChips = location.pathname.startsWith('/categories') ||
+        location.pathname.startsWith('/me') ||
+        location.pathname.startsWith('/admin') ||
+        location.pathname.startsWith('/upload');
 
     useEffect(() => {
         const saved = localStorage.getItem('sidebarCollapsed') === 'true';

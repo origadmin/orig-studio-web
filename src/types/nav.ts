@@ -13,6 +13,8 @@ export interface NavItem {
   external?: boolean;
   /** When true, the `to` path contains `__dynamic__` placeholder that must be resolved at render time */
   isDynamic?: boolean;
+  /** Nested child items for expandable sub-menu */
+  children?: NavItem[];
 }
 
 export interface NavSection {

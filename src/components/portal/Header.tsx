@@ -346,12 +346,20 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                         </div>
 
                                         <Link
-                                            to="/$handle"
-                                            params={{handle: `@${user.username}`}}
+                                            to="/me"
                                             onClick={() => setUserMenuOpen(false)}
                                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
                                         >
-                                            <UserCircle size={16}/> {t('nav.myProfile')}
+                                            <UserCircle size={16}/> {t('nav.myHome')}
+                                        </Link>
+                                        <Link
+                                            to="/u/$id"
+                                            params={{id: user.username}}
+                                            target="_blank"
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
+                                        >
+                                            <ExternalLink size={16}/> {t('me.viewPublicProfile')}
                                         </Link>
                                         <Link
                                             to="/me/channels"

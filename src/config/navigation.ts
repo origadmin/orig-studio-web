@@ -1,6 +1,5 @@
 import {
     Home,
-    Star,
     Clock,
     Video,
     History,
@@ -11,10 +10,10 @@ import {
     FileText,
     Tv,
     CreditCard,
-    Shield,
     Compass,
     Tags,
     LayoutGrid,
+    LayoutDashboard,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -55,13 +54,21 @@ export const NAV_CONFIG: NavSection[] = [
         title: 'nav.you',
         requiresAuth: true,
         items: [
-            {id: 'my-profile', label: 'nav.myProfile', to: '/@__dynamic__', icon: UserCircle, isDynamic: true},
-            {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
-            {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
-            {id: 'my-articles', label: 'nav.myArticles', to: '/me/articles', icon: FileText, module: 'articles'},
-            {id: 'history', label: 'nav.history', to: '/me/history', icon: History},
-            {id: 'favorites', label: 'nav.favorites', to: '/me/favorites', icon: Heart},
-            {id: 'playlists', label: 'nav.playlists', to: '/me/playlists', icon: ListVideo, module: 'videos'},
+            {
+                id: 'my-home',
+                label: 'nav.myHome',
+                to: '/me',
+                icon: UserCircle,
+                children: [
+                    {id: 'my-overview', label: 'nav.overview', to: '/me', icon: LayoutDashboard},
+                    {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
+                    {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
+                    {id: 'my-articles', label: 'nav.myArticles', to: '/me/articles', icon: FileText, module: 'articles'},
+                    {id: 'history', label: 'nav.history', to: '/me/history', icon: History},
+                    {id: 'favorites', label: 'nav.favorites', to: '/me/favorites', icon: Heart},
+                    {id: 'playlists', label: 'nav.playlists', to: '/me/playlists', icon: ListVideo, module: 'videos'},
+                ],
+            },
             {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
         ],
     },

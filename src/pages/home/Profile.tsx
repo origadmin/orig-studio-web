@@ -168,19 +168,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
             try {
                 setLoading(true);
                 setError(null);
-                let userResponse;
-                const resolvedUsername = params.handle
+                const resolvedIdentifier = params.handle
                     ? params.handle.startsWith('@') ? params.handle.slice(1) : params.handle
                     : params.username;
-                if (propUserId) {
-                    userResponse = await userApi.get(propUserId);
-                } else if (resolvedUsername) {
-                    userResponse = await userApi.getByUsername(resolvedUsername);
-                } else if (params.id) {
-                    userResponse = await userApi.get(params.id);
-                } else {
+                const identifier = propUserId || resolvedIdentifier || params.id;
+                if (!identifier) {
                     throw new Error('No user identifier provided');
                 }
+                const userResponse = await userApi.getByUsername(identifier);
                 setUser(userResponse);
             } catch (err: any) {
                 if (err.response && err.response.status === 404) {

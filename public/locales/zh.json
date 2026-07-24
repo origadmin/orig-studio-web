@@ -109,7 +109,7 @@
     "live": "直播",
     "mySubscription": "我的订阅",
     "myVideos": "我的视频",
-    "myProfile": "我的主页",
+    "myHome": "我的主页",
     "myChannels": "我的频道",
     "channelManagement": "频道管理",
     "favorites": "收藏",
@@ -130,7 +130,13 @@
     "switchToChinese": "中文",
     "switchToJapanese": "日本語",
     "showMore": "显示更多",
-    "showLess": "收起"
+    "showLess": "收起",
+    "overview": "概览"
+  },
+  "me": {
+    "viewPublicProfile": "查看公开主页",
+    "quickActions": "快捷操作",
+    "manageContent": "内容管理"
   },
   "header": {
     "searchPlaceholder": "搜索视频、标签、用户..."
@@ -170,7 +176,8 @@
     "published": "已发布",
     "featured": "精选",
     "views": "次观看",
-    "back": "返回"
+    "back": "返回",
+    "write": "写文章"
   },
   "featured": {
     "title": "精选内容",
@@ -678,7 +685,6 @@
   },
   "auth": {
     "loginRequired": "需要登录",
-    "signin": "登录",
     "signIn": {
       "title": "欢迎回来",
       "desc": "输入您的账号信息以登录",
