@@ -97,7 +97,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
         if (onEdit) {
             onEdit(video.id);
         } else {
-            navigate({to: '/media/edit/$id', params: {id: video.id}});
+            navigate({to: '/media/$shortToken/edit', params: {shortToken: video.short_token || String(video.id)}} as any);
         }
     };
 
