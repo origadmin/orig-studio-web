@@ -440,16 +440,31 @@ async function fetchApi<T>(
         });
         return response.data;
     } catch (error: unknown) {
-        const axiosError = error as { response?: { data?: Record<string, unknown> }; message?: string };
+        const axiosError = error as any;
         const errorData = axiosError.response?.data;
 
+        // Create a proper error object that preserves response info
+        let enhancedError: any;
+        if (error instanceof Error) {
+            enhancedError = error;
+        } else {
+            enhancedError = new Error("Request failed");
+        }
+
+        // Add backend error message if available
         if (errorData) {
             const msg = (errorData.message || errorData.error || errorData.msg) as string | undefined;
             if (msg) {
-                throw new Error(msg);
+                enhancedError.message = msg;
             }
         }
-        throw new Error(axiosError.message || "Request failed");
+
+        // Preserve response object for status code checking
+        if (axiosError.response) {
+            enhancedError.response = axiosError.response;
+        }
+
+        throw enhancedError;
     }
 }
 

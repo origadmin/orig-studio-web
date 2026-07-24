@@ -204,19 +204,34 @@ export const userApi = {
     },
 
     // 获取用户详情（公开，使用 slug）
-    get: (slug: string) => api.get<User>(`/users/${slug}`),
+    get: async (slug: string) => {
+        const res = await api.get<{user: User}>(`/users/${slug}`);
+        return res.user;
+    },
 
     // 通过 username/slug/ID 获取用户（智能查找：slug→username→ID）
-    getByUsername: (identifier: string) => api.get<User>(`/users/${identifier}`),
+    getByUsername: async (identifier: string) => {
+        const res = await api.get<{user: User}>(`/users/${identifier}`);
+        return res.user;
+    },
 
     // 获取公开个人资料 (F016: 含 is_owner/is_subscribed) - 通过 username/slug/ID
-    getPublicProfile: (identifier: string) => api.get<PublicProfile>(`/users/${identifier}`),
+    getPublicProfile: async (identifier: string) => {
+        const res = await api.get<{user: PublicProfile}>(`/users/${identifier}`);
+        return res.user;
+    },
 
     // 创建用户
-    create: (data: CreateUserRequest) => api.post<User>("/users", data),
+    create: async (data: CreateUserRequest) => {
+        const res = await api.post<{user: User}>("/users", data);
+        return res.user;
+    },
 
     // 更新用户（使用 slug）
-    update: (slug: string, data: UpdateUserRequest) => api.put<User>(`/users/${slug}`, data),
+    update: async (slug: string, data: UpdateUserRequest) => {
+        const res = await api.put<{user: User}>(`/users/${slug}`, data);
+        return res.user;
+    },
 
     // 删除用户（使用 slug）
     delete: (slug: string) => api.del<void>(`/users/${slug}`),
@@ -228,10 +243,16 @@ export const userApi = {
     // ==================== 当前用户 APIs (使用 /me 路径) ====================
 
     // 获取当前用户信息 - 使用 /me 路径
-    getMe: () => api.get<User>("/me"),
+    getMe: async () => {
+        const res = await api.get<{user: User}>("/me");
+        return res.user;
+    },
 
     // 更新当前用户信息 - 使用 /me 路径
-    updateMe: (data: UpdateProfileRequest) => api.put<User>("/me", data),
+    updateMe: async (data: UpdateProfileRequest) => {
+        const res = await api.put<{user: User}>("/me", data);
+        return res.user;
+    },
 
     // 修改密码 - 使用 /me/password 路径 (后端为 PUT 方法)
     changePassword: (data: ChangePasswordRequest) =>
