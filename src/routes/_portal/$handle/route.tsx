@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {createFileRoute, notFound, Outlet, Link} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {useNavigate} from '@tanstack/react-router';
@@ -59,6 +59,20 @@ const TABS_BASE = [
 ] as const;
 
 type TabKey = typeof TABS_BASE[number]['key'];
+
+type ProfileContextValue = {
+    profile: any;
+    isOwner: boolean;
+    username: string;
+};
+
+const ProfileContext = createContext<ProfileContextValue | null>(null);
+
+export function useProfileContext(): ProfileContextValue {
+    const ctx = useContext(ProfileContext);
+    if (!ctx) throw new Error('useProfileContext must be used within ProfileLayout');
+    return ctx;
+}
 
 export const Route = createFileRoute('/_portal/$handle')({
     beforeLoad: ({params}) => {
@@ -279,7 +293,9 @@ function ProfileLayout() {
                 </div>
 
                 <div className="py-6">
-                    <Outlet context={{profile, isOwner, username}}/>
+                    <ProfileContext.Provider value={{profile, isOwner, username}}>
+                        <Outlet/>
+                    </ProfileContext.Provider>
                 </div>
             </div>
 
@@ -348,8 +364,4 @@ function ProfileLayout() {
             </Dialog>
         </div>
     );
-}
-
-export function useProfileContext() {
-    return Route.useOutletContext<{profile: any; isOwner: boolean; username: string}>();
 }
