@@ -316,7 +316,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto">
+        <div className="-mx-4 md:-mx-6 lg:-mx-8">
             {/* Banner: pure gradient background */}
             <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative"/>
 
