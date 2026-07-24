@@ -46,7 +46,7 @@ const FavoritesPage = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
                     <Heart className="w-6 h-6 text-rose-500 fill-current"/>{t('favorites.title')}
@@ -56,7 +56,7 @@ const FavoritesPage = () => {
 
             {favorites.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                         {favorites.map(favorite => {
                             const video = favorite.media;
                             return (

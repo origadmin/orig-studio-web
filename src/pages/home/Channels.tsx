@@ -131,7 +131,7 @@ const ChannelsPage = () => {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    <div className="grid gap-4" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))'}}>
                         {channels.map((channel) => (
                             <ChannelCard key={channel.id} channel={channel}/>
                         ))}

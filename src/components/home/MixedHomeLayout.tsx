@@ -40,7 +40,7 @@ const MixedHomeLayout: React.FC = () => {
     const videos = videosQuery.data?.items ?? [];
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
             <Tabs defaultValue="all" className="w-full">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">{t('nav.home')}</h1>
@@ -63,7 +63,7 @@ const MixedHomeLayout: React.FC = () => {
                                     {t('home.viewAll')}
                                 </Link>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                                 {videos.slice(0, 6).map((video) => {
                                     const user = video?.edges?.user?.[0];
                                     const thumbUrl = getImageUrl(video?.thumbnail, 'thumbnail');
@@ -191,7 +191,7 @@ const MixedHomeLayout: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="videos">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                         {videos.map((video) => {
                             const user = video?.edges?.user?.[0];
                             const thumbUrl = getImageUrl(video?.thumbnail, 'thumbnail');

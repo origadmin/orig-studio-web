@@ -50,10 +50,10 @@ export default function MediaPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-8">
                     <div className="animate-pulse space-y-4">
                         <div className="h-8 bg-muted rounded w-48"></div>
-                        <div className="grid grid-cols-4 gap-6">
+                        <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                             {[1, 2, 3, 4].map(i => (
                                 <div key={i} className="bg-white rounded-lg overflow-hidden">
                                     <div className="h-48 bg-muted"></div>
@@ -85,7 +85,7 @@ export default function MediaPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-8">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">{t('media.title')}</h1>
                     <Link to="/" className="text-indigo-600 hover:underline">
@@ -126,7 +126,7 @@ export default function MediaPage() {
                         {t('media.noMedia')}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                         {mediaList.map((media) => (
                             <Link
                                 key={media.id}

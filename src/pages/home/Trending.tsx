@@ -30,7 +30,7 @@ export default function Trending() {
                     <TrendingUp size={24} className="text-primary"/>
                     <h1 className="text-2xl font-bold text-foreground">{t('trending.title', 'Trending')}</h1>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                     {Array.from({length: 12}).map((_, i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-card mb-3"/>
@@ -66,7 +66,7 @@ export default function Trending() {
                     {t('trending.noResults', 'No trending content')}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                     {items.map((item) => (
                         <Link
                             key={item.id}

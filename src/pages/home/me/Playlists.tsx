@@ -126,7 +126,7 @@ const PlaylistsPage = () => {
 
             {/* Playlist cards */}
             {playlists.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
                     {playlists.map((pl) => (
                         <div
                             key={pl.id}

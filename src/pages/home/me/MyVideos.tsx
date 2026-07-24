@@ -173,7 +173,7 @@ const MyVideos = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                     {mediaList.map((item) => {
                         const channelInfo = getChannelName(item);
                         return (

@@ -136,7 +136,7 @@ const MyArticles = () => {
 
             {/* Article grid */}
             {articles.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
                     {articles.map((article) => (
                         <Card key={article.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
                             {/* Thumbnail area */}

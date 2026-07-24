@@ -270,7 +270,7 @@ const CategoriesPage = () => {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
                         {items.map((media: any) => (
                             <VideoCard key={media.id} media={media}/>
                         ))}
