@@ -27,16 +27,18 @@ import { Route as PortalExploreRouteImport } from "./routes/_portal/explore";
 import { Route as PortalCookiesRouteImport } from "./routes/_portal/cookies";
 import { Route as PortalCategoriesRouteImport } from "./routes/_portal/categories";
 import { Route as PortalAboutRouteImport } from "./routes/_portal/about";
-import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
 import { Route as AuthenticatedSettingsRouteImport } from "./routes/_authenticated/settings";
 import { Route as AuthenticatedAdminRouteImport } from "./routes/_authenticated/admin";
 import { Route as AuthenticatedPortalRouteImport } from "./routes/_authenticated/_portal";
+import { Route as PortalHandleRouteRouteImport } from "./routes/_portal/$handle/route";
+import { Route as PortalHandleIndexRouteImport } from "./routes/_portal/$handle/index";
 import { Route as AuthenticatedAdminIndexRouteImport } from "./routes/_authenticated/admin/index";
 import { Route as PortalUIdRouteImport } from "./routes/_portal/u.$id";
 import { Route as PortalPlaylistTokenRouteImport } from "./routes/_portal/playlist.$token";
 import { Route as PortalPSlugRouteImport } from "./routes/_portal/p.$slug";
 import { Route as PortalChannelIdRouteImport } from "./routes/_portal/channel.$id";
 import { Route as PortalCIdRouteImport } from "./routes/_portal/c.$id";
+import { Route as PortalHandleTabRouteImport } from "./routes/_portal/$handle/$tab";
 import { Route as AuthenticatedSettingsProfileRouteImport } from "./routes/_authenticated/settings.profile";
 import { Route as AuthenticatedSettingsPreferencesRouteImport } from "./routes/_authenticated/settings.preferences";
 import { Route as AuthenticatedSettingsPasswordRouteImport } from "./routes/_authenticated/settings.password";
@@ -177,11 +179,6 @@ const PortalAboutRoute = PortalAboutRouteImport.update({
   path: "/about",
   getParentRoute: () => PortalRouteRoute,
 } as any);
-const PortalHandleRoute = PortalHandleRouteImport.update({
-  id: "/$handle",
-  path: "/$handle",
-  getParentRoute: () => PortalRouteRoute,
-} as any);
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: "/settings",
   path: "/settings",
@@ -195,6 +192,16 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: "/_portal",
   getParentRoute: () => AuthenticatedRoute,
+} as any);
+const PortalHandleRouteRoute = PortalHandleRouteRouteImport.update({
+  id: "/$handle",
+  path: "/$handle",
+  getParentRoute: () => PortalRouteRoute,
+} as any);
+const PortalHandleIndexRoute = PortalHandleIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => PortalHandleRouteRoute,
 } as any);
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: "/",
@@ -225,6 +232,11 @@ const PortalCIdRoute = PortalCIdRouteImport.update({
   id: "/c/$id",
   path: "/c/$id",
   getParentRoute: () => PortalRouteRoute,
+} as any);
+const PortalHandleTabRoute = PortalHandleTabRouteImport.update({
+  id: "/$tab",
+  path: "/$tab",
+  getParentRoute: () => PortalHandleRouteRoute,
 } as any);
 const AuthenticatedSettingsProfileRoute =
   AuthenticatedSettingsProfileRouteImport.update({
@@ -531,9 +543,9 @@ const AuthenticatedPortalMeArticlesTokenEditRoute =
 
 export interface FileRoutesByFullPath {
   "/": typeof PortalIndexRoute;
+  "/$handle": typeof PortalHandleRouteRouteWithChildren;
   "/admin": typeof AuthenticatedAdminRouteWithChildren;
   "/settings": typeof AuthenticatedSettingsRouteWithChildren;
-  "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
   "/cookies": typeof PortalCookiesRoute;
@@ -576,12 +588,14 @@ export interface FileRoutesByFullPath {
   "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
   "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
   "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
+  "/$handle/$tab": typeof PortalHandleTabRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
   "/admin/": typeof AuthenticatedAdminIndexRoute;
+  "/$handle/": typeof PortalHandleIndexRoute;
   "/me/articles": typeof AuthenticatedPortalMeArticlesRouteRouteWithChildren;
   "/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/me/channel": typeof AuthenticatedPortalMeChannelRoute;
@@ -610,7 +624,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof PortalIndexRoute;
   "/settings": typeof AuthenticatedSettingsRouteWithChildren;
-  "/$handle": typeof PortalHandleRoute;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
   "/cookies": typeof PortalCookiesRoute;
@@ -649,12 +662,14 @@ export interface FileRoutesByTo {
   "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
   "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
   "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
+  "/$handle/$tab": typeof PortalHandleTabRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
   "/admin": typeof AuthenticatedAdminIndexRoute;
+  "/$handle": typeof PortalHandleIndexRoute;
   "/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/me/channel": typeof AuthenticatedPortalMeChannelRoute;
   "/me/channels": typeof AuthenticatedPortalMeChannelsRoute;
@@ -683,10 +698,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/_portal": typeof PortalRouteRouteWithChildren;
   "/_authenticated": typeof AuthenticatedRouteWithChildren;
+  "/_portal/$handle": typeof PortalHandleRouteRouteWithChildren;
   "/_authenticated/_portal": typeof AuthenticatedPortalRouteWithChildren;
   "/_authenticated/admin": typeof AuthenticatedAdminRouteWithChildren;
   "/_authenticated/settings": typeof AuthenticatedSettingsRouteWithChildren;
-  "/_portal/$handle": typeof PortalHandleRoute;
   "/_portal/about": typeof PortalAboutRoute;
   "/_portal/categories": typeof PortalCategoriesRoute;
   "/_portal/cookies": typeof PortalCookiesRoute;
@@ -730,12 +745,14 @@ export interface FileRoutesById {
   "/_authenticated/settings/password": typeof AuthenticatedSettingsPasswordRoute;
   "/_authenticated/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
   "/_authenticated/settings/profile": typeof AuthenticatedSettingsProfileRoute;
+  "/_portal/$handle/$tab": typeof PortalHandleTabRoute;
   "/_portal/c/$id": typeof PortalCIdRoute;
   "/_portal/channel/$id": typeof PortalChannelIdRoute;
   "/_portal/p/$slug": typeof PortalPSlugRoute;
   "/_portal/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/_portal/u/$id": typeof PortalUIdRoute;
   "/_authenticated/admin/": typeof AuthenticatedAdminIndexRoute;
+  "/_portal/$handle/": typeof PortalHandleIndexRoute;
   "/_authenticated/_portal/me/articles": typeof AuthenticatedPortalMeArticlesRouteRouteWithChildren;
   "/_authenticated/_portal/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/_authenticated/_portal/me/channel": typeof AuthenticatedPortalMeChannelRoute;
@@ -765,9 +782,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/$handle"
     | "/admin"
     | "/settings"
-    | "/$handle"
     | "/about"
     | "/categories"
     | "/cookies"
@@ -810,12 +827,14 @@ export interface FileRouteTypes {
     | "/settings/password"
     | "/settings/preferences"
     | "/settings/profile"
+    | "/$handle/$tab"
     | "/c/$id"
     | "/channel/$id"
     | "/p/$slug"
     | "/playlist/$token"
     | "/u/$id"
     | "/admin/"
+    | "/$handle/"
     | "/me/articles"
     | "/articles/$slug"
     | "/me/channel"
@@ -844,7 +863,6 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/settings"
-    | "/$handle"
     | "/about"
     | "/categories"
     | "/cookies"
@@ -883,12 +901,14 @@ export interface FileRouteTypes {
     | "/settings/password"
     | "/settings/preferences"
     | "/settings/profile"
+    | "/$handle/$tab"
     | "/c/$id"
     | "/channel/$id"
     | "/p/$slug"
     | "/playlist/$token"
     | "/u/$id"
     | "/admin"
+    | "/$handle"
     | "/articles/$slug"
     | "/me/channel"
     | "/me/channels"
@@ -916,10 +936,10 @@ export interface FileRouteTypes {
     | "__root__"
     | "/_portal"
     | "/_authenticated"
+    | "/_portal/$handle"
     | "/_authenticated/_portal"
     | "/_authenticated/admin"
     | "/_authenticated/settings"
-    | "/_portal/$handle"
     | "/_portal/about"
     | "/_portal/categories"
     | "/_portal/cookies"
@@ -963,12 +983,14 @@ export interface FileRouteTypes {
     | "/_authenticated/settings/password"
     | "/_authenticated/settings/preferences"
     | "/_authenticated/settings/profile"
+    | "/_portal/$handle/$tab"
     | "/_portal/c/$id"
     | "/_portal/channel/$id"
     | "/_portal/p/$slug"
     | "/_portal/playlist/$token"
     | "/_portal/u/$id"
     | "/_authenticated/admin/"
+    | "/_portal/$handle/"
     | "/_authenticated/_portal/me/articles"
     | "/_authenticated/_portal/articles/$slug"
     | "/_authenticated/_portal/me/channel"
@@ -1130,13 +1152,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PortalAboutRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
-    "/_portal/$handle": {
-      id: "/_portal/$handle";
-      path: "/$handle";
-      fullPath: "/$handle";
-      preLoaderRoute: typeof PortalHandleRouteImport;
-      parentRoute: typeof PortalRouteRoute;
-    };
     "/_authenticated/settings": {
       id: "/_authenticated/settings";
       path: "/settings";
@@ -1157,6 +1172,20 @@ declare module "@tanstack/react-router" {
       fullPath: "/";
       preLoaderRoute: typeof AuthenticatedPortalRouteImport;
       parentRoute: typeof AuthenticatedRoute;
+    };
+    "/_portal/$handle": {
+      id: "/_portal/$handle";
+      path: "/$handle";
+      fullPath: "/$handle";
+      preLoaderRoute: typeof PortalHandleRouteRouteImport;
+      parentRoute: typeof PortalRouteRoute;
+    };
+    "/_portal/$handle/": {
+      id: "/_portal/$handle/";
+      path: "/";
+      fullPath: "/$handle/";
+      preLoaderRoute: typeof PortalHandleIndexRouteImport;
+      parentRoute: typeof PortalHandleRouteRoute;
     };
     "/_authenticated/admin/": {
       id: "/_authenticated/admin/";
@@ -1199,6 +1228,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/c/$id";
       preLoaderRoute: typeof PortalCIdRouteImport;
       parentRoute: typeof PortalRouteRoute;
+    };
+    "/_portal/$handle/$tab": {
+      id: "/_portal/$handle/$tab";
+      path: "/$tab";
+      fullPath: "/$handle/$tab";
+      preLoaderRoute: typeof PortalHandleTabRouteImport;
+      parentRoute: typeof PortalHandleRouteRoute;
     };
     "/_authenticated/settings/profile": {
       id: "/_authenticated/settings/profile";
@@ -1560,8 +1596,21 @@ declare module "@tanstack/react-router" {
   }
 }
 
+interface PortalHandleRouteRouteChildren {
+  PortalHandleTabRoute: typeof PortalHandleTabRoute;
+  PortalHandleIndexRoute: typeof PortalHandleIndexRoute;
+}
+
+const PortalHandleRouteRouteChildren: PortalHandleRouteRouteChildren = {
+  PortalHandleTabRoute: PortalHandleTabRoute,
+  PortalHandleIndexRoute: PortalHandleIndexRoute,
+};
+
+const PortalHandleRouteRouteWithChildren =
+  PortalHandleRouteRoute._addFileChildren(PortalHandleRouteRouteChildren);
+
 interface PortalRouteRouteChildren {
-  PortalHandleRoute: typeof PortalHandleRoute;
+  PortalHandleRouteRoute: typeof PortalHandleRouteRouteWithChildren;
   PortalAboutRoute: typeof PortalAboutRoute;
   PortalCategoriesRoute: typeof PortalCategoriesRoute;
   PortalCookiesRoute: typeof PortalCookiesRoute;
@@ -1584,7 +1633,7 @@ interface PortalRouteRouteChildren {
 }
 
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
-  PortalHandleRoute: PortalHandleRoute,
+  PortalHandleRouteRoute: PortalHandleRouteRouteWithChildren,
   PortalAboutRoute: PortalAboutRoute,
   PortalCategoriesRoute: PortalCategoriesRoute,
   PortalCookiesRoute: PortalCookiesRoute,
