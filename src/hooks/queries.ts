@@ -339,7 +339,6 @@ export function usePublicProfile(username: string | null) {
             } as Omit<PublicProfile, 'is_owner'>;
         },
         enabled: !!username,
-        staleTime: 60_000,
     });
 
     // Derive is_owner from current auth state and profile data.
