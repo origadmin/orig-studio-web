@@ -53,6 +53,7 @@ export function useMediaList(params: {
     category_id?: number | null;
     category_ids?: number[];
     user_id?: string | number;
+    channel_id?: string | number;
     keyword?: string;
     search?: string;
     tags?: string[];
@@ -77,6 +78,7 @@ export function useMediaList(params: {
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
                 category_ids: params.category_ids && params.category_ids.length > 0 ? params.category_ids.join(',') : undefined,
                 user_id: params.user_id || undefined,
+                channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 keyword: params.search || params.keyword,
                 tags: params.tags && params.tags.length > 0 ? params.tags.join(',') : undefined,
                 state: params.status,

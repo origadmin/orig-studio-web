@@ -1,12 +1,20 @@
 import {Spinner} from "@/components/ui/spinner"
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
-import {useMediaList, useDeleteMedia} from '@/hooks/queries';
+import {Link, useSearch} from '@tanstack/react-router';
+import {useMediaList, useDeleteMedia, useMyChannels} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {useUploadState} from '@/contexts/UploadContext';
 import {Card, CardContent} from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -24,29 +32,64 @@ import {
     Trash2,
     Edit,
     Plus,
-    ExternalLink
+    ExternalLink,
+    Tv,
+    Filter,
 } from 'lucide-react';
-import {Link} from '@tanstack/react-router';
 import {formatRelativeTime, formatDuration} from '@/lib/format';
 import {getFullUrl} from '@/lib/utils';
+import type {Channel} from '@/lib/api/channel';
 
 const MyVideos = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
     const {openDialog} = useUploadState();
+    const search: any = useSearch({strict: false});
     const [page, setPage] = useState(1);
     const [deleteTarget, setDeleteTarget] = useState<string | number | null>(null);
+    const [selectedChannelId, setSelectedChannelId] = useState<string>(search.channel || 'all');
     const pageSize = 12;
+
+    const {data: channelsData} = useMyChannels(!!user);
+    const channels: Channel[] = channelsData || [];
+
+    const channelMap = useMemo(() => {
+        const map = new Map<string, Channel>();
+        channels.forEach(ch => {
+            map.set(String(ch.id), ch);
+        });
+        return map;
+    }, [channels]);
 
     const {data, isLoading} = useMediaList({
         page,
         page_size: pageSize,
-        user_id: user?.id
+        user_id: user?.id,
+        channel_id: selectedChannelId !== 'all' ? selectedChannelId : undefined,
     });
 
     const deleteMutation = useDeleteMedia();
 
     const mediaList = data?.items || [];
+
+    const getChannelName = (item: any): { name: string; token?: string } | null => {
+        const chId = item.channel_id ? String(item.channel_id) : null;
+        if (chId && channelMap.has(chId)) {
+            const ch = channelMap.get(chId)!;
+            return {name: ch.name, token: ch.short_token};
+        }
+        if (item.channel?.name) {
+            return {name: item.channel.name, token: item.channel.short_token};
+        }
+        if (item.edges?.channels?.[0]?.name) {
+            return {name: item.edges.channels[0].name, token: item.edges.channels[0].short_token};
+        }
+        if (!chId) {
+            const defaultCh = channels.find(c => c.is_default);
+            if (defaultCh) return {name: defaultCh.name, token: defaultCh.short_token};
+        }
+        return null;
+    };
 
     const handleDeleteConfirm = async () => {
         if (!deleteTarget) return;
@@ -61,10 +104,15 @@ const MyVideos = () => {
         setDeleteTarget(null);
     };
 
+    const handleChannelChange = (value: string) => {
+        setSelectedChannelId(value);
+        setPage(1);
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Spinner />
+                <Spinner/>
             </div>
         );
     }
@@ -80,6 +128,32 @@ const MyVideos = () => {
                     <Plus className="w-4 h-4 mr-2"/>
                     {t('myVideos.uploadVideo', '上传视频')}
                 </Button>
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-muted-foreground"/>
+                    <span className="text-sm text-muted-foreground">{t('common.channel', '频道')}:</span>
+                </div>
+                <Select value={selectedChannelId} onValueChange={handleChannelChange}>
+                    <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder={t('video.allChannels', '全部频道')}/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">{t('video.allChannels', '全部频道')}</SelectItem>
+                        {channels.map(ch => (
+                            <SelectItem key={ch.id} value={String(ch.id)}>
+                                {ch.is_default ? `${ch.name} (${t('common.default', '默认')})` : ch.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {selectedChannelId !== 'all' && channelMap.get(selectedChannelId) && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                        <Tv className="w-3 h-3"/>
+                        {channelMap.get(selectedChannelId)!.name}
+                    </Badge>
+                )}
             </div>
 
             {mediaList.length === 0 ? (
@@ -100,76 +174,99 @@ const MyVideos = () => {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {mediaList.map((item) => (
-                        <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                            <div className="relative aspect-video bg-muted">
-                                {item.thumbnail ? (
-                                    <img
-                                        src={getFullUrl(item.thumbnail)}
-                                        alt={item.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <Video className="w-10 h-10 text-gray-300"/>
+                    {mediaList.map((item) => {
+                        const channelInfo = getChannelName(item);
+                        return (
+                            <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                                <div className="relative aspect-video bg-muted">
+                                    {item.thumbnail ? (
+                                        <img
+                                            src={getFullUrl(item.thumbnail)}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Video className="w-10 h-10 text-gray-300"/>
+                                        </div>
+                                    )}
+                                    <div
+                                        className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-[10px] rounded font-medium">
+                                        {formatDuration(item.duration)}
                                     </div>
-                                )}
-                                <div
-                                    className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-[10px] rounded font-medium">
-                                    {formatDuration(item.duration)}
+                                    <div
+                                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <Button size="icon-sm" variant="secondary" className="rounded-full" asChild>
+                                            <Link to="/watch" search={{v: item.short_token || item.id?.toString() || ''}}>
+                                                <ExternalLink className="w-4 h-4"/>
+                                            </Link>
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div
-                                    className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                    <Button size="icon-sm" variant="secondary" className="rounded-full" asChild>
-                                        <Link to="/watch" search={{v: item.short_token || item.id?.toString() || ''}}>
-                                            <ExternalLink className="w-4 h-4"/>
-                                        </Link>
-                                    </Button>
-                                </div>
-                            </div>
-                            <CardContent className="p-4">
-                                <div className="flex justify-between items-start gap-2">
-                                    <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
-                                        {item.title}
-                                    </h3>
-                                    <Badge variant={item.state === 'active' ? 'default' : 'secondary'}
-                                           className="text-[10px] px-1.5 py-0 capitalize shrink-0">
-                                        {item.state}
-                                    </Badge>
-                                </div>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
+                                            {item.title}
+                                        </h3>
+                                        <Badge variant={item.state === 'active' ? 'default' : 'secondary'}
+                                               className="text-[10px] px-1.5 py-0 capitalize shrink-0">
+                                            {item.state}
+                                        </Badge>
+                                    </div>
 
-                                <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
-                                    <div className="flex items-center gap-1">
-                                        <Eye className="w-3 h-3"/>
-                                        {item.view_count}
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <Clock className="w-3 h-3"/>
-                                        {formatRelativeTime(item.create_time)}
-                                    </div>
-                                </div>
+                                    {channelInfo && (
+                                        <div className="mt-2">
+                                            {channelInfo.token ? (
+                                                <Link
+                                                    to="/c/$id"
+                                                    params={{id: channelInfo.token}}
+                                                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                                >
+                                                    <Tv className="w-3 h-3"/>
+                                                    <span className="truncate">{channelInfo.name}</span>
+                                                </Link>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <Tv className="w-3 h-3"/>
+                                                    <span className="truncate">{channelInfo.name}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
 
-                                <div className="mt-4 pt-4 border-t flex justify-end gap-2">
-                                    <Button variant="ghost" size="sm"
-                                            className="h-8 text-gray-500 hover:text-primary" asChild>
-                                        <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
-                                            <Edit className="w-3.5 h-3.5 mr-1"/>
-                                            {t('common.edit', '编辑')}
-                                        </Link>
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 text-gray-500 hover:text-destructive"
-                                        onClick={() => setDeleteTarget(item.id)}
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5 mr-1"/>
-                                        {t('common.delete', '删除')}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                                        <div className="flex items-center gap-1">
+                                            <Eye className="w-3 h-3"/>
+                                            {item.view_count}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3"/>
+                                            {formatRelativeTime(item.create_time)}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm"
+                                                className="h-8 text-gray-500 hover:text-primary" asChild>
+                                            <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
+                                                <Edit className="w-3.5 h-3.5 mr-1"/>
+                                                {t('common.edit', '编辑')}
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 text-gray-500 hover:text-destructive"
+                                            onClick={() => setDeleteTarget(item.id)}
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5 mr-1"/>
+                                            {t('common.delete', '删除')}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
             )}
 

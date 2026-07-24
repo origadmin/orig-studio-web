@@ -486,6 +486,7 @@ export const mediaApi = {
         keyword?: string;
         tags?: string;
         user_id?: string;
+        channel_id?: string;
         state?: string;
         featured?: string;
         order_by?: string;

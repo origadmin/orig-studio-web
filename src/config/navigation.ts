@@ -37,15 +37,6 @@ export const NAV_CONFIG: NavSection[] = [
         ],
     },
     {
-        id: 'create',
-        title: 'nav.create',
-        requiresAuth: true,
-        items: [
-            {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
-            {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
-        ],
-    },
-    {
         id: 'subscriptions',
         title: 'nav.subscriptions',
         requiresAuth: true,
@@ -65,11 +56,13 @@ export const NAV_CONFIG: NavSection[] = [
         requiresAuth: true,
         items: [
             {id: 'my-profile', label: 'nav.myProfile', to: '/@__dynamic__', icon: UserCircle, isDynamic: true},
+            {id: 'my-channels', label: 'nav.myChannels', to: '/me/channels', icon: Tv, module: 'videos'},
+            {id: 'my-videos', label: 'nav.myVideos', to: '/me/videos', icon: Video, module: 'videos'},
             {id: 'my-articles', label: 'nav.myArticles', to: '/me/articles', icon: FileText, module: 'articles'},
-            {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
             {id: 'history', label: 'nav.history', to: '/me/history', icon: History},
             {id: 'favorites', label: 'nav.favorites', to: '/me/favorites', icon: Heart},
             {id: 'playlists', label: 'nav.playlists', to: '/me/playlists', icon: ListVideo, module: 'videos'},
+            {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
         ],
     },
 ];
