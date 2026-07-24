@@ -23,6 +23,7 @@ interface RenderNavItem {
     to: string;
     params?: Record<string, string>;
     children?: RenderNavItem[];
+    activePrefix?: string;
 }
 
 const SUBS_DEFAULT_SHOW = 5;
@@ -30,11 +31,19 @@ const SUBS_DEFAULT_SHOW = 5;
 function resolveNavItem(item: NavItem, currentUser?: AuthUser | null): RenderNavItem {
     let to = item.to;
     let params: Record<string, string> | undefined;
-    if (item.isDynamic && item.to.includes('__dynamic__')) {
+    let activePrefix: string | undefined;
+    if (item.isDynamic) {
         const username = currentUser?.username;
         if (username) {
-            to = '/u/$id';
-            params = {id: username};
+            if (item.to.includes('__handle__')) {
+                to = '/$handle';
+                params = {handle: '@' + username};
+                activePrefix = '/@' + username;
+            } else if (item.to.includes('__dynamic__')) {
+                to = '/u/$id';
+                params = {id: username};
+                activePrefix = '/u/' + username;
+            }
         } else {
             to = '/auth/signin';
         }
@@ -45,6 +54,7 @@ function resolveNavItem(item: NavItem, currentUser?: AuthUser | null): RenderNav
         label: item.label,
         to,
         params,
+        activePrefix,
         children: item.children ? item.children.map(child => resolveNavItem(child, currentUser)) : undefined,
     };
 }
@@ -95,6 +105,12 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     }, [pathname]);
 
     const isActive = (to: string) => pathname === to || pathname.startsWith(to + '/');
+    const isItemActive = (item: RenderNavItem) => {
+        if (item.activePrefix) {
+            return pathname === item.activePrefix || pathname.startsWith(item.activePrefix + '/');
+        }
+        return isActive(item.to);
+    };
 
     const toggleMenu = (id: string) => {
         setExpandedMenus(prev => {
@@ -167,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     };
 
     const FullNavLink = ({item, indent = false}: { item: RenderNavItem; indent?: boolean }) => {
-        const active = isActive(item.to);
+        const active = isItemActive(item);
         return (
             <Link
                 to={item.to}
@@ -195,11 +211,11 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     const ExpandableNavItem = ({item}: { item: RenderNavItem }) => {
         const hasChildren = item.children && item.children.length > 0;
         const isExpanded = expandedMenus.has(item.id);
-        const isItemActive = isActive(item.to);
+        const isItemActiveSelf = isItemActive(item);
         const hasActiveChild = hasChildren && item.children!.some(child =>
-            isActive(child.to)
+            isItemActive(child)
         );
-        const showAsActive = isItemActive || hasActiveChild;
+        const showAsActive = isItemActiveSelf || hasActiveChild;
 
         if (!hasChildren) {
             return <FullNavLink item={item}/>;
@@ -287,9 +303,9 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     const CollapsedSectionButton = ({section, items}: { section: NavSection; items: RenderNavItem[] }) => {
         const firstItem = items[0];
         const isInThisSection = items.some(item => {
-            if (isActive(item.to)) return true;
+            if (isItemActive(item)) return true;
             if (item.children) {
-                return item.children.some(child => isActive(child.to));
+                return item.children.some(child => isItemActive(child));
             }
             return false;
         });

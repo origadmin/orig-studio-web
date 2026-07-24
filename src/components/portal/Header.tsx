@@ -346,7 +346,8 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                         </div>
 
                                         <Link
-                                            to="/me"
+                                            to="/$handle"
+                                            params={{handle: '@' + user.username}}
                                             onClick={() => setUserMenuOpen(false)}
                                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
                                         >

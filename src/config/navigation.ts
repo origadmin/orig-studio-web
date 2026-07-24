@@ -49,8 +49,9 @@ export const NAV_CONFIG: NavSection[] = [
             {
                 id: 'my-home',
                 label: 'nav.myHome',
-                to: '/me',
+                to: '/@__handle__',
                 icon: UserCircle,
+                isDynamic: true,
             },
             {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
         ],

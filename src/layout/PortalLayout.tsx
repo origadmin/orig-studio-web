@@ -16,7 +16,9 @@ const PortalLayout = () => {
     const hideCategoryChips = location.pathname.startsWith('/categories') ||
         location.pathname.startsWith('/me') ||
         location.pathname.startsWith('/admin') ||
-        location.pathname.startsWith('/upload');
+        location.pathname.startsWith('/upload') ||
+        location.pathname.startsWith('/@') ||
+        location.pathname.startsWith('/u/');
 
     useEffect(() => {
         const saved = localStorage.getItem('sidebarCollapsed') === 'true';
