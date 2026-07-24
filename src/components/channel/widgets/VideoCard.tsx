@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useNavigate} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
-import {Clock, Eye, MoreVertical, Pencil, BarChart3, Play, ListPlus, Share2, Flag} from 'lucide-react';
+import {Clock, Eye, MoreVertical, Pencil, BarChart3, Play, ListPlus, Share2, Flag, Trash2} from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -61,6 +61,53 @@ const VideoCard: React.FC<VideoCardProps> = ({
     const {user} = useAuth();
     const [isHovered, setIsHovered] = useState(false);
     const [showReportDialog, setShowReportDialog] = useState(false);
+
+    const isActuallyOwner = isOwner || (user?.id && video.user?.id && user.id === video.user.id);
+
+    const handleShare = async () => {
+        if (onShare) {
+            onShare(video.id);
+            return;
+        }
+        const videoUrl = `${window.location.origin}/watch?v=${video.short_token || video.id}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: video.title,
+                    url: videoUrl,
+                });
+            } catch {
+                // User cancelled share
+            }
+        } else {
+            await navigator.clipboard.writeText(videoUrl);
+            toast.success(t('common.linkCopied') || 'Link copied to clipboard');
+        }
+    };
+
+    const handleAddToPlaylist = () => {
+        if (onAddToPlaylist) {
+            onAddToPlaylist(video.id);
+        } else {
+            toast.info(t('common.featureComingSoon') || 'Feature coming soon');
+        }
+    };
+
+    const handleEdit = () => {
+        if (onEdit) {
+            onEdit(video.id);
+        } else {
+            navigate({to: '/media/edit/$id', params: {id: video.id}});
+        }
+    };
+
+    const handleViewStats = () => {
+        if (onViewStats) {
+            onViewStats(video.id);
+        } else {
+            toast.info(t('common.featureComingSoon') || 'Feature coming soon');
+        }
+    };
 
     const handleOpenReport = () => {
         if (!user) {
@@ -152,25 +199,25 @@ const VideoCard: React.FC<VideoCardProps> = ({
                 )}
 
                 {/* Quick action buttons for owner on hover */}
-                {isOwner && isHovered && (
+                {isActuallyOwner && isHovered && (
                     <div className="absolute top-2 right-2 flex items-center gap-1.5 transition-opacity duration-200">
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onEdit?.(video.id);
+                                handleEdit();
                             }}
                             className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-colors"
-                            title="Edit video"
+                            title={t('common.edit') || 'Edit video'}
                         >
                             <Pencil className="w-3.5 h-3.5 text-white"/>
                         </button>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onViewStats?.(video.id);
+                                handleViewStats();
                             }}
                             className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-sm transition-colors"
-                            title="View stats"
+                            title={t('common.stats') || 'View stats'}
                         >
                             <BarChart3 className="w-3.5 h-3.5 text-white"/>
                         </button>
@@ -210,23 +257,23 @@ const VideoCard: React.FC<VideoCardProps> = ({
                     <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                         {video.title}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground min-w-0 overflow-hidden whitespace-nowrap">
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
                         {video.user?.username && (
-                            <span className="truncate min-w-0 flex-shrink">@{video.user.nickname || video.user.username}</span>
+                            <span className="truncate min-w-0">@{video.user.nickname || video.user.username}</span>
                         )}
                         {video.user?.username && video.view_count !== undefined && (
-                            <span className="flex-shrink-0">·</span>
+                            <span className="shrink-0">·</span>
                         )}
                         {video.view_count !== undefined && (
-                            <span className="flex items-center gap-1 flex-shrink-0">
-                                <Eye className="w-3 h-3 flex-shrink-0"/>
+                            <span className="flex items-center gap-0.5 shrink-0">
+                                <Eye className="w-3 h-3"/>
                                 {formatCount(video.view_count)}
                             </span>
                         )}
                         {(video.published_at || video.create_time) && (
                             <>
-                                <span className="flex-shrink-0">·</span>
-                                <span className="flex-shrink-0">{timeAgo(video.published_at || video.create_time!)}</span>
+                                <span className="shrink-0">·</span>
+                                <span className="shrink-0">{timeAgo(video.published_at || video.create_time!)}</span>
                             </>
                         )}
                     </div>
@@ -237,35 +284,56 @@ const VideoCard: React.FC<VideoCardProps> = ({
                     <DropdownMenuTrigger asChild>
                         <button
                             onClick={(e) => e.stopPropagation()}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-full transition-all self-start flex-shrink-0 h-6 w-6 flex items-center justify-center"
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-full transition-all self-start shrink-0 h-6 w-6 flex items-center justify-center"
                         >
                             <MoreVertical className="h-3 w-3"/>
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
+                        {isActuallyOwner ? (
+                            <>
+                                <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEdit();
+                                }}>
+                                    <Pencil className="h-4 w-4 mr-2"/>
+                                    {t('common.edit') || 'Edit'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewStats();
+                                }}>
+                                    <BarChart3 className="h-4 w-4 mr-2"/>
+                                    {t('common.stats') || 'Stats'}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator/>
+                            </>
+                        ) : null}
                         <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
-                            onAddToPlaylist?.(video.id);
+                            handleAddToPlaylist();
                         }}>
                             <ListPlus className="h-4 w-4 mr-2"/>
                             {t('watch.saveToPlaylist')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                             e.stopPropagation();
-                            onShare?.(video.id);
+                            handleShare();
                         }}>
                             <Share2 className="h-4 w-4 mr-2"/>
                             {t('watch.share')}
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator/>
-                        {!isOwner && (
-                            <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenReport();
-                            }}>
-                                <Flag className="h-4 w-4 mr-2"/>
-                                {t('channel.reportChannel')}
-                            </DropdownMenuItem>
+                        {!isActuallyOwner && (
+                            <>
+                                <DropdownMenuSeparator/>
+                                <DropdownMenuItem onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenReport();
+                                }} className="text-red-600 focus:text-red-600">
+                                    <Flag className="h-4 w-4 mr-2"/>
+                                    {t('video.reportVideo') || t('common.report') || 'Report'}
+                                </DropdownMenuItem>
+                            </>
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
