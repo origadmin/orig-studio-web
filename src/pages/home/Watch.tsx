@@ -386,6 +386,7 @@ const WatchPage = () => {
                                 mediaId={String(media.id)}
                                 shortToken={media.short_token || (shortToken as string)}
                                 commentCount={media.comment_count}
+                                isOwner={user != null && String(user.id) === String(media.user_id)}
                                 onCommentClick={() => {
                                     commentSectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
                                 }}

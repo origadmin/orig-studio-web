@@ -62,6 +62,33 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
 
     const channelToken = channel.short_token || channel.id;
 
+    // The videos query lives HERE (always mounted), so switching tabs never drops
+    // the data or depends on React Query cache timing. VideosTabContent only renders it.
+    const [videosSort, setVideosSort] = useState('newest');
+    const [videosKeyword, setVideosKeyword] = useState('');
+    const [videosPage, setVideosPage] = useState(1);
+    const videosPageSize = 12;
+    const {data: videosQueryData, isLoading: videosLoading, isFetching: videosFetching} = useChannelVideos(
+        channelToken,
+        {
+            sort: videosSort,
+            keyword: videosKeyword || undefined,
+            page: videosPage,
+            page_size: videosPageSize,
+        }
+    );
+    const handleVideosSortChange = useCallback((s: string) => {
+        setVideosSort(s);
+        setVideosPage(1);
+    }, []);
+    const handleVideosSearchChange = useCallback((kw: string) => {
+        setVideosKeyword(kw);
+        setVideosPage(1);
+    }, []);
+    const handleVideosPageChange = useCallback((p: number) => {
+        setVideosPage(p);
+    }, []);
+
     const handleTabChange = useCallback((tab: string) => {
         setActiveTab(tab);
         setContentEmpty(false);
@@ -135,9 +162,16 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                         )}
                         {activeTab === 'videos' && (
                             <VideosTabContent
-                                channelToken={channelToken}
-                                channelId={channel.id}
                                 isOwner={isOwner}
+                                videosData={videosQueryData}
+                                isLoading={videosLoading}
+                                isFetching={videosFetching}
+                                sortBy={videosSort}
+                                onSortChange={handleVideosSortChange}
+                                searchKeyword={videosKeyword}
+                                onSearchChange={handleVideosSearchChange}
+                                page={videosPage}
+                                onPageChange={handleVideosPageChange}
                                 onEmptyChange={handleContentEmptyChange}
                             />
                         )}
@@ -215,7 +249,7 @@ const HomeTabContent: React.FC<{
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -248,7 +282,7 @@ const HomeTabContent: React.FC<{
                         {t('home.viewAll')}
                     </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                     {videos.map((video) => (
                         <VideoCard
                             key={video.id}
@@ -268,44 +302,36 @@ const HomeTabContent: React.FC<{
 // Videos Tab - Full video list with sort and search
 // ================================
 const VideosTabContent: React.FC<{
-    channelToken?: string;
-    channelId?: string;
     isOwner: boolean;
+    videosData?: {items?: any[]; total?: number};
+    isLoading: boolean;
+    isFetching: boolean;
+    sortBy: string;
+    onSortChange: (s: string) => void;
+    searchKeyword: string;
+    onSearchChange: (s: string) => void;
+    page: number;
+    onPageChange: (p: number) => void;
     onEmptyChange?: (empty: boolean) => void;
-}> = ({channelToken, channelId, isOwner, onEmptyChange}) => {
+}> = ({isOwner, videosData, isLoading, isFetching, sortBy, onSortChange, searchKeyword, onSearchChange, page, onPageChange, onEmptyChange}) => {
     const {t} = useTranslation();
-    const [sortBy, setSortBy] = useState('newest');
-    const [searchKeyword, setSearchKeyword] = useState('');
-    const [page, setPage] = useState(1);
     const [allVideos, setAllVideos] = useState<any[]>([]);
 
-    const pageSize = 12;
-    const {data: videosData, isLoading} = useChannelVideos(
-        channelToken || null,
-        {
-            sort: sortBy,
-            keyword: searchKeyword || undefined,
-            page,
-            page_size: pageSize,
-        }
-    );
+    // The real query lives in ChannelLayout (always mounted), so `videosData` is
+    // always available here — switching tabs can never drop it. `allVideos` is only
+    // an accumulation buffer for "load more" paging.
+    const items = videosData?.items || [];
 
     React.useEffect(() => {
-        if (videosData?.items) {
-            if (page === 1) {
-                setAllVideos(videosData.items);
-            } else {
-                setAllVideos(prev => [...prev, ...videosData.items]);
-            }
-        }
+        if (!items.length) return;
+        setAllVideos((prev: any[]) => {
+            if (page === 1) return items;
+            const known = new Set(prev.map((v: any) => v.id));
+            return [...prev, ...items.filter((v: any) => !known.has(v.id))];
+        });
     }, [videosData, page]);
 
-    React.useEffect(() => {
-        setPage(1);
-        setAllVideos([]);
-    }, [sortBy, searchKeyword]);
-
-    const videos = allVideos;
+    const videos = allVideos.length > 0 ? allVideos : items;
     const total = videosData?.total || 0;
     const hasMore = videos.length < total;
 
@@ -322,13 +348,13 @@ const VideosTabContent: React.FC<{
     ];
 
     const handleLoadMore = () => {
-        setPage(prev => prev + 1);
+        onPageChange(page + 1);
     };
 
     if (isLoading && page === 1) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -343,7 +369,8 @@ const VideosTabContent: React.FC<{
         );
     }
 
-    if (videos.length === 0 && !searchKeyword) {
+    // Don't show empty state while refetching (isFetching) either — avoids flash of "no videos"
+    if (videos.length === 0 && !searchKeyword && !isLoading && !isFetching) {
         return <EmptyState type="videos" isOwner={isOwner}/>;
     }
 
@@ -359,11 +386,11 @@ const VideosTabContent: React.FC<{
                         <Input
                             placeholder={t('channel.searchVideos')}
                             value={searchKeyword}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            onChange={(e) => onSearchChange(e.target.value)}
                             className="pl-9 h-9 w-48 sm:w-64"
                         />
                     </div>
-                    <Select value={sortBy} onValueChange={setSortBy}>
+                    <Select value={sortBy} onValueChange={onSortChange}>
                         <SelectTrigger className="w-[160px] h-9">
                             <SelectValue placeholder={t('channel.sortBy')}/>
                         </SelectTrigger>
@@ -384,7 +411,7 @@ const VideosTabContent: React.FC<{
                     <p>{t('channel.noSearchResults')}</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                     {videos.map((video) => (
                         <VideoCard
                             key={video.id}
@@ -440,7 +467,7 @@ const PlaylistsTabContent: React.FC<{
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -466,7 +493,7 @@ const PlaylistsTabContent: React.FC<{
                     {t('channel.playlists')} ({total})
                 </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                 {playlists.map((playlist) => (
                     <PlaylistCard
                         key={playlist.id}

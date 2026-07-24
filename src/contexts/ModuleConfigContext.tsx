@@ -2,7 +2,7 @@ import React, {createContext, useContext, useMemo} from 'react';
 import {useModuleConfig, type ModulePortalConfig} from '@/hooks/useModuleConfig';
 
 const DEFAULT_CONFIG: ModulePortalConfig = {
-    modules: {articles: true, videos: true, music: false},
+    modules: {articles: false, videos: true, music: false},
     layout: 'video',
     site: {
         site_name: 'OrigStudio',

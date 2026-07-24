@@ -1,8 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Link} from '@tanstack/react-router';
-import {ChevronLeft, ChevronRight, Play, Eye, Clock} from 'lucide-react';
+import {ChevronLeft, ChevronRight, Eye, Clock, ExternalLink, Megaphone} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
 import {Skeleton} from '@/components/ui/skeleton';
 import {cn, getFullUrl} from '@/lib/utils';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
@@ -22,6 +21,7 @@ export interface HeroBannerItem {
     viewCount?: number;
     createTime?: string;
     bgGradient?: string;
+    type?: 'video' | 'hot' | 'new' | 'ad' | 'link' | 'custom';
     user?: {
         name: string;
         avatar?: string;
@@ -112,13 +112,19 @@ const CSS = `
   justify-content: center;
   cursor: pointer;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
-.hero-banner-root:hover .hero-banner-nav { opacity: 0.85; }
-.hero-banner-nav:hover {
+.hero-banner-root:hover .hero-banner-nav:not(:disabled) { opacity: 0.85; pointer-events: auto; }
+.hero-banner-nav:not(:disabled):hover {
   opacity: 1 !important;
   background: #fff;
   transform: translateY(-50%) scale(1.08);
+}
+.hero-banner-nav:disabled {
+  opacity: 0.2 !important;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 .hero-banner-nav.prev { left: 16px; }
 .hero-banner-nav.next { right: 16px; }
@@ -175,6 +181,21 @@ const injectCss = () => {
     cssInjected = true;
 };
 
+type TypeBadgeInfo = {label: string; Icon?: React.ComponentType<{size?: number}>; className: string} | null;
+
+const resolveTypeBadge = (item: HeroBannerItem): TypeBadgeInfo => {
+    const t = item.type;
+    if (t === 'ad') return {label: '广告', Icon: Megaphone, className: 'bg-amber-500 text-black'};
+    if (t === 'link') return {label: '链接', Icon: ExternalLink, className: 'bg-violet-600 text-white'};
+    if (t === 'video') return {label: '视频', className: 'bg-blue-600 text-white'};
+    if (t === 'hot') return {label: 'HOT', className: 'bg-red-600 text-white'};
+    if (t === 'new') return {label: 'NEW', className: 'bg-emerald-600 text-white'};
+    // 兜底推导：有明确外链/短链时给角标，避免误导点击
+    if (item.url) return {label: '链接', Icon: ExternalLink, className: 'bg-violet-600 text-white'};
+    if (item.shortToken) return {label: '视频', className: 'bg-blue-600 text-white'};
+    return null;
+};
+
 const HeroBanner: React.FC<HeroBannerProps> = ({
     items,
     mode = 'auto',
@@ -195,6 +216,8 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
     const touchEndX = useRef<number | null>(null);
 
     const total = items.length;
+    const canGoPrev = current > 0;
+    const canGoNext = current < total - 1;
 
     useEffect(() => { injectCss(); }, []);
 
@@ -487,10 +510,10 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
             {showControls && (
                 <>
-                    <button type="button" className="hero-banner-nav prev" onClick={() => { goPrev(); clearTimers(); }} aria-label={t('common.previous', 'Previous')}>
+                    <button type="button" className="hero-banner-nav prev" disabled={!canGoPrev} onClick={() => { if (canGoPrev) { goPrev(); clearTimers(); } }} aria-label={t('common.previous', 'Previous')}>
                         <ChevronLeft size={22}/>
                     </button>
-                    <button type="button" className="hero-banner-nav next" onClick={() => { goNext(); clearTimers(); }} aria-label={t('common.next', 'Next')}>
+                    <button type="button" className="hero-banner-nav next" disabled={!canGoNext} onClick={() => { if (canGoNext) { goNext(); clearTimers(); } }} aria-label={t('common.next', 'Next')}>
                         <ChevronRight size={22}/>
                     </button>
                 </>
@@ -637,13 +660,8 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                         </p>
                     )}
                     <MetaRow item={item} userAvatar={userAvatar} mobile={mobile}/>
-                    {item.shortToken && (
-                        <Button size={mobile ? 'sm' : 'default'} className="mt-3 md:mt-4 bg-white text-black hover:bg-white/90 gap-1.5 font-medium shadow-lg">
-                            <Play size={mobile ? 13 : 15} fill="currentColor"/>
-                            立即播放
-                        </Button>
-                    )}
                 </div>
+                <TypeBadge item={item}/>
             </Wrapper>
         );
     }
@@ -679,14 +697,21 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                         </p>
                     )}
                     <MetaRow item={item} userAvatar={userAvatar}/>
-                {item.shortToken && (
-                    <Button size="default" className="self-start mt-1 md:mt-2 bg-white text-black hover:bg-white/90 gap-1.5 font-medium shadow-lg">
-                        <Play size={15} fill="currentColor"/>
-                        立即播放
-                    </Button>
-                )}
             </div>
+            <TypeBadge item={item}/>
         </Wrapper>
+    );
+};
+
+const TypeBadge: React.FC<{item: HeroBannerItem}> = ({item}) => {
+    const info = resolveTypeBadge(item);
+    if (!info) return null;
+    const {label, Icon, className} = info;
+    return (
+        <div data-hero-type-badge className={cn('absolute top-3 right-3 z-20 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-md', className)}>
+            {Icon && <Icon size={12}/>}
+            {label}
+        </div>
     );
 };
 
@@ -694,15 +719,13 @@ const MetaRow: React.FC<{item: HeroBannerItem; userAvatar?: string; mobile?: boo
     <div className="flex items-center gap-2 md:gap-3 text-white/80 text-xs md:text-sm flex-wrap">
         {item.user && (
             <>
-                {userAvatar ? (
+                {userAvatar && (
                     <img
                         src={userAvatar}
                         alt={item.user.name}
                         onError={(e) => handleImageError(e, 'avatar')}
                         className="w-5 h-5 md:w-6 md:h-6 rounded-full object-cover border border-white/30"
                     />
-                ) : (
-                    <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-white/20 border border-white/30"/>
                 )}
                 <span className="font-medium">{item.user.name}</span>
             </>

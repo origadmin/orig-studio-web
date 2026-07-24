@@ -4,6 +4,7 @@ import {SidebarCard} from '../SidebarCard';
 import {Button} from '@/components/ui/button';
 import {Plus, Upload, FileText, Radio, Zap} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {useModuleState} from '@/contexts/ModuleConfigContext';
 
 interface QuickActionsWidgetProps {
     onCreateChannel?: () => void;
@@ -12,6 +13,7 @@ interface QuickActionsWidgetProps {
 
 export function QuickActionsWidget({onCreateChannel, canCreateChannel = true}: QuickActionsWidgetProps) {
     const {t} = useTranslation();
+    const {modules} = useModuleState();
 
     const actions = [
         {
@@ -20,12 +22,12 @@ export function QuickActionsWidget({onCreateChannel, canCreateChannel = true}: Q
             to: '/me/upload',
             color: 'text-blue-500 bg-blue-50 dark:bg-blue-950',
         },
-        {
+        ...(modules.articles ? [{
             icon: FileText,
             label: t('nav.writeArticle', '写文章'),
             to: '/me/articles/new',
             color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950',
-        },
+        }] : []),
         {
             icon: Radio,
             label: t('nav.goLive', '开始直播'),

@@ -42,9 +42,10 @@ interface InteractionBarProps {
     shortToken?: string;  // 可选：使用 short_token 调用 publicMediaApi (推荐)
     commentCount?: number;
     onCommentClick?: () => void;
+    isOwner?: boolean;    // 当前登录用户是否为该视频 owner，用于隐藏"举报"入口
 }
 
-const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, commentCount = 0, onCommentClick}) => {
+const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, commentCount = 0, onCommentClick, isOwner = false}) => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
     const navigate = useNavigate();
@@ -237,16 +238,22 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
     };
 
     const handleShare = async () => {
+        // 立即打开弹窗：避免后端接口异常/超时时"连弹窗都不出现"
+        setShowShareModal(true);
+        setIsSharing(true);
         try {
-            setIsSharing(true);
             // 使用 publicMediaApi 或 mediaApi
             const response: ShareResponse = usePublicApi
                 ? await publicMediaApi.shares.getShareUrl(apiIdentifier)
                 : await mediaApi.shares.getShareUrl(mediaId);
             setShareData(response);
-            setShowShareModal(true);
         } catch (err) {
             console.error('Failed to get share URL:', err);
+            // 兜底：用当前页面地址作为分享链接，保证复制/原生分享仍可用
+            setShareData({
+                url: typeof window !== 'undefined' ? window.location.href : '',
+                title: typeof document !== 'undefined' ? document.title : '',
+            } as ShareResponse);
         } finally {
             setIsSharing(false);
         }
@@ -283,15 +290,17 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
             setShowLoginDialog(true);
             return;
         }
+        // 立即打开弹窗：避免后端接口异常/超时时"连弹窗都不出现"
+        setShowSaveModal(true);
+        setIsSaving(true);
         try {
-            setIsSaving(true);
             const response = await playlistApi.getMyPlaylists();
             const items = response.items || [];
             setPlaylists(items.map((p: any) => ({id: String(p.id), name: p.title})));
             setAddedPlaylistIds(new Set()); // Reset added state when opening a new dialog
-            setShowSaveModal(true);
         } catch (err) {
             console.error('Failed to fetch playlists:', err);
+            toast.error(t('watch.playlistsLoadFailed', 'Failed to load playlists'));
         } finally {
             setIsSaving(false);
         }
@@ -477,10 +486,12 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         {isDownloading ? t('common.loading') : t('watch.download')}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator/>
-                    <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
-                        <Flag className="w-4 h-4 mr-2"/>
-                        {t('report.reportVideo')}
-                    </DropdownMenuItem>
+                    {!isOwner && (
+                        <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
+                            <Flag className="w-4 h-4 mr-2"/>
+                            {t('report.reportVideo')}
+                        </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 
@@ -498,17 +509,23 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         <div className="flex items-center gap-2">
                             <div
                                 className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                                <Link2 className="w-4 h-4 text-gray-500"/>
+                                {isSharing && !shareData ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-gray-500"/>
+                                ) : (
+                                    <Link2 className="w-4 h-4 text-gray-500"/>
+                                )}
                                 <input
                                     type="text"
                                     value={shareData?.url || ''}
                                     readOnly
+                                    placeholder={isSharing && !shareData ? t('common.loading') : ''}
                                     className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none"
                                 />
                             </div>
                             <Button
                                 size="sm"
                                 onClick={handleCopyLink}
+                                disabled={!shareData?.url}
                                 className={copied ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'}
                             >
                                 {copied ? <Check className="w-4 h-4"/> : t('watch.copyLink')}
@@ -615,6 +632,14 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     </DialogHeader>
 
                     <div className="space-y-3 mt-4">
+                        {/* Loading indicator while fetching playlists */}
+                        {isSaving && playlists.length === 0 && (
+                            <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+                                <Loader2 className="w-4 h-4 animate-spin"/>
+                                {t('common.loading')}
+                            </div>
+                        )}
+
                         {/* Existing playlists */}
                         {playlists.length > 0 && (
                             <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -717,7 +742,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         )}
 
                         {/* Empty state with CTA */}
-                        {playlists.length === 0 && !showCreateForm && (
+                        {playlists.length === 0 && !showCreateForm && !isSaving && (
                             <div className="text-center py-6">
                                 <Bookmark className="w-12 h-12 mx-auto text-gray-300 dark:text-gray-600 mb-3"/>
                                 <p className="text-sm text-gray-500 mb-4">

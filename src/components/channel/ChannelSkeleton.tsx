@@ -46,7 +46,7 @@ const ChannelSkeleton: React.FC = () => {
                     <div className="flex flex-col lg:flex-row gap-6">
                         <div className="flex-1 min-w-0">
                             <div className="min-h-[400px] space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-x-4 gap-y-6">
                                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                                         <div key={i} className="space-y-2">
                                             <div className="aspect-video bg-muted rounded-lg"/>

@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
 import {useMyChannels, useChannelLimits} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
+import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {useQueryClient} from '@tanstack/react-query';
 import {channelApi, type Channel} from '@/lib/api/channel';
 import {Button} from '@/components/ui/button';
@@ -40,6 +41,7 @@ import {
 const MyChannels = () => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
+    const {modules} = useModuleState();
     const queryClient = useQueryClient();
     const {data: channels, isLoading} = useMyChannels(isAuthenticated);
     const {data: limits} = useChannelLimits(isAuthenticated);
@@ -50,8 +52,8 @@ const MyChannels = () => {
 
     const channelList = channels || [];
     const canCreate = limits ? limits.can_create : true;
-    const currentCount = limits ? limits.current_count : 0;
-    const maxChannels = limits ? limits.max_channels : -1;
+    const currentCount = limits?.current_count ?? 0;
+    const maxChannels = limits?.max_channels ?? -1;
 
     const aggregateStats = useMemo(() => ({
         totalChannels: channelList.length,
@@ -205,7 +207,7 @@ const MyChannels = () => {
                                                             <span className="flex items-center gap-1 whitespace-nowrap">
                                                                 <Video size={14}/> {channel.media_count || 0} {t('common.videos')}
                                                             </span>
-                                                            {channel.article_count !== undefined && (
+                                                            {modules.articles && channel.article_count !== undefined && (
                                                                 <span className="flex items-center gap-1 whitespace-nowrap">
                                                                     <FileText size={14}/> {channel.article_count} {t('common.articles')}
                                                                 </span>

@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useNavigate} from '@tanstack/react-router';
 import {
@@ -12,6 +12,7 @@ import {
     useUnsubscribe,
 } from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
+import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {getImageUrl} from '@/lib/imageUtils';
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
@@ -81,8 +82,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
     const {user: currentUser, isAuthenticated} = useAuth();
+    const {modules} = useModuleState();
     const [ownerTab, setOwnerTab] = useState<OwnerTab>('videos');
     const [visitorTab, setVisitorTab] = useState<VisitorTab>('videos');
+
+    // Filter out articles tab when articles module is disabled
+    const visibleOwnerTabs = useMemo(() => {
+        if (modules.articles) return OWNER_TABS;
+        return OWNER_TABS.filter(tab => tab.key !== 'articles');
+    }, [modules.articles]);
 
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
@@ -434,7 +442,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             {isOwner ? (
                 <div className="px-4 sm:px-6 lg:px-8 mt-6">
                     <div className="flex border-b dark:border-gray-700 overflow-x-auto">
-                        {OWNER_TABS.map(tab => (
+                        {visibleOwnerTabs.map(tab => (
                             <button
                                 key={tab.key}
                                 onClick={() => setOwnerTab(tab.key)}

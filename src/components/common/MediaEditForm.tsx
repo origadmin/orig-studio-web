@@ -8,11 +8,13 @@ import {Separator} from '@/components/ui/separator';
 import {formatFileSize, formatDuration} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
 import type {Media} from '@/lib/api/media';
+import type {Channel} from '@/lib/api/channel';
 
 export interface MediaEditFormState {
     title: string;
     description: string;
     category_id: string | number;
+    channel_id: string | number;
     tags: string;
     privacy: number;
     state: string;
@@ -27,12 +29,13 @@ interface MediaEditFormProps {
     setForm: (form: MediaEditFormState) => void;
     media: Media;
     categories: any;
+    channels?: Channel[];
     isAdmin: boolean;
     /** Whether to show admin-only fields (featured, listable). Portal should pass false even for admin users. */
     showAdminOnlyFields?: boolean;
 }
 
-export function MediaEditForm({form, setForm, media, categories, isAdmin, showAdminOnlyFields = true}: MediaEditFormProps) {
+export function MediaEditForm({form, setForm, media, categories, channels = [], isAdmin, showAdminOnlyFields = true}: MediaEditFormProps) {
     const {t} = useTranslation();
     const categoriesList = (categories as any)?.items
         ? (categories as any).items
@@ -81,6 +84,26 @@ export function MediaEditForm({form, setForm, media, categories, isAdmin, showAd
                         {categoriesList.map((cat: any) => (
                             <SelectItem key={cat.id} value={String(cat.id)}>
                                 {cat.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <Label>{t('media.editForm.channel', 'Channel')}</Label>
+                <Select
+                    value={form.channel_id !== '' && form.channel_id !== undefined ? String(form.channel_id) : '_none_'}
+                    onValueChange={val => setForm({...form, channel_id: val === '_none_' ? '' : val})}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('media.editForm.selectChannel', 'Select channel')}/>
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="_none_">{t('media.editForm.noChannel', 'No channel')}</SelectItem>
+                        {channels.map((ch: Channel) => (
+                            <SelectItem key={ch.id} value={String(ch.id)}>
+                                {ch.name}
                             </SelectItem>
                         ))}
                     </SelectContent>

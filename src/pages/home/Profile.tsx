@@ -261,6 +261,18 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
     const viewCount = user.total_views || 0;
     const videoCount = channels.reduce((sum, ch) => sum + (ch.media_count || 0), 0);
 
+    // 核心关系：我的主页 ⊃ 我的频道 ⊃ 我的视频。视频按 channel_id 归类到所属频道。
+    const videosByChannel = useMemo(() => {
+        const groups = new Map<string, { cid: string; name: string; items: any[] }>();
+        for (const v of videos) {
+            const cid = String((v as any).channel_id ?? (v as any).channel?.id ?? '');
+            const name = (v as any).channel?.name ?? channels.find(c => String(c.id) === cid)?.name ?? '未归入频道';
+            if (!groups.has(cid)) groups.set(cid, { cid, name, items: [] });
+            groups.get(cid)!.items.push(v);
+        }
+        return Array.from(groups.values());
+    }, [videos, channels]);
+
     const tabs = [
         {id: 'home', label: t('channel.tabHome') || 'Home', icon: Home},
         {id: 'channels', label: t('profile.tabChannels'), icon: Tv},
@@ -495,40 +507,49 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                         </div>
                                     </section>
                                 )}
-                                {videos.length > 0 && (
+                                {videosByChannel.length > 0 && (
                                     <section>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-lg font-semibold">{t('home.latestVideos') || 'Latest Videos'}</h2>
-                                            <button
-                                                onClick={() => setActiveTab('videos')}
-                                                className="text-sm text-primary hover:underline font-medium"
-                                            >
-                                                {t('home.viewAll') || 'View all'}
-                                            </button>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                            {videos.slice(0, 8).map(video => (
-                                                <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
-                                                    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
-                                                        <div className="relative aspect-video">
-                                                            {video.thumbnail ? (
-                                                                <img src={video.thumbnail} alt={video.title}
-                                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
-                                                            ) : (
-                                                                <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
-                                                                    <Play className="w-10 h-10 text-muted-foreground"/>
-                                                                </div>
-                                                            )}
-                                                            {video.duration != null ? (
-                                                                <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">{formatDuration(video.duration)}</div>
-                                                            ) : null}
-                                                        </div>
-                                                        <div className="p-3">
-                                                            <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
-                                                            <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
-                                                        </div>
+                                        <h2 className="text-lg font-semibold mb-4">{t('home.videosByChannel') || '视频（按频道归类）'}</h2>
+                                        <div className="space-y-8">
+                                            {videosByChannel.map(group => (
+                                                <div key={group.cid}>
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <Tv className="w-4 h-4 text-muted-foreground"/>
+                                                        <h3 className="text-base font-medium">{group.name}</h3>
+                                                        <span className="text-xs text-muted-foreground">{group.items.length}</span>
+                                                        <button
+                                                            onClick={() => setActiveTab('videos')}
+                                                            className="text-sm text-primary hover:underline font-medium ml-auto"
+                                                        >
+                                                            {t('home.viewAll') || 'View all'}
+                                                        </button>
                                                     </div>
-                                                </Link>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                                        {group.items.slice(0, 8).map(video => (
+                                                            <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
+                                                                <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                                                    <div className="relative aspect-video">
+                                                                        {video.thumbnail ? (
+                                                                            <img src={video.thumbnail} alt={video.title}
+                                                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                                                                        ) : (
+                                                                            <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
+                                                                                <Play className="w-10 h-10 text-muted-foreground"/>
+                                                                            </div>
+                                                                        )}
+                                                                        {video.duration != null ? (
+                                                                            <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">{formatDuration(video.duration)}</div>
+                                                                        ) : null}
+                                                                    </div>
+                                                                    <div className="p-3">
+                                                                        <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
+                                                                        <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
+                                                                    </div>
+                                                                </div>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
                                     </section>
@@ -629,29 +650,40 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                             {videosLoading && videos.length === 0 ? (
                                 <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div>
                             ) : videos.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    {videos.map(video => (
-                                        <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
-                                            <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
-                                                <div className="relative aspect-video">
-                                                    {video.thumbnail ? (
-                                                        <img src={video.thumbnail} alt={video.title}
-                                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
-                                                    ) : (
-                                                        <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
-                                                            <Play className="w-10 h-10 text-muted-foreground"/>
-                                                        </div>
-                                                    )}
-                                                    {video.duration != null ? (
-                                                        <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">{formatDuration(video.duration)}</div>
-                                                    ) : null}
-                                                </div>
-                                                <div className="p-3">
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
-                                                    <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
-                                                </div>
+                                <div className="space-y-8">
+                                    {videosByChannel.map(group => (
+                                        <div key={group.cid}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <Tv className="w-4 h-4 text-muted-foreground"/>
+                                                <h3 className="text-base font-medium">{group.name}</h3>
+                                                <span className="text-xs text-muted-foreground">{group.items.length}</span>
                                             </div>
-                                        </Link>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                                {group.items.map(video => (
+                                                    <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
+                                                        <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                                            <div className="relative aspect-video">
+                                                                {video.thumbnail ? (
+                                                                    <img src={video.thumbnail} alt={video.title}
+                                                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-muted dark:bg-gray-700 flex items-center justify-center">
+                                                                        <Play className="w-10 h-10 text-muted-foreground"/>
+                                                                    </div>
+                                                                )}
+                                                                {video.duration != null ? (
+                                                                    <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">{formatDuration(video.duration)}</div>
+                                                                ) : null}
+                                                            </div>
+                                                            <div className="p-3">
+                                                                <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2 text-sm group-hover:text-emerald-600 transition-colors">{video.title}</h3>
+                                                                <p className="text-xs text-slate-500 dark:text-muted-foreground mt-2">{formatViews(video.view_count)} {t('common.views')}</p>
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             ) : (

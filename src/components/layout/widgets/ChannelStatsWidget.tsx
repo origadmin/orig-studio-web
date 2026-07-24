@@ -2,6 +2,7 @@ import React from 'react';
 import {SidebarCard} from '../SidebarCard';
 import {BarChart3, Users, Video, FileText, Eye} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {useModuleState} from '@/contexts/ModuleConfigContext';
 
 export interface ChannelAggregateStats {
     totalChannels: number;
@@ -16,19 +17,22 @@ interface ChannelStatsWidgetProps {
     maxChannels: number;
 }
 
-const formatNumber = (n: number): string => {
-    if (n >= 10000) return `${(n / 10000).toFixed(1)}w`;
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-    return String(n);
+const formatNumber = (n: number | undefined | null): string => {
+    if (n == null || isNaN(n)) return '0';
+    const v = Number(n);
+    if (v >= 10000) return `${(v / 10000).toFixed(1)}w`;
+    if (v >= 1000) return `${(v / 1000).toFixed(1)}k`;
+    return String(Math.round(v));
 };
 
 export function ChannelStatsWidget({stats, maxChannels}: ChannelStatsWidgetProps) {
     const {t} = useTranslation();
+    const {modules} = useModuleState();
 
     const items = [
         {icon: Users, label: t('channel.stats.subscribers', '订阅者'), value: stats.totalSubscribers, color: 'text-blue-500'},
         {icon: Video, label: t('channel.stats.videos', '视频'), value: stats.totalVideos, color: 'text-emerald-500'},
-        {icon: FileText, label: t('channel.stats.articles', '文章'), value: stats.totalArticles, color: 'text-amber-500'},
+        ...(modules.articles ? [{icon: FileText, label: t('channel.stats.articles', '文章'), value: stats.totalArticles, color: 'text-amber-500'}] : []),
         {icon: Eye, label: t('channel.stats.views', '总观看'), value: stats.totalViews, color: 'text-purple-500'},
     ];
 

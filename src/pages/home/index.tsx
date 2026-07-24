@@ -164,6 +164,7 @@ const HomePage = () => {
                         bgGradient,
                         shortToken: v.short_token,
                         badge: b.badge_text || 'HOT',
+                        type: 'video',
                         duration: v.duration,
                         viewCount: v.view_count,
                         createTime: v.create_time,
@@ -184,6 +185,7 @@ const HomePage = () => {
                         bgGradient,
                         shortToken: v.short_token,
                         badge: b.badge_text || 'NEW',
+                        type: 'video',
                         duration: v.duration,
                         viewCount: v.view_count,
                         createTime: v.create_time,
@@ -203,6 +205,7 @@ const HomePage = () => {
                     bgGradient,
                     url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
                     badge: b.badge_text || undefined,
+                    type: b.type === 'ad' ? 'ad' : (b.primary_btn_url ? 'link' : 'custom'),
                 });
             }
         }

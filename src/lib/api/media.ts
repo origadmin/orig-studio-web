@@ -330,6 +330,7 @@ export interface UpdateMediaRequest {
     description?: string;
     thumbnail?: string;
     category_id?: number | null;
+    channel_id?: number | string | null;
     tags?: string[];
     state?: string;
     privacy?: number;

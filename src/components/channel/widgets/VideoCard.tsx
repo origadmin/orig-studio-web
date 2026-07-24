@@ -10,6 +10,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
+import {useAuth} from '@/hooks/useAuth';
+import {mediaApi} from '@/lib/api/media';
+import {toast} from 'sonner';
+import ReportDialog from '@/components/common/ReportDialog';
 
 interface Video {
     id: string;
@@ -54,7 +58,23 @@ const VideoCard: React.FC<VideoCardProps> = ({
 }) => {
     const navigate = useNavigate();
     const {t} = useTranslation();
+    const {user} = useAuth();
     const [isHovered, setIsHovered] = useState(false);
+    const [showReportDialog, setShowReportDialog] = useState(false);
+
+    const handleOpenReport = () => {
+        if (!user) {
+            toast.error(t('auth.loginRequired'));
+            navigate({to: '/auth/signin'});
+            return;
+        }
+        setShowReportDialog(true);
+    };
+
+    const handleReport = async (data: { reason: string; description?: string }) => {
+        await mediaApi.report(video.short_token || String(video.id), data);
+        toast.success(t('report.submitted'));
+    };
 
     const formatDuration = (seconds: number): string => {
         const hrs = Math.floor(seconds / 3600);
@@ -190,23 +210,23 @@ const VideoCard: React.FC<VideoCardProps> = ({
                     <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug">
                         {video.title}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground min-w-0 overflow-hidden whitespace-nowrap">
                         {video.user?.username && (
-                            <span>@{video.user.nickname || video.user.username}</span>
+                            <span className="truncate min-w-0 flex-shrink">@{video.user.nickname || video.user.username}</span>
                         )}
                         {video.user?.username && video.view_count !== undefined && (
-                            <span>·</span>
+                            <span className="flex-shrink-0">·</span>
                         )}
                         {video.view_count !== undefined && (
-                            <span className="flex items-center gap-1">
-                                <Eye className="w-3 h-3"/>
+                            <span className="flex items-center gap-1 flex-shrink-0">
+                                <Eye className="w-3 h-3 flex-shrink-0"/>
                                 {formatCount(video.view_count)}
                             </span>
                         )}
                         {(video.published_at || video.create_time) && (
                             <>
-                                <span>·</span>
-                                <span>{timeAgo(video.published_at || video.create_time!)}</span>
+                                <span className="flex-shrink-0">·</span>
+                                <span className="flex-shrink-0">{timeAgo(video.published_at || video.create_time!)}</span>
                             </>
                         )}
                     </div>
@@ -238,16 +258,26 @@ const VideoCard: React.FC<VideoCardProps> = ({
                             {t('watch.share')}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator/>
-                        <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Report video:', video.id);
-                        }}>
-                            <Flag className="h-4 w-4 mr-2"/>
-                            {t('channel.reportChannel')}
-                        </DropdownMenuItem>
+                        {!isOwner && (
+                            <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenReport();
+                            }}>
+                                <Flag className="h-4 w-4 mr-2"/>
+                                {t('channel.reportChannel')}
+                            </DropdownMenuItem>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
+
+            <ReportDialog
+                open={showReportDialog}
+                onOpenChange={setShowReportDialog}
+                targetId={video.short_token || String(video.id)}
+                targetType="media"
+                onSubmit={handleReport}
+            />
         </div>
     );
 };

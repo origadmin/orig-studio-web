@@ -385,9 +385,19 @@ export function useChannelLimits(enabled: boolean) {
             const res = await channelApi.getChannelLimits();
             const wrapper = res as {limits?: ChannelLimits | null} | ChannelLimits;
             if (wrapper && typeof wrapper === 'object' && 'limits' in wrapper) {
-                return wrapper.limits ?? null;
+                const limits = wrapper.limits;
+                // API returned {limits: null} — provide sensible defaults
+                if (!limits || (limits.max_channels == null && limits.current_count == null)) {
+                    return {max_channels: -1, current_count: 0, can_create: true} as ChannelLimits;
+                }
+                return limits;
             }
-            return wrapper as ChannelLimits;
+            // Fallback for unexpected response shape
+            const fallback = wrapper as ChannelLimits;
+            if (!fallback || fallback.max_channels == null) {
+                return {max_channels: -1, current_count: 0, can_create: true} as ChannelLimits;
+            }
+            return fallback;
         },
         enabled,
     });

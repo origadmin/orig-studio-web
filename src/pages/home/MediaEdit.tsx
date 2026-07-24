@@ -1,6 +1,6 @@
 import {useState, useEffect, useMemo, useCallback} from 'react';
 import {useParams, useNavigate} from '@tanstack/react-router';
-import {usePublicMediaDetail, useUpdatePublicMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
+import {usePublicMediaDetail, useUpdatePublicMedia, useDeleteMedia, useCategoryList, useMyChannels} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
@@ -93,11 +93,14 @@ export default function MediaEditPage() {
     const updateMutation = useUpdatePublicMedia();
     const deleteMutation = useDeleteMedia();
     const {data: categoriesData} = useCategoryList();
+    const {data: channelsData} = useMyChannels(true);
+    const channels = Array.isArray(channelsData) ? channelsData : (channelsData as any)?.items || [];
 
     const {form, setForm, isDirty, resetDirty} = useDirtyState<MediaEditFormState>({
         title: '',
         description: '',
         category_id: '' as string | number,
+        channel_id: '' as string | number,
         tags: '',
         privacy: 1,
         state: 'draft',
@@ -120,6 +123,7 @@ export default function MediaEditPage() {
                 title: media.title || '',
                 description: media.description || '',
                 category_id: media.category_id ?? '',
+                channel_id: media.channel_id ?? '',
                 tags: serializeTags(media.tags || []),
                 privacy: normalizePrivacy(media.privacy),
                 state: media.state || 'draft',
@@ -141,6 +145,7 @@ export default function MediaEditPage() {
                     title: form.title,
                     description: form.description,
                     category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
+                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : undefined,
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     state: isAdmin ? form.state : undefined,
@@ -259,6 +264,7 @@ export default function MediaEditPage() {
                                 setForm={setForm}
                                 media={media}
                                 categories={categoriesData}
+                                channels={channels}
                                 isAdmin={isAdmin}
                                 showAdminOnlyFields={false}
                             />
