@@ -207,10 +207,10 @@ export const userApi = {
     get: (slug: string) => api.get<User>(`/users/${slug}`),
 
     // 通过 username 获取用户
-    getByUsername: (username: string) => api.get<User>('/users/by-username', {username}),
+    getByUsername: (username: string) => api.get<User>(`/users/username/${username}`),
 
     // 获取公开个人资料 (F016: 含 is_owner/is_subscribed)
-    getPublicProfile: (username: string) => api.get<PublicProfile>('/users/by-username', {username}),
+    getPublicProfile: (username: string) => api.get<PublicProfile>(`/users/username/${username}`),
 
     // 创建用户
     create: (data: CreateUserRequest) => api.post<User>("/users", data),
