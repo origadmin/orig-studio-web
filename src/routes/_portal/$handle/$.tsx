@@ -1,10 +1,11 @@
 import {createFileRoute, redirect} from '@tanstack/react-router';
 
-export const Route = createFileRoute('/_portal/$handle/')({
+export const Route = createFileRoute('/_portal/$handle/$')({
     beforeLoad: ({params}) => {
+        const {handle} = params;
         throw redirect({
-            to: '/$handle/$tab',
-            params: {handle: params.handle, tab: 'videos'},
+            to: '/$handle',
+            params: {handle},
             replace: true,
         });
     },

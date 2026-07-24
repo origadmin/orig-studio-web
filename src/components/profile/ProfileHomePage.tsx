@@ -657,7 +657,44 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
                     <div className="py-6">
                         {visitorTab === 'videos' && (
-                            <ProfileVideosTab videos={videoItems} loading={videosLoading && videoItems.length === 0} isOwner={false}/>
+                            <>
+                                {videosLoading && videoItems.length === 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                        {[1,2,3,4,5,6,7,8].map(i => (
+                                            <div key={i} className="animate-pulse">
+                                                <div className="aspect-video bg-muted rounded-lg mb-2"/>
+                                                <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
+                                                <div className="h-3 bg-muted rounded w-1/2"/>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : videosError && videoItems.length === 0 ? (
+                                    <div className="flex items-center justify-center py-20 text-destructive">
+                                        {videosError.message || t('common.error')}
+                                    </div>
+                                ) : videoItems.length === 0 ? (
+                                    <EmptyState type="videos" isOwner={false}/>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                            {videoItems.map(item => (
+                                                <VideoCard key={item.id} video={item} isOwner={false} showChannelInfo={false}/>
+                                            ))}
+                                        </div>
+                                        <div ref={videoSentinelRef} className="flex flex-col items-center py-8">
+                                            {videosLoading && (
+                                                <div className="flex items-center gap-3 text-muted-foreground">
+                                                    <Spinner size="sm"/>
+                                                    <span className="text-sm">{t('common.loading')}</span>
+                                                </div>
+                                            )}
+                                            {!videoHasMore && videoItems.length > 0 && (
+                                                <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </>
                         )}
                         {visitorTab === 'playlists' && (
                             <EmptyState type="playlists" isOwner={false}/>
