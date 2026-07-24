@@ -1,7 +1,7 @@
 import {Spinner} from "@/components/ui/spinner"
-import React, {useState} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {Link} from '@tanstack/react-router';
-import {Heart, Trash2, ChevronLeft, ChevronRight} from 'lucide-react';
+import {Heart, Trash2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -15,6 +15,9 @@ const FavoritesPage = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
     const [page, setPage] = useState(1);
+    const [items, setItems] = useState<any[]>([]);
+    const [hasMore, setHasMore] = useState(true);
+    const sentinelRef = useRef<HTMLDivElement>(null);
 
     const {data, isLoading, error} = useFavoriteList(
         {page, page_size: PAGE_SIZE},
@@ -23,14 +26,43 @@ const FavoritesPage = () => {
 
     const deleteMutation = useRemoveFavorite();
 
-    const favorites = data?.items || [];
-    const total = data?.total || 0;
-    const totalPages = Math.ceil(total / PAGE_SIZE);
+    useEffect(() => {
+        if (data?.items) {
+            if (page === 1) {
+                setItems(data.items);
+            } else {
+                setItems(prev => [...prev, ...data.items]);
+            }
+            setHasMore(data.items.length === PAGE_SIZE);
+        } else if (page > 1) {
+            setHasMore(false);
+        }
+    }, [data, page]);
 
-    if (isLoading) {
+    const loadMore = useCallback(() => {
+        if (isLoading || !hasMore) return;
+        setPage(prev => prev + 1);
+    }, [isLoading, hasMore]);
+
+    useEffect(() => {
+        const el = sentinelRef.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) loadMore();
+            },
+            {rootMargin: '200px'},
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [loadMore]);
+
+    const total = data?.total || 0;
+
+    if (isLoading && items.length === 0) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Spinner />
+                <Spinner/>
             </div>
         );
     }
@@ -54,10 +86,10 @@ const FavoritesPage = () => {
                 <p className="text-muted-foreground text-sm mt-1">{t('favorites.savedCount', {count: total})}</p>
             </div>
 
-            {favorites.length > 0 ? (
+            {items.length > 0 ? (
                 <>
                     <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
-                        {favorites.map(favorite => {
+                        {items.map(favorite => {
                             const video = favorite.media;
                             return (
                                 <Link key={video.id} to="/watch" search={{v: video.short_token || String(video.id)}} className="group">
@@ -77,6 +109,7 @@ const FavoritesPage = () => {
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         deleteMutation.mutate(String(favorite.id));
+                                                        setItems(prev => prev.filter(i => i.id !== favorite.id));
                                                     }}
                                                 >
                                                     <Trash2 className="w-4 h-4 text-slate-500 hover:text-rose-500"/>
@@ -100,30 +133,17 @@ const FavoritesPage = () => {
                         })}
                     </div>
 
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2 pt-4">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page <= 1}
-                            >
-                                <ChevronLeft className="w-4 h-4"/>
-                            </Button>
-                            <span className="text-sm text-muted-foreground">
-                                {page} / {totalPages}
-                            </span>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page >= totalPages}
-                            >
-                                <ChevronRight className="w-4 h-4"/>
-                            </Button>
-                        </div>
-                    )}
+                    <div ref={sentinelRef} className="flex flex-col items-center py-8">
+                        {isLoading && (
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <Spinner size="sm"/>
+                                <span className="text-sm">{t('common.loading')}</span>
+                            </div>
+                        )}
+                        {!hasMore && items.length > 0 && (
+                            <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                        )}
+                    </div>
                 </>
             ) : (
                 <div className="text-center py-20">
