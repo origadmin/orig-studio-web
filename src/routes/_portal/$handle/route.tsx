@@ -50,8 +50,8 @@ import {
 
 const TABS_BASE = [
     {key: 'videos', icon: Video, labelKey: 'nav.myVideos', ownerOnly: false},
-    {key: 'channels', icon: Tv, labelKey: 'nav.myChannels', ownerOnly: false},
-    {key: 'articles', icon: FileText, labelKey: 'nav.myArticles', ownerOnly: false, requireModule: 'articles'},
+    {key: 'channels', icon: Tv, labelKey: 'nav.myChannels', ownerOnly: true},
+    {key: 'articles', icon: FileText, labelKey: 'nav.myArticles', ownerOnly: true, requireModule: 'articles'},
     {key: 'favorites', icon: Heart, labelKey: 'nav.myFavorites', ownerOnly: true},
     {key: 'playlists', icon: ListVideo, labelKey: 'nav.myPlaylists', ownerOnly: false},
     {key: 'history', icon: History, labelKey: 'nav.history', ownerOnly: true},
@@ -209,24 +209,24 @@ function ProfileLayout() {
                                         <Upload className="w-4 h-4 mr-2"/>
                                         {t('profile.uploadContent')}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => navigate({to: '/$handle/$tab', params: {handle, tab: 'channels'}})}>
+                                    <DropdownMenuItem onClick={() => navigate({to: '/me/channels'})}>
                                         <Tv className="w-4 h-4 mr-2"/>
                                         {t('profile.createChannel')}
                                     </DropdownMenuItem>
                                     {modules.articles && (
-                                        <DropdownMenuItem onClick={() => navigate({to: '/$handle/$tab', params: {handle, tab: 'articles'}})}>
+                                        <DropdownMenuItem onClick={() => navigate({to: '/me/articles'})}>
                                             <FileText className="w-4 h-4 mr-2"/>
                                             {t('profile.createArticle')}
                                         </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => navigate({to: '/$handle/$tab', params: {handle, tab: 'playlists'}})}>
+                                    <DropdownMenuItem onClick={() => navigate({to: '/me/playlists'})}>
                                         <ListVideo className="w-4 h-4 mr-2"/>
                                         {t('profile.createPlaylist')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
-                                    <DropdownMenuItem onClick={() => navigate({to: '/me'})}>
-                                        <Pencil className="w-4 h-4 mr-2"/>
-                                        {t('profile.editProfile')}
+                                    <DropdownMenuItem onClick={() => navigate({to: '/me/videos'})}>
+                                        <Settings className="w-4 h-4 mr-2"/>
+                                        {t('profile.manageContent', '管理内容')}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => setShowShareDialog(true)}>
                                         <Share2 className="w-4 h-4 mr-2"/>
