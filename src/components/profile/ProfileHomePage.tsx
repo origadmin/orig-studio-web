@@ -142,36 +142,47 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     const isProfileLoaded = !!profile && profile.username === username;
 
-    const {data: channelsData} = useMyChannels(
-        isProfileLoaded && isOwner,
-        isProfileLoaded ? profile.id : undefined
-    );
-    const channels: Channel[] = Array.isArray(channelsData) ? channelsData : (Array.isArray((channelsData as any)?.items) ? (channelsData as any).items : []);
-
-    const {data: videoPageData, isLoading: videosLoading, error: videosError} = useMediaList({
+    // Stable query params to avoid React Query infinite loops from new object references
+    const mediaListParams = useMemo(() => ({
         page: videoPage,
         page_size: PAGE_SIZE,
         user_id: isProfileLoaded ? profile.id : undefined,
         channel_id: isOwner && selectedChannelId !== 'all' ? selectedChannelId : undefined,
-        order_by: 'create_time',
+        order_by: 'create_time' as const,
         descending: true,
         enabled: isProfileLoaded,
-    });
+    }), [videoPage, isProfileLoaded, profile?.id, isOwner, selectedChannelId]);
+
+    const {data: channelsData} = useMyChannels(
+        isProfileLoaded && isOwner,
+        isProfileLoaded ? profile.id : undefined
+    );
+    const channels: Channel[] = useMemo(() => {
+        return Array.isArray(channelsData) ? channelsData : (Array.isArray((channelsData as any)?.items) ? (channelsData as any).items : []);
+    }, [channelsData]);
+
+    const {data: videoPageData, isLoading: videosLoading, error: videosError} = useMediaList(mediaListParams);
 
     const deleteMutation = useDeleteMedia();
 
+    const favoriteParams = useMemo(() => ({page_size: 6}), []);
     const {data: favoritesData, isLoading: favoritesLoading} = useFavoriteList(
-        {page_size: 6},
+        favoriteParams,
         isOwner && profile?.id ? profile.id : undefined
     );
-    const favorites = (Array.isArray((favoritesData as any)?.items) ? (favoritesData as any).items : Array.isArray((favoritesData as any)?.favorites) ? (favoritesData as any).favorites : []);
+    const favorites = useMemo(() => {
+        return (Array.isArray((favoritesData as any)?.items) ? (favoritesData as any).items : Array.isArray((favoritesData as any)?.favorites) ? (favoritesData as any).favorites : []);
+    }, [favoritesData]);
 
-    const {data: historyData, isLoading: historyLoading} = useHistoryList({
+    const historyParams = useMemo(() => ({
         page_size: 6,
         isAuthenticated,
         userId: isOwner ? profile?.id : undefined,
-    });
-    const historyItems = (Array.isArray((historyData as any)?.items) ? (historyData as any).items : Array.isArray((historyData as any)?.histories) ? (historyData as any).histories : []);
+    }), [isAuthenticated, isOwner, profile?.id]);
+    const {data: historyData, isLoading: historyLoading} = useHistoryList(historyParams);
+    const historyItems = useMemo(() => {
+        return (Array.isArray((historyData as any)?.items) ? (historyData as any).items : Array.isArray((historyData as any)?.histories) ? (historyData as any).histories : []);
+    }, [historyData]);
 
     const channelToken = profile?.default_channel_token || null;
     const subscriptionQuery = useSubscriptionStatus(
