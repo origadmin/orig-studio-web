@@ -605,7 +605,7 @@ const ContentSection: React.FC<{
 
     if (loading) {
         return (
-            <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                     <div key={i} className="animate-pulse">
                         <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -622,7 +622,7 @@ const ContentSection: React.FC<{
     return (
         <div>
             {items.length > 0 && renderItem ? (
-                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                     {items.map(item => renderItem(item))}
                 </div>
             ) : (
@@ -644,7 +644,7 @@ const ContentSection: React.FC<{
 const ProfileVideosTab: React.FC<{videos: any[]; loading: boolean; isOwner: boolean}> = ({videos, loading, isOwner}) => {
     if (loading) {
         return (
-            <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                     <div key={i} className="animate-pulse">
                         <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -661,7 +661,7 @@ const ProfileVideosTab: React.FC<{videos: any[]; loading: boolean; isOwner: bool
     }
 
     return (
-        <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
             {videos.map(video => (
                 <VideoCard key={video.id} video={video}/>
             ))}
