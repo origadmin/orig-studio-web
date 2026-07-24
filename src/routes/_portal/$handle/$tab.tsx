@@ -1,10 +1,8 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {lazy, Suspense, useState, useEffect, useRef, useCallback} from 'react';
 import {createFileRoute, notFound, redirect} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {useMediaList, useMyChannels, useFavoriteList, useHistoryList, useModuleState} from '@/hooks/queries';
-import {useAuth} from '@/hooks/useAuth';
 import {Spinner} from '@/components/ui/spinner';
-import {Button} from '@/components/ui/button';
 import VideoCard from '@/components/channel/widgets/VideoCard';
 import EmptyState from '@/components/channel/widgets/EmptyState';
 import {useProfileContext} from './route';
@@ -16,7 +14,20 @@ const PAGE_SIZE = 24;
 const VALID_TABS = ['videos', 'channels', 'articles', 'favorites', 'playlists', 'history', 'about'] as const;
 type TabKey = typeof VALID_TABS[number];
 
-const OWNER_ONLY_TABS: TabKey[] = ['channels', 'articles', 'favorites', 'history'];
+const OWNER_ONLY_TABS: TabKey[] = ['favorites', 'history'];
+
+const LazyMyChannels = lazy(() => import('@/pages/home/me/MyChannels'));
+const LazyMyVideos = lazy(() => import('@/pages/home/me/MyVideos'));
+const LazyFavorites = lazy(() => import('@/pages/home/me/Favorites'));
+const LazyHistory = lazy(() => import('@/pages/home/me/History'));
+const LazyMyArticles = lazy(() => import('@/pages/home/me/MyArticles'));
+const LazyPlaylists = lazy(() => import('@/pages/home/me/Playlists'));
+
+const TabLoader = () => (
+    <div className="flex items-center justify-center min-h-[400px]">
+        <Spinner/>
+    </div>
+);
 
 export const Route = createFileRoute('/_portal/$handle/$tab')({
     beforeLoad: ({params}) => {
@@ -40,23 +51,47 @@ function ProfileTabPage() {
         throw redirect({to: '/$handle/$tab', params: {handle: `@${username}`, tab: 'videos'}, replace: true});
     }
 
-    if (tab === 'articles' && !modules.articles) {
+    if (tab === 'articles' && !modules.articles && !isOwner) {
         throw redirect({to: '/$handle/$tab', params: {handle: `@${username}`, tab: 'videos'}, replace: true});
     }
 
     switch (tab as TabKey) {
-        case 'videos': return <VideosTab userId={profile.id} isOwner={isOwner}/>;
-        case 'channels': return <ChannelsTab userId={profile.id}/>;
-        case 'favorites': return <FavoritesTab userId={profile.id}/>;
-        case 'history': return <HistoryTab userId={profile.id}/>;
-        case 'playlists': return <PlaylistsTab isOwner={isOwner}/>;
-        case 'articles': return <ArticlesTab/>;
-        case 'about': return <AboutTab profile={profile}/>;
-        default: return null;
+        case 'videos':
+            return isOwner ? (
+                <Suspense fallback={<TabLoader/>}><LazyMyVideos/></Suspense>
+            ) : (
+                <VideosTab userId={profile.id}/>
+            );
+        case 'channels':
+            return isOwner ? (
+                <Suspense fallback={<TabLoader/>}><LazyMyChannels/></Suspense>
+            ) : (
+                <ChannelsTab userId={profile.id}/>
+            );
+        case 'favorites':
+            return <Suspense fallback={<TabLoader/>}><LazyFavorites/></Suspense>;
+        case 'history':
+            return <Suspense fallback={<TabLoader/>}><LazyHistory/></Suspense>;
+        case 'playlists':
+            return isOwner ? (
+                <Suspense fallback={<TabLoader/>}><LazyPlaylists/></Suspense>
+            ) : (
+                <PlaylistsTab isOwner={false}/>
+            );
+        case 'articles':
+            return isOwner ? (
+                <Suspense fallback={<TabLoader/>}><LazyMyArticles/></Suspense>
+            ) : (
+                <ArticlesTab/>
+            );
+        case 'about':
+            return <AboutTab profile={profile}/>;
+        default:
+            return null;
     }
 }
 
-function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: string | number; type?: 'video' | 'favorite' | 'history'; favoriteIds?: boolean; historyIds?: boolean}) {
+function InfiniteVideoGrid({userId}: {userId: string | number}) {
     const {t} = useTranslation();
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<any[]>([]);
@@ -66,18 +101,12 @@ function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: str
     const hasMoreRef = useRef(true);
     const pageRef = useRef(1);
 
-    const mediaQuery = useMediaList({
+    const {data, isLoading, error} = useMediaList({
         page,
         page_size: PAGE_SIZE,
         user_id: userId,
-        type: type === 'video' ? 'video' : undefined,
-        enabled: !favoriteIds && !historyIds,
+        type: 'video',
     });
-
-    const favQuery = useFavoriteList({page, page_size: PAGE_SIZE}, favoriteIds ? String(userId) : undefined);
-    const histQuery = useHistoryList({page, page_size: PAGE_SIZE, isAuthenticated: true, userId: historyIds ? String(userId) : undefined});
-
-    const {data, isLoading, error} = historyIds ? histQuery : favoriteIds ? favQuery : mediaQuery;
 
     useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
     useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
@@ -90,24 +119,21 @@ function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: str
         isLoadingRef.current = false;
         hasMoreRef.current = true;
         pageRef.current = 1;
-    }, [userId, type, favoriteIds, historyIds]);
+    }, [userId]);
 
     useEffect(() => {
-        const rawItems = data?.items || data?.medias || data?.favorites || data?.histories || [];
-        const normalizedItems = favoriteIds || historyIds
-            ? rawItems.map((item: any) => item.media || item).filter(Boolean)
-            : rawItems;
-        if (normalizedItems.length > 0 || pageRef.current > 1) {
+        const rawItems = data?.items || [];
+        if (rawItems.length > 0 || pageRef.current > 1) {
             if (pageRef.current === 1) {
-                setItems(normalizedItems);
+                setItems(rawItems);
             } else {
-                setItems(prev => [...prev, ...normalizedItems]);
+                setItems(prev => [...prev, ...rawItems]);
             }
-            setHasMore(normalizedItems.length === PAGE_SIZE);
+            setHasMore(rawItems.length === PAGE_SIZE);
         } else if (pageRef.current === 1) {
             setItems([]);
         }
-    }, [data, favoriteIds, historyIds]);
+    }, [data]);
 
     const sentinelRef = useCallback((node: HTMLDivElement | null) => {
         if (observerRef.current) observerRef.current.disconnect();
@@ -124,8 +150,6 @@ function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: str
             observerRef.current.observe(node);
         }
     }, []);
-
-    const emptyType = favoriteIds ? 'favorites' : historyIds ? 'history' : 'videos';
 
     if (isLoading && items.length === 0) {
         return (
@@ -144,7 +168,7 @@ function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: str
     }
 
     if (items.length === 0) {
-        return <EmptyState type={emptyType as any} isOwner={true}/>;
+        return <EmptyState type="videos" isOwner={false}/>;
     }
 
     return (
@@ -169,8 +193,8 @@ function InfiniteVideoGrid({userId, type, favoriteIds, historyIds}: {userId: str
     );
 }
 
-function VideosTab({userId, isOwner}: {userId: string | number; isOwner: boolean}) {
-    return <InfiniteVideoGrid userId={userId} type="video"/>;
+function VideosTab({userId}: {userId: string | number}) {
+    return <InfiniteVideoGrid userId={userId}/>;
 }
 
 function ChannelsTab({userId}: {userId: string | number}) {
@@ -183,15 +207,19 @@ function ChannelsTab({userId}: {userId: string | number}) {
     }
 
     if (channels.length === 0) {
-        return <EmptyState type="channels" isOwner={true}/>;
+        return <EmptyState type="channels" isOwner={false}/>;
     }
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {channels.map((ch: any) => (
                 <div key={ch.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent transition-colors">
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                        {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 rounded-lg object-cover"/> : <Tv/>}
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {ch.logo || ch.avatar ? (
+                            <img src={getImageUrl(ch.logo || ch.avatar, 'avatar')} alt="" className="w-12 h-12 object-cover"/>
+                        ) : (
+                            <Tv size={20} className="text-muted-foreground"/>
+                        )}
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm line-clamp-2">{ch.name}</p>
@@ -203,20 +231,12 @@ function ChannelsTab({userId}: {userId: string | number}) {
     );
 }
 
-function FavoritesTab({userId}: {userId: string | number}) {
-    return <InfiniteVideoGrid userId={userId} favoriteIds/>;
-}
-
-function HistoryTab({userId}: {userId: string | number}) {
-    return <InfiniteVideoGrid userId={userId} historyIds/>;
-}
-
 function PlaylistsTab({isOwner}: {isOwner: boolean}) {
     return <EmptyState type="playlists" isOwner={isOwner}/>;
 }
 
 function ArticlesTab() {
-    return <EmptyState type="articles" isOwner={true}/>;
+    return <EmptyState type="articles" isOwner={false}/>;
 }
 
 function AboutTab({profile}: {profile: any}) {

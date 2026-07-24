@@ -1,15 +1,36 @@
-import {Spinner} from "@/components/ui/spinner"
-import {createFileRoute} from '@tanstack/react-router';
-import {lazy, Suspense} from 'react';
+import {createFileRoute, useNavigate} from '@tanstack/react-router';
+import {useEffect} from 'react';
+import {useAuth} from '@/hooks/useAuth';
+import {Spinner} from '@/components/ui/spinner';
 
-const Page = lazy(() => import('@/pages/home/me/MyVideos'));
+function MeVideosRedirect() {
+    const navigate = useNavigate();
+    const {user, isLoading} = useAuth();
+    const search = Route.useSearch();
 
-const PageLoader = () => (
-    <div className="flex items-center justify-center min-h-[60vh] bg-background text-foreground">
-        <Spinner/>
-    </div>
-);
+    useEffect(() => {
+        if (user?.username) {
+            navigate({
+                to: '/$handle/$tab',
+                params: {handle: `@${user.username}`, tab: 'videos'},
+                search: search as any,
+                replace: true,
+            });
+        }
+    }, [user?.username, navigate, search]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Spinner/>
+            </div>
+        );
+    }
+
+    return null;
+}
 
 export const Route = createFileRoute('/_authenticated/_portal/me/videos')({
-    component: () => <Suspense fallback={<PageLoader/>}><Page/></Suspense>,
+    component: MeVideosRedirect,
+    validateSearch: () => ({}) as any,
 });
