@@ -1,14 +1,33 @@
-import {createFileRoute} from '@tanstack/react-router';
+import {createFileRoute, useNavigate} from '@tanstack/react-router';
+import {useEffect} from 'react';
+import {useAuth} from '@/hooks/useAuth';
+import {Spinner} from '@/components/ui/spinner';
 
-function MeOverview() {
-    return (
-        <div className="p-8 bg-muted/30 rounded-lg border border-dashed">
-            <h2 className="text-xl font-bold mb-2">测试页面 - 概览</h2>
-            <p className="text-muted-foreground">如果看到这个，说明index路由工作了！</p>
-        </div>
-    );
+function MeIndexRedirect() {
+    const navigate = useNavigate();
+    const {user, isLoading} = useAuth();
+
+    useEffect(() => {
+        if (user?.username) {
+            navigate({
+                to: '/$handle/$tab',
+                params: {handle: `@${user.username}`, tab: 'videos'},
+                replace: true,
+            });
+        }
+    }, [user?.username, navigate]);
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Spinner/>
+            </div>
+        );
+    }
+
+    return null;
 }
 
 export const Route = createFileRoute('/_authenticated/_portal/me/')({
-    component: MeOverview,
+    component: MeIndexRedirect,
 });

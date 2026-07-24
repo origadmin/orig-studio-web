@@ -1,4 +1,4 @@
-import {createFileRoute, Outlet, Link, useLocation} from '@tanstack/react-router';
+import {createFileRoute, Outlet, Link, useLocation, redirect} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
@@ -51,7 +51,7 @@ function MeLayout() {
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             {user?.username && (
-                                <Link to="/u/$id" params={{id: user.username}} target="_blank">
+                                <Link to="/$handle" params={{handle: `@${user.username}`}} target="_blank">
                                     <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-border rounded-lg hover:bg-muted transition-colors">
                                         <ExternalLink className="w-3.5 h-3.5"/>
                                         {t('me.viewPublicProfile')}
