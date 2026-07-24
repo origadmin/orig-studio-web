@@ -52,7 +52,10 @@ const MyVideos = () => {
     const [hasMore, setHasMore] = useState(true);
     const [deleteTarget, setDeleteTarget] = useState<string | number | null>(null);
     const [selectedChannelId, setSelectedChannelId] = useState<string>(search.channel || 'all');
-    const sentinelRef = useRef<HTMLDivElement>(null);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const isLoadingRef = useRef(false);
+    const hasMoreRef = useRef(true);
+    const pageRef = useRef(1);
 
     const {data: channelsData} = useMyChannels(!!user);
     const channels: Channel[] = channelsData || [];
@@ -75,41 +78,56 @@ const MyVideos = () => {
     const deleteMutation = useDeleteMedia();
 
     useEffect(() => {
+        isLoadingRef.current = isLoading;
+    }, [isLoading]);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
+
+    useEffect(() => {
+        pageRef.current = page;
+    }, [page]);
+
+    useEffect(() => {
         setPage(1);
         setItems([]);
         setHasMore(true);
+        isLoadingRef.current = false;
+        hasMoreRef.current = true;
+        pageRef.current = 1;
     }, [selectedChannelId]);
 
     useEffect(() => {
         if (data?.items) {
-            if (page === 1) {
+            if (pageRef.current === 1) {
                 setItems(data.items);
             } else {
                 setItems(prev => [...prev, ...data.items]);
             }
             setHasMore(data.items.length === PAGE_SIZE);
-        } else if (page > 1) {
+        } else if (pageRef.current > 1) {
             setHasMore(false);
         }
-    }, [data, page]);
+    }, [data]);
 
-    const loadMore = useCallback(() => {
-        if (isLoading || !hasMore) return;
-        setPage(prev => prev + 1);
-    }, [isLoading, hasMore]);
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) loadMore();
-            },
-            {rootMargin: '200px'},
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [loadMore]);
+    const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+        }
+        if (node) {
+            observerRef.current = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting && !isLoadingRef.current && hasMoreRef.current) {
+                        isLoadingRef.current = true;
+                        setPage(prev => prev + 1);
+                    }
+                },
+                {rootMargin: '200px'},
+            );
+            observerRef.current.observe(node);
+        }
+    }, []);
 
     const getChannelName = (item: any): { name: string; token?: string } | null => {
         const chId = item.channel_id ? String(item.channel_id) : null;
@@ -213,115 +231,115 @@ const MyVideos = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <>
-                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
-                        {items.map((item) => {
-                            const channelInfo = getChannelName(item);
-                            return (
-                                <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                                    <div className="relative aspect-video bg-muted">
-                                        {item.thumbnail ? (
-                                            <img
-                                                src={getFullUrl(item.thumbnail)}
-                                                alt={item.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Video className="w-10 h-10 text-gray-300"/>
-                                            </div>
-                                        )}
-                                        <div
-                                            className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-[10px] rounded font-medium">
-                                            {formatDuration(item.duration)}
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))'}}>
+                    {items.map((item) => {
+                        const channelInfo = getChannelName(item);
+                        return (
+                            <Card key={item.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                                <div className="relative aspect-video bg-muted">
+                                    {item.thumbnail ? (
+                                        <img
+                                            src={getFullUrl(item.thumbnail)}
+                                            alt={item.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <Video className="w-10 h-10 text-gray-300"/>
                                         </div>
-                                        <div
-                                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                            <Button size="icon-sm" variant="secondary" className="rounded-full" asChild>
-                                                <Link to="/watch" search={{v: item.short_token || item.id?.toString() || ''}}>
-                                                    <ExternalLink className="w-4 h-4"/>
+                                    )}
+                                    <div
+                                        className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/60 text-white text-[10px] rounded font-medium">
+                                        {formatDuration(item.duration)}
+                                    </div>
+                                    <div
+                                        className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                        <Button size="icon-sm" variant="secondary" className="rounded-full" asChild>
+                                            <Link to="/watch" search={{v: item.short_token || item.id?.toString() || ''}}>
+                                                <ExternalLink className="w-4 h-4"/>
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
+                                            {item.title}
+                                        </h3>
+                                        <Badge variant={item.state === 'active' ? 'default' : 'secondary'}
+                                               className="text-[10px] px-1.5 py-0 capitalize shrink-0">
+                                            {item.state}
+                                        </Badge>
+                                    </div>
+
+                                    {channelInfo && (
+                                        <div className="mt-2">
+                                            {channelInfo.token ? (
+                                                <Link
+                                                    to="/c/$id"
+                                                    params={{id: channelInfo.token}}
+                                                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                                >
+                                                    <Tv className="w-3 h-3"/>
+                                                    <span className="truncate">{channelInfo.name}</span>
                                                 </Link>
-                                            </Button>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                    <Tv className="w-3 h-3"/>
+                                                    <span className="truncate">{channelInfo.name}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                                        <div className="flex items-center gap-1">
+                                            <Eye className="w-3 h-3"/>
+                                            {item.view_count}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="w-3 h-3"/>
+                                            {formatRelativeTime(item.create_time)}
                                         </div>
                                     </div>
-                                    <CardContent className="p-4">
-                                        <div className="flex justify-between items-start gap-2">
-                                            <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
-                                                {item.title}
-                                            </h3>
-                                            <Badge variant={item.state === 'active' ? 'default' : 'secondary'}
-                                                   className="text-[10px] px-1.5 py-0 capitalize shrink-0">
-                                                {item.state}
-                                            </Badge>
-                                        </div>
 
-                                        {channelInfo && (
-                                            <div className="mt-2">
-                                                {channelInfo.token ? (
-                                                    <Link
-                                                        to="/c/$id"
-                                                        params={{id: channelInfo.token}}
-                                                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-                                                    >
-                                                        <Tv className="w-3 h-3"/>
-                                                        <span className="truncate">{channelInfo.name}</span>
-                                                    </Link>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                                                        <Tv className="w-3 h-3"/>
-                                                        <span className="truncate">{channelInfo.name}</span>
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
+                                    <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                                        <Button variant="ghost" size="sm"
+                                                className="h-8 text-gray-500 hover:text-primary" asChild>
+                                            <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
+                                                <Edit className="w-3.5 h-3.5 mr-1"/>
+                                                {t('common.edit', '编辑')}
+                                            </Link>
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 text-gray-500 hover:text-destructive"
+                                            onClick={() => setDeleteTarget(item.id)}
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5 mr-1"/>
+                                            {t('common.delete', '删除')}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
+                </div>
+            )}
 
-                                        <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                                            <div className="flex items-center gap-1">
-                                                <Eye className="w-3 h-3"/>
-                                                {item.view_count}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3"/>
-                                                {formatRelativeTime(item.create_time)}
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 pt-4 border-t flex justify-end gap-2">
-                                            <Button variant="ghost" size="sm"
-                                                    className="h-8 text-gray-500 hover:text-primary" asChild>
-                                                <Link to="/media/$shortToken/edit" params={{shortToken: item.short_token || ''}}>
-                                                    <Edit className="w-3.5 h-3.5 mr-1"/>
-                                                    {t('common.edit', '编辑')}
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 text-gray-500 hover:text-destructive"
-                                                onClick={() => setDeleteTarget(item.id)}
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5 mr-1"/>
-                                                {t('common.delete', '删除')}
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-
-                    <div ref={sentinelRef} className="flex flex-col items-center py-8">
-                        {isLoading && (
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <Spinner size="sm"/>
-                                <span className="text-sm">{t('common.loading')}</span>
-                            </div>
-                        )}
-                        {!hasMore && items.length > 0 && (
-                            <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                        )}
-                    </div>
-                </>
+            {items.length > 0 && (
+                <div ref={sentinelRef} className="flex flex-col items-center py-8">
+                    {isLoading && (
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                            <Spinner size="sm"/>
+                            <span className="text-sm">{t('common.loading')}</span>
+                        </div>
+                    )}
+                    {!hasMore && (
+                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                    )}
+                </div>
             )}
 
             <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

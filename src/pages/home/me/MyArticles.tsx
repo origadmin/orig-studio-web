@@ -31,7 +31,10 @@ const MyArticles = () => {
     const [items, setItems] = useState<Article[]>([]);
     const [hasMore, setHasMore] = useState(true);
     const [filter, setFilter] = useState<ArticleFilter>('all');
-    const sentinelRef = useRef<HTMLDivElement>(null);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    const isLoadingRef = useRef(false);
+    const hasMoreRef = useRef(true);
+    const pageRef = useRef(1);
 
     const queryParams: { page: number; page_size: number; state?: string } = {
         page,
@@ -63,41 +66,56 @@ const MyArticles = () => {
     });
 
     useEffect(() => {
+        isLoadingRef.current = isLoading;
+    }, [isLoading]);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
+
+    useEffect(() => {
+        pageRef.current = page;
+    }, [page]);
+
+    useEffect(() => {
         setPage(1);
         setItems([]);
         setHasMore(true);
+        isLoadingRef.current = false;
+        hasMoreRef.current = true;
+        pageRef.current = 1;
     }, [filter]);
 
     useEffect(() => {
         if (data?.items) {
-            if (page === 1) {
+            if (pageRef.current === 1) {
                 setItems(data.items);
             } else {
                 setItems(prev => [...prev, ...data.items]);
             }
             setHasMore(data.items.length === PAGE_SIZE);
-        } else if (page > 1) {
+        } else if (pageRef.current > 1) {
             setHasMore(false);
         }
-    }, [data, page]);
+    }, [data]);
 
-    const loadMore = useCallback(() => {
-        if (isLoading || !hasMore) return;
-        setPage(prev => prev + 1);
-    }, [isLoading, hasMore]);
-
-    useEffect(() => {
-        const el = sentinelRef.current;
-        if (!el) return;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) loadMore();
-            },
-            {rootMargin: '200px'},
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, [loadMore]);
+    const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+        }
+        if (node) {
+            observerRef.current = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting && !isLoadingRef.current && hasMoreRef.current) {
+                        isLoadingRef.current = true;
+                        setPage(prev => prev + 1);
+                    }
+                },
+                {rootMargin: '200px'},
+            );
+            observerRef.current.observe(node);
+        }
+    }, []);
 
     const handleDelete = useCallback((article: Article) => {
         if (window.confirm(t('myArticles.confirmDelete'))) {
@@ -173,103 +191,103 @@ const MyArticles = () => {
                     </CardContent>
                 </Card>
             ) : (
-                <>
-                    <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
-                        {items.map((article) => (
-                            <Card key={article.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
-                                <div className="relative aspect-video bg-muted">
-                                    {article.thumbnail ? (
-                                        <img
-                                            src={getFullUrl(article.thumbnail)}
-                                            alt={article.title}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
-                                            decoding="async"
-                                        />
-                                    ) : article.media?.thumbnail ? (
-                                        <img
-                                            src={getFullUrl(article.media.thumbnail)}
-                                            alt={article.title}
-                                            className="w-full h-full object-cover"
-                                            loading="lazy"
-                                            decoding="async"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <FileText className="w-10 h-10 text-muted-foreground/30"/>
-                                        </div>
-                                    )}
-                                    {article.media_id && (
-                                        <div className="absolute top-2 left-2">
-                                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                                <Video className="w-3 h-3 mr-1"/>
-                                                {article.media?.duration ? `${Math.floor(article.media.duration / 60)}:${String(article.media.duration % 60).padStart(2, '0')}` : ''}
-                                            </Badge>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <CardContent className="p-4">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
-                                            {article.title}
-                                        </h3>
-                                        <Badge
-                                            variant={article.state === 'published' ? 'default' : 'secondary'}
-                                            className="text-[10px] px-1.5 py-0 capitalize shrink-0"
-                                        >
-                                            {article.state}
+                <div className="grid gap-x-4 gap-y-6" style={{gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'}}>
+                    {items.map((article) => (
+                        <Card key={article.id} className="overflow-hidden group hover:shadow-lg transition-shadow">
+                            <div className="relative aspect-video bg-muted">
+                                {article.thumbnail ? (
+                                    <img
+                                        src={getFullUrl(article.thumbnail)}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                ) : article.media?.thumbnail ? (
+                                    <img
+                                        src={getFullUrl(article.media.thumbnail)}
+                                        alt={article.title}
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <FileText className="w-10 h-10 text-muted-foreground/30"/>
+                                    </div>
+                                )}
+                                {article.media_id && (
+                                    <div className="absolute top-2 left-2">
+                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                            <Video className="w-3 h-3 mr-1"/>
+                                            {article.media?.duration ? `${Math.floor(article.media.duration / 60)}:${String(article.media.duration % 60).padStart(2, '0')}` : ''}
                                         </Badge>
                                     </div>
-
-                                    <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                                        <div className="flex items-center gap-1">
-                                            <Eye className="w-3 h-3"/>
-                                            {article.view_count} {t('myArticles.views')}
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-3 h-3"/>
-                                            {formatRelativeTime(article.create_time)}
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-4 pt-4 border-t flex justify-end gap-2">
-                                        <Button variant="ghost" size="sm" className="h-8" asChild>
-                                            <Link to="/me/articles/$token/edit" params={{token: article.short_token}}>
-                                                <Edit className="w-3.5 h-3.5 mr-1"/>
-                                                {t('myArticles.edit')}
-                                            </Link>
-                                        </Button>
-                                        {article.state === 'draft' && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 text-destructive hover:text-destructive"
-                                                onClick={() => handleDelete(article)}
-                                                disabled={deleteMutation.isPending}
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5 mr-1"/>
-                                                {t('myArticles.delete')}
-                                            </Button>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
-                    </div>
-
-                    <div ref={sentinelRef} className="flex flex-col items-center py-8">
-                        {isLoading && (
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <Spinner size="sm"/>
-                                <span className="text-sm">{t('common.loading')}</span>
+                                )}
                             </div>
-                        )}
-                        {!hasMore && items.length > 0 && (
-                            <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                        )}
-                    </div>
-                </>
+
+                            <CardContent className="p-4">
+                                <div className="flex justify-between items-start gap-2">
+                                    <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
+                                        {article.title}
+                                    </h3>
+                                    <Badge
+                                        variant={article.state === 'published' ? 'default' : 'secondary'}
+                                        className="text-[10px] px-1.5 py-0 capitalize shrink-0"
+                                    >
+                                        {article.state}
+                                    </Badge>
+                                </div>
+
+                                <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <Eye className="w-3 h-3"/>
+                                        {article.view_count} {t('myArticles.views')}
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3"/>
+                                        {formatRelativeTime(article.create_time)}
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+                                    <Button variant="ghost" size="sm" className="h-8" asChild>
+                                        <Link to="/me/articles/$token/edit" params={{token: article.short_token}}>
+                                            <Edit className="w-3.5 h-3.5 mr-1"/>
+                                            {t('myArticles.edit')}
+                                        </Link>
+                                    </Button>
+                                    {article.state === 'draft' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 text-destructive hover:text-destructive"
+                                            onClick={() => handleDelete(article)}
+                                            disabled={deleteMutation.isPending}
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5 mr-1"/>
+                                            {t('myArticles.delete')}
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+
+            {items.length > 0 && (
+                <div ref={sentinelRef} className="flex flex-col items-center py-8">
+                    {isLoading && (
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                            <Spinner size="sm"/>
+                            <span className="text-sm">{t('common.loading')}</span>
+                        </div>
+                    )}
+                    {!hasMore && (
+                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                    )}
+                </div>
             )}
         </div>
     );
