@@ -406,6 +406,40 @@ export function useMyChannels(enabled: boolean, userId?: string) {
     });
 }
 
+/**
+ * useUserChannels: Get a user's public channel list (/users/:slug/channels)
+ * Works for both owner and visitor perspectives.
+ */
+export function useUserChannels(slug: string | null | undefined, enabled?: boolean) {
+    return useQuery({
+        queryKey: ['user-channels', slug],
+        queryFn: async () => {
+            if (!slug) return {items: [], total: 0};
+            const res = await userApi.getUserChannels(slug, {page: 1, page_size: 50});
+            return res;
+        },
+        enabled: !!slug && enabled !== false,
+    });
+}
+
+/**
+ * useUserFollowers: Get a user's public followers list (/users/:slug/followers)
+ * Works for both owner and visitor perspectives.
+ */
+export function useUserFollowers(slug: string | null | undefined, params?: { page?: number; page_size?: number }, enabled?: boolean) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? 20;
+    return useQuery({
+        queryKey: ['user-followers', slug, page, pageSize],
+        queryFn: async () => {
+            if (!slug) return {items: [], total: 0, page: 1, page_size: pageSize};
+            const res = await userApi.getUserFollowers(slug, {page, page_size: pageSize});
+            return res;
+        },
+        enabled: !!slug && enabled !== false,
+    });
+}
+
 export function useChannelLimits(enabled: boolean) {
     return useQuery({
         queryKey: ['channel', 'limits'],
@@ -1084,17 +1118,18 @@ export function useToggleFavorite() {
 }
 
 /**
- * useFavoriteList: Get user's favorite list with pagination
+ * useFavoriteList: Get current user's favorite list with pagination (authenticated only)
  */
-export function useFavoriteList(params?: { page?: number; page_size?: number }, userId?: string) {
+export function useFavoriteList(params?: { page?: number; page_size?: number }, enabled?: boolean | string) {
     const page = params?.page ?? 1;
     const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const isEnabled = enabled !== undefined && enabled !== false && enabled !== '';
     return useQuery({
-        queryKey: ['favorites', userId, page, pageSize],
+        queryKey: ['favorites', page, pageSize],
         queryFn: async () => {
             return await favoriteApi.list({page, page_size: pageSize});
         },
-        enabled: !!userId,
+        enabled: isEnabled,
     });
 }
 

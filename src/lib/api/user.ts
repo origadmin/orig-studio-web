@@ -308,6 +308,24 @@ export const userApi = {
     // Get my followers list
     getFollowers: (params?: { page?: number; page_size?: number }) =>
         api.get<SubscriptionListResponse>("/me/followers", params),
+
+    // ==================== Public User Resources APIs (/users/:slug/*) ====================
+
+    // Get public user's followers list
+    getUserFollowers: (slug: string, params?: { page?: number; page_size?: number }) =>
+        api.get<SubscriptionListResponse>(`/users/${slug}/followers`, params),
+
+    // Get user's favorites (owner-only, returns empty for visitors)
+    getUserFavorites: (slug: string, params?: { page?: number; page_size?: number }) =>
+        api.get<{items: any[]; total: number; page: number; page_size: number}>(`/users/${slug}/favorites`, params),
+
+    // Get user's subscriptions (owner-only, returns empty for visitors)
+    getUserSubscriptions: (slug: string, params?: { page?: number; page_size?: number }) =>
+        api.get<SubscriptionListResponse>(`/users/${slug}/subscriptions`, params),
+
+    // Get user's channels (public)
+    getUserChannels: (slug: string, params?: { page?: number; limit?: number; page_size?: number }) =>
+        api.get<{items: any[]; total: number; page: number; page_size: number}>(`/users/${slug}/channels`, params),
 };
 
 // ==================== Admin User API (UUID based, requires JWT + Admin) ====================

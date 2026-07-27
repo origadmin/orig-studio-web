@@ -12,6 +12,8 @@ import {
     useUnsubscribe,
     useDeleteMedia,
     useUserPlaylists,
+    useUserChannels,
+    useUserFollowers,
 } from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
@@ -91,7 +93,7 @@ interface ProfileHomePageProps {
 }
 
 type OwnerTab = 'videos' | 'channels' | 'articles' | 'followers' | 'favorites' | 'playlists' | 'history' | 'about';
-type VisitorTab = 'videos' | 'playlists' | 'about';
+type VisitorTab = 'videos' | 'channels' | 'playlists' | 'followers' | 'about';
 
 const OWNER_TABS: {key: OwnerTab; icon: React.ElementType; labelKey: string; manageTo: string}[] = [
     {key: 'videos', icon: Video, labelKey: 'nav.myVideos', manageTo: '/me/videos'},
@@ -149,13 +151,10 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         return String(profile.id);
     }, [profile?.id]);
 
-    const channelsEnabled = useMemo(() => isProfileLoaded, [isProfileLoaded]);
-    const channelsUserId = useMemo(() => isProfileLoaded ? profileIdStr : undefined, [isProfileLoaded, profileIdStr]);
-    const {data: channelsData} = useMyChannels(
-        channelsEnabled && isOwner,
-        channelsUserId
+    const {data: userChannelsData, isLoading: channelsLoading} = useUserChannels(
+        isProfileLoaded ? username : null
     );
-    const channels: Channel[] = Array.isArray(channelsData) ? channelsData : (Array.isArray((channelsData as any)?.items) ? (channelsData as any).items : []);
+    const channels: any[] = Array.isArray((userChannelsData as any)?.items) ? (userChannelsData as any).items : [];
 
     const selectedChannelIdForQuery = useMemo(() => {
         return isOwner && selectedChannelId !== 'all' ? selectedChannelId : undefined;
@@ -176,12 +175,17 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const deleteMutation = useDeleteMedia();
 
     const favoriteParams = useMemo(() => ({page_size: 6}), []);
-    const favoriteUserId = useMemo(() => isOwner && profileIdStr ? profileIdStr : undefined, [isOwner, profileIdStr]);
     const {data: favoritesData, isLoading: favoritesLoading} = useFavoriteList(
         favoriteParams,
-        favoriteUserId
+        isOwner
     );
     const favorites = (Array.isArray((favoritesData as any)?.items) ? (favoritesData as any).items : Array.isArray((favoritesData as any)?.favorites) ? (favoritesData as any).favorites : []);
+
+    const {data: followersData, isLoading: followersLoading} = useUserFollowers(
+        isProfileLoaded ? username : null,
+        {page: 1, page_size: 20}
+    );
+    const followers = Array.isArray((followersData as any)?.items) ? (followersData as any).items : [];
 
     const historyParams = useMemo(() => ({
         page_size: 6,
@@ -349,7 +353,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     const visitorTabs: {id: VisitorTab; label: string; icon: React.ElementType}[] = [
         {id: 'videos', label: t('profile.tabVideos'), icon: Film},
+        {id: 'channels', label: t('nav.myChannels'), icon: Tv},
         {id: 'playlists', label: t('profile.tabPlaylists'), icon: ListVideo},
+        {id: 'followers', label: t('profile.myFollowers'), icon: UserCheck},
         {id: 'about', label: t('profile.tabAbout'), icon: Info},
     ];
 
@@ -434,28 +440,40 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 );
             }
             case 'channels':
+                if (channelsLoading && channels.length === 0) {
+                    return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[1,2,3,4].map(i => (
+                                <div key={i} className="animate-pulse flex items-center gap-3 p-3">
+                                    <div className="w-12 h-12 bg-muted rounded-lg"/>
+                                    <div className="flex-1">
+                                        <div className="h-4 bg-muted rounded w-2/3 mb-1"/>
+                                        <div className="h-3 bg-muted rounded w-1/2"/>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+                if (channels.length === 0) {
+                    return <EmptyState type="channels" isOwner={isOwner}/>;
+                }
                 return (
-                    <ContentSection
-                        loading={false}
-                        items={channels}
-                        tab={OWNER_TABS[1]}
-                        onManage={() => {}}
-                        renderItem={(ch) => (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {channels.map((ch: any) => (
                             <div key={ch.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
                                  onClick={() => navigate({to: '/c/$token', params: {token: ch.token || ch.short_token}} as any)}>
-                                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                                    {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 rounded-lg object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
+                                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="font-medium text-sm line-clamp-2">{ch.name}</p>
                                     <p className="text-xs text-muted-foreground line-clamp-2">{ch.description || t('profile.noDescription')}</p>
                                 </div>
-                                <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0"/>
+                                {isOwner && <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0"/>}
                             </div>
-                        )}
-                        emptyType="channels"
-                        hideViewAll={true}
-                    />
+                        ))}
+                    </div>
                 );
             case 'articles':
                 return (
@@ -469,15 +487,42 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     />
                 );
             case 'followers':
+                if (followersLoading && followers.length === 0) {
+                    return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[1,2,3,4].map(i => (
+                                <div key={i} className="animate-pulse flex items-center gap-3 p-3">
+                                    <div className="w-10 h-10 bg-muted rounded-full"/>
+                                    <div className="flex-1">
+                                        <div className="h-4 bg-muted rounded w-2/3 mb-1"/>
+                                        <div className="h-3 bg-muted rounded w-1/2"/>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+                if (followers.length === 0) {
+                    return <EmptyState type="followers" isOwner={isOwner}/>;
+                }
                 return (
-                    <ContentSection
-                        loading={false}
-                        items={[]}
-                        tab={OWNER_TABS[3]}
-                        onManage={() => handleManageClick(OWNER_TABS[3])}
-                        emptyType="followers"
-                        hideViewAll={true}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {followers.map((f: any) => (
+                            <div key={f.id || f.user_id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
+                                 onClick={() => navigate({to: `/@${f.username}`} as any)}>
+                                <Avatar className="w-10 h-10 flex-shrink-0">
+                                    <AvatarImage src={getImageUrl(f.avatar, 'avatar')} alt={f.nickname || f.username}/>
+                                    <AvatarFallback className="text-sm font-semibold bg-muted text-muted-foreground">
+                                        {(f.nickname || f.username || '?').charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm truncate">{f.nickname || f.username}</p>
+                                    <p className="text-xs text-muted-foreground truncate">@{f.username}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 );
             case 'favorites':
                 return (
@@ -779,6 +824,73 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                             }}
                                             isOwner={false}
                                         />
+                                    ))}
+                                </div>
+                            )
+                        )}
+                        {visitorTab === 'channels' && (
+                            channelsLoading && channels.length === 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {[1,2,3,4].map(i => (
+                                        <div key={i} className="animate-pulse flex items-center gap-3 p-3">
+                                            <div className="w-12 h-12 bg-muted rounded-lg"/>
+                                            <div className="flex-1">
+                                                <div className="h-4 bg-muted rounded w-2/3 mb-1"/>
+                                                <div className="h-3 bg-muted rounded w-1/2"/>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : channels.length === 0 ? (
+                                <EmptyState type="channels" isOwner={false}/>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {channels.map((ch: any) => (
+                                        <div key={ch.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
+                                             onClick={() => navigate({to: '/c/$token', params: {token: ch.token || ch.short_token}} as any)}>
+                                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                                {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-medium text-sm line-clamp-2">{ch.name}</p>
+                                                <p className="text-xs text-muted-foreground line-clamp-2">{ch.description || t('profile.noDescription')}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                        )}
+                        {visitorTab === 'followers' && (
+                            followersLoading && followers.length === 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {[1,2,3,4].map(i => (
+                                        <div key={i} className="animate-pulse flex items-center gap-3 p-3">
+                                            <div className="w-10 h-10 bg-muted rounded-full"/>
+                                            <div className="flex-1">
+                                                <div className="h-4 bg-muted rounded w-2/3 mb-1"/>
+                                                <div className="h-3 bg-muted rounded w-1/2"/>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : followers.length === 0 ? (
+                                <EmptyState type="followers" isOwner={false}/>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {followers.map((f: any) => (
+                                        <div key={f.id || f.user_id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors cursor-pointer"
+                                             onClick={() => navigate({to: `/@${f.username}`} as any)}>
+                                            <Avatar className="w-10 h-10 flex-shrink-0">
+                                                <AvatarImage src={getImageUrl(f.avatar, 'avatar')} alt={f.nickname || f.username}/>
+                                                <AvatarFallback className="text-sm font-semibold bg-muted text-muted-foreground">
+                                                    {(f.nickname || f.username || '?').charAt(0).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium text-sm truncate">{f.nickname || f.username}</p>
+                                                <p className="text-xs text-muted-foreground truncate">@{f.username}</p>
+                                            </div>
+                                        </div>
                                     ))}
                                 </div>
                             )
