@@ -11,6 +11,7 @@ import {
     useSubscribe,
     useUnsubscribe,
     useDeleteMedia,
+    useUserPlaylists,
 } from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
@@ -23,6 +24,7 @@ import {Badge} from '@/components/ui/badge';
 import {Spinner} from '@/components/ui/spinner';
 import EmptyState from '@/components/channel/widgets/EmptyState';
 import VideoCard from '@/components/channel/widgets/VideoCard';
+import PlaylistCard from '@/components/channel/widgets/PlaylistCard';
 import {
     Pencil,
     Film,
@@ -188,6 +190,13 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     }), [isAuthenticated, isOwner, profileIdStr]);
     const {data: historyData, isLoading: historyLoading} = useHistoryList(historyParams);
     const historyItems = (Array.isArray((historyData as any)?.items) ? (historyData as any).items : Array.isArray((historyData as any)?.histories) ? (historyData as any).histories : []);
+
+    const {data: playlistsData, isLoading: playlistsLoading} = useUserPlaylists(
+        isProfileLoaded ? username : null,
+        isOwner,
+        {page: 1, page_size: 20}
+    );
+    const playlists = Array.isArray((playlistsData as any)?.items) ? (playlistsData as any).items : [];
 
     const channelToken = profile?.default_channel_token || null;
     const subscriptionQuery = useSubscriptionStatus(
@@ -483,15 +492,42 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     />
                 );
             case 'playlists':
+                if (playlistsLoading && playlists.length === 0) {
+                    return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[1,2,3,4].map(i => (
+                                <div key={i} className="animate-pulse">
+                                    <div className="aspect-video bg-muted rounded-lg mb-2"/>
+                                    <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
+                                    <div className="h-3 bg-muted rounded w-1/2"/>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                }
+                if (playlists.length === 0) {
+                    return <EmptyState type="playlists" isOwner={isOwner}/>;
+                }
                 return (
-                    <ContentSection
-                        loading={false}
-                        items={[]}
-                        tab={OWNER_TABS[5]}
-                        onManage={() => {}}
-                        emptyType="playlists"
-                        hideViewAll={true}
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {playlists.map((pl: any) => (
+                            <PlaylistCard
+                                key={pl.id}
+                                playlist={{
+                                    id: pl.id,
+                                    short_token: pl.short_token,
+                                    title: pl.title,
+                                    description: pl.description,
+                                    thumbnail: pl.thumbnail,
+                                    media_count: pl.media_count || 0,
+                                    video_count: pl.media_count || 0,
+                                    cover_images: pl.media_details?.slice(0, 4).map((m: any) => m.thumbnail) || [],
+                                    update_time: pl.update_time,
+                                }}
+                                isOwner={isOwner}
+                            />
+                        ))}
+                    </div>
                 );
             case 'history':
                 return (
@@ -713,7 +749,39 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                             </>
                         )}
                         {visitorTab === 'playlists' && (
-                            <EmptyState type="playlists" isOwner={false}/>
+                            playlistsLoading && playlists.length === 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {[1,2,3,4].map(i => (
+                                        <div key={i} className="animate-pulse">
+                                            <div className="aspect-video bg-muted rounded-lg mb-2"/>
+                                            <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
+                                            <div className="h-3 bg-muted rounded w-1/2"/>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : playlists.length === 0 ? (
+                                <EmptyState type="playlists" isOwner={false}/>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {playlists.map((pl: any) => (
+                                        <PlaylistCard
+                                            key={pl.id}
+                                            playlist={{
+                                                id: pl.id,
+                                                short_token: pl.short_token,
+                                                title: pl.title,
+                                                description: pl.description,
+                                                thumbnail: pl.thumbnail,
+                                                media_count: pl.media_count || 0,
+                                                video_count: pl.media_count || 0,
+                                                cover_images: pl.media_details?.slice(0, 4).map((m: any) => m.thumbnail) || [],
+                                                update_time: pl.update_time,
+                                            }}
+                                            isOwner={false}
+                                        />
+                                    ))}
+                                </div>
+                            )
                         )}
                         {visitorTab === 'about' && (
                             <ProfileAboutTab profile={profile}/>

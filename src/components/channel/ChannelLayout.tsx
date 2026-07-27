@@ -10,12 +10,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2, ListVideo} from 'lucide-react';
-import type {ChannelDetail, ChannelPlaylist} from '@/lib/api/channel';
+import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2} from 'lucide-react';
+import type {ChannelDetail} from '@/lib/api/channel';
 import type {Media} from '@/lib/api/media';
 import {
     useChannelVideos,
-    useChannelPlaylists,
     useSubscribe,
     useUnsubscribe,
     useUpdateNotificationSetting,
@@ -30,7 +29,6 @@ import {getImageUrl} from '@/lib/imageUtils';
 import ChannelHeader from './ChannelHeader';
 import ChannelNav from './ChannelNav';
 import VideoCard from './widgets/VideoCard';
-import PlaylistCard from './widgets/PlaylistCard';
 import EmptyState from './widgets/EmptyState';
 
 interface ChannelLayoutProps {
@@ -171,13 +169,6 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                                 onSearchChange={handleVideosSearchChange}
                                 page={videosPage}
                                 onPageChange={handleVideosPageChange}
-                                onEmptyChange={handleContentEmptyChange}
-                            />
-                        )}
-                        {activeTab === 'playlists' && (
-                            <PlaylistsTabContent
-                                channelToken={channelToken}
-                                isOwner={isOwner}
                                 onEmptyChange={handleContentEmptyChange}
                             />
                         )}
@@ -428,69 +419,6 @@ const VideosTabContent: React.FC<{
                     </Button>
                 </div>
             )}
-        </div>
-    );
-};
-
-// ================================
-// Playlists Tab - Channel playlists
-// ================================
-const PlaylistsTabContent: React.FC<{
-    channelToken?: string;
-    isOwner: boolean;
-    onEmptyChange?: (empty: boolean) => void;
-}> = ({channelToken, isOwner, onEmptyChange}) => {
-    const {t} = useTranslation();
-
-    const {data: playlistsData, isLoading} = useChannelPlaylists(channelToken || null);
-
-    const playlists = playlistsData?.items || [];
-    const total = playlistsData?.total || 0;
-
-    React.useEffect(() => {
-        if (!isLoading) {
-            onEmptyChange?.(playlists.length === 0);
-        }
-    }, [isLoading, playlists.length, onEmptyChange]);
-
-    if (isLoading) {
-        return (
-            <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="animate-pulse">
-                            <div className="aspect-video bg-muted rounded-lg"/>
-                            <div className="mt-2 space-y-2">
-                                <div className="h-4 bg-muted rounded w-3/4"/>
-                                <div className="h-3 bg-muted rounded w-1/2"/>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    if (playlists.length === 0) {
-        return <EmptyState type="playlists" isOwner={isOwner}/>;
-    }
-
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">
-                    {t('channel.playlists')} ({total})
-                </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-                {playlists.map((playlist) => (
-                    <PlaylistCard
-                        key={playlist.id}
-                        playlist={playlist}
-                        isOwner={isOwner}
-                    />
-                ))}
-            </div>
         </div>
     );
 };

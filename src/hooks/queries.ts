@@ -509,6 +509,22 @@ export function useChannelPlaylists(channelToken: string | null) {
     });
 }
 
+export function useUserPlaylists(username: string | null, isOwner: boolean = false, params?: { page?: number; page_size?: number }) {
+    return useQuery({
+        queryKey: ['userPlaylists', username, isOwner, params?.page, params?.page_size],
+        queryFn: async () => {
+            if (!username) return {items: [], total: 0, page: 1, page_size: 20};
+            if (isOwner) {
+                const res = await playlistApi.getMyPlaylists(params);
+                return res;
+            }
+            const res = await playlistApi.getUserPlaylists(username, params);
+            return res;
+        },
+        enabled: !!username,
+    });
+}
+
 // ==================== Portal Hooks ====================
 
 /**

@@ -17,16 +17,22 @@ export interface PlaylistMediaItem {
 }
 
 // Playlist interface matching the backend biz.Playlist struct.
-// Backend fields: id, title, description, short_token, user_id, is_public, create_time, update_time, media_items, media_details
+// Backend fields: id, title, description, short_token, user_id, privacy, is_public, status, thumbnail, media_count, create_time, update_time, media_items
 export interface Playlist {
     id: string;
     title: string;
     description?: string;
     short_token?: string;
     user_id: string;
+    privacy?: string;
     is_public: boolean;
-    media_items?: string[];  // Array of media IDs in the playlist
-    media_details?: PlaylistMediaItem[];  // Full media details for display
+    status?: string;
+    thumbnail?: string;
+    media_count?: number;
+    video_count?: number;
+    media_items?: string[];
+    media_details?: PlaylistMediaItem[];
+    cover_images?: string[];
     create_time: string;
     update_time: string;
 }
@@ -105,6 +111,13 @@ export const playlistApi = {
         const response = await api.get<unknown>("/me/playlists", params as Record<string, unknown>);
         const normalized = normalizePlaylistList(response);
         return normalized as any;
+    },
+
+    // List a user's public playlists by username/slug
+    getUserPlaylists: async (username: string, params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>(`/users/${username}/playlists`, params as Record<string, unknown>);
+        const normalized = normalizePlaylistList(response);
+        return normalized as PlaylistListResponse;
     },
 
     // Get a public playlist by short_token (portal view)
