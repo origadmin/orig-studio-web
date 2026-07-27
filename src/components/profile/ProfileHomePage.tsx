@@ -1,9 +1,9 @@
-import React, {useState, useCallback, useMemo, useEffect} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useNavigate} from '@tanstack/react-router';
 import {
     usePublicProfile,
-    useMediaList,
+    useInfiniteMediaList,
     useMyChannels,
     useFavoriteList,
     useHistoryList,
@@ -16,7 +16,6 @@ import {useAuth} from '@/hooks/useAuth';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {useUploadState} from '@/contexts/UploadContext';
 import {getImageUrl} from '@/lib/imageUtils';
-import {getFullUrl} from '@/lib/utils';
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -113,7 +112,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const [ownerTab, setOwnerTab] = useState<OwnerTab>('videos');
     const [visitorTab, setVisitorTab] = useState<VisitorTab>('videos');
 
-    // Filter out articles tab when articles module is disabled
     const visibleOwnerTabs = useMemo(() => {
         if (modules.articles) return OWNER_TABS;
         return OWNER_TABS.filter(tab => tab.key !== 'articles');
@@ -122,64 +120,90 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
     const [shareError, setShareError] = useState<string | null>(null);
-
-    // Video list state - simplified, no refs or intersection observer
-    const [videoPage, setVideoPage] = useState(1);
-    const [videoItems, setVideoItems] = useState<any[]>([]);
-    const [videoHasMore, setVideoHasMore] = useState(true);
     const [selectedChannelId, setSelectedChannelId] = useState<string>('all');
     const [deleteTarget, setDeleteTarget] = useState<string | number | null>(null);
 
     const {data: profile, isLoading, error} = usePublicProfile(username);
-    const isOwner = profile?.is_owner === true
-        || (isAuthenticated && !!currentUser && !!profile && currentUser.username === profile.username);
+
+    const isOwner = useMemo(() => {
+        if (!profile) return false;
+        if (profile.is_owner === true) return true;
+        return isAuthenticated && !!currentUser && currentUser.username === profile.username;
+    }, [profile, isAuthenticated, currentUser]);
 
     const isProfileLoaded = !!profile && profile.username === username;
-
-    // Extract primitive values first to ensure stable references
     const profileId = profile?.id;
-    const channelFilter = isOwner && selectedChannelId !== 'all' ? selectedChannelId : undefined;
+    const profileIdStr = profileId != null ? String(profileId) : undefined;
 
-    const {data: channelsData} = useMyChannels(
-        isProfileLoaded && isOwner,
-        isProfileLoaded ? profileId : undefined
-    );
+    const channelFilterForQuery = useMemo(() => {
+        if (!isOwner || selectedChannelId === 'all') return undefined;
+        return selectedChannelId;
+    }, [isOwner, selectedChannelId]);
+
+    const {
+        data: channelsData,
+        isLoading: channelsLoading,
+    } = useMyChannels(isProfileLoaded && isOwner, profileIdStr);
+
     const channels: Channel[] = useMemo(() => {
-        return Array.isArray(channelsData) ? channelsData : (Array.isArray((channelsData as any)?.items) ? (channelsData as any).items : []);
+        if (Array.isArray(channelsData)) return channelsData;
+        if (Array.isArray((channelsData as any)?.items)) return (channelsData as any).items;
+        return [];
     }, [channelsData]);
 
-    // Stable query params - only primitive dependencies
-    const mediaQueryParams = useMemo(() => ({
-        page: videoPage,
+    const videoQueryParams = useMemo(() => ({
         page_size: PAGE_SIZE,
-        user_id: isProfileLoaded ? profileId : undefined,
-        channel_id: channelFilter,
+        user_id: isProfileLoaded && profileId != null ? profileId : undefined,
+        channel_id: channelFilterForQuery,
         order_by: 'create_time' as const,
         descending: true,
         enabled: isProfileLoaded,
-    }), [videoPage, isProfileLoaded, profileId, channelFilter]);
+    }), [PAGE_SIZE, isProfileLoaded, profileId, channelFilterForQuery]);
 
-    const {data: videoPageData, isLoading: videosLoading, isFetching: videosFetching} = useMediaList(mediaQueryParams);
+    const {
+        data: videoPagesData,
+        isLoading: videosLoading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+    } = useInfiniteMediaList(videoQueryParams);
 
-    const deleteMutation = useDeleteMedia();
+    const videoItems = useMemo(() => {
+        if (!videoPagesData?.pages) return [];
+        const allItems: any[] = [];
+        const seenIds = new Set<string | number>();
+        for (const page of videoPagesData.pages) {
+            const items = page?.items || [];
+            for (const item of items) {
+                if (item?.id != null && !seenIds.has(item.id)) {
+                    seenIds.add(item.id);
+                    allItems.push(item);
+                }
+            }
+        }
+        return allItems;
+    }, [videoPagesData]);
 
-    const favoriteParams = useMemo(() => ({page_size: 6}), []);
     const {data: favoritesData, isLoading: favoritesLoading} = useFavoriteList(
-        favoriteParams,
-        isOwner && profile?.id ? String(profile.id) : undefined
+        {page_size: 6},
+        isOwner && profileIdStr ? profileIdStr : undefined
     );
     const favorites = useMemo(() => {
-        return (Array.isArray((favoritesData as any)?.items) ? (favoritesData as any).items : Array.isArray((favoritesData as any)?.favorites) ? (favoritesData as any).favorites : []);
+        if (Array.isArray((favoritesData as any)?.items)) return (favoritesData as any).items;
+        if (Array.isArray((favoritesData as any)?.favorites)) return (favoritesData as any).favorites;
+        return [];
     }, [favoritesData]);
 
-    const historyParams = useMemo(() => ({
+    const historyQueryParams = useMemo(() => ({
         page_size: 6,
         isAuthenticated,
-        userId: isOwner && profile?.id ? profile.id : undefined,
-    }), [isAuthenticated, isOwner, profile?.id]);
-    const {data: historyData, isLoading: historyLoading} = useHistoryList(historyParams);
+        userId: isOwner && profileIdStr ? profileId : undefined,
+    }), [isAuthenticated, isOwner, profileIdStr, profileId]);
+    const {data: historyData, isLoading: historyLoading} = useHistoryList(historyQueryParams);
     const historyItems = useMemo(() => {
-        return (Array.isArray((historyData as any)?.items) ? (historyData as any).items : Array.isArray((historyData as any)?.histories) ? (historyData as any).histories : []);
+        if (Array.isArray((historyData as any)?.items)) return (historyData as any).items;
+        if (Array.isArray((historyData as any)?.histories)) return (historyData as any).histories;
+        return [];
     }, [historyData]);
 
     const channelToken = profile?.default_channel_token || null;
@@ -188,21 +212,24 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     );
     const subscribeMutation = useSubscribe();
     const unsubscribeMutation = useUnsubscribe();
+    const deleteMutation = useDeleteMedia();
 
-    const handleSubscribe = () => {
+    const handleSubscribe = useCallback(() => {
         if (!channelToken) return;
         subscribeMutation.mutate(channelToken);
-    };
+    }, [channelToken, subscribeMutation]);
 
-    const handleUnsubscribe = () => {
+    const handleUnsubscribe = useCallback(() => {
         if (!channelToken) return;
         unsubscribeMutation.mutate(channelToken);
-    };
+    }, [channelToken, unsubscribeMutation]);
 
-    // Use /c/{short_token} for channel share URL, fallback to /@username only when no token
-    const channelShareUrl = channelToken
-        ? `${window.location.origin}/c/${channelToken}`
-        : `${window.location.origin}/@${username}`;
+    const channelShareUrl = useMemo(() => {
+        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        return channelToken
+            ? `${origin}/c/${channelToken}`
+            : `${origin}/@${username}`;
+    }, [channelToken, username]);
 
     const handleShareClick = useCallback(() => {
         setShowShareDialog(true);
@@ -233,42 +260,19 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         }
     }, [profile, username, channelShareUrl]);
 
-    const loadMore = useCallback(() => {
-        if (!videosLoading && !videosFetching && videoHasMore) {
-            setVideoPage(prev => prev + 1);
+    const handleLoadMore = useCallback(() => {
+        if (!isFetchingNextPage && hasNextPage) {
+            fetchNextPage();
         }
-    }, [videosLoading, videosFetching, videoHasMore]);
+    }, [isFetchingNextPage, hasNextPage, fetchNextPage]);
 
-    useEffect(() => {
-        setVideoPage(1);
-        setVideoItems([]);
-        setVideoHasMore(true);
-    }, [selectedChannelId, isProfileLoaded]);
-
-    useEffect(() => {
-        if (videoPageData?.items) {
-            const items = videoPageData.items;
-            if (videoPage === 1) {
-                setVideoItems(items);
-            } else {
-                setVideoItems(prev => {
-                    const existingIds = new Set(prev.map(i => i.id));
-                    const newItems = items.filter((i: any) => !existingIds.has(i.id));
-                    return [...prev, ...newItems];
-                });
-            }
-            setVideoHasMore(items.length >= PAGE_SIZE);
-        }
-    }, [videoPageData, videoPage]);
-
-    const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = useCallback(async () => {
         if (!deleteTarget) return;
-        await deleteMutation.mutateAsync(deleteTarget?.toString() || '');
-        setVideoItems(prev => prev.filter(i => i.id !== deleteTarget));
+        await deleteMutation.mutateAsync(String(deleteTarget));
         setDeleteTarget(null);
-    };
+    }, [deleteTarget, deleteMutation]);
 
-    const handleManageClick = (tab: typeof OWNER_TABS[number]) => {
+    const handleManageClick = useCallback((tab: typeof OWNER_TABS[number]) => {
         if (tab.key === 'followers' && profile) {
             navigate({to: tab.manageTo, params: {id: profile.id}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
@@ -278,7 +282,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
         }
-    };
+    }, [navigate, profile]);
 
     if (isLoading) {
         return (
@@ -311,6 +315,51 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         {id: 'about', label: t('profile.tabAbout'), icon: Info},
     ];
 
+    const renderVideoGrid = (isOwnerView: boolean) => {
+        const isInitialLoading = videosLoading && videoItems.length === 0;
+        if (isInitialLoading) {
+            return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                    {[1,2,3,4,5,6,7,8].map(i => (
+                        <div key={i} className="animate-pulse">
+                            <div className="aspect-video bg-muted rounded-lg mb-2"/>
+                            <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
+                            <div className="h-3 bg-muted rounded w-1/2"/>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        if (videoItems.length === 0) {
+            return <EmptyState type="videos" isOwner={isOwnerView}/>;
+        }
+        return (
+            <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                    {videoItems.map(item => (
+                        <VideoCard key={item.id} video={item} isOwner={isOwnerView} showChannelInfo={false}/>
+                    ))}
+                </div>
+                <div className="flex flex-col items-center py-8 gap-4">
+                    {(videosLoading || isFetchingNextPage) && (
+                        <div className="flex items-center gap-3 text-muted-foreground">
+                            <Spinner size="sm"/>
+                            <span className="text-sm">{t('common.loading')}</span>
+                        </div>
+                    )}
+                    {hasNextPage && !(videosLoading || isFetchingNextPage) && (
+                        <Button variant="outline" onClick={handleLoadMore}>
+                            {t('common.loadMore', '加载更多')}
+                        </Button>
+                    )}
+                    {!hasNextPage && videoItems.length > 0 && (
+                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                    )}
+                </div>
+            </>
+        );
+    };
+
     const renderOwnerTabContent = () => {
         switch (ownerTab) {
             case 'videos': {
@@ -318,7 +367,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 channels.forEach(ch => channelMap.set(String(ch.id), ch));
                 return (
                     <div className="space-y-4">
-                        {/* Toolbar: upload button + channel filter */}
                         <div className="flex items-center justify-between gap-3 flex-wrap">
                             <div className="flex items-center gap-3 flex-wrap">
                                 <div className="flex items-center gap-2">
@@ -350,52 +398,14 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 {t('myVideos.uploadVideo', '上传视频')}
                             </Button>
                         </div>
-
-                        {/* Video grid */}
-                        {(videosLoading || videosFetching) && videoItems.length === 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                                {[1,2,3,4,5,6,7,8].map(i => (
-                                    <div key={i} className="animate-pulse">
-                                        <div className="aspect-video bg-muted rounded-lg mb-2"/>
-                                        <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
-                                        <div className="h-3 bg-muted rounded w-1/2"/>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : videoItems.length === 0 ? (
-                            <EmptyState type="videos" isOwner={true}/>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                                    {videoItems.map(item => (
-                                        <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={false}/>
-                                    ))}
-                                </div>
-                                <div className="flex flex-col items-center py-8 gap-4">
-                                    {(videosLoading || videosFetching) && (
-                                        <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Spinner size="sm"/>
-                                            <span className="text-sm">{t('common.loading')}</span>
-                                        </div>
-                                    )}
-                                    {videoHasMore && !(videosLoading || videosFetching) && (
-                                        <Button variant="outline" onClick={loadMore}>
-                                            {t('common.loadMore', '加载更多')}
-                                        </Button>
-                                    )}
-                                    {!videoHasMore && videoItems.length > 0 && (
-                                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                                    )}
-                                </div>
-                            </>
-                        )}
+                        {renderVideoGrid(true)}
                     </div>
                 );
             }
             case 'channels':
                 return (
                     <ContentSection
-                        loading={false}
+                        loading={channelsLoading}
                         items={channels}
                         tab={OWNER_TABS[1]}
                         onManage={() => {}}
@@ -480,13 +490,10 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     return (
         <div className="-mx-4 md:-mx-6 lg:-mx-8">
-            {/* Banner: pure gradient background */}
             <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative"/>
 
-            {/* Profile info section: entirely below the banner */}
             <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-                    {/* Avatar: below banner, no overlap */}
                     <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-background shadow-lg flex-shrink-0">
                         <AvatarImage src={getImageUrl(profile.avatar, 'avatar')} alt={profile.username}/>
                         <AvatarFallback className="text-2xl font-bold bg-muted text-muted-foreground">
@@ -494,7 +501,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         </AvatarFallback>
                     </Avatar>
 
-                    {/* User info: name, @username, stats */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="text-xl sm:text-2xl font-bold truncate">{profile.nickname || profile.username}</h1>
@@ -519,7 +525,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         </div>
                     </div>
 
-                    {/* Action buttons: right side */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {isOwner ? (
                             <DropdownMenu>
@@ -640,47 +645,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     </div>
 
                     <div className="py-6">
-                        {visitorTab === 'videos' && (
-                            <>
-                                {(videosLoading || videosFetching) && videoItems.length === 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                                        {[1,2,3,4,5,6,7,8].map(i => (
-                                            <div key={i} className="animate-pulse">
-                                                <div className="aspect-video bg-muted rounded-lg mb-2"/>
-                                                <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
-                                                <div className="h-3 bg-muted rounded w-1/2"/>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : videoItems.length === 0 ? (
-                                    <EmptyState type="videos" isOwner={false}/>
-                                ) : (
-                                    <>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                                            {videoItems.map(item => (
-                                                <VideoCard key={item.id} video={item} isOwner={false} showChannelInfo={false}/>
-                                            ))}
-                                        </div>
-                                        <div className="flex flex-col items-center py-8 gap-4">
-                                            {(videosLoading || videosFetching) && (
-                                                <div className="flex items-center gap-3 text-muted-foreground">
-                                                    <Spinner size="sm"/>
-                                                    <span className="text-sm">{t('common.loading')}</span>
-                                                </div>
-                                            )}
-                                            {videoHasMore && !(videosLoading || videosFetching) && (
-                                                <Button variant="outline" onClick={loadMore}>
-                                                    {t('common.loadMore', '加载更多')}
-                                                </Button>
-                                            )}
-                                            {!videoHasMore && videoItems.length > 0 && (
-                                                <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        )}
+                        {visitorTab === 'videos' && renderVideoGrid(false)}
                         {visitorTab === 'playlists' && (
                             <EmptyState type="playlists" isOwner={false}/>
                         )}
@@ -778,6 +743,24 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('video.deleteConfirm')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                            <Trash2 className="w-4 h-4 mr-2"/>
+                            {t('common.delete')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
@@ -828,34 +811,6 @@ const ContentSection: React.FC<{
                     </Button>
                 </div>
             )}
-        </div>
-    );
-};
-
-const ProfileVideosTab: React.FC<{videos: any[]; loading: boolean; isOwner: boolean}> = ({videos, loading, isOwner}) => {
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                    <div key={i} className="animate-pulse">
-                        <div className="aspect-video bg-muted rounded-lg mb-2"/>
-                        <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
-                        <div className="h-3 bg-muted rounded w-1/2"/>
-                    </div>
-                ))}
-            </div>
-        );
-    }
-
-    if (videos.length === 0) {
-        return <EmptyState type="videos" isOwner={isOwner}/>;
-    }
-
-    return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
-            {videos.map(video => (
-                <VideoCard key={video.id} video={video} isOwner={isOwner} showChannelInfo={false}/>
-            ))}
         </div>
     );
 };

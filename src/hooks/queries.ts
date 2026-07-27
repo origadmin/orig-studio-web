@@ -28,7 +28,20 @@ import {useAuth} from '@/hooks/useAuth';
 export const mediaKeys = {
     all: ['media'] as const,
     lists: () => [...mediaKeys.all, 'list'] as const,
-    list: (params: Record<string, any>) => [...mediaKeys.lists(), params] as const,
+    list: (params: Record<string, any>) => [
+        ...mediaKeys.lists(),
+        params.page ?? 1,
+        params.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+        params.user_id ?? null,
+        params.channel_id ?? null,
+        params.category_id ?? null,
+        params.status ?? null,
+        params.type ?? null,
+        params.keyword ?? params.search ?? null,
+        params.featured ?? null,
+        params.order_by ?? params.sort ?? 'create_time',
+        params.descending != null ? params.descending : (params.order === 'asc' ? false : true),
+    ] as const,
     adminLists: () => [...mediaKeys.all, 'adminList'] as const,
     adminList: (params: Record<string, any>) => [...mediaKeys.adminLists(), params] as const,
     details: () => [...mediaKeys.all, 'detail'] as const,
@@ -117,12 +130,15 @@ export function useInfiniteMediaList(params: {
     type?: string;
     category_id?: number | null;
     user_id?: string | number;
+    channel_id?: string | number;
     featured?: boolean;
     order_by?: string;
     descending?: boolean;
+    enabled?: boolean;
 }) {
+    const isEnabled = params.enabled !== undefined ? params.enabled : true;
     return useInfiniteQuery({
-        queryKey: mediaKeys.list(params),
+        queryKey: mediaKeys.list({...params, page: 1}),
         queryFn: async ({pageParam = 1}) => {
             const apiParams: Record<string, unknown> = {
                 page: pageParam,
@@ -130,19 +146,18 @@ export function useInfiniteMediaList(params: {
                 type: params.type,
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
                 user_id: params.user_id ? Number(params.user_id) : undefined,
+                channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 state: params.status,
                 featured: params.featured ? '1' : undefined,
                 order_by: params.order_by,
                 descending: params.descending,
             };
-            // Remove undefined values to keep URL clean
             Object.keys(apiParams).forEach(key => {
                 if (apiParams[key] === undefined || apiParams[key] === null) {
                     delete apiParams[key];
                 }
             });
             const res = await mediaApi.list(apiParams as Parameters<typeof mediaApi.list>[0]);
-            // Normalize edge fields for each media item
             if (res?.items) {
                 res.items = normalizeMediaList(res.items);
             }
@@ -154,6 +169,7 @@ export function useInfiniteMediaList(params: {
             const items = lastPage.items || [];
             return items.length === size ? allPages.length + 1 : undefined;
         },
+        enabled: isEnabled,
     });
 }
 
@@ -1029,10 +1045,12 @@ export function useToggleFavorite() {
  * useFavoriteList: Get user's favorite list with pagination
  */
 export function useFavoriteList(params?: { page?: number; page_size?: number }, userId?: string) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['favorites', userId, params],
+        queryKey: ['favorites', userId, page, pageSize],
         queryFn: async () => {
-            return await favoriteApi.list(params);
+            return await favoriteApi.list({page, page_size: pageSize});
         },
         enabled: !!userId,
     });
@@ -1067,19 +1085,22 @@ export function useHistoryList(params: {
     isAuthenticated?: boolean;
     userId?: number | string;
 }) {
-    const service = createHistoryService(!!params.isAuthenticated);
+    const service = useMemo(
+        () => createHistoryService(!!params.isAuthenticated),
+        [params.isAuthenticated]
+    );
+    const page = params.page ?? 1;
+    const pageSize = params.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['history', params.userId, params.page, params.content_type],
+        queryKey: ['history', params.userId ?? null, page, params.content_type ?? null],
         queryFn: async () => {
-            // Build params conditionally to avoid passing page: undefined
             const listParams: { page?: number; page_size?: number; content_type?: ContentType } = {};
-            if (params.page !== undefined) listParams.page = params.page;
-            if (params.page_size !== undefined) listParams.page_size = params.page_size;
+            if (page !== undefined) listParams.page = page;
+            if (pageSize !== undefined) listParams.page_size = pageSize;
             if (params.content_type !== undefined) listParams.content_type = params.content_type;
             return await service.list(listParams);
         },
-        staleTime: 0,
-        refetchOnMount: 'always',
+        enabled: !!params.userId || !params.isAuthenticated,
     });
 }
 
