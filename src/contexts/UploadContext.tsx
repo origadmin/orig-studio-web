@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useCallback, useRef} from 'react';
+import React, {createContext, useContext, useState, useCallback, useRef, useMemo} from 'react';
 import type {UploadTask, UploadStatus, UploadCallbacks} from '@/lib/upload';
 import {startMultipartUpload, cancelUpload} from '@/lib/upload';
 import {useQueryClient} from '@tanstack/react-query';
@@ -182,20 +182,22 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
 
     const activeCount = tasks.filter(t => ['waiting', 'initiating', 'uploading', 'completing', 'paused'].includes(t.status)).length;
 
+    const value = useMemo<UploadContextValue>(() => ({
+        tasks,
+        activeCount,
+        isDialogOpen,
+        openDialog,
+        closeDialog,
+        addTask,
+        pauseTask,
+        resumeTask,
+        cancelTask,
+        removeTask,
+        clearCompleted,
+    }), [tasks, activeCount, isDialogOpen, openDialog, closeDialog, addTask, pauseTask, resumeTask, cancelTask, removeTask, clearCompleted]);
+
     return (
-        <UploadContext.Provider value={{
-            tasks,
-            activeCount,
-            isDialogOpen,
-            openDialog,
-            closeDialog,
-            addTask,
-            pauseTask,
-            resumeTask,
-            cancelTask,
-            removeTask,
-            clearCompleted,
-        }}>
+        <UploadContext.Provider value={value}>
             {children}
         </UploadContext.Provider>
     );

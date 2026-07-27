@@ -31,6 +31,7 @@ import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
 import { Route as AuthenticatedSettingsRouteImport } from "./routes/_authenticated/settings";
 import { Route as AuthenticatedAdminRouteImport } from "./routes/_authenticated/admin";
 import { Route as AuthenticatedPortalRouteImport } from "./routes/_authenticated/_portal";
+import { Route as PortalHandleIndexRouteImport } from "./routes/_portal/$handle/index";
 import { Route as AuthenticatedAdminIndexRouteImport } from "./routes/_authenticated/admin/index";
 import { Route as PortalUIdRouteImport } from "./routes/_portal/u.$id";
 import { Route as PortalPlaylistTokenRouteImport } from "./routes/_portal/playlist.$token";
@@ -196,6 +197,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: "/_portal",
   getParentRoute: () => AuthenticatedRoute,
+} as any);
+const PortalHandleIndexRoute = PortalHandleIndexRouteImport.update({
+  id: "/",
+  path: "/",
+  getParentRoute: () => PortalHandleRoute,
 } as any);
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: "/",
@@ -589,6 +595,7 @@ export interface FileRoutesByFullPath {
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
   "/admin/": typeof AuthenticatedAdminIndexRoute;
+  "/$handle/": typeof PortalHandleIndexRoute;
   "/me/articles": typeof AuthenticatedPortalMeArticlesRouteRouteWithChildren;
   "/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/me/channel": typeof AuthenticatedPortalMeChannelRoute;
@@ -617,7 +624,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   "/": typeof PortalIndexRoute;
   "/settings": typeof AuthenticatedSettingsRouteWithChildren;
-  "/$handle": typeof PortalHandleRouteWithChildren;
   "/about": typeof PortalAboutRoute;
   "/categories": typeof PortalCategoriesRoute;
   "/cookies": typeof PortalCookiesRoute;
@@ -663,6 +669,7 @@ export interface FileRoutesByTo {
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
   "/admin": typeof AuthenticatedAdminIndexRoute;
+  "/$handle": typeof PortalHandleIndexRoute;
   "/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/me/channel": typeof AuthenticatedPortalMeChannelRoute;
   "/me/channels": typeof AuthenticatedPortalMeChannelsRoute;
@@ -745,6 +752,7 @@ export interface FileRoutesById {
   "/_portal/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/_portal/u/$id": typeof PortalUIdRoute;
   "/_authenticated/admin/": typeof AuthenticatedAdminIndexRoute;
+  "/_portal/$handle/": typeof PortalHandleIndexRoute;
   "/_authenticated/_portal/me/articles": typeof AuthenticatedPortalMeArticlesRouteRouteWithChildren;
   "/_authenticated/_portal/articles/$slug": typeof AuthenticatedPortalArticlesSlugRoute;
   "/_authenticated/_portal/me/channel": typeof AuthenticatedPortalMeChannelRoute;
@@ -826,6 +834,7 @@ export interface FileRouteTypes {
     | "/playlist/$token"
     | "/u/$id"
     | "/admin/"
+    | "/$handle/"
     | "/me/articles"
     | "/articles/$slug"
     | "/me/channel"
@@ -854,7 +863,6 @@ export interface FileRouteTypes {
   to:
     | "/"
     | "/settings"
-    | "/$handle"
     | "/about"
     | "/categories"
     | "/cookies"
@@ -900,6 +908,7 @@ export interface FileRouteTypes {
     | "/playlist/$token"
     | "/u/$id"
     | "/admin"
+    | "/$handle"
     | "/articles/$slug"
     | "/me/channel"
     | "/me/channels"
@@ -981,6 +990,7 @@ export interface FileRouteTypes {
     | "/_portal/playlist/$token"
     | "/_portal/u/$id"
     | "/_authenticated/admin/"
+    | "/_portal/$handle/"
     | "/_authenticated/_portal/me/articles"
     | "/_authenticated/_portal/articles/$slug"
     | "/_authenticated/_portal/me/channel"
@@ -1169,6 +1179,13 @@ declare module "@tanstack/react-router" {
       fullPath: "/";
       preLoaderRoute: typeof AuthenticatedPortalRouteImport;
       parentRoute: typeof AuthenticatedRoute;
+    };
+    "/_portal/$handle/": {
+      id: "/_portal/$handle/";
+      path: "/";
+      fullPath: "/$handle/";
+      preLoaderRoute: typeof PortalHandleIndexRouteImport;
+      parentRoute: typeof PortalHandleRoute;
     };
     "/_authenticated/admin/": {
       id: "/_authenticated/admin/";
@@ -1581,10 +1598,12 @@ declare module "@tanstack/react-router" {
 
 interface PortalHandleRouteChildren {
   PortalHandleSplatRoute: typeof PortalHandleSplatRoute;
+  PortalHandleIndexRoute: typeof PortalHandleIndexRoute;
 }
 
 const PortalHandleRouteChildren: PortalHandleRouteChildren = {
   PortalHandleSplatRoute: PortalHandleSplatRoute,
+  PortalHandleIndexRoute: PortalHandleIndexRoute,
 };
 
 const PortalHandleRouteWithChildren = PortalHandleRoute._addFileChildren(

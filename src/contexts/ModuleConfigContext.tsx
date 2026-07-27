@@ -26,9 +26,9 @@ export function ModuleConfigProvider({children}: { children: React.ReactNode }) 
 
 export function useModuleState(): ModulePortalConfig {
     const ctx = useContext(ModuleConfigContext);
-    return {
+    return useMemo(() => ({
         modules: ctx?.modules ?? DEFAULT_CONFIG.modules,
         layout: ctx?.layout ?? DEFAULT_CONFIG.layout,
         site: ctx?.site ?? DEFAULT_CONFIG.site,
-    };
+    }), [ctx?.modules, ctx?.layout, ctx?.site]);
 }

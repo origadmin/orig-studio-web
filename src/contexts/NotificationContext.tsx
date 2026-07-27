@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useState, useEffect, useCallback, useRef} from 'react';
+import React, {createContext, useContext, useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -144,15 +144,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
         };
     }, [user, refresh]);
 
+    const value = useMemo<NotificationState>(() => ({
+        unreadCount,
+        recentNotifications,
+        refresh,
+        markAsRead,
+        markAllAsRead,
+        deleteNotification,
+    }), [unreadCount, recentNotifications, refresh, markAsRead, markAllAsRead, deleteNotification]);
+
     return (
-        <NotificationContext.Provider value={{
-            unreadCount,
-            recentNotifications,
-            refresh,
-            markAsRead,
-            markAllAsRead,
-            deleteNotification,
-        }}>
+        <NotificationContext.Provider value={value}>
             {children}
         </NotificationContext.Provider>
     );

@@ -31,7 +31,6 @@ import ChannelHeader from './ChannelHeader';
 import ChannelNav from './ChannelNav';
 import VideoCard from './widgets/VideoCard';
 import PlaylistCard from './widgets/PlaylistCard';
-import RecommendedChannels from './widgets/RecommendedChannels';
 import EmptyState from './widgets/EmptyState';
 
 interface ChannelLayoutProps {
@@ -148,8 +147,8 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                     isOwner={isOwner}
                 />
 
-                <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ${contentEmpty ? '' : 'flex flex-col lg:flex-row gap-6'}`}>
-                    <main className={contentEmpty ? 'w-full' : 'flex-1 min-w-0'}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                    <main className="w-full">
                         {activeTab === 'home' && (
                             <HomeTabContent
                                 channelToken={channelToken}
@@ -204,16 +203,6 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                             />
                         )}
                     </main>
-
-                    {!contentEmpty && (
-                        <aside className="hidden lg:block w-80 flex-shrink-0">
-                            <RecommendedChannels currentChannelId={channel.id}/>
-                        </aside>
-                    )}
-                </div>
-
-                <div className="lg:hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-                    <RecommendedChannels currentChannelId={channel.id}/>
                 </div>
             </div>
         </div>
@@ -249,7 +238,7 @@ const HomeTabContent: React.FC<{
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -282,7 +271,7 @@ const HomeTabContent: React.FC<{
                         {t('home.viewAll')}
                     </button>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                     {videos.map((video) => (
                         <VideoCard
                             key={video.id}
@@ -354,7 +343,7 @@ const VideosTabContent: React.FC<{
     if (isLoading && page === 1) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -411,7 +400,7 @@ const VideosTabContent: React.FC<{
                     <p>{t('channel.noSearchResults')}</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                     {videos.map((video) => (
                         <VideoCard
                             key={video.id}
@@ -467,7 +456,7 @@ const PlaylistsTabContent: React.FC<{
     if (isLoading) {
         return (
             <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="animate-pulse">
                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -493,7 +482,7 @@ const PlaylistsTabContent: React.FC<{
                     {t('channel.playlists')} ({total})
                 </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                 {playlists.map((playlist) => (
                     <PlaylistCard
                         key={playlist.id}

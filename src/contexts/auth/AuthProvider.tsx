@@ -1,4 +1,4 @@
-import {useState, useCallback, useEffect, useRef} from 'react';
+import {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {AuthContext} from './AuthContext';
 import {
     isTokenExpired,
@@ -285,11 +285,11 @@ export function AuthProvider({children}: AuthProviderProps) {
     const isAdmin = isUserAdmin(user);
     const isSuperuser = isUserSuperuser(user);
 
-    const value: AuthContextValue = {
+    const value = useMemo<AuthContextValue>(() => ({
         token, user, isAuthenticated, isAdmin, isSuperuser,
         isRefreshing, isInitialized,
         login, logout, refreshAuth: refreshAuthFn,
-    };
+    }), [token, user, isAuthenticated, isAdmin, isSuperuser, isRefreshing, isInitialized, login, logout, refreshAuthFn]);
 
     // Show loading spinner until initialization completes
     if (!isInitialized) {

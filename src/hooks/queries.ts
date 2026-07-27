@@ -43,7 +43,14 @@ export const mediaKeys = {
         params.descending != null ? params.descending : (params.order === 'asc' ? false : true),
     ] as const,
     adminLists: () => [...mediaKeys.all, 'adminList'] as const,
-    adminList: (params: Record<string, any>) => [...mediaKeys.adminLists(), params] as const,
+    adminList: (params: Record<string, any>) => [
+        ...mediaKeys.adminLists(),
+        params.page ?? 1,
+        params.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
+        params.keyword ?? params.search ?? null,
+        params.state ?? params.status ?? null,
+        params.type ?? null,
+    ] as const,
     details: () => [...mediaKeys.all, 'detail'] as const,
     detail: (id: string) => [...mediaKeys.details(), id] as const,
 };
@@ -145,7 +152,7 @@ export function useInfiniteMediaList(params: {
                 page_size: params.page_size,
                 type: params.type,
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
-                user_id: params.user_id ? Number(params.user_id) : undefined,
+                user_id: params.user_id != null ? String(params.user_id) : undefined,
                 channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 state: params.status,
                 featured: params.featured ? '1' : undefined,
@@ -469,8 +476,12 @@ export function useUpdateNotificationSetting() {
 }
 
 export function useChannelVideos(channelToken: string | null, params?: {sort?: string; keyword?: string; page_size?: number; page?: number}) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const sort = params?.sort ?? null;
+    const keyword = params?.keyword ?? null;
     return useQuery({
-        queryKey: ['channelVideos', channelToken, params],
+        queryKey: ['channelVideos', channelToken, page, pageSize, sort, keyword],
         queryFn: async () => {
             const listParams: { sort_by?: string; page?: number; limit?: number; keyword?: string } = {};
             if (params?.page !== undefined) listParams.page = params.page;
@@ -791,11 +802,14 @@ export function useDeleteAd() {
  * useReviewList: Fetch review list (pending or history)
  */
 export function useReviewList(params?: { page?: number; page_size?: number; type?: string; status?: string }) {
-    const isHistory = !!params?.status;
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const type = params?.type ?? null;
+    const status = params?.status ?? null;
     return useQuery({
-        queryKey: ['reviews', params],
+        queryKey: ['reviews', page, pageSize, type, status],
         queryFn: async () => {
-            if (isHistory) {
+            if (status) {
                 const res = await reviewApi.getHistory(params);
                 return res;
             }
@@ -839,8 +853,12 @@ export function useRejectReview() {
  * useAdminCommentList: Fetch admin comment list with optional filters
  */
 export function useAdminCommentList(params?: { page?: number; page_size?: number; media_id?: string; status?: string }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const mediaId = params?.media_id ?? null;
+    const status = params?.status ?? null;
     return useQuery({
-        queryKey: ['admin', 'comments', params],
+        queryKey: ['admin', 'comments', page, pageSize, mediaId, status],
         queryFn: async () => {
             const res = await adminCommentApi.list(params);
             return res;
@@ -896,8 +914,11 @@ export function useUpdateSetting() {
  * usePermissionList: Fetch permission groups list
  */
 export function usePermissionList(params?: { page?: number; page_size?: number; is_active?: boolean }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const isActive = params?.is_active ?? null;
     return useQuery({
-        queryKey: ['permissions', params],
+        queryKey: ['permissions', page, pageSize, isActive],
         queryFn: async () => {
             const res = await adminPermissionApi.list(params);
             return res;
@@ -906,8 +927,11 @@ export function usePermissionList(params?: { page?: number; page_size?: number; 
 }
 
 export function usePermissionGroups(params?: { page?: number; page_size?: number; is_active?: boolean }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const isActive = params?.is_active ?? null;
     return useQuery({
-        queryKey: ['permissionGroups', params],
+        queryKey: ['permissionGroups', page, pageSize, isActive],
         queryFn: async () => {
             const res = await adminPermissionApi.list(params);
             return res;
@@ -927,8 +951,10 @@ export function usePermissionGroup(id: string | null) {
 }
 
 export function useGroupMembers(groupId: string | null, params?: { page?: number; page_size?: number }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['groupMembers', groupId, params],
+        queryKey: ['groupMembers', groupId, page, pageSize],
         queryFn: async () => {
             const res = await adminPermissionApi.getMembers(groupId!, params);
             return res;
@@ -1228,8 +1254,10 @@ export function useDeleteDrmKey() {
 }
 
 export function useAdminDrmLicenses(params?: { page?: number; page_size?: number }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['admin', 'drmLicenses', params],
+        queryKey: ['admin', 'drmLicenses', page, pageSize],
         queryFn: async () => {
             const res = await adminDrmApi.listLicenses(params?.page, params?.page_size);
             return res;
@@ -1282,8 +1310,10 @@ export function useDeleteSubscriptionPlan() {
 }
 
 export function useAdminOrders(params?: { page?: number; page_size?: number }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['admin', 'orders', params],
+        queryKey: ['admin', 'orders', page, pageSize],
         queryFn: async () => {
             const res = await adminPaymentApi.listOrders(params?.page, params?.page_size);
             return res;
@@ -1292,8 +1322,10 @@ export function useAdminOrders(params?: { page?: number; page_size?: number }) {
 }
 
 export function useAdminWallets(params?: { page?: number; page_size?: number }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['admin', 'wallets', params],
+        queryKey: ['admin', 'wallets', page, pageSize],
         queryFn: async () => {
             const res = await adminPaymentApi.listWallets(params?.page, params?.page_size);
             return res;
@@ -1314,8 +1346,10 @@ export function useSubscriptionPlans() {
 // ==================== Live Room Hooks ====================
 
 export function useAdminLiveRooms(params?: { page?: number; page_size?: number }) {
+    const page = params?.page ?? 1;
+    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     return useQuery({
-        queryKey: ['admin', 'liveRooms', params],
+        queryKey: ['admin', 'liveRooms', page, pageSize],
         queryFn: async () => {
             const res = await adminLiveApi.list(params?.page, params?.page_size);
             return res;

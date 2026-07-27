@@ -4,7 +4,7 @@
  * Manages theme ID, color mode (light/dark/system), and provides
  * theme switching functionality with async CSS loading support.
  */
-import React, { createContext, useEffect, useState, useCallback, useContext } from 'react';
+import React, { createContext, useEffect, useState, useCallback, useContext, useMemo } from 'react';
 import type { ThemeContextValue, ThemeProviderProps, ColorMode, ThemeMeta } from './types';
 import { themeLoader } from './index';
 
@@ -173,7 +173,7 @@ export function ThemeProvider({
     setColorMode(next);
   }, [isDark, setColorMode]);
 
-  const value: ThemeContextValue = {
+  const value = useMemo<ThemeContextValue>(() => ({
     themeId,
     colorMode,
     resolvedMode,
@@ -184,7 +184,7 @@ export function ThemeProvider({
     themes,
     isLoading,
     loadError,
-  };
+  }), [themeId, colorMode, resolvedMode, isDark, setTheme, setColorMode, toggleDark, themes, isLoading, loadError]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
