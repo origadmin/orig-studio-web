@@ -24,28 +24,30 @@ export const useNotificationState = () => useContext(NotificationContext);
 
 const POLL_INTERVAL = 60000;
 const PAGE_SIZE = 5;
+const MIN_REFRESH_INTERVAL = 10000;
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
-    const {user} = useAuth();
+    const {user, isAuthenticated} = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
     const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
+
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isFetchingRef = useRef(false);
-    const userRef = useRef(user);
-    const recentRef = useRef<Notification[]>([]);
+    const lastRefreshRef = useRef(0);
+    const isStartedRef = useRef(false);
 
-    useEffect(() => {
-        userRef.current = user;
-    }, [user]);
-
-    useEffect(() => {
-        recentRef.current = recentNotifications;
-    }, [recentNotifications]);
+    const isLoggedIn = !!user && isAuthenticated;
 
     const refresh = useCallback(async () => {
-        const currentUser = userRef.current;
-        if (!currentUser || isFetchingRef.current) return;
+        const now = Date.now();
+        if (now - lastRefreshRef.current < MIN_REFRESH_INTERVAL) {
+            return;
+        }
+        if (isFetchingRef.current) {
+            return;
+        }
         isFetchingRef.current = true;
+        lastRefreshRef.current = now;
         try {
             const notifsRes = await notificationApi.getAll({page_size: PAGE_SIZE});
             const items = Array.isArray(notifsRes?.items) ? notifsRes.items : [];
@@ -57,6 +59,63 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
             isFetchingRef.current = false;
         }
     }, []);
+
+    const stopPolling = useCallback(() => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+        isStartedRef.current = false;
+    }, []);
+
+    const startPolling = useCallback(() => {
+        if (isStartedRef.current) {
+            return;
+        }
+        isStartedRef.current = true;
+        if (document.visibilityState === 'visible') {
+            refresh();
+        }
+        intervalRef.current = setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                refresh();
+            }
+        }, POLL_INTERVAL);
+    }, [refresh]);
+
+    useEffect(() => {
+        if (isLoggedIn) {
+            startPolling();
+        } else {
+            stopPolling();
+            setRecentNotifications([]);
+            setUnreadCount(0);
+        }
+    }, [isLoggedIn, startPolling, stopPolling]);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                if (isLoggedIn) {
+                    refresh();
+                    if (!isStartedRef.current) {
+                        startPolling();
+                    }
+                }
+            } else {
+                if (isStartedRef.current) {
+                    stopPolling();
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            stopPolling();
+        };
+    }, [isLoggedIn, refresh, startPolling, stopPolling]);
 
     const markAsRead = useCallback(async (id: number) => {
         try {
@@ -93,56 +152,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({c
             console.error('Failed to delete notification:', err);
         }
     }, []);
-
-    useEffect(() => {
-        const isLoggedIn = !!user;
-
-        const stopPolling = () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
-        };
-
-        const doRefresh = () => {
-            if (document.visibilityState === 'visible') {
-                refresh();
-            }
-        };
-
-        const startPolling = () => {
-            stopPolling();
-            if (!isLoggedIn) return;
-            doRefresh();
-            intervalRef.current = setInterval(doRefresh, POLL_INTERVAL);
-        };
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                doRefresh();
-                if (!intervalRef.current && isLoggedIn) {
-                    startPolling();
-                }
-            } else {
-                stopPolling();
-            }
-        };
-
-        if (isLoggedIn) {
-            startPolling();
-        } else {
-            stopPolling();
-            setRecentNotifications([]);
-            setUnreadCount(0);
-        }
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-
-        return () => {
-            stopPolling();
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, [user, refresh]);
 
     const value = useMemo<NotificationState>(() => ({
         unreadCount,
