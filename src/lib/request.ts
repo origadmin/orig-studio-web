@@ -258,6 +258,7 @@ function createRequest() {
             }
 
             if (isRefreshing) {
+                originalRequest._retry = true;
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
