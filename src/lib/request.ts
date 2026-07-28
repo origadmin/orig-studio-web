@@ -252,8 +252,9 @@ function createRequest() {
                 return Promise.reject(error);
             }
 
-            // Already retried once, reject immediately to prevent infinite refresh loop
+            // Already retried: new token is also invalid, logout immediately
             if (originalRequest._retry) {
+                handleAuthError();
                 return Promise.reject(error);
             }
 
