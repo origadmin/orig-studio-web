@@ -50,7 +50,7 @@ import {
     Cpu,
     Users,
 } from 'lucide-react';
-import {settingsApi, type GroupedSettings} from '@/lib/api/system';
+import {settingsApi, type SettingsMap} from '@/lib/api/system';
 import {api} from '@/lib/request';
 import {ThemeSwitcher} from '@/themes';
 import {Button} from '@/components/ui/button';
@@ -253,101 +253,97 @@ const Settings: React.FC = () => {
     const fetchSettings = async () => {
         try {
             const raw = await settingsApi.get();
-            let grouped: GroupedSettings | null = null;
+            let settings: SettingsMap = {};
             if (raw && typeof raw === 'object') {
                 if ('code' in raw && 'data' in raw && typeof (raw as Record<string, unknown>).data === 'object') {
-                    grouped = (raw as Record<string, unknown>).data as GroupedSettings;
+                    const data = (raw as Record<string, unknown>).data as Record<string, unknown>;
+                    if (data.settings && typeof data.settings === 'object') {
+                        settings = data.settings as SettingsMap;
+                    }
+                } else if ('settings' in raw && typeof (raw as Record<string, unknown>).settings === 'object') {
+                    settings = (raw as {settings: SettingsMap}).settings;
                 } else {
-                    grouped = raw as GroupedSettings;
+                    settings = raw as SettingsMap;
                 }
             }
 
-            if (grouped) {
-                const getSettingValue = (key: string): string => {
-                    for (const category of Object.values(grouped!)) {
-                        if (!Array.isArray(category)) continue;
-                        const found = category.find(s => s.key === key);
-                        if (found) return found.value;
-                    }
-                    return '';
-                };
+            const getVal = (key: string): string => settings[key] || '';
 
-                const parseBytesToMB = (val: string): string => {
-                    const bytes = parseInt(val);
-                    if (isNaN(bytes) || bytes <= 0) return '';
-                    return String(Math.round(bytes / 1024 / 1024));
-                };
+            const parseBytesToMB = (val: string): string => {
+                const bytes = parseInt(val);
+                if (isNaN(bytes) || bytes <= 0) return '';
+                return String(Math.round(bytes / 1024 / 1024));
+            };
 
-                const parseBaseUrls = (val: string): string[] => {
-                    if (!val) return [];
-                    try {
-                        const parsed = JSON.parse(val);
-                        return Array.isArray(parsed) ? parsed : [];
-                    } catch {
-                        return val ? [val] : [];
-                    }
-                };
+            const parseBaseUrls = (val: string): string[] => {
+                if (!val) return [];
+                try {
+                    const parsed = JSON.parse(val);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                    return val ? [val] : [];
+                }
+            };
 
-                setFormData(prev => ({
-                    ...prev,
-                    site_name: getSettingValue('site_name') || prev.site_name,
-                    site_description: getSettingValue('site_description') || prev.site_description,
-                    base_urls: parseBaseUrls(getSettingValue('base_urls')),
-                    primary_url: getSettingValue('primary_url') || prev.primary_url,
-                    allow_registration: getSettingValue('allow_registration') || prev.allow_registration,
-                    allow_upload: getSettingValue('allow_upload') || prev.allow_upload,
-                    storage_base_path: getSettingValue('storage_base_path') || prev.storage_base_path,
-                    storage_type: getSettingValue('storage_type') || prev.storage_type,
-                    s3_endpoint: getSettingValue('s3_endpoint') || prev.s3_endpoint,
-                    s3_region: getSettingValue('s3_region') || prev.s3_region,
-                    s3_bucket: getSettingValue('s3_bucket') || prev.s3_bucket,
-                    s3_access_key: getSettingValue('s3_access_key') || prev.s3_access_key,
-                    s3_secret_key: getSettingValue('s3_secret_key') || prev.s3_secret_key,
-                    s3_use_path_style: getSettingValue('s3_use_path_style') || prev.s3_use_path_style,
-                    max_upload_size_video: parseBytesToMB(getSettingValue('max_upload_size_video')) || prev.max_upload_size_video,
-                    max_upload_size_image: parseBytesToMB(getSettingValue('max_upload_size_image')) || prev.max_upload_size_image,
-                    auto_transcode: getSettingValue('auto_transcode') || prev.auto_transcode,
-                    transcode_method: getSettingValue('transcode_method') || prev.transcode_method,
-                    allowed_video_formats: getSettingValue('allowed_video_formats') || prev.allowed_video_formats,
-                    allowed_image_formats: getSettingValue('allowed_image_formats') || prev.allowed_image_formats,
-                    max_video_duration: getSettingValue('max_video_duration') || prev.max_video_duration,
-                    sprite_frame_interval: getSettingValue('sprite_frame_interval') || prev.sprite_frame_interval,
-                    sprite_columns: getSettingValue('sprite_columns') || prev.sprite_columns,
-                    sprite_frame_width: getSettingValue('sprite_frame_width') || prev.sprite_frame_width,
-                    sprite_frame_height: getSettingValue('sprite_frame_height') || prev.sprite_frame_height,
-                    sprite_max_frames: getSettingValue('sprite_max_frames') || prev.sprite_max_frames,
-                    thumbnail_quality: getSettingValue('thumbnail_quality') || prev.thumbnail_quality,
-                    thumbnail_resolution: getSettingValue('thumbnail_resolution') || prev.thumbnail_resolution,
-                    thumbnail_position: getSettingValue('thumbnail_position') || prev.thumbnail_position,
-                    auto_approve: getSettingValue('auto_approve') || prev.auto_approve,
-                    require_review: getSettingValue('require_review') || prev.require_review,
-                    smtp_host: getSettingValue('smtp_host') || prev.smtp_host,
-                    smtp_port: getSettingValue('smtp_port') || prev.smtp_port,
-                    smtp_user: getSettingValue('smtp_user') || prev.smtp_user,
-                    smtp_password: getSettingValue('smtp_password') || prev.smtp_password,
-                    smtp_sender_name: getSettingValue('smtp_sender_name') || prev.smtp_sender_name,
-                    smtp_use_tls: getSettingValue('smtp_use_tls') || prev.smtp_use_tls,
-                    min_password_length: getSettingValue('min_password_length') || prev.min_password_length,
-                    require_email_verification: getSettingValue('require_email_verification') || prev.require_email_verification,
-                    api_rate_limit: getSettingValue('api_rate_limit') || prev.api_rate_limit,
-                    module_articles: getSettingValue('module_articles') === 'true',
-                    module_videos: getSettingValue('module_videos') === 'true',
-                    module_music: getSettingValue('module_music') === 'true',
-                    homepage_layout: getSettingValue('homepage_layout') || prev.homepage_layout,
-                    // Feature flags - implemented features default to true (opt-out), unimplemented default to false (opt-in)
-                    feature_articles: getSettingValue('feature_articles') === 'true',
-                    feature_comments: getSettingValue('feature_comments') !== 'false',
-                    feature_playlists: getSettingValue('feature_playlists') !== 'false',
-                    feature_users: getSettingValue('feature_users') !== 'false',
-                    feature_permissions: getSettingValue('feature_permissions') === 'true',
-                    feature_notifications: getSettingValue('feature_notifications') !== 'false',
-                    feature_drm: getSettingValue('feature_drm') === 'true',
-                    feature_live_rooms: getSettingValue('feature_live_rooms') === 'true',
-                    feature_payment: getSettingValue('feature_payment') === 'true',
-                    feature_promotion: getSettingValue('feature_promotion') === 'true',
-                    feature_ads: getSettingValue('feature_ads') !== 'false',
-                }));
-            }
+            setFormData(prev => ({
+                ...prev,
+                site_name: getVal('site_name') || prev.site_name,
+                site_description: getVal('site_description') || prev.site_description,
+                base_urls: parseBaseUrls(getVal('base_urls')),
+                primary_url: getVal('primary_url') || prev.primary_url,
+                allow_registration: getVal('allow_registration') || prev.allow_registration,
+                allow_upload: getVal('allow_upload') || prev.allow_upload,
+                storage_base_path: getVal('storage_base_path') || prev.storage_base_path,
+                storage_type: getVal('storage_type') || prev.storage_type,
+                s3_endpoint: getVal('s3_endpoint') || prev.s3_endpoint,
+                s3_region: getVal('s3_region') || prev.s3_region,
+                s3_bucket: getVal('s3_bucket') || prev.s3_bucket,
+                s3_access_key: getVal('s3_access_key') || prev.s3_access_key,
+                s3_secret_key: getVal('s3_secret_key') || prev.s3_secret_key,
+                s3_use_path_style: getVal('s3_use_path_style') || prev.s3_use_path_style,
+                max_upload_size_video: parseBytesToMB(getVal('max_upload_size_video')) || prev.max_upload_size_video,
+                max_upload_size_image: parseBytesToMB(getVal('max_upload_size_image')) || prev.max_upload_size_image,
+                auto_transcode: getVal('auto_transcode') || prev.auto_transcode,
+                transcode_method: getVal('transcode_method') || prev.transcode_method,
+                allowed_video_formats: getVal('allowed_video_formats') || prev.allowed_video_formats,
+                allowed_image_formats: getVal('allowed_image_formats') || prev.allowed_image_formats,
+                max_video_duration: getVal('max_video_duration') || prev.max_video_duration,
+                sprite_frame_interval: getVal('sprite_frame_interval') || prev.sprite_frame_interval,
+                sprite_columns: getVal('sprite_columns') || prev.sprite_columns,
+                sprite_frame_width: getVal('sprite_frame_width') || prev.sprite_frame_width,
+                sprite_frame_height: getVal('sprite_frame_height') || prev.sprite_frame_height,
+                sprite_max_frames: getVal('sprite_max_frames') || prev.sprite_max_frames,
+                thumbnail_quality: getVal('thumbnail_quality') || prev.thumbnail_quality,
+                thumbnail_resolution: getVal('thumbnail_resolution') || prev.thumbnail_resolution,
+                thumbnail_position: getVal('thumbnail_position') || prev.thumbnail_position,
+                auto_approve: getVal('auto_approve') || prev.auto_approve,
+                require_review: getVal('require_review') || prev.require_review,
+                smtp_host: getVal('smtp_host') || prev.smtp_host,
+                smtp_port: getVal('smtp_port') || prev.smtp_port,
+                smtp_user: getVal('smtp_user') || prev.smtp_user,
+                smtp_password: getVal('smtp_password') || prev.smtp_password,
+                smtp_sender_name: getVal('smtp_sender_name') || prev.smtp_sender_name,
+                smtp_use_tls: getVal('smtp_use_tls') || prev.smtp_use_tls,
+                min_password_length: getVal('min_password_length') || prev.min_password_length,
+                require_email_verification: getVal('require_email_verification') || prev.require_email_verification,
+                api_rate_limit: getVal('api_rate_limit') || prev.api_rate_limit,
+                module_articles: getVal('module_articles') === 'true',
+                module_videos: getVal('module_videos') === 'true',
+                module_music: getVal('module_music') === 'true',
+                homepage_layout: getVal('homepage_layout') || prev.homepage_layout,
+                // Feature flags - implemented features default to true (opt-out), unimplemented default to false (opt-in)
+                feature_articles: getVal('feature_articles') === 'true',
+                feature_comments: getVal('feature_comments') !== 'false',
+                feature_playlists: getVal('feature_playlists') !== 'false',
+                feature_users: getVal('feature_users') !== 'false',
+                feature_permissions: getVal('feature_permissions') === 'true',
+                feature_notifications: getVal('feature_notifications') !== 'false',
+                feature_drm: getVal('feature_drm') === 'true',
+                feature_live_rooms: getVal('feature_live_rooms') === 'true',
+                feature_payment: getVal('feature_payment') === 'true',
+                feature_promotion: getVal('feature_promotion') === 'true',
+                feature_ads: getVal('feature_ads') !== 'false',
+            }));
         } catch (error) {
             console.error('Failed to fetch settings:', error);
             setMessage({type: 'error', text: t('settings.loadFailed')});
@@ -442,52 +438,52 @@ const Settings: React.FC = () => {
                 return String(val * 1024 * 1024);
             };
 
-            const settings = [
-                {key: 'site_name', value: formData.site_name},
-                {key: 'site_description', value: formData.site_description},
-                {key: 'base_urls', value: JSON.stringify(formData.base_urls.filter(u => u.trim()))},
-                {key: 'primary_url', value: formData.primary_url},
-                {key: 'allow_registration', value: formData.allow_registration},
-                {key: 'allow_upload', value: formData.allow_upload},
-                {key: 'storage_base_path', value: formData.storage_base_path},
-                {key: 'storage_type', value: formData.storage_type},
-                {key: 's3_endpoint', value: formData.s3_endpoint},
-                {key: 's3_region', value: formData.s3_region},
-                {key: 's3_bucket', value: formData.s3_bucket},
-                {key: 's3_access_key', value: formData.s3_access_key},
-                {key: 's3_secret_key', value: formData.s3_secret_key},
-                {key: 's3_use_path_style', value: formData.s3_use_path_style},
-                {key: 'max_upload_size_video', value: mbToBytes(formData.max_upload_size_video)},
-                {key: 'max_upload_size_image', value: mbToBytes(formData.max_upload_size_image)},
-                {key: 'auto_transcode', value: formData.auto_transcode},
-                {key: 'transcode_method', value: formData.transcode_method},
-                {key: 'allowed_video_formats', value: formData.allowed_video_formats},
-                {key: 'allowed_image_formats', value: formData.allowed_image_formats},
-                {key: 'max_video_duration', value: formData.max_video_duration},
-                {key: 'sprite_frame_interval', value: formData.sprite_frame_interval},
-                {key: 'sprite_columns', value: formData.sprite_columns},
-                {key: 'sprite_frame_width', value: formData.sprite_frame_width},
-                {key: 'sprite_frame_height', value: formData.sprite_frame_height},
-                {key: 'sprite_max_frames', value: formData.sprite_max_frames},
-                {key: 'thumbnail_quality', value: formData.thumbnail_quality},
-                {key: 'thumbnail_resolution', value: formData.thumbnail_resolution},
-                {key: 'thumbnail_position', value: formData.thumbnail_position},
-                {key: 'auto_approve', value: formData.auto_approve},
-                {key: 'require_review', value: formData.require_review},
-                {key: 'smtp_host', value: formData.smtp_host},
-                {key: 'smtp_port', value: formData.smtp_port},
-                {key: 'smtp_user', value: formData.smtp_user},
-                {key: 'smtp_password', value: formData.smtp_password},
-                {key: 'smtp_sender_name', value: formData.smtp_sender_name},
-                {key: 'smtp_use_tls', value: formData.smtp_use_tls},
-                {key: 'min_password_length', value: formData.min_password_length},
-                {key: 'require_email_verification', value: formData.require_email_verification},
-                {key: 'api_rate_limit', value: formData.api_rate_limit},
-                {key: 'module_articles', value: String(formData.module_articles)},
-                {key: 'module_videos', value: String(formData.module_videos)},
-                {key: 'module_music', value: String(formData.module_music)},
-                {key: 'homepage_layout', value: formData.homepage_layout},
-            ];
+            const settings: SettingsMap = {
+                site_name: formData.site_name,
+                site_description: formData.site_description,
+                base_urls: JSON.stringify(formData.base_urls.filter(u => u.trim())),
+                primary_url: formData.primary_url,
+                allow_registration: formData.allow_registration,
+                allow_upload: formData.allow_upload,
+                storage_base_path: formData.storage_base_path,
+                storage_type: formData.storage_type,
+                s3_endpoint: formData.s3_endpoint,
+                s3_region: formData.s3_region,
+                s3_bucket: formData.s3_bucket,
+                s3_access_key: formData.s3_access_key,
+                s3_secret_key: formData.s3_secret_key,
+                s3_use_path_style: formData.s3_use_path_style,
+                max_upload_size_video: mbToBytes(formData.max_upload_size_video),
+                max_upload_size_image: mbToBytes(formData.max_upload_size_image),
+                auto_transcode: formData.auto_transcode,
+                transcode_method: formData.transcode_method,
+                allowed_video_formats: formData.allowed_video_formats,
+                allowed_image_formats: formData.allowed_image_formats,
+                max_video_duration: formData.max_video_duration,
+                sprite_frame_interval: formData.sprite_frame_interval,
+                sprite_columns: formData.sprite_columns,
+                sprite_frame_width: formData.sprite_frame_width,
+                sprite_frame_height: formData.sprite_frame_height,
+                sprite_max_frames: formData.sprite_max_frames,
+                thumbnail_quality: formData.thumbnail_quality,
+                thumbnail_resolution: formData.thumbnail_resolution,
+                thumbnail_position: formData.thumbnail_position,
+                auto_approve: formData.auto_approve,
+                require_review: formData.require_review,
+                smtp_host: formData.smtp_host,
+                smtp_port: formData.smtp_port,
+                smtp_user: formData.smtp_user,
+                smtp_password: formData.smtp_password,
+                smtp_sender_name: formData.smtp_sender_name,
+                smtp_use_tls: formData.smtp_use_tls,
+                min_password_length: formData.min_password_length,
+                require_email_verification: formData.require_email_verification,
+                api_rate_limit: formData.api_rate_limit,
+                module_articles: String(formData.module_articles),
+                module_videos: String(formData.module_videos),
+                module_music: String(formData.module_music),
+                homepage_layout: formData.homepage_layout,
+            };
             await settingsApi.update({settings});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
             setTimeout(() => setMessage(null), 3000);

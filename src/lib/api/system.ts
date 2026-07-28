@@ -6,32 +6,12 @@ import type {DashboardStats, MediaStats, UserStats} from "./stats";
 export type {DashboardStats, MediaStats, UserStats};
 
 // ==================== Settings Types ====================
-export type SettingType = 'string' | 'int' | 'bool' | 'json';
-export type SettingCategory = 'general' | 'upload' | 'review' | 'email' | 'module';
+// Backend gRPC proto defines settings as map<string, string>
+// Settings map: key -> value (flat key-value pairs)
+export type SettingsMap = Record<string, string>;
 
-export interface SettingItem {
-    id: string;
-    key: string;
-    value: string;
-    type: SettingType;
-    category: SettingCategory;
-    description?: string;
-    is_sensitive: boolean;
-    fallback_value?: string;
-    is_builtin: boolean;
-    create_time: string;
-    update_time: string;
-}
-
-export type GroupedSettings = Record<SettingCategory, SettingItem[]>;
-
-export interface UpdateSettingItem {
-    key: string;
-    value: string;
-}
-
-export interface UpdateSettingsRequest {
-    settings: UpdateSettingItem[];
+export interface SettingsResponse {
+    settings: SettingsMap;
 }
 
 export interface TrafficStatsItem {
@@ -50,13 +30,13 @@ export interface TrafficStatsResponse {
 
 // ==================== Settings API ====================
 export const settingsApi = {
-    get: () => api.get<GroupedSettings>("/admin/settings"),
-    update: (data: UpdateSettingsRequest) =>
-        api.put<GroupedSettings>("/admin/settings", data),
+    get: () => api.get<SettingsResponse>("/admin/settings"),
+    update: (data: SettingsResponse) =>
+        api.put<SettingsResponse>("/admin/settings", data),
     getByKey: (key: string) =>
-        api.get<SettingItem>(`/system/settings/${key}`),
+        api.get<{key: string, value: string}>(`/system/settings/${key}`),
     resetKey: (key: string) =>
-        api.post<SettingItem>(`/system/settings/${key}/reset`),
+        api.post<{key: string, value: string}>(`/system/settings/${key}/reset`),
 };
 
 // ==================== System API ====================
