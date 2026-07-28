@@ -105,6 +105,7 @@ export const attemptRefresh = async (): Promise<boolean> => {
         setAuth(responseBody);
         return true;
     } catch {
+        clearAuth();
         return false;
     }
 };
@@ -251,6 +252,11 @@ function createRequest() {
                 return Promise.reject(error);
             }
 
+            // Already retried once, reject immediately to prevent infinite refresh loop
+            if (originalRequest._retry) {
+                return Promise.reject(error);
+            }
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
@@ -315,13 +321,8 @@ function createRequest() {
             } catch (refreshError) {
                 const axiosError = refreshError as any;
                 
-                // Check if refresh token failed
-                const isRefreshError = axiosError?.response?.status === 401;
-                
                 processQueue(axiosError, null);
-                if (isRefreshError) {
-                    handleAuthError();
-                }
+                handleAuthError();
                 return Promise.reject(refreshError);
             } finally {
                 isRefreshing = false;
