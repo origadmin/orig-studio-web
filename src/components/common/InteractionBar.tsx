@@ -27,7 +27,8 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogDescription
+    DialogDescription,
+    DialogBody
 } from '@/components/ui/dialog';
 import {
     DropdownMenu,
@@ -504,8 +505,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                             {t('watch.shareDescription')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
-                        {/* Share Link */}
+                    <DialogBody className="space-y-4">
                         <div className="flex items-center gap-2">
                             <div
                                 className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
@@ -614,7 +614,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                 </button>
                             )}
                         </div>
-                    </div>
+                    </DialogBody>
                 </DialogContent>
             </Dialog>
 
@@ -631,7 +631,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-3 mt-4">
+                    <DialogBody className="space-y-3">
                         {/* Loading indicator while fetching playlists */}
                         {isSaving && playlists.length === 0 && (
                             <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
@@ -760,7 +760,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                                 </Button>
                             </div>
                         )}
-                    </div>
+                    </DialogBody>
                 </DialogContent>
             </Dialog>
 
@@ -779,7 +779,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                             {loginAction === 'save' && (t('watch.loginToSave'))}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end gap-3 mt-4">
+                    <DialogBody className="flex justify-end gap-3">
                         <Button
                             variant="outline"
                             onClick={() => setShowLoginDialog(false)}
@@ -796,7 +796,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                             <LogIn className="w-4 h-4 mr-2"/>
                             {t('auth.signin')}
                         </Button>
-                    </div>
+                    </DialogBody>
                 </DialogContent>
             </Dialog>
 
