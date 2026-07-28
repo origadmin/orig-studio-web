@@ -217,6 +217,15 @@ function createRequest() {
     // Response interceptor: handle 401 and token refresh
     let isRefreshing = false;
     let failedQueue: { resolve: (value: unknown) => void; reject: (reason?: unknown) => void }[] = [];
+    
+    // Global refresh counter: prevents infinite refresh cycles caused by
+    // AuthProvider's refreshUserFromMe issuing new /me requests after each
+    // successful refresh. New requests have no _retry flag, so they bypass
+    // the per-request retry guard and trigger refresh again.
+    let refreshCount = 0;
+    let refreshCountResetTime = 0;
+    const MAX_REFRESH_COUNT = 3;
+    const REFRESH_COUNT_WINDOW = 10000; // 10 seconds
 
     const processQueue = (error: unknown | null, token: string | null = null) => {
         failedQueue.forEach((prom) => {
@@ -257,6 +266,20 @@ function createRequest() {
                 handleAuthError();
                 return Promise.reject(error);
             }
+
+            // Global refresh limit: max 3 refreshes per 10 seconds.
+            // This is the critical guard against infinite loops caused by
+            // AuthProvider issuing new /me requests after each refresh.
+            const now = Date.now();
+            if (now > refreshCountResetTime) {
+                refreshCount = 0;
+                refreshCountResetTime = now + REFRESH_COUNT_WINDOW;
+            }
+            if (refreshCount >= MAX_REFRESH_COUNT) {
+                handleAuthError();
+                return Promise.reject(error);
+            }
+            refreshCount++;
 
             if (isRefreshing) {
                 originalRequest._retry = true;
