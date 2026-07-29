@@ -46,6 +46,17 @@ export interface Media {
     enable_comments?: boolean;
     featured?: boolean;
     review_status?: string;
+    /** 完整性校验状态: pending | processing | success | failed | partial */
+    integrity_status?: string;
+    /** 完整性校验详情(上次校验结果) */
+    integrity_detail?: {
+        total_fragments: number;
+        loaded_fragments: number;
+        has_endlist: boolean;
+        coverage: number;
+        last_checked_at: string;
+        missing_segments?: number[];
+    };
     listable?: boolean;
     tags?: string[];
     user_id: string;
@@ -928,4 +939,12 @@ export const adminMediaApi = {
     // 重试编码任务
     retryTask: (id: string, taskId: string) =>
         api.post<{ message: string }>(`/admin/medias/${id}/tasks/${taskId}/retry`),
+
+    // 触发完整性校验(轻量诊断)
+    checkIntegrity: (id: string) =>
+        api.post<{ status: string }>(`/admin/medias/${id}/integrity-check`),
+
+    // 触发内容修复(重量级,重新转码缺失分段)
+    repairMedia: (id: string) =>
+        api.post<{ status: string; estimated_duration?: number }>(`/admin/medias/${id}/repair`),
 };

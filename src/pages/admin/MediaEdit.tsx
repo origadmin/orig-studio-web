@@ -25,7 +25,7 @@ import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
@@ -187,6 +187,22 @@ function getSpritePill(status?: string): StatusPillConfig {
     }
 }
 
+// BUG-087 后续: 完整性状态 pill(第 5 个 pill)
+function getIntegrityPill(status?: string): StatusPillConfig {
+    switch (status) {
+        case 'success':
+            return {bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', labelKey: 'mediaEdit.integritySuccess', fallback: 'COMPLETE'};
+        case 'failed':
+            return {bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', labelKey: 'mediaEdit.integrityFailed', fallback: 'BROKEN'};
+        case 'partial':
+            return {bg: 'bg-warning/10', text: 'text-warning', border: 'border-warning/30', labelKey: 'mediaEdit.integrityPartial', fallback: 'PARTIAL'};
+        case 'processing':
+            return {bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/30', labelKey: 'mediaEdit.integrityProcessing', fallback: 'CHECKING'};
+        default:
+            return {bg: 'bg-muted', text: 'text-muted-foreground', border: 'border-border', labelKey: 'mediaEdit.integrityUnknown', fallback: 'UNCHECKED'};
+    }
+}
+
 function mapMediaToHeaderBadges(media: Media, t: TFunction): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
@@ -258,6 +274,10 @@ export default function MediaEditPage() {
     const [regenThumbnailConfirmOpen, setRegenThumbnailConfirmOpen] = useState(false);
     const [regenSpriteConfirmOpen, setRegenSpriteConfirmOpen] = useState(false);
     const [isRegenerating, setIsRegenerating] = useState(false);
+    // BUG-087 后续: 完整性校验/修复状态
+    const [integrityChecking, setIntegrityChecking] = useState(false);
+    const [repairConfirmOpen, setRepairConfirmOpen] = useState(false);
+    const [repairing, setRepairing] = useState(false);
     const [tagInput, setTagInput] = useState('');
 
     // Save state management
@@ -404,6 +424,41 @@ export default function MediaEditPage() {
         } finally {
             setIsRegenerating(false);
             setRegenThumbnailConfirmOpen(false);
+        }
+    };
+
+    // BUG-087 后续: 完整性校验(轻量诊断,直接执行)
+    const handleCheckIntegrity = async () => {
+        if (!id) return;
+        setIntegrityChecking(true);
+        try {
+            await adminMediaApi.checkIntegrity(id);
+            await queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
+            toast.success(t('mediaEdit.integrityCheckScheduled', '完整性校验已启动'));
+        } catch (err: any) {
+            const errMsg = err?.message || t('common.unknown', '未知错误');
+            toast.error(`${t('mediaEdit.integrityCheckFailed', '完整性校验失败')}: ${errMsg}`);
+            console.error('Failed to check integrity', err);
+        } finally {
+            setIntegrityChecking(false);
+        }
+    };
+
+    // BUG-087 后续: 内容修复(重量级,Dialog 确认)
+    const handleRepairMedia = async () => {
+        if (!id) return;
+        setRepairing(true);
+        try {
+            await adminMediaApi.repairMedia(id);
+            await queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
+            toast.success(t('mediaEdit.repairScheduled', '内容修复已调度,缺失分段将重新转码'));
+        } catch (err: any) {
+            const errMsg = err?.message || t('common.unknown', '未知错误');
+            toast.error(`${t('mediaEdit.repairFailed', '内容修复失败')}: ${errMsg}`);
+            console.error('Failed to repair media', err);
+        } finally {
+            setRepairing(false);
+            setRepairConfirmOpen(false);
         }
     };
 
@@ -605,12 +660,13 @@ export default function MediaEditPage() {
                     <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         {(() => {
                             const lc = getLifecyclePill(media.state);
                             const rv = getReviewPill(media.review_status);
                             const enc = getEncodingPill(media.encoding_status);
-                            const idle = IDLE_PILL;
+                            const sp = getSpritePill(media.sprite_status);
+                            const itg = getIntegrityPill(media.integrity_status);
                             return (
                                 <>
                                     <div className="flex flex-col gap-1">
@@ -633,14 +689,15 @@ export default function MediaEditPage() {
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.sprites', 'Sprites')}</span>
-                                        {(() => {
-                                            const sp = getSpritePill(media.sprite_status);
-                                            return (
-                                                <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", sp.bg, sp.text, sp.border)}>
-                                                    {t(sp.labelKey, sp.fallback)}
-                                                </span>
-                                            );
-                                        })()}
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", sp.bg, sp.text, sp.border)}>
+                                            {t(sp.labelKey, sp.fallback)}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrity', 'Integrity')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", itg.bg, itg.text, itg.border)}>
+                                            {t(itg.labelKey, itg.fallback)}
+                                        </span>
                                     </div>
                                 </>
                             );
@@ -1132,6 +1189,94 @@ export default function MediaEditPage() {
                     <TabsContent value="encoding">
                         <div className="grid grid-cols-12 gap-8">
                             <div className="col-span-12 lg:col-span-8 space-y-6">
+                                {/* BUG-087 后续: 完整性校验卡片 */}
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-base font-semibold">{t('mediaEdit.integrityCheck', '完整性校验')}</CardTitle>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleCheckIntegrity}
+                                                    disabled={integrityChecking}
+                                                >
+                                                    {integrityChecking ? (
+                                                        <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.checking', '校验中')}</>
+                                                    ) : (
+                                                        <><RefreshCw className="w-3 h-3 mr-1"/>{t('mediaEdit.recheckIntegrity', '重新校验')}</>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    variant="default"
+                                                    size="sm"
+                                                    onClick={() => setRepairConfirmOpen(true)}
+                                                    disabled={repairing || media.integrity_status === 'success'}
+                                                >
+                                                    {repairing ? (
+                                                        <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.repairing', '修复中')}</>
+                                                    ) : (
+                                                        <><Wrench className="w-3 h-3 mr-1"/>{t('common.repair', '修复')}</>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityTotalFragments', '总分段数')}</span>
+                                                <span className="font-mono font-semibold">{media.integrity_detail?.total_fragments ?? '-'}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLoadedFragments', '已加载分段')}</span>
+                                                <span className="font-mono font-semibold">{media.integrity_detail?.loaded_fragments ?? '-'}</span>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityEndlist', 'ENDLIST')}</span>
+                                                {media.integrity_detail ? (
+                                                    <span className={media.integrity_detail.has_endlist ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
+                                                        {media.integrity_detail.has_endlist ? '✓ ' + t('common.present', '存在') : '✗ ' + t('common.missing', '缺失')}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityCoverage', '覆盖率')}</span>
+                                                {media.integrity_detail ? (
+                                                    <span className="font-mono font-semibold">
+                                                        {(media.integrity_detail.coverage * 100).toFixed(1)}%
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted-foreground">-</span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLastChecked', '上次校验')}</span>
+                                                <span className="text-xs font-medium">
+                                                    {media.integrity_detail?.last_checked_at
+                                                        ? formatDateTime(media.integrity_detail.last_checked_at)
+                                                        : t('common.never', '从未')}
+                                                </span>
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityMissing', '缺失分段')}</span>
+                                                {media.integrity_detail?.missing_segments?.length ? (
+                                                    <span className="text-destructive font-mono text-xs">
+                                                        {media.integrity_detail.missing_segments.slice(0, 5).join(', ')}
+                                                        {media.integrity_detail.missing_segments.length > 5
+                                                            ? ` +${media.integrity_detail.missing_segments.length - 5}`
+                                                            : ''}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-success font-semibold">{t('common.none', '无')}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg font-semibold">{t('mediaEdit.encodingTasks', '编码任务')}</CardTitle>
@@ -1374,6 +1519,20 @@ export default function MediaEditPage() {
                 title={media.title || t('mediaEdit.unnamedMedia', '未命名媒体')}
                 isDeleting={isDeleting}
                 onConfirm={handleDelete}
+            />
+
+            {/* BUG-087 后续: 内容修复确认 Dialog */}
+            <DeleteConfirmDialog
+                open={repairConfirmOpen}
+                onOpenChange={setRepairConfirmOpen}
+                title={t('mediaEdit.repairMedia', '修复内容')}
+                isDeleting={repairing}
+                onConfirm={handleRepairMedia}
+                confirmLabel={t('common.confirmRepair', '确认修复')}
+                description={t(
+                    'mediaEdit.confirmRepairDesc',
+                    '检测到视频内容不完整。修复将重新转码缺失分段,预计耗时较长。修复期间视频保持当前状态可播放。'
+                )}
             />
 
             <ThumbnailSelectDialog
