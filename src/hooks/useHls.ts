@@ -165,6 +165,9 @@ export function useHls(
     const bufferingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isBufferingRef = useRef(false);
 
+    // BUG-087: network error retry timer ref — cleared on HLS destroy to prevent leak
+    const networkRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     /** 清除缓冲超时计时器（在 playing/canplay 恢复时调用） */
     const clearBufferingTimeout = useCallback(() => {
         if (bufferingTimeoutRef.current) {
@@ -172,6 +175,9 @@ export function useHls(
             bufferingTimeoutRef.current = null;
         }
         isBufferingRef.current = false;
+        // BUG-087: reset retry count when playback resumes — prevents normal
+        // buffering events from accumulating to the destruction threshold.
+        retryCountRef.current = 0;
     }, []);
 
     /** 启动缓冲超时计时器（幂等：仅在未启动时启动） */
@@ -185,8 +191,12 @@ export function useHls(
             console.warn(`[HLS] Buffering timeout, retry count: ${retryCountRef.current}/${maxRetries}`);
 
             if (retryCountRef.current <= maxRetries && hlsRef.current) {
-                // 触发恢复
-                hlsRef.current.startLoad();
+                // BUG-087: pass explicit position to avoid hls.js restarting
+                // from an ambiguous position, which interferes with in-flight
+                // fragment downloads.
+                const video = videoRef.current;
+                const pos = video ? video.currentTime : 0;
+                hlsRef.current.startLoad(pos);
             } else if (hlsRef.current) {
                 // 超过最大重试，报错
                 hlsRef.current.destroy();
@@ -198,7 +208,7 @@ export function useHls(
 
             bufferingTimeoutRef.current = null;
             isBufferingRef.current = false;
-        }, 5000); // 5秒超时
+        }, 30000); // BUG-087: 30s — hls.js already has 3s internal watchdog; 5s was too aggressive for VOD
     }, []);
 
     // ========== HLS 实例销毁工具 ==========
@@ -209,6 +219,11 @@ export function useHls(
             incrementDestroy();
         }
         clearBufferingTimeout();
+        // BUG-087: clear leaked network retry timer
+        if (networkRetryTimeoutRef.current) {
+            clearTimeout(networkRetryTimeoutRef.current);
+            networkRetryTimeoutRef.current = null;
+        }
         retryCountRef.current = 0;
         setIsReady(false);
     }, [clearBufferingTimeout]);
@@ -325,7 +340,12 @@ export function useHls(
                 switch (data.type) {
                     case Hls.ErrorTypes.NETWORK_ERROR:
                         console.error('[HLS] Fatal network error, retrying load in 2s...');
-                        setTimeout(() => {
+                        // BUG-087: store timer ref so it can be cleared on destroy
+                        if (networkRetryTimeoutRef.current) {
+                            clearTimeout(networkRetryTimeoutRef.current);
+                        }
+                        networkRetryTimeoutRef.current = setTimeout(() => {
+                            networkRetryTimeoutRef.current = null;
                             if (hlsRef.current) {
                                 hlsRef.current.startLoad();
                             }
@@ -377,6 +397,11 @@ export function useHls(
                     hlsRef.current = null;
                 }
                 clearBufferingTimeout();
+                // BUG-087: clear leaked network retry timer
+                if (networkRetryTimeoutRef.current) {
+                    clearTimeout(networkRetryTimeoutRef.current);
+                    networkRetryTimeoutRef.current = null;
+                }
                 setIsReady(false);
             };
         }
@@ -461,6 +486,11 @@ export function useHls(
                 hlsRef.current = null;
             }
             clearBufferingTimeout();
+            // BUG-087: clear leaked network retry timer
+            if (networkRetryTimeoutRef.current) {
+                clearTimeout(networkRetryTimeoutRef.current);
+                networkRetryTimeoutRef.current = null;
+            }
         };
     }, [clearBufferingTimeout]);
 
