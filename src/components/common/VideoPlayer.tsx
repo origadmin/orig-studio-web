@@ -4,22 +4,13 @@ import {
     SkipBack, SkipForward, Settings, Subtitles, PictureInPicture,
     MonitorPlay, AlertCircle, X, SkipForward as NextIcon
 } from 'lucide-react';
-import Hls from 'hls.js';
 import {Button} from '@/components/ui/button';
 import {formatDuration} from '@/lib/format';
 import {getFullUrl} from '@/lib/utils';
 import {usePlayerSettings} from '@/hooks/usePlayerSettings';
+import {useHls, type QualityOption} from '@/hooks/useHls';
 import {useTranslation} from 'react-i18next';
 import SpritePreview from './SpritePreview';
-
-// TypeScript 类型定义
-export interface QualityOption {
-    name: string;
-    url?: string;
-    height?: number;
-    bitrate?: number;
-    isRecommended?: boolean;
-}
 
 export interface VideoPlayerHandle {
     play: () => void;
@@ -98,11 +89,33 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const {t} = useTranslation();
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const hlsRef = useRef<Hls | null>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const settingsMenuRef = useRef<HTMLDivElement>(null);
     const lastClickTimeRef = useRef<number>(0);
     const centerOverlayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // ========== HLS 实例生命周期管理（通过 useHls Hook） ==========
+    // 解决 P1-P5：回调不触发重建、双路径容错、幂等计时器、状态边界、可观测
+    const {
+        hlsRef,
+        hasError,
+        errorMessage,
+        hlsQualities,
+        currentQuality,
+        autoResolution,
+        setCurrentQuality,
+        setHlsQualities,
+        setHasError,
+        setErrorMessage,
+        destroyHls,
+        wasPlayingBeforeQualitySwitchRef,
+    } = useHls(videoRef, {
+        src,
+        hlsSrc,
+        autoPlay,
+        isProcessing,
+        onError,
+    });
 
     // 状态管理
     const [isPlaying, setIsPlaying] = useState(false);
@@ -113,7 +126,6 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [showPlaybackMenu, setShowPlaybackMenu] = useState(false);
     const [showSettingsMenu, setShowSettingsMenu] = useState(false);
     const [buffered, setBuffered] = useState(0);
-    const [currentQuality, setCurrentQuality] = useState<string>('auto');
     const [showCenterOverlay, setShowCenterOverlay] = useState(false);
     const [centerOverlayIcon, setCenterOverlayIcon] = useState<'play' | 'pause'>('play');
 
@@ -124,12 +136,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const [playerRect, setPlayerRect] = useState<DOMRect | null>(null);
     const spriteRafRef = useRef<number>(0);
     const isDraggingProgress = useRef(false);
-    const [hasError, setHasError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [hlsQualities, setHlsQualities] = useState<QualityOption[]>([]);
     const [isBuffering, setIsBuffering] = useState(false);
-    const [autoResolution, setAutoResolution] = useState<string>('');
-    const wasPlayingBeforeQualitySwitch = useRef(false);
 
     // Autoplay countdown (YouTube-style)
     const [showAutoplayCountdown, setShowAutoplayCountdown] = useState(false);
@@ -190,253 +197,11 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
     const supportsPiP = useMemo(() => typeof document !== 'undefined' && 'pictureInPictureEnabled' in document, []);
     const supportsFullscreen = useMemo(() => typeof document !== 'undefined' && !!document.fullscreenEnabled, []);
 
-    // Validate HLS source: must be a non-empty path that looks like an HLS manifest
-    const isValidHlsSrc = useCallback((src?: string): boolean => {
-        if (!src) return false;
-        return src.includes('hls/') || src.endsWith('.m3u8');
-    }, []);
-
-    const canPlayOriginal = useCallback((src?: string): boolean => {
-        if (!src) return false;
-        const lower = src.toLowerCase();
-        if (lower.endsWith('.webm') || lower.endsWith('.ogg') || lower.endsWith('.ogv')) return true;
-        if (lower.endsWith('.mp4') || lower.endsWith('.mov')) {
-            // Must call canPlayType on an actual video element instance, not on
-            // HTMLVideoElement.prototype — calling on the prototype throws
-            // "TypeError: Illegal invocation" in Chrome because the native
-            // method checks that `this` is a real media element.
-            try {
-                const probe = document.createElement('video');
-                return probe.canPlayType('video/mp4; codecs="avc1.42E01E,mp4a.40.2"') !== '';
-            } catch {
-                return true;
-            }
-        }
-        return false;
-    }, []);
-
-    // Initialize HLS player with quality levels
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-
-        // When the video is still being processed (transcoding), do NOT
-        // attempt to load any source.  Loading the raw upload (e.g. MKV/AVI)
-        // causes DEMUXER_ERROR_COULD_NOT_OPEN because the browser cannot
-        // demux non-web-friendly containers.
-        if (isProcessing && !canPlayOriginal(src)) {
-            video.removeAttribute('src');
-            video.load();
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-                hlsRef.current = null;
-            }
-            setHasError(false);
-            setErrorMessage('');
-            return;
-        }
-
-        const validHls = isValidHlsSrc(hlsSrc) ? hlsSrc : undefined;
-        const fullHlsSrc = validHls ? getFullUrl(validHls) : undefined;
-        const fullSrc = getFullUrl(src);
-
-        // Reset error state
-        setHasError(false);
-        setErrorMessage('');
-
-        if (validHls && fullHlsSrc && Hls.isSupported()) {
-            if (hlsRef.current) {
-                hlsRef.current.destroy();
-            }
-
-            const hls = new Hls({
-                // Worker: enable for offloaded demuxing
-                enableWorker: true,
-                // VOD mode: lowLatencyMode is for live streams; disable for on-demand
-                // to avoid aggressive small-segment fetching that causes stuttering
-                lowLatencyMode: false,
-
-                // === VOD enforcement ===
-                // Force start from position 0. This prevents the bug where videos
-                // start at ~48 seconds caused by m3u8 files missing #EXT-X-ENDLIST
-                // (which makes HLS.js misdetect VOD as live stream and seek to live edge).
-                startPosition: 0,
-                // Tell HLS.js not to treat streams without ENDLIST as infinite live
-                liveDurationInfinity: false,
-
-                // === Buffer configuration (optimized for VOD playback) ===
-                // Maximum forward buffer length in seconds (default 30s is too short for VOD;
-                // 60s provides smoother playback without excessive memory usage)
-                maxBufferLength: 60,
-                // Absolute maximum buffer length cap in seconds (default 600s is excessive;
-                // 120s prevents memory bloat on long videos while ensuring smooth seeking)
-                maxMaxBufferLength: 120,
-                // Maximum buffer size in bytes (default 60MB; 80MB for higher quality streams)
-                maxBufferSize: 80 * 1024 * 1024,
-                // Maximum inter-buffer hole tolerance in seconds (default 0.1s is too strict;
-                // 0.5s avoids unnecessary rebuffering on small segment gaps after seek)
-                maxBufferHole: 0.5,
-                // Back buffer length in seconds — clear already-played content from memory
-                // (default Infinity causes unbounded memory growth on long videos; 30s is sufficient)
-                backBufferLength: 30,
-
-                // === ABR (Adaptive Bitrate) configuration ===
-                // Default bandwidth estimate in bps (default 500kbps is too conservative;
-                // 1Mbps starts at a reasonable quality instead of always beginning at 240p)
-                abrEwmaDefaultEstimate: 1000000,
-                // Maximum default estimate cap (prevents overestimation on fast connections)
-                abrEwmaDefaultEstimateMax: 5000000,
-
-                // === Startup optimization ===
-                // Prefetch the first fragment before attaching to reduce time-to-first-frame
-                startFragPrefetch: true,
-                // Start from the highest matching quality level instead of lowest
-                // (let ABR downgrade if needed rather than always starting low)
-                startLevel: -1,
-
-                // === Network resilience ===
-                // Fragment loading timeout in ms (default 20s; 30s for slower connections)
-                fragLoadingTimeOut: 30000,
-                // Fragment loading max retries (default 6; increase for unreliable networks)
-                fragLoadingMaxRetry: 8,
-                // Fragment loading retry delay in ms (default 1s)
-                fragLoadingRetryDelay: 1000,
-                // Manifest loading timeout in ms (default 15s; 20s for slower connections)
-                manifestLoadingTimeOut: 20000,
-                // Manifest loading max retries (default 1; increase for reliability)
-                manifestLoadingMaxRetry: 4,
-                // Level loading timeout in ms (for loading child playlists in multi-variant streams)
-                levelLoadingTimeOut: 20000,
-
-                // === Buffer watchdog ===
-                // High buffer watchdog period in seconds (default 2s; increase to reduce
-                // unnecessary buffer trimming on momentary speed fluctuations)
-                highBufferWatchdogPeriod: 3,
-            });
-
-            hls.loadSource(fullHlsSrc);
-            hls.attachMedia(video);
-
-            // Extract quality levels from HLS manifest
-            hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
-                const qualities: QualityOption[] = data.levels.map((level, index) => ({
-                    name: `${level.height}p`,
-                    height: level.height,
-                    bitrate: level.bitrate,
-                    isRecommended: index === data.levels.length - 2, // Second highest as recommended
-                }));
-
-                // Sort by quality (highest first)
-                qualities.sort((a, b) => (b.height || 0) - (a.height || 0));
-                setHlsQualities(qualities);
-
-                // Force start from position 0 — safety net against misdetected live streams
-                // (e.g., legacy m3u8 files missing #EXT-X-ENDLIST that cause HLS.js to seek
-                // to the live edge instead of starting from the beginning).
-                // Using requestAnimationFrame + setTimeout to ensure media is ready.
-                const forceStartFromZero = () => {
-                    if (video.currentTime > 0.5) {
-                        video.currentTime = 0;
-                    }
-                };
-                video.addEventListener('loadedmetadata', forceStartFromZero, {once: true});
-                // Double-ensurance after first frame
-                video.addEventListener('canplay', forceStartFromZero, {once: true});
-
-                // Auto play if requested
-                if (autoPlay) {
-                    video.play().catch((err) => console.error('Play failed:', err));
-                }
-            });
-
-            // Handle errors with enhanced recovery strategy
-            hls.on(Hls.Events.ERROR, (_event, data) => {
-                // Log non-fatal errors for diagnostics but don't disrupt playback
-                if (!data.fatal) {
-                    console.warn('[HLS] Non-fatal error:', data.type, data.details);
-                    return;
-                }
-
-                console.error('[HLS] Fatal error:', data.type, data.details);
-
-                switch (data.type) {
-                    case Hls.ErrorTypes.NETWORK_ERROR:
-                        // Network errors: retry loading with a short delay to allow
-                        // transient network issues to resolve
-                        console.error('[HLS] Fatal network error, retrying load in 2s...');
-                        setTimeout(() => {
-                            if (hlsRef.current) {
-                                hlsRef.current.startLoad();
-                            }
-                        }, 2000);
-                        break;
-                    case Hls.ErrorTypes.MEDIA_ERROR:
-                        // Media errors: attempt recovery via hls.js built-in mechanism
-                        console.error('[HLS] Fatal media error, attempting recovery...');
-                        hls.recoverMediaError();
-                        break;
-                    default:
-                        // Unrecoverable errors: destroy player and show error UI
-                        console.error('[HLS] Unrecoverable fatal error, destroying player.');
-                        hls.destroy();
-                        setHasError(true);
-                        setErrorMessage('Failed to load video. Please try again.');
-                        onError?.(new Error(data.type));
-                        break;
-                }
-            });
-
-            // Handle quality level changes
-            // Only update currentQuality when user manually selected a specific level.
-            // In auto mode, only update autoResolution (shown as "Auto (720p)").
-            // Also clear buffering state — HLS level switches do NOT trigger the
-            // HTML5 video `canplay` event, so the spinner set by handleQualityChange
-            // would otherwise remain visible forever.
-            hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
-                const level = hls.levels[data.level];
-                if (level) {
-                    const resolution = `${level.height}p`;
-                    setAutoResolution(resolution);
-                    // currentLevel === -1 means auto mode; do NOT overwrite currentQuality
-                    if (hls.currentLevel !== -1) {
-                        setCurrentQuality(resolution);
-                    }
-                }
-
-                // Resume playback if the video was playing before the quality switch.
-                // The buffering spinner is managed entirely by the HTML5 video
-                // `waiting`/`playing` events — no manual setIsBuffering needed.
-                if (wasPlayingBeforeQualitySwitch.current) {
-                    wasPlayingBeforeQualitySwitch.current = false;
-                    video.play().catch((err) => console.error('Play failed:', err));
-                }
-            });
-
-            hlsRef.current = hls;
-
-            return () => {
-                if (hlsRef.current) {
-                    hlsRef.current.destroy();
-                    hlsRef.current = null;
-                }
-            };
-        } else if (video.canPlayType('application/vnd.apple.mpegurl') && fullHlsSrc) {
-            video.src = fullHlsSrc;
-            if (autoPlay) {
-                video.play().catch((err) => console.error('Play failed:', err));
-            }
-        } else if (fullSrc && canPlayOriginal(src)) {
-            video.src = fullSrc;
-            if (autoPlay) {
-                video.play().catch((err) => console.error('Play failed:', err));
-            }
-        } else if (fullSrc && !canPlayOriginal(src)) {
-            setHasError(true);
-            setErrorMessage('Video format not supported by your browser. Please wait for transcoding to complete.');
-        }
-
-        return () => {};
-    }, [src, hlsSrc, autoPlay, onError, isProcessing]);
+    // NOTE: HLS 实例生命周期管理已迁移到 useHls Hook
+    // - isValidHlsSrc / canPlayOriginal → useHls 内部辅助函数
+    // - HLS useEffect → useHls 主 useEffect
+    // - 依赖数组只含 src/hlsSrc/isProcessing，回调通过 ref 同步
+    // - 双路径容错（error + waiting 超时）、幂等计时器在 useHls 内实现
 
     // Apply global settings to video element
     useEffect(() => {
@@ -790,7 +555,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
         // Read video.paused directly instead of the `isPlaying` state to avoid
         // stale closure values.
         const video = videoRef.current;
-        wasPlayingBeforeQualitySwitch.current = video ? !video.paused : false;
+        wasPlayingBeforeQualitySwitchRef.current = video ? !video.paused : false;
         // Do NOT manually set setIsBuffering(true) here.  The HTML5 video
         // element's `waiting`/`playing` events naturally manage the buffering
         // spinner.  If the quality switch causes a stall, `waiting` fires and
