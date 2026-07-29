@@ -1,4 +1,5 @@
 import {useState, useCallback, useEffect, useRef, useMemo} from 'react';
+import axios from 'axios';
 import {AuthContext} from './AuthContext';
 import {
     isTokenExpired,
@@ -6,7 +7,8 @@ import {
     registerAuthCallback,
     attemptRefresh,
     hasRefreshToken,
-    api,
+    API_BASE_URL,
+    API_PREFIX,
 } from '@/lib/request';
 import {resolveUserRoles, isUserAdmin, isUserSuperuser} from '@/lib/role-utils';
 import {Spinner} from '@/components/ui/spinner';
@@ -41,18 +43,16 @@ function saveStoredUser(user: User): void {
 /** Fetch current user from /me endpoint and merge role info into stored user */
 async function refreshUserFromMe(storedUser: User): Promise<User> {
     try {
-        const meData = await api.get<{
-            id: string;
-            username: string;
-            nickname?: string;
-            email?: string;
-            avatar?: string;
-            role?: string;
-            is_superuser?: boolean;
-            status?: string;
-        }>('/me');
+        // BUG-088: use raw axios to bypass the 401-refresh interceptor.
+        // If /me returns 401 we must NOT trigger another refresh — that
+        // creates a refresh loop (refresh → /me 401 → refresh → /me 401 …).
+        // refreshUserFromMe is best-effort; on failure it returns storedUser.
+        const token = getStoredToken();
+        const {data: meData} = await axios.get(
+            (API_BASE_URL || '') + API_PREFIX + '/me',
+            {headers: token ? {Authorization: `Bearer ${token}`} : {}}
+        );
 
-        // The response interceptor already unwraps {code, data}, so meData === data.
         // For /me, data = {user: {...}}, so extract the inner user object.
         const userData = (meData as any)?.user || meData;
         const {roles, isSuperuser} = resolveUserRoles(userData);
@@ -139,12 +139,10 @@ export function AuthProvider({children}: AuthProviderProps) {
                 refreshingRef.current = false;
                 if (success) {
                     setToken(getStoredToken());
-                    const storedUser = getStoredUser();
-                    if (storedUser) {
-                        refreshUserFromMe(storedUser).then(updatedUser => {
-                            setUser(updatedUser);
-                        });
-                    } else {
+                    // BUG-088: don't re-fetch /me after scheduled refresh.
+                    // setAuth already updates user from token.user; calling
+                    // refreshUserFromMe here triggered refresh loops.
+                    if (!getStoredUser()) {
                         setUser(null);
                     }
                 } else {
@@ -170,12 +168,8 @@ export function AuthProvider({children}: AuthProviderProps) {
                             refreshingRef.current = false;
                             if (success) {
                                 setToken(getStoredToken());
-                                const storedUser = getStoredUser();
-                                if (storedUser) {
-                                    refreshUserFromMe(storedUser).then(updatedUser => {
-                                        setUser(updatedUser);
-                                    });
-                                } else {
+                                // BUG-088: don't re-fetch /me after scheduled refresh.
+                                if (!getStoredUser()) {
                                     setUser(null);
                                 }
                             } else {
@@ -262,12 +256,9 @@ export function AuthProvider({children}: AuthProviderProps) {
             const success = await attemptRefresh();
             if (success) {
                 setToken(getStoredToken());
-                const storedUser = getStoredUser();
-                if (storedUser) {
-                    refreshUserFromMe(storedUser).then(updatedUser => {
-                        setUser(updatedUser);
-                    });
-                } else {
+                // BUG-088: don't re-fetch /me after manual refresh.
+                // setAuth already updates user from token.user.
+                if (!getStoredUser()) {
                     setUser(null);
                 }
             } else {
