@@ -375,8 +375,18 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
                 case 'oldest': sortParams.sort_by = 'create_time'; sortParams.order = 'asc'; break;
                 case 'popular': sortParams.sort_by = 'like_count'; sortParams.order = 'desc'; break;
             }
-            const response = await commentApi.getAll({media_id: mediaId, page: pageNum, page_size: PAGE_SIZE, ...sortParams});
-            const commentsList = response?.items || [];
+            const response = await commentApi.getAll({
+                // 四参数同传：老内容 media_id(content_id)=int64 合法；新内容 mediaId(contentId)=UUID 走 UUID 解析器
+                media_id: mediaId,
+                mediaId: mediaId,
+                content_id: mediaId,
+                contentId: mediaId,
+                page: pageNum,
+                page_size: PAGE_SIZE,
+                ...sortParams,
+            });
+            // 返回字段兼容：老后端 {items} / 新后端 {comments}
+            const commentsList = response?.items || (response as any)?.comments || [];
             const formattedComments: Comment[] = commentsList.map((comment: any) => ({
                 id: comment.id || '',
                 content: comment.content || comment.text || '',
@@ -470,7 +480,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
         try {
             setIsSubmitting(true);
             setError(null);
-            await commentApi.create({media_id: mediaId, content: commentText});
+            await commentApi.create({
+                media_id: mediaId,
+                mediaId: mediaId,
+                content_id: mediaId,
+                contentId: mediaId,
+                content: commentText,
+            });
             setCommentText('');
             setIsFocused(false);
             setShowEmojiPicker(false);
@@ -494,6 +510,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
             setError(null);
             await commentApi.create({
                 media_id: mediaId,
+                mediaId: mediaId,
+                content_id: mediaId,
+                contentId: mediaId,
                 parent_id: replyingTo.id,
                 content: replyText
             });

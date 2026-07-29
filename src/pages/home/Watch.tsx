@@ -40,9 +40,9 @@ import type {Ad, AdCreative} from '@/lib/api/portal';
 
 const WATCHED_HISTORY_KEY = 'watch_autoplay_history';
 const WATCHED_HISTORY_LIMIT = 20;
-const SIDEBAR_AD_DECISION_KEY = 'ad-sidebar-decision-v1';   // {shown: bool, adId: string, decidedAt: timestamp}
-const SIDEBAR_AD_DECISION_TTL_MS = 10 * 60 * 1000;          // 10 分钟内同会话保持决策，不频繁跳变
-const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：70% 全局显示概率（后端 frequency/weight 字段缺失，前端先模拟）
+const SIDEBAR_AD_DECISION_KEY_PREFIX = 'ad-watch-sidebar-';   // 按视频维度：ad-watch-sidebar-{shortToken}
+const SIDEBAR_AD_DECISION_TTL_MS = 10 * 60 * 1000;          // 同一视频 10 分钟内不跳变；不同视频独立决策
+const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：每视频独立 70% 显示概率（真正让用户感知随机）
 
 const getWatchedHistory = (): string[] => {
     try {
@@ -142,14 +142,18 @@ const WatchPage = () => {
 
     const {data: adPlacements = []} = usePublicAdPlacements();
     const sidebarAds = React.useMemo<Array<Ad | AdCreative>>(() => {
+        // 按视频短 token 维度决策（不再按全局 session 一次性决策=命中即全局命中）
+        if (!shortToken) return [];
         const p = adPlacements.find(x => x.slug === 'watch-sidebar');
         const items = [...(p?.ads || []), ...(p?.creatives || [])] as Array<Ad | AdCreative>;
         if (!items || items.length === 0) return [];
 
-        // Session storage 防抖：10 分钟内保持同一决策，避免连续刷新一会儿有一会儿无
+        const DECISION_KEY = SIDEBAR_AD_DECISION_KEY_PREFIX + String(shortToken);
+
+        // Session storage 防抖：同一视频 10 分钟内保持同一决策（连续刷新不跳变）
         let decision: {shown: boolean; adId?: string; decidedAt: number} | null = null;
         try {
-            const raw = sessionStorage.getItem(SIDEBAR_AD_DECISION_KEY);
+            const raw = sessionStorage.getItem(DECISION_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw) as {shown: boolean; adId?: string; decidedAt: number};
                 if (Date.now() - parsed.decidedAt < SIDEBAR_AD_DECISION_TTL_MS) {
@@ -167,22 +171,22 @@ const WatchPage = () => {
             }
         }
 
-        // 首次决策：概率过滤
+        // 每视频首次打开：独立跑 70% 概率（不同视频互不影响 → 用户真正感知到随机）
         const shouldShow = Math.random() < SIDEBAR_AD_SHOW_PROBABILITY;
         if (!shouldShow) {
-            try { sessionStorage.setItem(SIDEBAR_AD_DECISION_KEY, JSON.stringify({shown: false, decidedAt: Date.now()})); } catch {}
+            try { sessionStorage.setItem(DECISION_KEY, JSON.stringify({shown: false, decidedAt: Date.now()})); } catch {}
             return [];
         }
 
         // 随机选 1 条（替代固定 sidebarAds[0]）
         const chosen = items[Math.floor(Math.random() * items.length)];
         try {
-            sessionStorage.setItem(SIDEBAR_AD_DECISION_KEY, JSON.stringify({
+            sessionStorage.setItem(DECISION_KEY, JSON.stringify({
                 shown: true, adId: String(chosen.id), decidedAt: Date.now(),
             }));
         } catch {}
         return [chosen];
-    }, [adPlacements]);
+    }, [adPlacements, shortToken]);    // ✅ 关键：增加 shortToken 依赖 → 切视频就重新随机
 
     // Next video for YouTube-style autoplay countdown
     const nextVideo: NextVideoInfo | null = recommendations.length > 0 ? {

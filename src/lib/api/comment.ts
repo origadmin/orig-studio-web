@@ -73,6 +73,7 @@ export interface CommentStats {
 
 export interface CommentListResponse {
     items: Comment[];
+    comments?: Comment[];          // 兼容部分后端版本返回 {comments, total, page, page_size}
     total: number;
     page: number;
     page_size: number;
@@ -87,19 +88,52 @@ export interface CommentLikeResponse {
 export type CommentSortBy = 'newest' | 'oldest' | 'popular';
 
 export const commentApi = {
-    getAll: (params?: { media_id?: string; content_id?: string; page?: number; page_size?: number; sort_by?: string; order?: string }) => {
-        return api.get<CommentListResponse>('/comments', params || {});
+    getAll: (params?: {
+        media_id?: string; mediaId?: string;
+        content_id?: string; contentId?: string;
+        page?: number; page_size?: number; sort_by?: string; order?: string;
+    }) => {
+        // 媒体 ID 现在主要是 UUID / shortToken，media_id(content_id) 会被后端按 int64 解析失败(400 CODEC)，
+        // 只有 mediaId / contentId 走 UUID 解析器。因此当内容不是纯数字时，只传驼峰键；
+        // 纯数字（老 int64 内容）则传 snake_case 保持兼容。
+        const raw = {...(params || {})};
+        const primaryId = raw.mediaId || raw.media_id || raw.contentId || raw.content_id || '';
+        const looksLikeInt64 = /^\d+$/.test(String(primaryId).trim());
+        const clean: Record<string, unknown> = {};
+        Object.entries(raw).forEach(([k, v]) => {
+            if (v === undefined || v === null || v === '') return;
+            if (looksLikeInt64) {
+                // 老内容：snake_case 优先
+                if (k === 'mediaId' || k === 'contentId') return;
+            } else {
+                // 新内容(UUID/shortToken)：驼峰优先，屏蔽 snake_case 避免 int64 解析 CODEC
+                if (k === 'media_id' || k === 'content_id') return;
+            }
+            clean[k] = v;
+        });
+        return api.get<CommentListResponse>('/comments', clean);
     },
     get: (id: string) => api.get<Comment>(`/comments/${id}`),
-    create: (data: { media_id?: string; content_id?: string; parent_id?: string; content: string }) => {
-        return api.post<Comment>("/comments", {
-            comment: {
-                content: data.content,
-                ...(data.media_id && { media_id: data.media_id }),
-                ...(data.content_id && { content_id: data.content_id }),
-                ...(data.parent_id && { parent_id: data.parent_id }),
-            }
-        });
+    create: (data: {
+        media_id?: string; mediaId?: string;
+        content_id?: string; contentId?: string;
+        parent_id?: string; content: string;
+    }) => {
+        const body: Record<string, unknown> = {content: data.content};
+        const primaryId = data.mediaId || data.media_id || data.contentId || data.content_id || '';
+        const looksLikeInt64 = /^\d+$/.test(String(primaryId).trim());
+        const addKeys = (snake: 'media_id' | 'content_id', camel: 'mediaId' | 'contentId') => {
+            const snakeVal = (data as any)[snake];
+            const camelVal = (data as any)[camel];
+            const val = camelVal || snakeVal;
+            if (!val) return;
+            if (looksLikeInt64) body[snake] = val;
+            else body[camel] = val;
+        };
+        addKeys('media_id', 'mediaId');
+        addKeys('content_id', 'contentId');
+        if (data.parent_id) body.parent_id = data.parent_id;
+        return api.post<Comment>("/comments", {comment: body});
     },
     update: (id: string, data: { text: string }) =>
         api.put<Comment>(`/comments/${id}`, {
