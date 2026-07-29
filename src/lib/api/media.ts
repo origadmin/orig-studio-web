@@ -942,11 +942,15 @@ export const adminMediaApi = {
     retryTask: (id: string, taskId: string) =>
         api.post<{ message: string }>(`/admin/medias/${id}/tasks/${taskId}/retry`),
 
-    // 触发完整性校验(轻量诊断)
+    // TODO(BUG-087后续): 后端 API 尚未实现,调用会返回 404
+    // 设计文档: docs/ee/modules/media/integrity/02-API_ENDPOINTS.md
+    // 待实现: admin_handler.go 注册路由 + biz 层实现 HLS 分段诊断
     checkIntegrity: (id: string) =>
         api.post<{ status: string }>(`/admin/medias/${id}/integrity-check`),
 
-    // 触发内容修复(重量级,重新转码缺失分段)
+    // TODO(BUG-087后续): 后端 API 尚未实现,调用会返回 404
+    // 设计文档: docs/ee/modules/media/integrity/02-API_ENDPOINTS.md
+    // 待实现: admin_handler.go 注册路由 + biz 层实现缺失分段重新转码
     repairMedia: (id: string) =>
         api.post<{ status: string; estimated_duration?: number }>(`/admin/medias/${id}/repair`),
 };

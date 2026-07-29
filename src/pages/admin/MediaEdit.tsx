@@ -310,6 +310,13 @@ export default function MediaEditPage() {
         if (id) {
             adminMediaApi.getStats(id).then(setStats).catch(() => {});
             adminMediaApi.getTasks(id).then((res) => setTasks(extractTasks(res))).catch(() => {});
+            // TODO(BUG-087后续): 接线 SSE 事件流实现转码进度实时更新
+            // 后端 SSE 端点已实现: GET /admin/medias/transcoding/events
+            // 前端 helper 已定义: encodingApi.getSSEUrl(mediaId)
+            // 待做: const es = new EventSource(encodingApi.getSSEUrl(id));
+            //       es.addEventListener('task_update', (e) => { ... setTasks ... });
+            //       es.addEventListener('task_complete', (e) => { ... invalidateQueries ... });
+            //       return () => es.close(); // 清理
         }
     }, [id]);
 
@@ -429,7 +436,9 @@ export default function MediaEditPage() {
         }
     };
 
-    // BUG-087 后续: 完整性校验(轻量诊断,直接执行)
+    // TODO(BUG-087后续): 后端 API 尚未实现,调用会返回 404
+    // 设计文档: docs/ee/modules/media/integrity/00-INDEX.md
+    // 待实现: 后端注册 POST /admin/medias/:id/integrity-check 路由
     const handleCheckIntegrity = async () => {
         if (!id) return;
         setIntegrityChecking(true);
@@ -446,7 +455,9 @@ export default function MediaEditPage() {
         }
     };
 
-    // BUG-087 后续: 内容修复(重量级,Dialog 确认)
+    // TODO(BUG-087后续): 后端 API 尚未实现,调用会返回 404
+    // 设计文档: docs/ee/modules/media/integrity/00-INDEX.md
+    // 待实现: 后端注册 POST /admin/medias/:id/repair 路由
     const handleRepairMedia = async () => {
         if (!id) return;
         setRepairing(true);
@@ -1356,6 +1367,9 @@ export default function MediaEditPage() {
                     <TabsContent value="stats">
                         <div className="grid grid-cols-12 gap-8">
                             <div className="col-span-12 lg:col-span-8 space-y-6">
+                                {/* TODO(BUG-087后续): 完整性校验后端 API 尚未实现,点击按钮会 404
+                                    设计文档: docs/ee/modules/media/integrity/00-INDEX.md
+                                    待实现: 后端 entity 加 integrity_status 字段 + 注册 API 路由 */}
                                 <Card>
                                     <CardHeader className="pb-3">
                                         <div className="flex items-center justify-between">
