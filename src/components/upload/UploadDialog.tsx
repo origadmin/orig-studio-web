@@ -20,7 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp, Plus, Tv, ChevronDown} from 'lucide-react';
+import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp, Plus, Tv} from 'lucide-react';
 import {formatFileSize} from '@/lib/format';
 import {cn} from '@/lib/utils';
 
@@ -92,10 +92,11 @@ export const UploadDialog: React.FC = () => {
     }, [handleFiles]);
 
     const handleStartUpload = useCallback(() => {
-        if (!selectedChannelId || selectedFiles.length === 0) return;
+        if (selectedFiles.length === 0) return;
 
         selectedFiles.forEach(file => {
-            addTask(file, {channelId: selectedChannelId});
+            const meta = selectedChannelId ? {channelId: selectedChannelId} : {};
+            addTask(file, meta);
         });
 
         setSelectedFiles([]);
@@ -123,7 +124,7 @@ export const UploadDialog: React.FC = () => {
     }, [isDialogOpen]);
 
     const selectedChannel = channelList.find(ch => getChannelValue(ch) === selectedChannelId);
-    const canStart = hasChannels && selectedChannelId && selectedFiles.length > 0;
+    const canStart = selectedFiles.length > 0;
 
     return (
         <>
@@ -238,7 +239,6 @@ export const UploadDialog: React.FC = () => {
                                 <Select value={selectedChannelId} onValueChange={setSelectedChannelId}>
                                     <SelectTrigger className="h-8 w-auto min-w-[120px] gap-1 border-none bg-muted hover:bg-accent px-2.5 text-sm">
                                         <SelectValue placeholder={t('upload.selectChannel', '选择频道')}/>
-                                        <ChevronDown className="w-3.5 h-3.5 opacity-50"/>
                                     </SelectTrigger>
                                     <SelectContent position="popper" sideOffset={4}>
                                         {channelList.map(ch => (

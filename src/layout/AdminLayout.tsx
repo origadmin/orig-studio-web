@@ -2,8 +2,8 @@
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  */
 
-import React, {useState, useMemo, memo} from 'react';
-import {Outlet, Link, useRouterState} from '@tanstack/react-router';
+import React, {useState, useMemo, memo, useCallback} from 'react';
+import {Outlet, Link, useRouterState, useNavigate} from '@tanstack/react-router';
 import {
     LayoutDashboard,
     Film,
@@ -228,6 +228,11 @@ interface TopBarProps {
 const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: TopBarProps) {
     const {t} = useTranslation();
     const pathname = useRouterState({select: (s) => s.location.pathname});
+    const navigate = useNavigate();
+
+    const handleNewUpload = useCallback(() => {
+        navigate({to: '/admin/media', search: {upload: 1}});
+    }, [navigate]);
 
     // Derive current page label from pathname
     const currentPageLabel = useMemo(() => {
@@ -276,7 +281,7 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
                     <PanelLeft size={18}/>
                 </button>
                 <NotificationBadge/>
-                <UploadCenter/>
+                <UploadCenter onNewUpload={handleNewUpload}/>
                 <button className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">
                     <Settings size={18}/>
                 </button>

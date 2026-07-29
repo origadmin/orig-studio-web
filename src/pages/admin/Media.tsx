@@ -3,7 +3,7 @@
  * 管理端 - 媒体管理页面
  */
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useLocation, useNavigate} from '@tanstack/react-router';
 import {AdminPageTemplate} from '@/components/AdminPageTemplate';
@@ -70,6 +70,16 @@ export default function MediaPage() {
 
     // 弹窗状态
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+    // 读取 ?upload=1 自动打开上传弹窗（来自顶栏上传图标导航）
+    useEffect(() => {
+        const uploadFlag = new URLSearchParams(location.search).get("upload");
+        if (uploadFlag === '1' && !uploadDialogOpen) {
+            setUploadDialogOpen(true);
+            // 清除 query 参数，避免刷新重复打开
+            navigate({to: '/admin/media', replace: true});
+        }
+    }, [location.search, uploadDialogOpen, navigate]);
     const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'done'>('idle');
     const [uploadResult, setUploadResult] = useState<{ successCount: number; errorCount: number } | null>(null);
 

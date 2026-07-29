@@ -29,7 +29,11 @@ const getStatusText = (status: string, t: ReturnType<typeof useTranslation>['t']
     }
 };
 
-const UploadCenter: React.FC = () => {
+interface UploadCenterProps {
+    onNewUpload?: () => void;
+}
+
+const UploadCenter: React.FC<UploadCenterProps> = ({onNewUpload}) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const {tasks, activeCount, pauseTask, resumeTask, removeTask, clearCompleted, openDialog} = useUploadState();
@@ -40,8 +44,12 @@ const UploadCenter: React.FC = () => {
 
     const handleNewUpload = useCallback(() => {
         setOpen(false);
-        openDialog();
-    }, [openDialog]);
+        if (onNewUpload) {
+            onNewUpload();
+        } else {
+            openDialog();
+        }
+    }, [onNewUpload, openDialog]);
 
     const triggerButton = (
         <button
@@ -226,7 +234,7 @@ const UploadCenter: React.FC = () => {
     if (!hasTasks) {
         return (
             <button
-                onClick={openDialog}
+                onClick={handleNewUpload}
                 className="relative p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
                 title={t('nav.uploadVideo', '上传视频')}
             >
