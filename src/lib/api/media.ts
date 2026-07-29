@@ -916,6 +916,8 @@ export const adminMediaApi = {
             dislike_count: number;
             comment_count: number;
             favorite_count: number;
+            share_count?: number;
+            download_count?: number;
             encoding_status: string;
         }>(`/admin/medias/${id}/stats`),
 

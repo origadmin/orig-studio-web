@@ -25,7 +25,7 @@ import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquare, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
@@ -80,6 +80,8 @@ interface MediaStats {
     dislike_count: number;
     comment_count: number;
     favorite_count: number;
+    share_count?: number;
+    download_count?: number;
     encoding_status: string;
 }
 
@@ -660,12 +662,13 @@ export default function MediaEditPage() {
                     <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.stateStatus', 'State & Status')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {(() => {
                             const lc = getLifecyclePill(media.state);
                             const rv = getReviewPill(media.review_status);
                             const enc = getEncodingPill(media.encoding_status);
-                            const idle = IDLE_PILL;
+                            const sp = getSpritePill(media.sprite_status);
+                            const ig = getIntegrityPill(media.integrity_status);
                             return (
                                 <>
                                     <div className="flex flex-col gap-1">
@@ -688,14 +691,15 @@ export default function MediaEditPage() {
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.sprites', 'Sprites')}</span>
-                                        {(() => {
-                                            const sp = getSpritePill(media.sprite_status);
-                                            return (
-                                                <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", sp.bg, sp.text, sp.border)}>
-                                                    {t(sp.labelKey, sp.fallback)}
-                                                </span>
-                                            );
-                                        })()}
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", sp.bg, sp.text, sp.border)}>
+                                            {t(sp.labelKey, sp.fallback)}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col gap-1 col-span-2 sm:col-span-1">
+                                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrity', 'Integrity')}</span>
+                                        <span className={cn("px-2 py-1 rounded-full text-center text-xs font-medium border", ig.bg, ig.text, ig.border)}>
+                                            {t(ig.labelKey, ig.fallback)}
+                                        </span>
                                     </div>
                                 </>
                             );
@@ -1033,7 +1037,7 @@ export default function MediaEditPage() {
                                                             const url = getFullUrl(media.sprite_path!);
                                                             if (url) copyToClipboard(url);
                                                         }} className="flex items-center justify-between px-3 py-2 border rounded-lg text-xs hover:bg-accent group">
-                                                            <span className="flex items-center gap-2"><Video className="w-4 h-4 text-secondary"/>{t('mediaEdit.spriteMap', '雪碧图')}</span>
+                                                            <span className="flex items-center gap-2"><Video className="w-4 h-4 text-teal-500"/>{t('mediaEdit.spriteMap', '雪碧图')}</span>
                                                             <Copy className="w-4 h-4 text-muted-foreground group-hover:text-primary"/>
                                                         </button>
                                                     ) : null}
@@ -1187,96 +1191,6 @@ export default function MediaEditPage() {
                     <TabsContent value="encoding">
                         <div className="grid grid-cols-12 gap-8">
                             <div className="col-span-12 lg:col-span-8 space-y-6">
-                                {/* BUG-087 后续: 完整性校验卡片(按需检测,非全量) */}
-                                <Card>
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-base font-semibold">{t('mediaEdit.integrityCheck', '内容完整性校验')}</CardTitle>
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={handleCheckIntegrity}
-                                                    disabled={integrityChecking}
-                                                >
-                                                    {integrityChecking ? (
-                                                        <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.checking', '校验中')}</>
-                                                    ) : media.integrity_detail ? (
-                                                        <><RefreshCw className="w-3 h-3 mr-1"/>{t('mediaEdit.recheckIntegrity', '重新校验')}</>
-                                                    ) : (
-                                                        <><ShieldCheck className="w-3 h-3 mr-1"/>{t('mediaEdit.checkIntegrity', '校验完整性')}</>
-                                                    )}
-                                                </Button>
-                                                {media.integrity_detail && (
-                                                    <Button
-                                                        variant="default"
-                                                        size="sm"
-                                                        onClick={() => setRepairConfirmOpen(true)}
-                                                        disabled={repairing || media.integrity_status === 'success'}
-                                                    >
-                                                        {repairing ? (
-                                                            <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.repairing', '修复中')}</>
-                                                        ) : (
-                                                            <><Wrench className="w-3 h-3 mr-1"/>{t('common.repair', '修复')}</>
-                                                        )}
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent>
-                                        {media.integrity_detail ? (
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityTotalFragments', '总分段数')}</span>
-                                                    <span className="font-mono font-semibold">{media.integrity_detail.total_fragments}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLoadedFragments', '已加载分段')}</span>
-                                                    <span className="font-mono font-semibold">{media.integrity_detail.loaded_fragments}</span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityEndlist', 'ENDLIST')}</span>
-                                                    <span className={media.integrity_detail.has_endlist ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
-                                                        {media.integrity_detail.has_endlist ? '✓ ' + t('common.present', '存在') : '✗ ' + t('common.missing', '缺失')}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityCoverage', '覆盖率')}</span>
-                                                    <span className="font-mono font-semibold">
-                                                        {(media.integrity_detail.coverage * 100).toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLastChecked', '上次校验')}</span>
-                                                    <span className="text-xs font-medium">
-                                                        {media.integrity_detail.last_checked_at
-                                                            ? formatDateTime(media.integrity_detail.last_checked_at)
-                                                            : t('common.never', '从未')}
-                                                    </span>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityMissing', '缺失分段')}</span>
-                                                    {media.integrity_detail.missing_segments?.length ? (
-                                                        <span className="text-destructive font-mono text-xs">
-                                                            {media.integrity_detail.missing_segments.slice(0, 5).join(', ')}
-                                                            {media.integrity_detail.missing_segments.length > 5
-                                                                ? ` +${media.integrity_detail.missing_segments.length - 5}`
-                                                                : ''}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-success font-semibold">{t('common.none', '无')}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <p className="text-xs text-muted-foreground py-2">
-                                                {t('mediaEdit.integrityCheckHint', '此为按需诊断工具。当用户反馈视频内容异常时,点击"校验完整性"检查分段是否完整。不会自动运行,不影响系统性能。')}
-                                            </p>
-                                        )}
-                                    </CardContent>
-                                </Card>
-
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg font-semibold">{t('mediaEdit.encodingTasks', '编码任务')}</CardTitle>
@@ -1443,6 +1357,95 @@ export default function MediaEditPage() {
                         <div className="grid grid-cols-12 gap-8">
                             <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="text-base font-semibold">{t('mediaEdit.integrityCheck', '内容完整性校验')}</CardTitle>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleCheckIntegrity}
+                                                    disabled={integrityChecking}
+                                                >
+                                                    {integrityChecking ? (
+                                                        <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.checking', '校验中')}</>
+                                                    ) : media.integrity_detail ? (
+                                                        <><RefreshCw className="w-3 h-3 mr-1"/>{t('mediaEdit.recheckIntegrity', '重新校验')}</>
+                                                    ) : (
+                                                        <><ShieldCheck className="w-3 h-3 mr-1"/>{t('mediaEdit.checkIntegrity', '校验完整性')}</>
+                                                    )}
+                                                </Button>
+                                                {media.integrity_detail && (
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        onClick={() => setRepairConfirmOpen(true)}
+                                                        disabled={repairing || media.integrity_status === 'success'}
+                                                    >
+                                                        {repairing ? (
+                                                            <><Loader2 className="w-3 h-3 mr-1 animate-spin"/>{t('common.repairing', '修复中')}</>
+                                                        ) : (
+                                                            <><Wrench className="w-3 h-3 mr-1"/>{t('common.repair', '修复')}</>
+                                                        )}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {media.integrity_detail ? (
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityTotalFragments', '总分段数')}</span>
+                                                    <span className="font-mono font-semibold">{media.integrity_detail.total_fragments}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLoadedFragments', '已加载分段')}</span>
+                                                    <span className="font-mono font-semibold">{media.integrity_detail.loaded_fragments}</span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityEndlist', 'ENDLIST')}</span>
+                                                    <span className={media.integrity_detail.has_endlist ? 'text-success font-semibold' : 'text-destructive font-semibold'}>
+                                                        {media.integrity_detail.has_endlist ? '✓ ' + t('common.present', '存在') : '✗ ' + t('common.missing', '缺失')}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityCoverage', '覆盖率')}</span>
+                                                    <span className="font-mono font-semibold">
+                                                        {(media.integrity_detail.coverage * 100).toFixed(1)}%
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityLastChecked', '上次校验')}</span>
+                                                    <span className="text-xs font-medium">
+                                                        {media.integrity_detail.last_checked_at
+                                                            ? formatDateTime(media.integrity_detail.last_checked_at)
+                                                            : t('common.never', '从未')}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">{t('mediaEdit.integrityMissing', '缺失分段')}</span>
+                                                    {media.integrity_detail.missing_segments?.length ? (
+                                                        <span className="text-destructive font-mono text-xs">
+                                                            {media.integrity_detail.missing_segments.slice(0, 5).join(', ')}
+                                                            {media.integrity_detail.missing_segments.length > 5
+                                                                ? ` +${media.integrity_detail.missing_segments.length - 5}`
+                                                                : ''}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-success font-semibold">{t('common.none', '无')}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground py-2">
+                                                {t('mediaEdit.integrityCheckHint', '此为按需诊断工具。当用户反馈视频内容异常时,点击"校验完整性"检查分段是否完整。不会自动运行,不影响系统性能。')}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                <Card>
                                     <CardHeader>
                                         <CardTitle className="text-lg font-semibold">{t('mediaEdit.performanceMetrics', '性能指标')}</CardTitle>
                                     </CardHeader>
@@ -1450,37 +1453,37 @@ export default function MediaEditPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Eye className="text-primary text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{(stats?.view_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{Number(stats?.view_count ?? media?.view_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.views', '播放量')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <ThumbsUp className="text-success text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{(stats?.like_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{Number(stats?.like_count ?? media?.like_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.likes', '点赞')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <XCircle className="text-destructive text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{(stats?.dislike_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{Number(stats?.dislike_count ?? media?.dislike_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.dislikes', '踩')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
-                                        <MessageSquare className="text-secondary text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{(stats?.comment_count ?? 0).toLocaleString()}</p>
+                                        <MessageSquareText className="text-sky-500 text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{Number(stats?.comment_count ?? media?.comment_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.comments', '评论')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
                                         <Star className="text-amber-400 text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{(stats?.favorite_count ?? 0).toLocaleString()}</p>
+                                        <p className="text-2xl font-bold">{Number(stats?.favorite_count ?? media?.favorite_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.favorites', '收藏')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
-                                        <Share2 className="text-primary-container text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{Number(media.share_count ?? stats?.share_count ?? 0).toLocaleString()}</p>
+                                        <Share2 className="text-violet-500 text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{Number(media?.share_count ?? stats?.share_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.shares', '分享')}</p>
                                     </div>
                                     <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
-                                        <Download className="text-foreground text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{Number(media.download_count ?? 0).toLocaleString()}</p>
+                                        <Download className="text-indigo-500 text-2xl mb-2"/>
+                                        <p className="text-2xl font-bold">{Number(media?.download_count ?? stats?.download_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.downloads', '下载')}</p>
                                     </div>
                                 </div>
