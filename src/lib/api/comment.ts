@@ -119,20 +119,20 @@ export const commentApi = {
         content_id?: string; contentId?: string;
         parent_id?: string; content: string;
     }) => {
+        // Prefer the media-scoped endpoint (POST /api/v1/medias/:token/comments)
+        // so we don't have to care about route-shadowing between the HTTP-native
+        // comment handler and the gRPC-gateway CreateComment endpoint. The
+        // media-scoped URL accepts both UUID ids and short tokens and only
+        // expects {comment:{content, parent_id}} in the body.
+        const primaryId = data.mediaId || data.media_id || data.contentId || data.content_id;
         const body: Record<string, unknown> = {content: data.content};
-        const primaryId = data.mediaId || data.media_id || data.contentId || data.content_id || '';
-        const looksLikeInt64 = /^\d+$/.test(String(primaryId).trim());
-        const addKeys = (snake: 'media_id' | 'content_id', camel: 'mediaId' | 'contentId') => {
-            const snakeVal = (data as any)[snake];
-            const camelVal = (data as any)[camel];
-            const val = camelVal || snakeVal;
-            if (!val) return;
-            if (looksLikeInt64) body[snake] = val;
-            else body[camel] = val;
-        };
-        addKeys('media_id', 'mediaId');
-        addKeys('content_id', 'contentId');
         if (data.parent_id) body.parent_id = data.parent_id;
+        if (primaryId) {
+            return api.post<Comment>(`/medias/${encodeURIComponent(primaryId)}/comments`, {comment: body});
+        }
+        // Fallback to the generic /comments endpoint when no media id is
+        // provided (e.g. system-level comments). Keep the nested wrapper so
+        // the HTTP-native handler can still bind it.
         return api.post<Comment>("/comments", {comment: body});
     },
     update: (id: string, data: { text: string }) =>
