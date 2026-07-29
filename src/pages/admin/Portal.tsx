@@ -1,4 +1,4 @@
-﻿import React, {useState} from 'react';
+import React, {useState} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
@@ -1783,15 +1783,17 @@ const AdManagerTab: React.FC = () => {
                                 <div className="space-y-2">
                                     {creatives.map(c => (
                                         <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
-                                            <div className="w-20 h-12 rounded overflow-hidden bg-muted/30 flex-shrink-0">
-                                                {c.image_url ? (
-                                                    <img src={c.image_url} alt={c.title} className="w-full h-full object-cover"/>
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <ImageOff className="w-4 h-4 text-muted-foreground"/>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            <div className="w-20 h-12 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-muted to-muted/50">
+                                {c.image_url ? (
+                                    <img src={getFullUrl(c.image_url)} alt={c.title}
+                                         className="w-full h-full object-cover"
+                                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; const ph = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null; if (ph) ph.style.display = 'flex'; }}/>
+                                ) : null}
+                                <div className="w-full h-full items-center justify-center text-muted-foreground flex-col gap-0.5"
+                                     style={{display: c.image_url ? 'none' : 'flex'}}>
+                                    <ImageOff className="w-6 h-6"/>
+                                </div>
+                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium truncate">{c.title}</span>
@@ -2165,10 +2167,17 @@ const AssignCreativesInline: React.FC<{
                        className="flex items-center gap-3 p-3 rounded-lg border border-border/60 hover:bg-muted/40 cursor-pointer">
                     <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c.id)}
                            className="h-4 w-4 accent-primary"/>
-                    {c.image_url && (
-                        <img src={c.image_url} alt={c.title}
-                             className="w-16 h-10 object-cover rounded-md border border-border/40"/>
-                    )}
+                    <div className="w-16 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-muted to-muted/50 border border-border/40">
+                        {c.image_url ? (
+                            <img src={getFullUrl(c.image_url)} alt={c.title}
+                                 className="w-full h-full object-cover"
+                                 onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; const ph = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null; if (ph) ph.style.display = 'flex'; }}/>
+                        ) : null}
+                        <div className="w-full h-full items-center justify-center text-muted-foreground"
+                             style={{display: c.image_url ? 'none' : 'flex'}}>
+                            <ImageOff className="w-5 h-5"/>
+                        </div>
+                    </div>
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-foreground truncate">{c.title}</p>
                         {c.badge_text && <span className="text-xs text-muted-foreground">{c.badge_text}</span>}
@@ -2274,14 +2283,16 @@ const CreativeLibraryList: React.FC = () => {
                 <div className="space-y-2">
                     {creatives.map(c => (
                         <div key={c.id} className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30">
-                            <div className="w-16 h-10 rounded overflow-hidden bg-muted/30 flex-shrink-0">
+                            <div className="w-16 h-10 rounded overflow-hidden flex-shrink-0 bg-gradient-to-br from-muted to-muted/50">
                                 {c.image_url ? (
-                                    <img src={c.image_url} alt={c.title} className="w-full h-full object-cover"/>
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <ImageOff className="w-4 h-4 text-muted-foreground"/>
-                                    </div>
-                                )}
+                                    <img src={getFullUrl(c.image_url)} alt={c.title}
+                                         className="w-full h-full object-cover"
+                                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; const ph = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement | null; if (ph) ph.style.display = 'flex'; }}/>
+                                ) : null}
+                                <div className="w-full h-full items-center justify-center text-muted-foreground flex-col"
+                                     style={{display: c.image_url ? 'none' : 'flex'}}>
+                                    <ImageOff className="w-5 h-5"/>
+                                </div>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">

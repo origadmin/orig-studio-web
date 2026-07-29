@@ -133,7 +133,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
     };
 
     return (
-        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40 overflow-y-auto`}>
+        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40 overflow-y-auto yt-scrollbar sidebar-scrollbar`}>
             {/* Logo */}
             <div className={`flex items-center border-b border-sidebar-border ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
@@ -263,6 +263,13 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
             style={{left: collapsed ? '80px' : '240px'}}
         >
             <div className="flex items-center gap-4">
+                <button
+                    onClick={onToggleCollapse}
+                    className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground shrink-0"
+                    title={collapsed ? t('nav.expand', '展开菜单') : t('nav.collapse', '收起菜单')}
+                >
+                    <PanelLeft size={18}/>
+                </button>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
                     <Input
@@ -274,12 +281,6 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
             </div>
             <div className="flex items-center gap-4">
                 <LanguageSwitcher variant="compact"/>
-                <button
-                    onClick={onToggleCollapse}
-                    className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground"
-                >
-                    <PanelLeft size={18}/>
-                </button>
                 <NotificationBadge/>
                 <UploadCenter onNewUpload={handleNewUpload}/>
                 <button className="p-2 rounded-full hover:bg-accent transition-colors text-muted-foreground">

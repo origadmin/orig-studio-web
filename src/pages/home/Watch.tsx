@@ -31,13 +31,18 @@ import VideoPlayer, {VideoPlayerHandle, NextVideoInfo} from '@/components/common
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
 import {colorFromName} from '@/lib/utils/tag-color';
+import {mergeTagsWithHashtags} from '@/lib/utils/hashtag';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
+import type {Ad, AdCreative} from '@/lib/api/portal';
 
 const WATCHED_HISTORY_KEY = 'watch_autoplay_history';
 const WATCHED_HISTORY_LIMIT = 20;
+const SIDEBAR_AD_DECISION_KEY = 'ad-sidebar-decision-v1';   // {shown: bool, adId: string, decidedAt: timestamp}
+const SIDEBAR_AD_DECISION_TTL_MS = 10 * 60 * 1000;          // 10 分钟内同会话保持决策，不频繁跳变
+const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：70% 全局显示概率（后端 frequency/weight 字段缺失，前端先模拟）
 
 const getWatchedHistory = (): string[] => {
     try {
@@ -136,11 +141,47 @@ const WatchPage = () => {
     const error = mediaError ? t('watch.failedToLoad') : null;
 
     const {data: adPlacements = []} = usePublicAdPlacements();
-    const sidebarAds = React.useMemo(() => {
+    const sidebarAds = React.useMemo<Array<Ad | AdCreative>>(() => {
         const p = adPlacements.find(x => x.slug === 'watch-sidebar');
-        // 合并 legacy ads 与创意库 items（G6-3：创意一次定义，可被广告位复用）
-        const items = [...(p?.ads || []), ...(p?.creatives || [])];
-        return items;
+        const items = [...(p?.ads || []), ...(p?.creatives || [])] as Array<Ad | AdCreative>;
+        if (!items || items.length === 0) return [];
+
+        // Session storage 防抖：10 分钟内保持同一决策，避免连续刷新一会儿有一会儿无
+        let decision: {shown: boolean; adId?: string; decidedAt: number} | null = null;
+        try {
+            const raw = sessionStorage.getItem(SIDEBAR_AD_DECISION_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw) as {shown: boolean; adId?: string; decidedAt: number};
+                if (Date.now() - parsed.decidedAt < SIDEBAR_AD_DECISION_TTL_MS) {
+                    decision = parsed;
+                }
+            }
+        } catch {}
+
+        // 如果已有有效决策且 adId 仍然存在，则直接用该决策
+        if (decision) {
+            if (!decision.shown) return [];
+            if (decision.adId) {
+                const found = items.find(a => String(a.id) === String(decision.adId));
+                if (found) return [found];
+            }
+        }
+
+        // 首次决策：概率过滤
+        const shouldShow = Math.random() < SIDEBAR_AD_SHOW_PROBABILITY;
+        if (!shouldShow) {
+            try { sessionStorage.setItem(SIDEBAR_AD_DECISION_KEY, JSON.stringify({shown: false, decidedAt: Date.now()})); } catch {}
+            return [];
+        }
+
+        // 随机选 1 条（替代固定 sidebarAds[0]）
+        const chosen = items[Math.floor(Math.random() * items.length)];
+        try {
+            sessionStorage.setItem(SIDEBAR_AD_DECISION_KEY, JSON.stringify({
+                shown: true, adId: String(chosen.id), decidedAt: Date.now(),
+            }));
+        } catch {}
+        return [chosen];
     }, [adPlacements]);
 
     // Next video for YouTube-style autoplay countdown
@@ -402,15 +443,19 @@ const WatchPage = () => {
                                 <span>{formatViews(media.view_count)} {t('watch.views')}</span>
                                 <span className="text-muted-foreground/60">•</span>
                                 <span>{formatDate(media.create_time)}</span>
-                                {media.tags?.map(tag => (
-                                    <Link
-                                        key={tag}
-                                        to="/search"
-                                        search={{tag: tag}}
-                                        className="text-xs px-1.5 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                        style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
-                                    >#{tag}</Link>
-                                ))}
+                                {(() => {
+                                    // 双保险：1) 后端返回的 media.tags; 2) 从标题/描述文本解析 #hashtag 并合并去重（与 Search.tsx 一致）
+                                    const merged = mergeTagsWithHashtags(media.tags || [], media.title || '', media.description);
+                                    return merged.map(tag => (
+                                        <Link
+                                            key={tag}
+                                            to="/search"
+                                            search={{tag: tag}}
+                                            className="text-xs px-1.5 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                            style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
+                                        >#{tag}</Link>
+                                    ));
+                                })()}
                             </div>
                             <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                                 <HashtagText text={media.description || t('watch.noDescription')} />
