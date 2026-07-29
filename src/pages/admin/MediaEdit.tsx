@@ -16,6 +16,7 @@ import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 import {Badge} from '@/components/ui/badge';
 import {Separator} from '@/components/ui/separator';
+import {Alert, AlertTitle, AlertDescription} from '@/components/ui/alert';
 import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
@@ -310,15 +311,49 @@ export default function MediaEditPage() {
         if (id) {
             adminMediaApi.getStats(id).then(setStats).catch(() => {});
             adminMediaApi.getTasks(id).then((res) => setTasks(extractTasks(res))).catch(() => {});
-            // TODO(BUG-087后续): 接线 SSE 事件流实现转码进度实时更新
-            // 后端 SSE 端点已实现: GET /admin/medias/transcoding/events
-            // 前端 helper 已定义: encodingApi.getSSEUrl(mediaId)
-            // 待做: const es = new EventSource(encodingApi.getSSEUrl(id));
-            //       es.addEventListener('task_update', (e) => { ... setTasks ... });
-            //       es.addEventListener('task_complete', (e) => { ... invalidateQueries ... });
-            //       return () => es.close(); // 清理
         }
     }, [id]);
+
+    // SSE: 转码事件流实时更新
+    useEffect(() => {
+        if (!id) return;
+        const sseUrl = encodingApi.getSSEUrl(id);
+        let es: EventSource | null = null;
+        try {
+            es = new EventSource(sseUrl);
+            es.addEventListener('task_update', (e: MessageEvent) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    setTasks(prev => prev.map(t =>
+                        t.id === data.task_id ? {...t, status: data.status, progress: data.progress ?? t.progress} : t
+                    ));
+                } catch {}
+            });
+            es.addEventListener('task_complete', (e: MessageEvent) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    setTasks(prev => prev.map(t =>
+                        t.id === data.task_id ? {...t, status: data.status, progress: 100} : t
+                    ));
+                    // 转码完成,刷新 media 详情和 stats
+                    queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
+                    adminMediaApi.getStats(id).then(setStats).catch(() => {});
+                    adminMediaApi.getTasks(id).then((res) => setTasks(extractTasks(res))).catch(() => {});
+                } catch {}
+            });
+            es.onerror = () => {
+                // SSE 连接异常时静默处理(不影响用户操作)
+            };
+        } catch {
+            // EventSource 创建失败时静默降级(用户仍可手动刷新)
+        }
+        return () => {
+            if (es) {
+                es.close();
+                es = null;
+            }
+        };
+    }, [id, queryClient]);
 
     // Fetch encode profiles for profile name resolution
     useEffect(() => {
@@ -447,8 +482,15 @@ export default function MediaEditPage() {
             await queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
             toast.success(t('mediaEdit.integrityCheckScheduled', '完整性校验已启动'));
         } catch (err: any) {
-            const errMsg = err?.message || t('common.unknown', '未知错误');
-            toast.error(`${t('mediaEdit.integrityCheckFailed', '完整性校验失败')}: ${errMsg}`);
+            const status = err?.response?.status || err?.status;
+            if (status === 404 || String(err?.message || '').includes('404')) {
+                toast.info(t('mediaEdit.integrityNotAvailable', '完整性校验功能尚未上线'), {
+                    description: t('mediaEdit.integrityNotAvailableDesc', '后端 API 尚未实现,预计后续版本支持。'),
+                });
+            } else {
+                const errMsg = err?.message || t('common.unknown', '未知错误');
+                toast.error(`${t('mediaEdit.integrityCheckFailed', '完整性校验失败')}: ${errMsg}`);
+            }
             console.error('Failed to check integrity', err);
         } finally {
             setIntegrityChecking(false);
@@ -466,8 +508,15 @@ export default function MediaEditPage() {
             await queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
             toast.success(t('mediaEdit.repairScheduled', '内容修复已调度,缺失分段将重新转码'));
         } catch (err: any) {
-            const errMsg = err?.message || t('common.unknown', '未知错误');
-            toast.error(`${t('mediaEdit.repairFailed', '内容修复失败')}: ${errMsg}`);
+            const status = err?.response?.status || err?.status;
+            if (status === 404 || String(err?.message || '').includes('404')) {
+                toast.info(t('mediaEdit.repairNotAvailable', '内容修复功能尚未上线'), {
+                    description: t('mediaEdit.repairNotAvailableDesc', '后端 API 尚未实现,预计后续版本支持。'),
+                });
+            } else {
+                const errMsg = err?.message || t('common.unknown', '未知错误');
+                toast.error(`${t('mediaEdit.repairFailed', '内容修复失败')}: ${errMsg}`);
+            }
             console.error('Failed to repair media', err);
         } finally {
             setRepairing(false);
@@ -880,6 +929,59 @@ export default function MediaEditPage() {
                     </Button>
                 </div>
             </div>
+
+            {/* 转码状态横幅 */}
+            {media.encoding_status === 'processing' && (
+                <Alert variant="info">
+                    <Loader2 className="w-4 h-4 animate-spin"/>
+                    <AlertTitle>{t('mediaEdit.encodingInProgress', '转码进行中')}</AlertTitle>
+                    <AlertDescription>
+                        {t('mediaEdit.encodingInProgressDesc', '视频正在转码处理中,完成后将自动刷新。请勿关闭页面。')}
+                        {taskSummary.processing > 0 && (
+                            <span className="ml-2 font-mono text-xs">
+                                {taskSummary.processing}/{taskSummary.total} {t('common.status.processing', '处理中')}
+                            </span>
+                        )}
+                    </AlertDescription>
+                </Alert>
+            )}
+            {media.encoding_status === 'pending' && (
+                <Alert variant="warning">
+                    <Clock className="w-4 h-4"/>
+                    <AlertTitle>{t('mediaEdit.encodingQueued', '等待转码')}</AlertTitle>
+                    <AlertDescription>
+                        {t('mediaEdit.encodingQueuedDesc', '视频已加入转码队列,等待处理。')}
+                        {taskSummary.pending > 0 && (
+                            <span className="ml-2 font-mono text-xs">
+                                {taskSummary.pending} {t('common.status.pending', '排队中')}
+                            </span>
+                        )}
+                    </AlertDescription>
+                </Alert>
+            )}
+            {media.encoding_status === 'failed' && (
+                <Alert variant="destructive">
+                    <XCircle className="w-4 h-4"/>
+                    <AlertTitle>{t('mediaEdit.encodingFailedTitle', '转码失败')}</AlertTitle>
+                    <AlertDescription>
+                        {t('mediaEdit.encodingFailedDesc', '视频转码失败,请在编码任务 Tab 中查看详情或重试。')}
+                        {taskSummary.failed > 0 && (
+                            <span className="ml-2 font-mono text-xs">
+                                {taskSummary.failed} {t('common.status.failed', '失败')}
+                            </span>
+                        )}
+                    </AlertDescription>
+                </Alert>
+            )}
+            {media.encoding_status === 'partial' && (
+                <Alert variant="warning">
+                    <AlertTriangle className="w-4 h-4"/>
+                    <AlertTitle>{t('mediaEdit.encodingPartialTitle', '部分转码完成')}</AlertTitle>
+                    <AlertDescription>
+                        {t('mediaEdit.encodingPartialDesc', '部分清晰度转码成功,部分失败。请在编码任务 Tab 中查看详情。')}
+                    </AlertDescription>
+                </Alert>
+            )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full justify-start rounded-t-xl rounded-b-none border-b bg-card p-0 h-auto">
