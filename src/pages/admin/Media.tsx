@@ -199,12 +199,9 @@ export default function MediaPage() {
     const getStatusFromMedia = (media: Media): StatusDotStatus => {
         const enc = media.encoding_status;
         const st = media.state;
-        // BUG-087 后续: 完整性失败映射为 partial,不覆盖 encoding 的 failed
-        const itg = media.integrity_status;
         if (enc === 'failed') return 'failed';
         if (enc === 'processing') return 'processing';
         if (enc === 'pending') return 'pending';
-        if (itg === 'failed' || itg === 'partial') return 'partial';
         if (enc === 'partial') return 'partial';
         if (enc === 'success' || st === 'active') return 'success';
         if (st === 'draft') return 'draft';
