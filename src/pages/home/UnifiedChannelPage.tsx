@@ -53,8 +53,13 @@ const ChannelPage: React.FC = () => {
     const error = activeQuery.error;
 
     const isOwner = useMemo(() => {
-        if (!user || !channel) return false;
         if (isFromMeChannel) return true;
+        if (!channel) return false;
+        // BUG-085: prefer backend-provided is_owner (authoritative, avoids
+        // auth-state races during token refresh). Fall back to client-side
+        // id comparison only when backend didn't provide the flag.
+        if (channel.is_owner !== undefined) return channel.is_owner;
+        if (!user) return false;
         return String(user.id) === String(channel.user_id);
     }, [user, channel, isFromMeChannel]);
 

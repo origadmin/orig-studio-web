@@ -34,6 +34,11 @@ const ChannelPage = () => {
                 const vid = videosRes?.data?.items || videosRes?.items || [];
                 setVideos(normalizeMediaList(vid));
             })
+            .catch(err => {
+                // BUG-086: catch rejection to prevent "Uncaught (in promise)" in console.
+                // channel_not_found / network errors are handled here via empty state below.
+                console.error('Failed to fetch channel page:', err);
+            })
             .finally(() => setLoading(false));
     }, [id]);
 

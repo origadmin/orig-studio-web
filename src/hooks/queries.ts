@@ -360,22 +360,28 @@ export function usePublicProfile(username: string | null) {
                 subscriber_count: raw.subscriber_count || 0,
                 created_at: raw.create_time || raw.created_at,
                 default_channel_token: raw.default_channel_token || undefined,
-                // is_owner computed outside queryFn via useMemo below,
-                // so it stays in sync with auth state changes.
+                // BUG-085: preserve backend-provided is_me so is_owner can be
+                // derived authoritatively without auth-state race conditions.
+                is_me: raw.is_me,
                 is_subscribed: raw.is_subscribed || false,
-            } as Omit<PublicProfile, 'is_owner'>;
+            } as Omit<PublicProfile, 'is_owner'> & { is_me?: boolean };
         },
         enabled: !!username,
     });
 
-    // Derive is_owner from current auth state and profile data.
-    // Using useMemo ensures is_owner is recomputed whenever auth state changes,
-    // without requiring a re-fetch of the profile data.
+    // Derive is_owner: prefer backend is_me (authoritative), fall back to
+    // client-side username comparison. The fallback can briefly be false
+    // during token refresh, but is_me stays stable since it's part of the
+    // cached profile response.
     const data = useMemo(() => {
         if (!query.data) return undefined;
+        const backendIsMe = (query.data as any).is_me;
+        const isOwner = backendIsMe !== undefined
+            ? backendIsMe === true
+            : (isAuthenticated && !!currentUser && currentUser.username === query.data.username);
         return {
             ...query.data,
-            is_owner: isAuthenticated && !!currentUser && currentUser.username === query.data.username,
+            is_owner: isOwner,
         } as PublicProfile;
     }, [query.data, isAuthenticated, currentUser]);
 
