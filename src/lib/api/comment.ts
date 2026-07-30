@@ -119,21 +119,52 @@ export const commentApi = {
         content_id?: string; contentId?: string;
         parent_id?: string; content: string;
     }) => {
-        // Prefer the media-scoped endpoint (POST /api/v1/medias/:token/comments)
-        // so we don't have to care about route-shadowing between the HTTP-native
-        // comment handler and the gRPC-gateway CreateComment endpoint. The
-        // media-scoped URL accepts both UUID ids and short tokens and only
-        // expects {comment:{content, parent_id}} in the body.
-        const primaryId = data.mediaId || data.media_id || data.contentId || data.content_id;
-        const body: Record<string, unknown> = {content: data.content};
-        if (data.parent_id) body.parent_id = data.parent_id;
+        // DUAL-FORMAT PAYLOAD (belt-and-suspenders approach).
+        // Because the gRPC-gateway CreateComment endpoint and the HTTP-native
+        // comment handler may shadow each other depending on Kratos/Gorilla
+        // route-registration order and Gateway restart state, we send BOTH
+        // payload shapes in a single request so either handler parses it:
+        //   - Nested {comment:{content|text, media_id|mediaId|content_id|contentId}}
+        //   - Flat   {text|content, media_id|mediaId|content_id|contentId}
+        // Both "content" and "text" field names are populated because the
+        // protobuf CreateCommentRequest binds to "text" while the HTTP handler
+        // historically reads "content".
+        const primaryId = data.mediaId || data.media_id || data.contentId || data.content_id || '';
+
+        // Build the nested comment wrapper (HTTP handler convention).
+        const nestedComment: Record<string, unknown> = {
+            content: data.content,
+            text: data.content,
+        };
+        // Attach media-id under every naming variant so binding works regardless
+        // of which field the active handler happens to inspect.
+        if (data.media_id)    (nestedComment as any).media_id    = data.media_id;
+        if (data.mediaId)     (nestedComment as any).mediaId     = data.mediaId;
+        if (data.content_id)  (nestedComment as any).content_id  = data.content_id;
+        if (data.contentId)   (nestedComment as any).contentId   = data.contentId;
+        if (data.parent_id)   (nestedComment as any).parent_id   = data.parent_id;
+
+        // Build the flat top-level payload (gRPC proto convention).
+        const body: Record<string, unknown> = {
+            comment: nestedComment,
+            content: data.content,
+            text:    data.content,
+        };
+        if (data.media_id)    (body as any).media_id    = data.media_id;
+        if (data.mediaId)     (body as any).mediaId     = data.mediaId;
+        if (data.content_id)  (body as any).content_id  = data.content_id;
+        if (data.contentId)   (body as any).contentId   = data.contentId;
+        if (data.parent_id)   (body as any).parent_id   = data.parent_id;
+
+        // Prefer the dedicated media-scoped endpoint (POST /api/v1/medias/:id/comments)
+        // when a media id is available, because it bypasses the gRPC-gateway
+        // shadowing issue entirely (4-segment exact Gorilla match beats the
+        // 3-segment proto route). Fall back to the generic /comments endpoint
+        // when no media id is supplied; the dual-format body still works.
         if (primaryId) {
-            return api.post<Comment>(`/medias/${encodeURIComponent(primaryId)}/comments`, {comment: body});
+            return api.post<Comment>(`/medias/${encodeURIComponent(primaryId)}/comments`, body);
         }
-        // Fallback to the generic /comments endpoint when no media id is
-        // provided (e.g. system-level comments). Keep the nested wrapper so
-        // the HTTP-native handler can still bind it.
-        return api.post<Comment>("/comments", {comment: body});
+        return api.post<Comment>("/comments", body);
     },
     update: (id: string, data: { text: string }) =>
         api.put<Comment>(`/comments/${id}`, {

@@ -18,7 +18,15 @@ import AdDisplay from '@/components/portal/AdDisplay';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
     const user = media?.edges?.user?.[0];
+    const [imgError, setImgError] = React.useState(false);
+    const [avatarError, setAvatarError] = React.useState(false);
     const thumbUrl = getImageUrl(media?.thumbnail || media?.poster, 'thumbnail');
+    const avatarUrl = getImageUrl(user?.avatar, 'avatar');
+    const hasThumbnail = !!(media?.thumbnail || media?.poster) && !imgError;
+    const hasAvatar = !!user?.avatar && !avatarError;
+
+    const handleThumbError = () => setImgError(true);
+    const handleAvatarError = () => setAvatarError(true);
 
     const sizeClasses = {
         sm: {title: 'text-xs', meta: 'text-[11px]', gap: 'gap-2', avatar: 'w-5 h-5', pad: 'pt-2'},
@@ -33,14 +41,25 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
             search={{v: media?.short_token, autoplay: undefined}}
             className="group block w-full"
         >
-            <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
-                <img
-                    src={thumbUrl}
-                    alt={media?.title}
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                />
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                {hasThumbnail ? (
+                    <img
+                        src={thumbUrl}
+                        alt={media?.title}
+                        onError={handleThumbError}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-1.5 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
+                                <Play className="w-6 h-6 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
+                            </div>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                        </div>
+                    </div>
+                )}
                 <div className="absolute bottom-1.5 right-1.5 bg-black/85 text-white text-[11px] font-medium px-1.5 py-0.5 rounded">
                     {formatDuration(media?.duration || 0)}
                 </div>
@@ -55,12 +74,18 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
                     {media?.title || 'Untitled'}
                 </h3>
                 <div className="flex items-center gap-1.5 mb-1">
-                    <img
-                        src={getImageUrl(user?.avatar, 'avatar')}
-                        alt={user?.username}
-                        onError={(e) => handleImageError(e, 'avatar')}
-                        className={`${s.avatar} rounded-full object-cover flex-shrink-0`}
-                    />
+                    {hasAvatar ? (
+                        <img
+                            src={avatarUrl}
+                            alt={user?.username}
+                            onError={handleAvatarError}
+                            className={`${s.avatar} rounded-full object-cover flex-shrink-0`}
+                        />
+                    ) : (
+                        <div className={`${s.avatar} rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-[10px] font-bold text-primary flex-shrink-0`}>
+                            {(user?.nickname || user?.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                    )}
                     <span className={`${s.meta} text-muted-foreground truncate`}>
                         {user?.nickname || user?.username || 'Unknown'}
                     </span>

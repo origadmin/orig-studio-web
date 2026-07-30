@@ -20,20 +20,38 @@ interface VideoCardWithHoverProps {
 
 const VideoCardWithHover: React.FC<VideoCardWithHoverProps> = ({video}) => {
     const {t} = useTranslation();
+    const [imgError, setImgError] = React.useState(false);
+    const thumbnailUrl = getImageUrl(video.thumbnail, 'thumbnail');
+    const hasThumbnail = !!video.thumbnail && !imgError;
+
+    const handleThumbnailError = () => {
+        setImgError(true);
+    };
 
     return (
         <div
             className="group cursor-pointer rounded-xl bg-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border border-border">
             {/* Thumbnail area */}
             <Link to="/watch" search={{v: video.short_token || String(video.id)}}
-                  className="block relative aspect-video overflow-hidden">
-                <img
-                    src={getImageUrl(video.thumbnail, 'thumbnail')}
-                    alt={video.title}
-                    loading="lazy"
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                />
+                  className="block relative aspect-video overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                {hasThumbnail ? (
+                    <img
+                        src={thumbnailUrl}
+                        alt={video.title}
+                        loading="lazy"
+                        onError={handleThumbnailError}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
+                                <Play className="w-7 h-7 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
+                            </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Duration badge */}
                 <div

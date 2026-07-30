@@ -6,7 +6,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {useSearch, useNavigate, Link} from '@tanstack/react-router';
 import {
-    Loader2, RefreshCw, AlertTriangle, Trash2, FileText, Eye, Pencil
+    Loader2, RefreshCw, AlertTriangle, Trash2, FileText, Eye, Pencil, Play
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Switch} from '@/components/ui/switch';
@@ -73,6 +73,56 @@ const clearWatchedHistory = () => {
     }
 };
 
+// Recommendation video card with proper image placeholder
+const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, recUser}) => {
+    const [imgError, setImgError] = useState(false);
+    const imageUrl = getImageUrl(item.thumbnail || item.poster, 'thumbnail');
+    const hasImage = !!(item.thumbnail || item.poster) && !imgError;
+
+    return (
+        <Link
+            to="/watch"
+            search={{v: item.short_token, autoplay: undefined}}
+            className="flex gap-3 group"
+        >
+            <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                {hasImage ? (
+                    <img
+                        src={imageUrl}
+                        alt={item.title}
+                        loading="lazy"
+                        onError={() => setImgError(true)}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-8 h-8 mx-auto mb-1 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
+                                <Play className="w-4 h-4 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <div
+                    className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1 rounded">
+                    {formatDuration(item.duration)}
+                </div>
+            </div>
+            <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-info transition-colors">
+                    {item.title}
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">{recUser?.nickname || recUser?.username || 'Unknown'}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatViews(item.view_count)} views</span>
+                    <span>·</span>
+                    <span>{formatDate(item.create_time)}</span>
+                </div>
+            </div>
+        </Link>
+    );
+};
+
 const WatchPage = () => {
     const {t} = useTranslation();
     const {v: shortToken, autoplay: urlAutoPlay} = useSearch({strict: false});
@@ -85,9 +135,17 @@ const WatchPage = () => {
 
     const [retrying, setRetrying] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [commentCount, setCommentCount] = useState(media?.comment_count || 0);
     const commentSectionRef = useRef<HTMLDivElement>(null);
     const viewCountedRef = useRef(false);
     const addedToHistoryRef = useRef(false);
+
+    // Sync commentCount when media loads
+    useEffect(() => {
+        if (media?.comment_count !== undefined) {
+            setCommentCount(media.comment_count);
+        }
+    }, [media?.comment_count]);
 
     // Reset view count and history flag when shortToken changes
     useEffect(() => {
@@ -430,7 +488,7 @@ const WatchPage = () => {
                             <InteractionBar
                                 mediaId={String(media.id)}
                                 shortToken={media.short_token || (shortToken as string)}
-                                commentCount={media.comment_count}
+                                commentCount={commentCount}
                                 isOwner={user != null && String(user.id) === String(media.user_id)}
                                 onCommentClick={() => {
                                     commentSectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -469,7 +527,10 @@ const WatchPage = () => {
 
                     {/* Comments Section */}
                     <div className="mt-8" ref={commentSectionRef}>
-                        <CommentSection mediaId={String(media.id)}/>
+                        <CommentSection 
+                            mediaId={String(media.id)}
+                            onCommentCountChange={setCommentCount}
+                        />
                     </div>
                 </div>
             </div>
@@ -499,40 +560,8 @@ const WatchPage = () => {
                     ) : (
                         recommendations.map((item: Media) => {
                             const recUser = item.edges?.user?.[0];
-                            const recThumb = getImageUrl(item.thumbnail, 'thumbnail');
-
                             return (
-                                <Link
-                                    key={item.id}
-                                    to="/watch"
-                                    search={{v: item.short_token, autoplay: undefined}}
-                                    className="flex gap-3 group"
-                                >
-                                    <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0">
-                                        <img
-                                            src={recThumb}
-                                            alt={item.title}
-                                            loading="lazy"
-                                            onError={(e) => handleImageError(e, 'thumbnail')}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                        <div
-                                            className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1 rounded">
-                                            {formatDuration(item.duration)}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-info transition-colors">
-                                            {item.title}
-                                        </h4>
-                                        <p className="text-xs text-muted-foreground mt-1">{recUser?.nickname || recUser?.username || 'Unknown'}</p>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                            <span>{formatViews(item.view_count)} views</span>
-                                            <span>·</span>
-                                            <span>{formatDate(item.create_time)}</span>
-                                        </div>
-                                    </div>
-                                </Link>
+                                <RecommendationVideoCard key={item.id} item={item} recUser={recUser}/>
                             );
                         })
                     )}

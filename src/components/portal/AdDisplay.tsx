@@ -26,6 +26,7 @@ const isTrackableAd = (item: Ad | AdCreative): item is Ad =>
 
 const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     const {t} = useTranslation();
+    const [imgError, setImgError] = React.useState(false);
 
     const handleImpression = async () => {
         if (!isTrackableAd(ad)) return;
@@ -46,12 +47,12 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     }, []);
 
     const imageUrl = getAdImageUrl(ad);
+    const hasImage = !!imageUrl && !imgError;
     const badgeLabel = ad.badge_text || t('ad.sponsored', '赞助');
 
-    // 统一兜底：图片加载失败（如服务端资源 404）时隐藏 <img>，避免破图/空白方块；
-    // 卡片仍展示背景渐变 + badge + 标题，视觉上保持完整。
-    const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-        e.currentTarget.style.display = 'none';
+    // 统一兜底：图片加载失败（如服务端资源 404）时显示占位符，避免破图/空白方块
+    const handleImgError = () => {
+        setImgError(true);
     };
 
     if (variant === 'leaderboard') {
@@ -76,8 +77,19 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     if (variant === 'rectangle') {
         return (
             <div className="w-full max-w-[300px] bg-card border border-border/40 rounded-lg overflow-hidden">
-                {ad.image_url && (
+                {hasImage ? (
                     <img src={imageUrl} alt={ad.title} className="w-full h-[150px] object-cover" onError={handleImgError}/>
+                ) : (
+                    <div className="w-full h-[150px] bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">{badgeLabel}</span>
+                        </div>
+                    </div>
                 )}
                 <div className="p-3">
                     <Badge variant="outline" className="text-xs mb-1">{badgeLabel}</Badge>
@@ -96,24 +108,33 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
     if (variant === 'feed') {
         return (
             <div className="bg-muted/20 border border-dashed border-border/60 rounded-lg overflow-hidden group h-full flex flex-col">
-                {ad.image_url && (
-                    <a
-                        href={ad.link_url || '#'}
-                        target={ad.link_url ? '_blank' : undefined}
-                        rel="noopener noreferrer"
-                        onClick={handleClick}
-                        className="relative aspect-video overflow-hidden block"
-                    >
+                <a
+                    href={ad.link_url || '#'}
+                    target={ad.link_url ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                    onClick={handleClick}
+                    className="relative aspect-video overflow-hidden block"
+                >
+                    {hasImage ? (
                         <img src={imageUrl} alt={ad.title}
                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                              onError={handleImgError}/>
-                        <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
-                            {badgeLabel}
-                        </Badge>
-                    </a>
-                )}
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20 flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="w-10 h-10 mx-auto mb-1 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                    <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
+                        {badgeLabel}
+                    </Badge>
+                </a>
                 <div className="p-3 flex-1 flex flex-col">
-                    {!ad.image_url && <Badge variant="outline" className="text-xs mb-1 self-start">{badgeLabel}</Badge>}
                     <p className="text-sm font-medium line-clamp-2 flex-1">{ad.title}</p>
                     {ad.link_url && (
                         <a href={ad.link_url} target="_blank" rel="noopener noreferrer" onClick={handleClick}
@@ -133,12 +154,23 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                 target={ad.link_url ? '_blank' : undefined}
                 rel="noopener noreferrer"
                 onClick={handleClick}
-                className="relative block w-full aspect-[4/3] rounded-lg overflow-hidden border border-dashed border-amber-500/40 group bg-muted/20"
+                className="relative block w-full aspect-[4/3] rounded-lg overflow-hidden border border-dashed border-amber-500/40 group bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20"
             >
-                {ad.image_url && (
+                {hasImage ? (
                     <img src={imageUrl} alt={ad.title}
                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                          onError={handleImgError}/>
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">{badgeLabel}</span>
+                        </div>
+                    </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
                 <Badge variant="secondary" className="absolute top-2 right-2 text-xs bg-background/80 backdrop-blur-sm text-amber-600 border-amber-500/40">
@@ -153,24 +185,33 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
 
     return (
         <div className="bg-card border border-border/40 rounded-lg overflow-hidden group h-full flex flex-col">
-            {ad.image_url && (
-                <a
-                    href={ad.link_url || '#'}
-                    target={ad.link_url ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                    onClick={handleClick}
-                    className="relative aspect-video overflow-hidden block"
-                >
+            <a
+                href={ad.link_url || '#'}
+                target={ad.link_url ? '_blank' : undefined}
+                rel="noopener noreferrer"
+                onClick={handleClick}
+                className="relative aspect-video overflow-hidden block"
+            >
+                {hasImage ? (
                     <img src={imageUrl} alt={ad.title}
                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                          onError={handleImgError}/>
-                    <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
-                        {badgeLabel}
-                    </Badge>
-                </a>
-            )}
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-10 h-10 mx-auto mb-1 rounded-full bg-amber-500/10 flex items-center justify-center">
+                                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
+                    {badgeLabel}
+                </Badge>
+            </a>
             <div className="p-3 flex-1 flex flex-col">
-                {!ad.image_url && <Badge variant="outline" className="text-xs mb-1 self-start">{badgeLabel}</Badge>}
                 <p className="text-sm font-medium line-clamp-2 flex-1">{ad.title}</p>
                 {ad.link_url && (
                     <a href={ad.link_url} target="_blank" rel="noopener noreferrer" onClick={handleClick}

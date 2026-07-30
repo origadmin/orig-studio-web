@@ -51,6 +51,13 @@ type SortMode = 'latest' | 'popular';
 const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
     const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
+    const [imgError, setImgError] = React.useState(false);
+    const imageUrl = getImageUrl(item.thumbnail || item.poster, 'thumbnail');
+    const hasImage = !!(item.thumbnail || item.poster) && !imgError;
+
+    const handleImageError = () => {
+        setImgError(true);
+    };
 
     return (
         <Link
@@ -58,14 +65,25 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl">
-                <img
-                    src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
-                    alt={item.title}
-                    loading="eager"
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
-                />
+            <div className="relative w-full aspect-[21/9] overflow-hidden rounded-xl bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 dark:from-slate-700 dark:via-slate-800 dark:to-slate-900">
+                {hasImage ? (
+                    <img
+                        src={imageUrl}
+                        alt={item.title}
+                        loading="eager"
+                        onError={handleImageError}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-white/20 dark:bg-white/10 flex items-center justify-center">
+                                <Play className="w-10 h-10 text-white/80 ml-1" fill="currentColor"/>
+                            </div>
+                            <span className="text-sm text-white/70 font-medium">精选视频</span>
+                        </div>
+                    </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"/>
                 <div className="absolute top-6 left-6">
                     <Badge className="bg-orange-500 text-white border-0 font-semibold px-3 py-1">
@@ -120,6 +138,13 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
 const VideoCard: React.FC<{item: FeaturedItem}> = ({item}) => {
     const {t} = useTranslation();
     const user = item.edges?.user?.[0] || item.user;
+    const [imgError, setImgError] = React.useState(false);
+    const imageUrl = getImageUrl(item.thumbnail || item.poster, 'thumbnail');
+    const hasImage = !!(item.thumbnail || item.poster) && !imgError;
+
+    const handleImageError = () => {
+        setImgError(true);
+    };
 
     return (
         <Link
@@ -127,14 +152,25 @@ const VideoCard: React.FC<{item: FeaturedItem}> = ({item}) => {
             search={{v: item.short_token || item.id}}
             className="group block"
         >
-            <div className="relative aspect-video overflow-hidden rounded-xl bg-muted">
-                <img
-                    src={getImageUrl(item.thumbnail || item.poster, 'thumbnail')}
-                    alt={item.title}
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                />
+            <div className="relative aspect-video overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                {hasImage ? (
+                    <img
+                        src={imageUrl}
+                        alt={item.title}
+                        onError={handleImageError}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-1.5 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
+                                <Play className="w-6 h-6 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
+                            </div>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                        </div>
+                    </div>
+                )}
                 <div className="absolute top-2.5 left-2.5">
                     <Badge variant="secondary" className="bg-orange-500/90 text-white border-0 text-[10px] font-semibold px-2 py-0.5">
                         <Star size={9} className="mr-0.5 fill-current"/>

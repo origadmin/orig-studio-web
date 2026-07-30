@@ -61,6 +61,13 @@ const VideoCard: React.FC<VideoCardProps> = ({
     const {user} = useAuth();
     const [isHovered, setIsHovered] = useState(false);
     const [showReportDialog, setShowReportDialog] = useState(false);
+    const [imgError, setImgError] = React.useState(false);
+    const thumbnailUrl = getImageUrl(video.thumbnail, 'thumbnail');
+    const hasThumbnail = !!video.thumbnail && !imgError;
+
+    const handleThumbnailError = () => {
+        setImgError(true);
+    };
 
     const isActuallyOwner = isOwner || (user?.id && video.user?.id && user.id === video.user.id);
 
@@ -172,14 +179,25 @@ const VideoCard: React.FC<VideoCardProps> = ({
             onClick={() => navigate({to: '/watch', search: {v: video.short_token || String(video.id)}})}
         >
             {/* Thumbnail */}
-            <div className="relative aspect-video bg-muted rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200">
-                <img
-                    src={getImageUrl(video.thumbnail, 'thumbnail')}
-                    alt={video.title}
-                    className={`w-full h-full object-cover transition-transform duration-300 ${isHovered ? 'scale-105' : 'scale-100'}`}
-                    loading="lazy"
-                    onError={(e) => handleImageError(e, 'thumbnail')}
-                />
+            <div className="relative aspect-video bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200">
+                {hasThumbnail ? (
+                    <img
+                        src={thumbnailUrl}
+                        alt={video.title}
+                        className={`w-full h-full object-cover transition-transform duration-300 ${isHovered ? 'scale-105' : 'scale-100'}`}
+                        loading="lazy"
+                        onError={handleThumbnailError}
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
+                                <Play className="w-7 h-7 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
+                            </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Duration badge */}
                 {video.duration && (

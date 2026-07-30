@@ -14,6 +14,7 @@ import {toast} from 'sonner';
 
 interface CommentSectionProps {
     mediaId: string;
+    onCommentCountChange?: (count: number) => void;
 }
 
 interface Comment {
@@ -305,7 +306,7 @@ const CommentItem: React.FC<{
     );
 };
 
-const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
+const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountChange}) => {
     const {t} = useTranslation();
     const {isAuthenticated, user} = useAuth();
     const navigate = useNavigate();
@@ -449,6 +450,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId}) => {
     useEffect(() => {
         fetchComments(1, false);
     }, [mediaId, sortBy]);
+
+    useEffect(() => {
+        if (onCommentCountChange) {
+            onCommentCountChange(total);
+        }
+    }, [total, onCommentCountChange]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
