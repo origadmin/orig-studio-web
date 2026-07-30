@@ -1253,10 +1253,12 @@ const AdManagerTab: React.FC = () => {
         queryKey: ['admin', 'placementCreatives', selectedPlacementId],
         queryFn: () => adminPlacementCreativesApi.list(selectedPlacementId),
         enabled: !!selectedPlacementId,
+        select: (data) => Array.isArray(data) ? data : [],
     });
     const {data: allCreatives = []} = useQuery({
         queryKey: ['admin', 'creatives'],
         queryFn: () => adminCreativesApi.list(),
+        select: (data) => Array.isArray(data) ? data : [],
     });
     const creatives = allCreatives.filter(c => boundIds.includes(c.id));
     const adsLoading = boundLoading;
@@ -1629,13 +1631,15 @@ const AdManagerTab: React.FC = () => {
     const handleConfirmDelete = async () => {
         try {
             if (deleteType === 'placement' && deletingPlacement) {
+                // 如果删除的是当前选中的广告位，先清空选中避免后续用已删除ID发请求
+                const wasSelected = selectedPlacementId === deletingPlacement.id;
+                if (wasSelected) {
+                    setSelectedPlacementId('');
+                    queryClient.removeQueries({queryKey: ['admin', 'placementCreatives', deletingPlacement.id]});
+                }
                 await deletePlacementMutation.mutateAsync(deletingPlacement.id);
                 toast.success(t('admin.placementDeleteSuccess', '广告位已删除'));
-                // 如果删除的是当前选中的广告位，清空选中
-                if (selectedPlacementId === deletingPlacement.id) {
-                    setSelectedPlacementId('');
-                }
-                queryClient.invalidateQueries({queryKey: ['adminAdPlacements']});
+                queryClient.invalidateQueries({queryKey: ['admin', 'adPlacements']});
             } else if (deleteType === 'creative' && deletingCreative) {
                 if (selectedPlacementId) {
                     await adminPlacementCreativesApi.unassign(selectedPlacementId, deletingCreative.id);
@@ -2114,8 +2118,10 @@ const AssignCreativesInline: React.FC<{
                     adminPlacementCreativesApi.list(placementId),
                 ]);
                 if (cancelled) return;
-                setCreatives(all);
-                setSelected(new Set(assigned));
+                const safeAll = Array.isArray(all) ? all : [];
+                const safeAssigned = Array.isArray(assigned) ? assigned : [];
+                setCreatives(safeAll);
+                setSelected(new Set(safeAssigned));
             } catch (err) {
                 console.error('Failed to load creatives:', err);
             } finally {
@@ -2137,7 +2143,8 @@ const AssignCreativesInline: React.FC<{
         if (!placementId) return;
         setSaving(true);
         try {
-            const assigned = await adminPlacementCreativesApi.list(placementId);
+            const assignedRaw = await adminPlacementCreativesApi.list(placementId);
+            const assigned = Array.isArray(assignedRaw) ? assignedRaw : [];
             const toAdd = [...selected].filter(id => !assigned.includes(id));
             const toRemove = assigned.filter(id => !selected.has(id));
             await Promise.all([
