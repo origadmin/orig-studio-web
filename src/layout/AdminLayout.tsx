@@ -133,7 +133,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
     };
 
     return (
-        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40`}>
+        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40 relative`}>
             {/* Logo */}
             <div className={`flex items-center border-b border-sidebar-border flex-shrink-0 ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
@@ -204,24 +204,30 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                 </div>
             )}
 
-            {/* Bottom Actions: Collapse + Exit */}
+            {/* Bottom Actions: Exit only (collapse moved to sidebar edge) */}
             <div className={`${collapsed ? 'p-2' : 'px-4 py-2'} border-t border-sidebar-border flex-shrink-0`}>
-                <button
-                    onClick={onToggleCollapse}
-                    className={`w-full flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2 py-2'} text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/10 rounded-lg transition-colors`}
-                    title={collapsed ? t('nav.expand', '展开菜单') : t('nav.collapse', '收起菜单')}
-                >
-                    <PanelLeft size={20} className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}/>
-                    {!collapsed && <span className="text-sm font-medium">{t('nav.collapse', '收起菜单')}</span>}
-                </button>
                 <Link
                     to="/"
-                    className={`mt-1 flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2 py-2'} text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/10 rounded-lg transition-colors`}
+                    className={`flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-2 py-2'} text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/10 rounded-lg transition-colors`}
                 >
                     <LogOut size={20}/>
                     {!collapsed && <span className="text-sm font-medium">{t('admin.exitAdmin')}</span>}
                 </Link>
             </div>
+
+            {/* Collapse/Expand toggle — attached to sidebar right edge */}
+            <button
+                onClick={onToggleCollapse}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-50
+                           h-8 w-8 rounded-full border border-sidebar-border
+                           bg-sidebar text-sidebar-foreground/60
+                           hover:text-sidebar-foreground hover:bg-sidebar-accent/20
+                           shadow-md flex items-center justify-center
+                           transition-all duration-300"
+                title={collapsed ? t('nav.expand', '展开菜单') : t('nav.collapse', '收起菜单')}
+            >
+                <PanelLeft size={16} className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}/>
+            </button>
         </aside>
     );
 });
