@@ -605,7 +605,7 @@ const BannersTab: React.FC = () => {
         setEditDialogOpen(true);
     };
 
-    const aspectClass = globalSettings.display_mode === 'narrow' ? 'aspect-video' : 'aspect-[21/9]';
+    const aspectClass = globalSettings.display_mode === 'narrow' ? 'h-40' : 'h-48';
 
     const formatExpiry = (iso?: string): string => {
         if (!iso) return t('admin.noExpiry', '永不过期');
@@ -1094,15 +1094,15 @@ const BannersTab: React.FC = () => {
                                 </div>
 
                                 <div className="p-4 space-y-2.5">
-                                    <div className="min-h-[2.5rem]">
+                                    <div className="min-h-[3.5rem]">
                                         <div className="flex items-start justify-between gap-2">
-                                            <h3 className="font-semibold text-sm leading-tight line-clamp-1 flex-1">{banner.title || t('admin.untitled', '未命名')}</h3>
+                                            <h3 className="font-semibold text-sm leading-tight line-clamp-2 flex-1">{banner.title || t('admin.untitled', '未命名')}</h3>
                                             <Badge variant="outline" className={`text-[10px] font-semibold px-1.5 py-0 rounded shrink-0 ${typeMeta.cls}`}>
                                                 {typeMeta.label}
                                             </Badge>
                                         </div>
                                         {banner.subtitle && (
-                                            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{banner.subtitle}</p>
+                                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{banner.subtitle}</p>
                                         )}
                                     </div>
 
@@ -1390,85 +1390,123 @@ const AdManagerTab: React.FC = () => {
     };
 
     const PlacementPreview: React.FC<{slug: string; name: string}> = ({slug}) => {
-        const previewStyles: Record<string, React.ReactNode> = {
-            'home-banner': (
-                <div className="w-full h-full flex items-stretch gap-1 p-1.5">
-                    <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
-                        <span className="text-[7px] text-muted-foreground">主内容</span>
-                    </div>
-                    <div className="w-2/5 bg-rose-500/30 rounded-sm border border-rose-500/50 flex items-center justify-center">
-                        <span className="text-[7px] text-rose-600 font-medium">AD</span>
-                    </div>
-                </div>
-            ),
-            'home-sponsored': (
-                <div className="w-full h-full flex flex-col gap-1 p-1.5">
-                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                    </div>
-                    <div className="h-1/4 grid grid-cols-4 gap-0.5">
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-amber-600 font-medium">AD</span>
+        // 根据 slug 中的位置关键词匹配布局预览（支持自定义 slug）
+        const resolvePreview = (): React.ReactNode => {
+            const s = slug.toLowerCase();
+            const hasWatch = s.includes('watch') || s.includes('player');
+            const hasSidebar = s.includes('sidebar');
+            const hasFeed = s.includes('feed');
+            const hasSponsored = s.includes('sponsored');
+            const hasBanner = s.includes('banner') || s.includes('top') || s.includes('bottom');
+            const hasFloating = s.includes('floating');
+
+            // 播放页侧边栏
+            if (hasWatch && hasSidebar) {
+                return (
+                    <div className="w-full h-full flex gap-1 p-1.5">
+                        <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
+                            <span className="text-[7px] text-muted-foreground">播放器</span>
                         </div>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                        <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
-                    </div>
-                    <div className="flex-1 grid grid-cols-4 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                    </div>
-                </div>
-            ),
-            'home-feed': (
-                <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
-                    <div className="flex-1 grid grid-cols-3 gap-0.5">
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-emerald-500/30 rounded-sm border border-emerald-500/50 flex items-center justify-center">
-                            <span className="text-[7px] text-emerald-600 font-medium">AD</span>
+                        <div className="w-1/3 flex flex-col gap-0.5">
+                            <div className="h-1/4 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
+                                <span className="text-[7px] text-blue-600 font-medium">AD</span>
+                            </div>
+                            <div className="flex-1 bg-gray-200/50 rounded-sm"/>
+                            <div className="flex-1 bg-gray-200/50 rounded-sm"/>
                         </div>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
-                        <div className="bg-gray-200/50 rounded-sm"/>
                     </div>
-                </div>
-            ),
-            'sidebar': (
-                <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
-                    <div className="h-1/3 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
-                        <span className="text-[7px] text-blue-600 font-medium">AD</span>
+                );
+            }
+            // 赞助推荐
+            if (hasSponsored) {
+                return (
+                    <div className="w-full h-full flex flex-col gap-1 p-1.5">
+                        <div className="h-1/4 grid grid-cols-4 gap-0.5">
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                        </div>
+                        <div className="h-1/4 grid grid-cols-4 gap-0.5">
+                            <div className="bg-amber-500/30 rounded-sm border border-amber-500/50 flex items-center justify-center">
+                                <span className="text-[7px] text-amber-600 font-medium">AD</span>
+                            </div>
+                            <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                            <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                            <div className="bg-amber-500/30 rounded-sm border border-amber-500/50"/>
+                        </div>
+                        <div className="flex-1 grid grid-cols-4 gap-0.5">
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                        </div>
                     </div>
-                    <div className="flex-1 bg-gray-200/50 rounded-sm"/>
-                    <div className="flex-1 bg-gray-200/50 rounded-sm"/>
-                </div>
-            ),
-            'watch-sidebar': (
-                <div className="w-full h-full flex gap-1 p-1.5">
-                    <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
-                        <span className="text-[7px] text-muted-foreground">播放器</span>
+                );
+            }
+            // 信息流
+            if (hasFeed) {
+                return (
+                    <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
+                        <div className="flex-1 grid grid-cols-3 gap-0.5">
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-emerald-500/30 rounded-sm border border-emerald-500/50 flex items-center justify-center">
+                                <span className="text-[7px] text-emerald-600 font-medium">AD</span>
+                            </div>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                            <div className="bg-gray-200/50 rounded-sm"/>
+                        </div>
                     </div>
-                    <div className="w-1/3 flex flex-col gap-0.5">
-                        <div className="h-1/4 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
+                );
+            }
+            // 侧边栏
+            if (hasSidebar) {
+                return (
+                    <div className="w-full h-full flex flex-col gap-0.5 p-1.5">
+                        <div className="h-1/3 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
                             <span className="text-[7px] text-blue-600 font-medium">AD</span>
                         </div>
                         <div className="flex-1 bg-gray-200/50 rounded-sm"/>
                         <div className="flex-1 bg-gray-200/50 rounded-sm"/>
                     </div>
-                </div>
-            ),
+                );
+            }
+            // 悬浮
+            if (hasFloating) {
+                return (
+                    <div className="w-full h-full flex items-center justify-center p-1.5">
+                        <div className="flex-1 bg-gray-200/50 rounded-sm"/>
+                        <div className="absolute w-2/5 h-1/3 bg-purple-500/30 rounded-sm border border-purple-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-purple-600 font-medium">AD</span>
+                        </div>
+                    </div>
+                );
+            }
+            // 横幅（顶部/底部）
+            if (hasBanner) {
+                return (
+                    <div className="w-full h-full flex items-stretch gap-1 p-1.5">
+                        <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
+                            <span className="text-[7px] text-muted-foreground">主内容</span>
+                        </div>
+                        <div className="w-2/5 bg-rose-500/30 rounded-sm border border-rose-500/50 flex items-center justify-center">
+                            <span className="text-[7px] text-rose-600 font-medium">AD</span>
+                        </div>
+                    </div>
+                );
+            }
+            // 默认 fallback
+            return null;
         };
+        const preview = resolvePreview();
         return (
-            <div className="w-20 h-12 bg-muted/30 rounded border border-border">
-                {previewStyles[slug] || (
+            <div className="w-20 h-12 bg-muted/30 rounded border border-border relative overflow-hidden">
+                {preview || (
                     <div className="w-full h-full flex items-center justify-center">
                         <Megaphone className="w-3 h-3 text-muted-foreground"/>
                     </div>

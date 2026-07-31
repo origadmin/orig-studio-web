@@ -58,6 +58,7 @@ const CSS = `
   background: radial-gradient(ellipse at center, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0) 70%);
 }
 .hero-banner-root[data-mode="wide"] {
+  --hero-card-w: min(720px, 82vw);
   --hero-ratio: 21/9;
   --hero-scale-step: 0.15;
   --hero-opacity-step: 0.15;
@@ -364,7 +365,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
 
         if (isWideMode) {
             const wideVisible = 2;
-            cardW = Math.min(620, containerW * 0.36);
+            cardW = getPixelValue('--hero-card-w', 720);
             scaleStep = 0.1;
             opacityStep = 0.1;
             blurStep = 0.5;

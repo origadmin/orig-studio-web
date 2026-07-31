@@ -221,14 +221,16 @@ const HomePage = () => {
                     });
                 }
             } else {
+                // 自定义 Banner（custom / ad）：按优先级取图片资源
+                const thumb = b.image_mobile_url || b.image_url || '';
                 items.push({
                     id: String(b.id),
                     title: getLocalizedText(b.title, b.title_i18n, lang),
                     subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-                    thumbnail: b.image_url || '',
+                    thumbnail: thumb,
                     videoUrl: b.video_url || undefined,
                     bgGradient,
-                    url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : undefined,
+                    url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : (b.primary_btn_url && /^https?:\/\//.test(b.primary_btn_url) ? b.primary_btn_url : undefined),
                     badge: b.badge_text || undefined,
                     type: b.type === 'ad' ? 'ad' : (b.primary_btn_url ? 'link' : 'custom'),
                 });
@@ -258,11 +260,20 @@ const HomePage = () => {
         return adPlacements.filter(p => p.is_active);
     }, [adPlacements]);
 
-    const sponsoredAd = useMemo<{name: string; ads: (Ad | AdCreative)[]} | null>(() => {
-        const p = activeAdPlacements.find(x => x.slug === 'home-sponsored');
-        const items = [...(p?.ads || []), ...(p?.creatives || [])];
-        if (items.length > 0) return {name: p?.name || '', ads: items};
-        return null;
+    const homeAdSections = useMemo(() => {
+        const sections: {type: string; name: string; ads: (Ad | AdCreative)[]}[] = [];
+        for (const p of activeAdPlacements) {
+            if (p.slug === 'home-feed') continue;
+            const items = [...(p.ads || []), ...(p.creatives || [])];
+            if (items.length > 0) {
+                sections.push({
+                    type: p.type || 'custom',
+                    name: p.name || p.slug || '',
+                    ads: items,
+                });
+            }
+        }
+        return sections;
     }, [activeAdPlacements]);
 
     const feedAds = useMemo<(Ad | AdCreative)[]>(() => {
@@ -383,7 +394,12 @@ const HomePage = () => {
                     </section>
                 )}
 
-                {sponsoredAd && <AdCardSection placement={sponsoredAd}/>}
+                {homeAdSections.map((section) => (
+                    <AdCardSection
+                        key={section.name}
+                        placement={{name: section.name, ads: section.ads}}
+                    />
+                ))}
 
                 <section>
                     {isFetching && mergedItems.length === 0 ? (

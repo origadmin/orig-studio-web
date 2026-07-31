@@ -92,7 +92,7 @@ export default function MediaPage() {
     const [variantData, setVariantData] = useState<MediaVariantSummary | null>(null);
     const [retryingAllId, setRetryingAllId] = useState<string | number | null>(null);
 
-    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', type: '', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', type: 'video', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
 
     const [total, setTotal] = useState(0);
     const [failedThumbnails, setFailedThumbnails] = useState<Set<string>>(new Set());
@@ -252,8 +252,8 @@ export default function MediaPage() {
                 </SelectContent>
             </Select>
             <Select
-                value={searchParams.type || 'all'}
-                onValueChange={(value) => setSearchParams({...searchParams, type: value === 'all' ? '' : value, page: 1})}
+                value={searchParams.type || 'video'}
+                onValueChange={(value) => setSearchParams({...searchParams, type: value, page: 1})}
             >
                 <SelectTrigger className="w-[160px]">
                     <SelectValue/>
@@ -274,7 +274,7 @@ export default function MediaPage() {
             <Button
                 variant="outline"
                 onClick={() => {
-                    setSearchParams({keyword: '', state: '', type: '', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+                    setSearchParams({keyword: '', state: '', type: 'video', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
                     loadMedia();
                 }}
             >
@@ -447,9 +447,11 @@ export default function MediaPage() {
                                         </TableCell>
 
                                         {/* Asset Name */}
-                                        <TableCell className="px-6 py-3.5">
-                                            <div className="text-sm font-semibold text-foreground">{media.title || t('admin.unnamedMedia', '未命名媒体')}</div>
-                                            <div className="text-xs text-muted-foreground">{media.duration ? formatDuration(media.duration) : ''}</div>
+                                        <TableCell className="px-6 py-3.5 max-w-[200px]">
+                                            <div className="min-w-0">
+                                                <div className="text-sm font-semibold text-foreground line-clamp-2 break-words">{media.title || t('admin.unnamedMedia', '未命名媒体')}</div>
+                                                <div className="text-xs text-muted-foreground">{media.duration ? formatDuration(media.duration) : ''}</div>
+                                            </div>
                                         </TableCell>
 
                                         {/* Type */}

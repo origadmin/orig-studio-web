@@ -3,7 +3,7 @@
  * Header: Logo | QuickLinks + 更多下拉 | 搜索框 | 用户菜单
  */
 
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useMemo} from 'react';
 import {Link, useNavigate, useLocation} from '@tanstack/react-router';
 import {
     Search,
@@ -138,10 +138,17 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
         if (search.trim()) navigate({to: '/search', search: {q: search}});
     };
 
-    const isActive = (to: string, idx: number) => {
-        if (location.pathname !== to) return false;
-        const firstMatchIdx = visibleLinks.findIndex(l => l.to === to);
-        return idx === firstMatchIdx;
+    const [clickedNavIdx, setClickedNavIdx] = useState<number>(-1);
+    const urlActiveIdx = useMemo(() => {
+        const path = location.pathname;
+        const exactMatches = allLinks.map((l, i) => (l.to && path === l.to ? i : -1)).filter(i => i >= 0);
+        if (exactMatches.length > 0) return exactMatches[0];
+        const prefixMatches = allLinks.map((l, i) => (l.to && l.to !== '/' && path.startsWith(l.to + '/') ? i : -1)).filter(i => i >= 0);
+        return prefixMatches.length > 0 ? prefixMatches[0] : -1;
+    }, [location.pathname, allLinks]);
+    const isNavActive = (idx: number) => {
+        if (clickedNavIdx >= 0) return clickedNavIdx === idx;
+        return urlActiveIdx === idx;
     };
 
     return (
@@ -198,10 +205,11 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                         }
                         return (
                             <Link
-                                key={link.to}
+                                key={`${link.to}-${idx}`}
                                 to={link.to}
+                                onClick={() => setClickedNavIdx(idx)}
                                 className={`h-full flex items-center px-3 text-sm whitespace-nowrap transition-colors border-b-2 ${
-                                    isActive(link.to, idx)
+                                    isNavActive(idx)
                                         ? 'text-foreground font-medium border-primary'
                                         : 'text-muted-foreground hover:text-foreground border-transparent'
                                 }`}
@@ -246,9 +254,9 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                             <Link
                                                 key={link.to}
                                                 to={link.to}
-                                                onClick={() => setMoreMenuOpen(false)}
+                                                onClick={() => { setMoreMenuOpen(false); setClickedNavIdx(VISIBLE_QUICK_LINKS + idx); }}
                                                 className={`block px-4 py-2 text-sm transition-colors ${
-                                    isActive(link.to, VISIBLE_QUICK_LINKS + idx)
+                                    isNavActive(VISIBLE_QUICK_LINKS + idx)
                                         ? 'bg-primary/10 dark:bg-primary/20 text-primary font-medium'
                                         : 'text-muted-foreground hover:bg-accent'
                                 }`}
