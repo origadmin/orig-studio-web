@@ -92,10 +92,10 @@ export const notificationApi = {
         return normalized as any;
     },
 
-    adminSend: (data: { action: string; title: string; body: string; user_ids: string[]; method?: string; notify?: boolean }) =>
+    adminSend: (data: { action: string; title: string; body: string; user_ids?: string[]; role_list?: string[]; group_id_list?: string[]; method?: string; notify?: boolean }) =>
         api.post<{ items: Notification[]; sent_count: number }>('/admin/notifications', data),
 
-    adminBroadcast: (data: { action: string; title: string; body: string; method?: string; notify?: boolean }) =>
+    adminBroadcast: (data: { action: string; title: string; body: string; role_list?: string[]; group_id_list?: string[]; method?: string; notify?: boolean }) =>
         api.post<{ items: Notification[]; sent_count: number }>('/admin/notifications/broadcast', data),
 
     adminSendTest: () =>
@@ -103,4 +103,16 @@ export const notificationApi = {
 
     adminDelete: (id: number) =>
         api.del<void>(`/admin/notifications/${id}`),
+
+    adminGetGroups: async (params?: { page?: number; page_size?: number }) => {
+        const response = await api.get<unknown>('/admin/permission-groups', params);
+        if (response && typeof response === 'object') {
+            const obj = response as Record<string, unknown>;
+            return {
+                items: Array.isArray(obj.items) ? obj.items : [],
+                total: typeof obj.total === 'number' ? obj.total : 0,
+            };
+        }
+        return {items: [], total: 0};
+    },
 };

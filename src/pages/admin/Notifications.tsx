@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
     Bell,
     Send,
@@ -18,6 +18,11 @@ import {
     Smartphone,
     ChevronLeft,
     ChevronRight,
+    Users,
+    Shield,
+    UserRound,
+    Group,
+    Edit,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
@@ -41,6 +46,15 @@ import {usePagination} from '@/hooks/usePagination';
 
 type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
+type AudienceMode = 'all' | 'role' | 'group' | 'users';
+
+type RoleOption = { value: string; label: string; icon: React.ReactNode };
+
+const ROLE_OPTIONS: RoleOption[] = [
+    {value: 'admin', label: '管理员', icon: <Shield className="w-4 h-4"/>},
+    {value: 'user', label: '普通用户', icon: <UserRound className="w-4 h-4"/>},
+    {value: 'editor', label: '编辑', icon: <Edit className="w-4 h-4"/>},
+];
 
 const AdminNotifications: React.FC = () => {
     const {t} = useTranslation();
@@ -75,13 +89,17 @@ const AdminNotifications: React.FC = () => {
         title: '',
         body: '',
         channels: {in_app: true, email: false, push: false, webhook: false} as Record<ChannelKey, boolean>,
-        sendToAll: true,
+        audienceMode: 'all' as AudienceMode,
+        roleList: [] as string[],
+        groupIdList: [] as string[],
     });
     const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [userSearch, setUserSearch] = useState('');
     const [showUserPicker, setShowUserPicker] = useState(false);
     const [loadingUsers, setLoadingUsers] = useState(false);
+    const [groups, setGroups] = useState<Array<{id: string; name: string; description?: string; member_count?: number}>>([]);
+    const [loadingGroups, setLoadingGroups] = useState(false);
 
     // Config state
     const [config, setConfig] = useState({
@@ -181,6 +199,23 @@ const AdminNotifications: React.FC = () => {
         }
     };
 
+    const fetchGroups = async () => {
+        try {
+            setLoadingGroups(true);
+            const response = await notificationApi.adminGetGroups({page_size: 100});
+            const items = (response as any)?.items || response || [];
+            setGroups(items);
+        } catch (err) {
+            console.error('Failed to fetch permission groups:', err);
+        } finally {
+            setLoadingGroups(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchGroups();
+    }, []);
+
     const handleOpenUserPicker = () => {
         setShowUserPicker(true);
         fetchUsers();
@@ -196,14 +231,22 @@ const AdminNotifications: React.FC = () => {
         setSelectedUserIds(prev => prev.filter(id => id !== userId));
     };
 
+    const isSendDisabled = useMemo(() => {
+        if (!form.title || !form.body) return true;
+        if (!Object.values(form.channels).some(Boolean)) return true;
+        if (form.audienceMode === 'role' && form.roleList.length === 0) return true;
+        if (form.audienceMode === 'group' && form.groupIdList.length === 0) return true;
+        if (form.audienceMode === 'users' && selectedUserIds.length === 0) return true;
+        return false;
+    }, [form, selectedUserIds]);
+
     const handleSend = async () => {
         if (!form.title || !form.body) return;
-        if (!form.sendToAll && selectedUserIds.length === 0) return;
 
         try {
             setSending(true);
             const primaryChannel = (Object.keys(form.channels) as ChannelKey[]).find(c => form.channels[c]) || 'in_app';
-            const data = {
+            const baseData = {
                 action: 'system',
                 title: form.title,
                 body: form.body,
@@ -211,17 +254,24 @@ const AdminNotifications: React.FC = () => {
                 notify: primaryChannel !== 'in_app',
             };
 
-            if (form.sendToAll) {
-                await notificationApi.adminBroadcast(data);
+            if (form.audienceMode === 'all') {
+                await notificationApi.adminBroadcast(baseData);
+            } else if (form.audienceMode === 'role') {
+                await notificationApi.adminBroadcast({...baseData, role_list: form.roleList});
+            } else if (form.audienceMode === 'group') {
+                await notificationApi.adminBroadcast({...baseData, group_id_list: form.groupIdList});
             } else {
-                await notificationApi.adminSend({...data, user_ids: selectedUserIds});
+                // explicit users
+                await notificationApi.adminSend({...baseData, user_ids: selectedUserIds});
             }
 
             setForm({
                 title: '',
                 body: '',
                 channels: {in_app: true, email: false, push: false, webhook: false},
-                sendToAll: true,
+                audienceMode: 'all',
+                roleList: [],
+                groupIdList: [],
             });
             setSelectedUserIds([]);
             setShowUserPicker(false);
@@ -363,26 +413,134 @@ const AdminNotifications: React.FC = () => {
                                                     <Label className="block text-sm font-medium text-card-foreground mb-2">
                                                         {t('admin.notificationsFieldAudience', 'TARGET AUDIENCE')}
                                                     </Label>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {form.sendToAll ? (
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="rounded-full"
-                                                                onClick={() => setForm(f => ({...f, sendToAll: false}))}
-                                                            >
-                                                                {t('admin.notificationsAllUsers', 'All Users')} <X className="w-3 h-3"/>
-                                                            </Button>
-                                                        ) : (
-                                                            <>
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    className="rounded-full"
-                                                                    onClick={() => setForm(f => ({...f, sendToAll: true}))}
+                                                    {/* Audience mode tabs */}
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                                                        {([
+                                                            {mode: 'all', label: '所有用户', icon: <Users className="w-4 h-4"/>},
+                                                            {mode: 'role', label: '按角色', icon: <Shield className="w-4 h-4"/>},
+                                                            {mode: 'group', label: '按权限组', icon: <Group className="w-4 h-4"/>},
+                                                            {mode: 'users', label: '指定用户', icon: <UserRound className="w-4 h-4"/>},
+                                                        ] as const).map(opt => {
+                                                            const selected = form.audienceMode === opt.mode;
+                                                            return (
+                                                                <button
+                                                                    key={opt.mode}
+                                                                    type="button"
+                                                                    onClick={() => setForm(f => ({...f, audienceMode: opt.mode}))}
+                                                                    className={
+                                                                        'flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ' +
+                                                                        (selected
+                                                                            ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                                            : 'border-border bg-card text-muted-foreground hover:border-indigo-200 hover:text-foreground')
+                                                                    }
                                                                 >
-                                                                    {t('admin.notificationsAllUsers', 'All Users')} <Plus className="w-3 h-3"/>
-                                                                </Button>
+                                                                    {opt.icon}
+                                                                    {opt.label}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+
+                                                    {/* All users */}
+                                                    {form.audienceMode === 'all' && (
+                                                        <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
+                                                            将发送通知给所有<strong className="text-foreground">活跃用户</strong>。
+                                                        </div>
+                                                    )}
+
+                                                    {/* By role */}
+                                                    {form.audienceMode === 'role' && (
+                                                        <div className="space-y-2">
+                                                            <p className="text-xs text-muted-foreground">
+                                                                选择一个或多个角色作为接收者
+                                                            </p>
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {ROLE_OPTIONS.map(role => {
+                                                                    const checked = form.roleList.includes(role.value);
+                                                                    return (
+                                                                        <button
+                                                                            key={role.value}
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                setForm(f => ({
+                                                                                    ...f,
+                                                                                    roleList: checked
+                                                                                        ? f.roleList.filter(r => r !== role.value)
+                                                                                        : [...f.roleList, role.value],
+                                                                                }))
+                                                                            }
+                                                                            className={
+                                                                                'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors ' +
+                                                                                (checked
+                                                                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                                                    : 'border-border bg-card text-muted-foreground hover:border-indigo-200')
+                                                                            }
+                                                                        >
+                                                                            {role.icon}
+                                                                            {role.label}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* By group */}
+                                                    {form.audienceMode === 'group' && (
+                                                        <div className="space-y-2">
+                                                            <p className="text-xs text-muted-foreground">
+                                                                选择一个或多个权限组，通知将发送给组成员
+                                                            </p>
+                                                            {loadingGroups ? (
+                                                                <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
+                                                                    <Loader2 className="w-4 h-4 animate-spin"/> 加载权限组...
+                                                                </div>
+                                                            ) : groups.length === 0 ? (
+                                                                <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
+                                                                    暂无可用权限组。请先在权限管理中创建权限组。
+                                                                </div>
+                                                            ) : (
+                                                                <div className="max-h-40 overflow-y-auto space-y-1">
+                                                                    {groups.map(g => {
+                                                                        const checked = form.groupIdList.includes(g.id);
+                                                                        return (
+                                                                            <button
+                                                                                key={g.id}
+                                                                                type="button"
+                                                                                onClick={() =>
+                                                                                    setForm(f => ({
+                                                                                        ...f,
+                                                                                        groupIdList: checked
+                                                                                            ? f.groupIdList.filter(id => id !== g.id)
+                                                                                            : [...f.groupIdList, g.id],
+                                                                                    }))
+                                                                                }
+                                                                                className={
+                                                                                    'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ' +
+                                                                                    (checked
+                                                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                                                        : 'border-border bg-card hover:border-indigo-200')
+                                                                                }
+                                                                            >
+                                                                                <span className="flex items-center gap-2 min-w-0">
+                                                                                    <Group className="w-4 h-4 shrink-0"/>
+                                                                                    <span className="truncate">{g.name}</span>
+                                                                                </span>
+                                                                                {typeof g.member_count === 'number' && (
+                                                                                    <span className="text-xs text-muted-foreground shrink-0">{g.member_count} 成员</span>
+                                                                                )}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Explicit users */}
+                                                    {form.audienceMode === 'users' && (
+                                                        <div className="space-y-2">
+                                                            <div className="flex flex-wrap gap-2 min-h-[32px]">
                                                                 {selectedUsers.map(user => (
                                                                     <Button
                                                                         key={user.id}
@@ -400,57 +558,57 @@ const AdminNotifications: React.FC = () => {
                                                                     className="rounded-full"
                                                                     onClick={handleOpenUserPicker}
                                                                 >
-                                                                    {t('admin.notificationsAddUser', 'Add User')} <Plus className="w-3 h-3"/>
+                                                                    <Plus className="w-3 h-3"/> 添加用户
                                                                 </Button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                    {/* User picker */}
-                                                    {showUserPicker && !form.sendToAll && (
-                                                        <Card className="mt-3">
-                                                            <CardContent className="p-3 space-y-2">
-                                                                <Input
-                                                                    type="text"
-                                                                    value={userSearch}
-                                                                    onChange={e => {
-                                                                        setUserSearch(e.target.value);
-                                                                        fetchUsers(e.target.value);
-                                                                    }}
-                                                                    placeholder={t('admin.notificationsSearchUsers', 'Search users...')}
-                                                                />
-                                                                {loadingUsers ? (
-                                                                    <div className="text-center py-2 text-sm text-muted-foreground">
-                                                                        <Loader2 className="w-4 h-4 animate-spin inline"/>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="max-h-40 overflow-y-auto space-y-1">
-                                                                        {users
-                                                                            .filter(u => !userSearch || u.username.includes(userSearch) || (u.nickname || '').includes(userSearch))
-                                                                            .map(user => (
-                                                                                <Label
-                                                                                    key={user.id}
-                                                                                    className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
-                                                                                >
-                                                                                    <Checkbox
-                                                                                        checked={selectedUserIds.includes(user.id)}
-                                                                                        onCheckedChange={() => toggleUser(user.id)}
-                                                                                    />
-                                                                                    <span className="text-sm text-card-foreground">{user.nickname || user.username}</span>
-                                                                                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                                                                                </Label>
-                                                                            ))}
-                                                                    </div>
-                                                                )}
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="w-full"
-                                                                    onClick={() => setShowUserPicker(false)}
-                                                                >
-                                                                    {t('admin.notificationsClose', 'Close')}
-                                                                </Button>
-                                                            </CardContent>
-                                                        </Card>
+                                                            </div>
+                                                            {/* User picker */}
+                                                            {showUserPicker && (
+                                                                <Card className="mt-3">
+                                                                    <CardContent className="p-3 space-y-2">
+                                                                        <Input
+                                                                            type="text"
+                                                                            value={userSearch}
+                                                                            onChange={e => {
+                                                                                setUserSearch(e.target.value);
+                                                                                fetchUsers(e.target.value);
+                                                                            }}
+                                                                            placeholder="搜索用户..."
+                                                                        />
+                                                                        {loadingUsers ? (
+                                                                            <div className="text-center py-2 text-sm text-muted-foreground">
+                                                                                <Loader2 className="w-4 h-4 animate-spin inline"/>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="max-h-40 overflow-y-auto space-y-1">
+                                                                                {users
+                                                                                    .filter(u => !userSearch || u.username.includes(userSearch) || (u.nickname || '').includes(userSearch))
+                                                                                    .map(user => (
+                                                                                        <Label
+                                                                                            key={user.id}
+                                                                                            className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                                                                                        >
+                                                                                            <Checkbox
+                                                                                                checked={selectedUserIds.includes(user.id)}
+                                                                                                onCheckedChange={() => toggleUser(user.id)}
+                                                                                            />
+                                                                                            <span className="text-sm text-card-foreground">{user.nickname || user.username}</span>
+                                                                                            <span className="text-xs text-muted-foreground">{user.email}</span>
+                                                                                        </Label>
+                                                                                    ))}
+                                                                            </div>
+                                                                        )}
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            className="w-full"
+                                                                            onClick={() => setShowUserPicker(false)}
+                                                                        >
+                                                                            关闭
+                                                                        </Button>
+                                                                    </CardContent>
+                                                                </Card>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <div className="pt-5 border-t border-border">
@@ -508,10 +666,7 @@ const AdminNotifications: React.FC = () => {
                                                     onClick={handleSend}
                                                     disabled={
                                                         sending ||
-                                                        !form.title ||
-                                                        !form.body ||
-                                                        (!form.sendToAll && selectedUserIds.length === 0) ||
-                                                        !Object.values(form.channels).some(Boolean)
+                                                        isSendDisabled
                                                     }
                                                 >
                                                     {sending ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4"/>}
