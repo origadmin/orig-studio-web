@@ -133,7 +133,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
     };
 
     return (
-        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40 relative`}>
+        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40`}>
             {/* Logo */}
             <div className={`flex items-center border-b border-sidebar-border flex-shrink-0 ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
@@ -204,7 +204,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                 </div>
             )}
 
-            {/* Bottom Actions: Exit only (collapse moved to sidebar edge) */}
+            {/* Bottom Actions: Exit only (collapse moved to TopBar near search) */}
             <div className={`${collapsed ? 'p-2' : 'px-4 py-2'} border-t border-sidebar-border flex-shrink-0`}>
                 <Link
                     to="/"
@@ -214,20 +214,6 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
                     {!collapsed && <span className="text-sm font-medium">{t('admin.exitAdmin')}</span>}
                 </Link>
             </div>
-
-            {/* Collapse/Expand toggle — attached to sidebar right edge */}
-            <button
-                onClick={onToggleCollapse}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-50
-                           h-8 w-8 rounded-full border border-sidebar-border
-                           bg-sidebar text-sidebar-foreground/60
-                           hover:text-sidebar-foreground hover:bg-sidebar-accent/20
-                           shadow-md flex items-center justify-center
-                           transition-all duration-300"
-                title={collapsed ? t('nav.expand', '展开菜单') : t('nav.collapse', '收起菜单')}
-            >
-                <PanelLeft size={16} className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}/>
-            </button>
         </aside>
     );
 });
@@ -277,6 +263,13 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
             style={{left: collapsed ? '80px' : '240px'}}
         >
             <div className="flex items-center gap-4">
+                <button
+                    onClick={onToggleCollapse}
+                    className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0"
+                    title={collapsed ? t('nav.expand', '展开菜单') : t('nav.collapse', '收起菜单')}
+                >
+                    <PanelLeft size={18} className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}/>
+                </button>
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"/>
                     <Input
