@@ -120,7 +120,7 @@ const NotificationCenter: React.FC = () => {
         try {
             setIsMarkingAllRead(true);
             await markAllAsRead();
-            fetchNotifications();
+            setNotifications(prev => prev.map(n => ({...n, read: true})));
             refresh();
         } catch (err) {
             console.error('Failed to mark all notifications as read:', err);
@@ -132,7 +132,8 @@ const NotificationCenter: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             await notificationApi.delete(id);
-            fetchNotifications();
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            setTotal(prev => Math.max(0, prev - 1));
             refresh();
         } catch (err) {
             console.error('Failed to delete notification:', err);
@@ -144,7 +145,8 @@ const NotificationCenter: React.FC = () => {
             setClearing(true);
             await notificationApi.deleteAll();
             setConfirmClearType(null);
-            fetchNotifications();
+            setNotifications([]);
+            setTotal(0);
             refresh();
         } catch (err) {
             console.error('Failed to clear all notifications:', err);
@@ -158,7 +160,9 @@ const NotificationCenter: React.FC = () => {
             setClearing(true);
             await notificationApi.deleteRead();
             setConfirmClearType(null);
-            fetchNotifications();
+            const removedCount = notifications.filter(n => n.read).length;
+            setNotifications(prev => prev.filter(n => !n.read));
+            setTotal(prev => Math.max(0, prev - removedCount));
             refresh();
         } catch (err) {
             console.error('Failed to clear read notifications:', err);
@@ -189,7 +193,7 @@ const NotificationCenter: React.FC = () => {
         try {
             setBatchLoading(true);
             await Promise.all([...selectedIds].map(id => notificationApi.markAsRead(id)));
-            fetchNotifications();
+            setNotifications(prev => prev.map(n => selectedIds.has(n.id) ? {...n, read: true} : n));
             refresh();
         } catch (err) {
             console.error('Failed to batch mark as read:', err);
@@ -203,7 +207,9 @@ const NotificationCenter: React.FC = () => {
         try {
             setBatchLoading(true);
             await Promise.all([...selectedIds].map(id => notificationApi.delete(id)));
-            fetchNotifications();
+            const deletedCount = selectedIds.size;
+            setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
+            setTotal(prev => Math.max(0, prev - deletedCount));
             refresh();
         } catch (err) {
             console.error('Failed to batch delete:', err);
@@ -438,7 +444,7 @@ const NotificationCenter: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
-                            <div ref={sentinelRef} className="flex flex-col items-center gap-3 pt-4 mt-4 border-t">
+                            <div ref={sentinelRef} className="flex flex-col items-center gap-3 pt-4 mt-4 border-t min-h-[48px]">
                                 {total > 0 && (
                                     <p className="text-xs text-muted-foreground">
                                         {t('notifications.totalNotifications', {total})}
