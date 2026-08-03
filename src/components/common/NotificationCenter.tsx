@@ -86,14 +86,12 @@ const NotificationCenter: React.FC = () => {
     }, [pageSize]);
 
     const sentinelRef = useRef<HTMLDivElement>(null);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (loading) return;
 
         const sentinel = sentinelRef.current;
-        const container = scrollContainerRef.current;
-        if (!sentinel || !container) return;
+        if (!sentinel) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
@@ -102,7 +100,7 @@ const NotificationCenter: React.FC = () => {
                     fetchNotifications(pageRef.current + 1, true);
                 }
             },
-            {root: container, rootMargin: '200px'},
+            {rootMargin: '200px'},
         );
         observer.observe(sentinel);
         observerRef.current = observer;
@@ -371,8 +369,7 @@ const NotificationCenter: React.FC = () => {
                                     </span>
                                 </div>
                             )}
-                            <div ref={scrollContainerRef} className="max-h-[calc(100vh-280px)] overflow-y-auto">
-                                <div className="space-y-2">
+                            <div className="space-y-2">
                                     {notifications.map(notification => (
                                         <NotificationItem
                                             key={notification.id}
@@ -401,7 +398,6 @@ const NotificationCenter: React.FC = () => {
                                         {t('notifications.totalNotifications', {total})}
                                     </p>
                                 ) : null}
-                            </div>
                             </div>
                         </>
                     )}
@@ -517,6 +513,7 @@ const NotificationItem = React.memo(({notification, batchMode, isSelected, onTog
     const {t} = useTranslation();
     return (
         <div
+            style={{contentVisibility: 'auto', containIntrinsicSize: '80px'}}
             className={`p-4 rounded-lg border cursor-pointer ${
                 isSelected ? 'border-primary bg-primary/5' :
                 notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50' :
