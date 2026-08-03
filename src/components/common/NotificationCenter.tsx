@@ -107,14 +107,14 @@ const NotificationCenter: React.FC = () => {
         fetchNotifications(1, false);
     }, [fetchNotifications]);
 
-    const handleMarkAsRead = async (id: number) => {
+    const handleMarkAsRead = useCallback(async (id: number) => {
         try {
             await markAsRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? {...n, read: true} : n));
         } catch (err) {
             console.error('Failed to mark notification as read:', err);
         }
-    };
+    }, [markAsRead]);
 
     const handleMarkAllAsRead = async () => {
         try {
@@ -129,7 +129,7 @@ const NotificationCenter: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = useCallback(async (id: number) => {
         try {
             await notificationApi.delete(id);
             setNotifications(prev => prev.filter(n => n.id !== id));
@@ -138,7 +138,7 @@ const NotificationCenter: React.FC = () => {
         } catch (err) {
             console.error('Failed to delete notification:', err);
         }
-    };
+    }, [refresh]);
 
     const handleClearAll = async () => {
         try {
@@ -171,14 +171,14 @@ const NotificationCenter: React.FC = () => {
         }
     };
 
-    const toggleSelect = (id: number) => {
+    const toggleSelect = useCallback((id: number) => {
         setSelectedIds(prev => {
             const next = new Set(prev);
             if (next.has(id)) next.delete(id);
             else next.add(id);
             return next;
         });
-    };
+    }, []);
 
     const toggleSelectAll = () => {
         if (selectedIds.size === notifications.length) {
@@ -223,7 +223,7 @@ const NotificationCenter: React.FC = () => {
         setSelectedIds(new Set());
     };
 
-    const handleOpenDetail = async (notification: Notification) => {
+    const handleOpenDetail = useCallback(async (notification: Notification) => {
         setSelectedNotification(notification);
         setDetailOpen(true);
         if (!notification.read) {
@@ -235,7 +235,7 @@ const NotificationCenter: React.FC = () => {
                 console.error('Failed to mark notification as read:', err);
             }
         }
-    };
+    }, [markAsRead, refresh]);
 
     if (loading) {
         return (
@@ -366,82 +366,16 @@ const NotificationCenter: React.FC = () => {
                             )}
                             <div className="space-y-2">
                                 {notifications.map(notification => (
-                                    <div
+                                    <NotificationItem
                                         key={notification.id}
-                                        className={`p-4 rounded-lg border transition-colors cursor-pointer ${
-                                            selectedIds.has(notification.id) ? 'border-primary bg-primary/5' :
-                                            notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50' :
-                                            'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100/70 dark:hover:bg-blue-900/50'
-                                        }`}
-                                        onClick={() => !batchMode && handleOpenDetail(notification)}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            {batchMode && (
-                                                <Checkbox
-                                                    checked={selectedIds.has(notification.id)}
-                                                    onCheckedChange={() => toggleSelect(notification.id)}
-                                                    onClick={e => e.stopPropagation()}
-                                                    className="mt-1"
-                                                />
-                                            )}
-                                            <div className={`flex-1 min-w-0 space-y-1 ${notification.read ? '' : 'pr-1'}`}>
-                                                <div className="flex items-start gap-2 min-w-0">
-                                                    {!notification.read && (
-                                                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"/>
-                                                    )}
-                                                    <h4 className={`font-medium text-gray-900 dark:text-white break-words ${notification.read ? '' : 'font-semibold'}`}>
-                                                        {notification.title}
-                                                    </h4>
-                                                </div>
-                                                <p className="text-sm text-gray-600 dark:text-gray-300 break-words line-clamp-2">
-                                                    {notification.body}
-                                                </p>
-                                                <div className="flex items-center gap-3 pt-1">
-                                                    <span className="text-xs text-gray-500 dark:text-muted-foreground shrink-0">
-                                                        {formatDate(notification.create_time)}
-                                                    </span>
-                                                    {!notification.read && (
-                                                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                                                            {t('notifications.unread')}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {!batchMode && (
-                                                <div className="flex flex-col gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0"
-                                                        onClick={() => handleOpenDetail(notification)}
-                                                        title={t('notifications.viewDetail')}
-                                                    >
-                                                        <Eye className="w-4 h-4"/>
-                                                    </Button>
-                                                    {!notification.read && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="h-8 w-8 p-0"
-                                                            onClick={() => handleMarkAsRead(notification.id)}
-                                                            title={t('notifications.markAsRead')}
-                                                        >
-                                                            <Check className="w-4 h-4"/>
-                                                        </Button>
-                                                    )}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0 text-destructive dark:text-red-400"
-                                                        onClick={() => handleDelete(notification.id)}
-                                                        title={t('common.delete')}
-                                                    >
-                                                        <Trash2 className="w-4 h-4"/>
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                        notification={notification}
+                                        batchMode={batchMode}
+                                        isSelected={selectedIds.has(notification.id)}
+                                        onToggleSelect={toggleSelect}
+                                        onOpenDetail={handleOpenDetail}
+                                        onMarkAsRead={handleMarkAsRead}
+                                        onDelete={handleDelete}
+                                    />
                                 ))}
                             </div>
                             <div ref={sentinelRef} className="flex flex-col items-center gap-3 pt-4 mt-4 border-t min-h-[48px]">
@@ -561,5 +495,96 @@ const NotificationCenter: React.FC = () => {
         </div>
     );
 };
+
+interface NotificationItemProps {
+    notification: Notification;
+    batchMode: boolean;
+    isSelected: boolean;
+    onToggleSelect: (id: number) => void;
+    onOpenDetail: (notification: Notification) => void;
+    onMarkAsRead: (id: number) => void;
+    onDelete: (id: number) => void;
+}
+
+const NotificationItem = React.memo(({notification, batchMode, isSelected, onToggleSelect, onOpenDetail, onMarkAsRead, onDelete}: NotificationItemProps) => {
+    const {t} = useTranslation();
+    return (
+        <div
+            className={`p-4 rounded-lg border cursor-pointer ${
+                isSelected ? 'border-primary bg-primary/5' :
+                notification.read ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50' :
+                'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100/70 dark:hover:bg-blue-900/50'
+            }`}
+            onClick={() => !batchMode && onOpenDetail(notification)}
+        >
+            <div className="flex items-start gap-3">
+                {batchMode && (
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onToggleSelect(notification.id)}
+                        onClick={e => e.stopPropagation()}
+                        className="mt-1"
+                    />
+                )}
+                <div className={`flex-1 min-w-0 space-y-1 ${notification.read ? '' : 'pr-1'}`}>
+                    <div className="flex items-start gap-2 min-w-0">
+                        {!notification.read && (
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"/>
+                        )}
+                        <h4 className={`font-medium text-gray-900 dark:text-white break-words ${notification.read ? '' : 'font-semibold'}`}>
+                            {notification.title}
+                        </h4>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 break-words line-clamp-2">
+                        {notification.body}
+                    </p>
+                    <div className="flex items-center gap-3 pt-1">
+                        <span className="text-xs text-gray-500 dark:text-muted-foreground shrink-0">
+                            {formatDate(notification.create_time)}
+                        </span>
+                        {!notification.read && (
+                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                {t('notifications.unread')}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                {!batchMode && (
+                    <div className="flex flex-col gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => onOpenDetail(notification)}
+                            title={t('notifications.viewDetail')}
+                        >
+                            <Eye className="w-4 h-4"/>
+                        </Button>
+                        {!notification.read && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => onMarkAsRead(notification.id)}
+                                title={t('notifications.markAsRead')}
+                            >
+                                <Check className="w-4 h-4"/>
+                            </Button>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-destructive dark:text-red-400"
+                            onClick={() => onDelete(notification.id)}
+                            title={t('common.delete')}
+                        >
+                            <Trash2 className="w-4 h-4"/>
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+});
 
 export default NotificationCenter;
