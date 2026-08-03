@@ -60,7 +60,6 @@ const NotificationCenter: React.FC = () => {
                 setBatchMode(false);
             }
             setError(null);
-            const startTime = append ? performance.now() : 0;
             const response = await notificationApi.getAll({
                 page: pageNum,
                 page_size: pageSize,
@@ -70,13 +69,6 @@ const NotificationCenter: React.FC = () => {
             if (append) {
                 setNotifications(prev => [...prev, ...items]);
                 setPage(pageNum);
-                console.log('[NotificationCenter] Scroll load completed', {
-                    time: new Date().toLocaleTimeString(),
-                    page: pageNum,
-                    loaded: items.length,
-                    total: response?.total ?? items.length,
-                    duration: Math.round(performance.now() - startTime),
-                });
             } else {
                 setNotifications(items);
                 setPage(pageNum);
@@ -104,11 +96,6 @@ const NotificationCenter: React.FC = () => {
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && !loadingMoreRef.current && hasMoreRef.current) {
-                    console.log('[NotificationCenter] Scroll load triggered', {
-                        time: new Date().toLocaleTimeString(),
-                        currentPage: pageRef.current,
-                        nextPage: pageRef.current + 1,
-                    });
                     loadingMoreRef.current = true;
                     fetchNotifications(pageRef.current + 1, true);
                 }
