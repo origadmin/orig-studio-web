@@ -156,6 +156,13 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const videoIsLoadingRef = useRef(false);
     const videoHasMoreRef = useRef(true);
     const videoPageRef = useRef(1);
+    // BUG-085: flipped to true only after page 1 data arrives + setVideoItems done.
+    // Sentinel IO callback MUST NOT trigger page++ during initial mount window when
+    // videoIsLoadingRef timing is non-deterministic (this caused the 12↔24 flicker).
+    const initialPageSettledRef = useRef(false);
+    // BUG-085: holds the actual DOM node so we can compensatorily check viewport
+    // coverage after the first page settles (cures schedule-A where page++ was skipped)
+    const videoSentinelNodeRef = useRef<HTMLDivElement | null>(null);
 
     const {data: profile, isLoading, error} = usePublicProfile(username);
     // Use profile.is_owner (computed by usePublicProfile from auth state) as primary source.
@@ -292,6 +299,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         videoIsLoadingRef.current = false;
         videoHasMoreRef.current = true;
         videoPageRef.current = 1;
+        initialPageSettledRef.current = false;
     }, [selectedChannelId]);
 
     useEffect(() => {
@@ -299,6 +307,23 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             const items = videoPageData.items;
             if (videoPageRef.current === 1) {
                 setVideoItems(items);
+                // BUG-085 (Schedule-A compensation): only AFTER page1 state is
+                // committed do we allow the sentinel IO to trigger page++.
+                initialPageSettledRef.current = true;
+                // BUG-085 (2nd half of cure): if IO already missed its window during
+                // initial mount (because loading ref blocked it), manually check
+                // whether sentinel is within (viewport + 200px rootMargin) and
+                // trigger page++ so user always gets the correct continuation.
+                queueMicrotask(() => {
+                    const node = videoSentinelNodeRef.current;
+                    if (!node || videoIsLoadingRef.current || !videoHasMoreRef.current) return;
+                    const rect = node.getBoundingClientRect();
+                    const viewH = (window.innerHeight || document.documentElement.clientHeight);
+                    if (rect.top <= viewH + 200) {
+                        videoIsLoadingRef.current = true;
+                        setVideoPage(p => p + 1);
+                    }
+                });
             } else {
                 setVideoItems(prev => [...prev, ...items]);
             }
@@ -308,14 +333,28 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         }
     }, [videoPageData]);
 
+    // BUG-085: shared handler for manual "加载更多" button (also used by the
+    // auto IO path for the same 2 guards). Guarantees users can always advance
+    // pages even if IntersectionObserver never fires (display-not-all cure).
+    const handleLoadMoreVideos = useCallback(() => {
+        if (videoIsLoadingRef.current || !videoHasMoreRef.current || !initialPageSettledRef.current) return;
+        videoIsLoadingRef.current = true;
+        setVideoPage(p => p + 1);
+    }, []);
+
     const videoSentinelRef = useCallback((node: HTMLDivElement | null) => {
         if (videoObserverRef.current) {
             videoObserverRef.current.disconnect();
         }
+        // BUG-085: always keep a stable ref to the DOM node for compensation logic
+        videoSentinelNodeRef.current = node;
         if (node) {
             videoObserverRef.current = new IntersectionObserver(
                 (entries) => {
-                    if (entries[0].isIntersecting && !videoIsLoadingRef.current && videoHasMoreRef.current) {
+                    // BUG-085: only fire auto pagination AFTER page1 data has landed
+                    // (settled ref). Combined with the post-page1 microtask compensation
+                    // this eliminates the 12/24 flicker completely.
+                    if (entries[0].isIntersecting && initialPageSettledRef.current && !videoIsLoadingRef.current && videoHasMoreRef.current) {
                         videoIsLoadingRef.current = true;
                         setVideoPage(prev => prev + 1);
                     }
@@ -448,6 +487,18 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                             <Spinner size="sm"/>
                                             <span className="text-sm">{t('common.loading')}</span>
                                         </div>
+                                    )}
+                                    {!videosLoading && videoHasMore && videoItems.length > 0 && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleLoadMoreVideos}
+                                            className="mt-2"
+                                        >
+                                            <ChevronDown className="w-4 h-4 mr-1.5"/>
+                                            {t('common.loadMore', '加载更多')}
+                                        </Button>
                                     )}
                                     {!videoHasMore && videoItems.length > 0 && (
                                         <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
@@ -643,7 +694,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         )}
                         <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
-                                <Film size={14}/> {profile.media_count || videoItems.length} {t('profile.videos')}
+                                <Film size={14}/> {profile ? (profile.media_count ?? 0) : '—'} {t('profile.videos')}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Users size={14}/> {profile.subscriber_count || 0} {t('common.followers')}
@@ -803,6 +854,18 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                                     <Spinner size="sm"/>
                                                     <span className="text-sm">{t('common.loading')}</span>
                                                 </div>
+                                            )}
+                                            {!videosLoading && videoHasMore && videoItems.length > 0 && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleLoadMoreVideos}
+                                                    className="mt-2"
+                                                >
+                                                    <ChevronDown className="w-4 h-4 mr-1.5"/>
+                                                    {t('common.loadMore', '加载更多')}
+                                                </Button>
                                             )}
                                             {!videoHasMore && videoItems.length > 0 && (
                                                 <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
