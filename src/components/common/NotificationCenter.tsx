@@ -524,6 +524,20 @@ interface NotificationItemProps {
 
 const NotificationItem = React.memo(({notification, batchMode, isSelected, onToggleSelect, onOpenDetail, onMarkAsRead, onDelete}: NotificationItemProps) => {
     const {t} = useTranslation();
+
+    useEffect(() => {
+        console.log('[NotificationItem] mounted', {
+            id: notification.id,
+            time: new Date().toLocaleTimeString(),
+        });
+        return () => {
+            console.log('[NotificationItem] unmounted', {
+                id: notification.id,
+                time: new Date().toLocaleTimeString(),
+            });
+        };
+    }, [notification.id]);
+
     return (
         <div
             style={{contentVisibility: 'auto', containIntrinsicSize: '80px'}}
