@@ -97,7 +97,7 @@ const NotificationCenter: React.FC = () => {
                         fetchNotifications(pageRef.current + 1, true);
                     }
                 },
-                {rootMargin: '200px'},
+                {rootMargin: '100px'},
             );
             observerRef.current.observe(node);
         }
@@ -378,23 +378,21 @@ const NotificationCenter: React.FC = () => {
                                     />
                                 ))}
                             </div>
-                            <div ref={sentinelRef} className="flex flex-col items-center gap-3 pt-4 mt-4 border-t min-h-[48px]">
-                                {total > 0 && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('notifications.totalNotifications', {total})}
-                                    </p>
-                                )}
-                                {loadingMore && (
+                            <div ref={sentinelRef} className="flex items-center justify-center h-[48px] mt-4 border-t overflow-hidden">
+                                {loadingMore ? (
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Loader2 className="w-4 h-4 animate-spin"/>
                                         <span className="text-sm">{t('notifications.loadingMore')}</span>
                                     </div>
-                                )}
-                                {!hasMore && total > pageSize && (
+                                ) : !hasMore && total > pageSize ? (
                                     <p className="text-xs text-muted-foreground">
                                         {t('notifications.allLoaded')}
                                     </p>
-                                )}
+                                ) : total > 0 ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('notifications.totalNotifications', {total})}
+                                    </p>
+                                ) : null}
                             </div>
                         </>
                     )}
