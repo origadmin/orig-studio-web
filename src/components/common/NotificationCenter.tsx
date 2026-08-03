@@ -85,23 +85,30 @@ const NotificationCenter: React.FC = () => {
         }
     }, [pageSize]);
 
-    const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-        if (observerRef.current) {
-            observerRef.current.disconnect();
-        }
-        if (node) {
-            observerRef.current = new IntersectionObserver(
-                (entries) => {
-                    if (entries[0].isIntersecting && !loadingMoreRef.current && hasMoreRef.current) {
-                        loadingMoreRef.current = true;
-                        fetchNotifications(pageRef.current + 1, true);
-                    }
-                },
-                {rootMargin: '100px'},
-            );
-            observerRef.current.observe(node);
-        }
-    }, [fetchNotifications]);
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (loading) return;
+
+        const sentinel = sentinelRef.current;
+        const container = scrollContainerRef.current;
+        if (!sentinel || !container) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !loadingMoreRef.current && hasMoreRef.current) {
+                    loadingMoreRef.current = true;
+                    fetchNotifications(pageRef.current + 1, true);
+                }
+            },
+            {root: container, rootMargin: '200px'},
+        );
+        observer.observe(sentinel);
+        observerRef.current = observer;
+
+        return () => observer.disconnect();
+    }, [fetchNotifications, loading]);
 
     useEffect(() => {
         fetchNotifications(1, false);
@@ -364,21 +371,22 @@ const NotificationCenter: React.FC = () => {
                                     </span>
                                 </div>
                             )}
-                            <div className="space-y-2">
-                                {notifications.map(notification => (
-                                    <NotificationItem
-                                        key={notification.id}
-                                        notification={notification}
-                                        batchMode={batchMode}
-                                        isSelected={selectedIds.has(notification.id)}
-                                        onToggleSelect={toggleSelect}
-                                        onOpenDetail={handleOpenDetail}
-                                        onMarkAsRead={handleMarkAsRead}
-                                        onDelete={handleDelete}
-                                    />
-                                ))}
-                            </div>
-                            <div ref={sentinelRef} className="flex items-center justify-center h-[48px] mt-4 border-t overflow-hidden">
+                            <div ref={scrollContainerRef} className="max-h-[calc(100vh-280px)] overflow-y-auto">
+                                <div className="space-y-2">
+                                    {notifications.map(notification => (
+                                        <NotificationItem
+                                            key={notification.id}
+                                            notification={notification}
+                                            batchMode={batchMode}
+                                            isSelected={selectedIds.has(notification.id)}
+                                            onToggleSelect={toggleSelect}
+                                            onOpenDetail={handleOpenDetail}
+                                            onMarkAsRead={handleMarkAsRead}
+                                            onDelete={handleDelete}
+                                        />
+                                    ))}
+                                </div>
+                                <div ref={sentinelRef} className="flex items-center justify-center h-[48px] mt-4 border-t overflow-hidden">
                                 {loadingMore ? (
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Loader2 className="w-4 h-4 animate-spin"/>
@@ -393,6 +401,7 @@ const NotificationCenter: React.FC = () => {
                                         {t('notifications.totalNotifications', {total})}
                                     </p>
                                 ) : null}
+                            </div>
                             </div>
                         </>
                     )}
