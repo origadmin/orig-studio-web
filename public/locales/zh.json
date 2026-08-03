@@ -610,7 +610,8 @@
     "selectedCount": "已选择 ({{count}}/{{total}})",
     "viewDetail": "查看详情",
     "totalNotifications": "{{total}} 条通知",
-    "allLoaded": "已加载全部通知"
+    "allLoaded": "已加载全部通知",
+    "loadingMore": "加载更多通知..."
   },
   "history": {
     "title": "历史记录",

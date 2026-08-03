@@ -605,7 +605,8 @@
     "selectedCount": "{{count}}/{{total}} selected",
     "viewDetail": "View Details",
     "totalNotifications": "{{total}} notifications",
-    "allLoaded": "All notifications loaded"
+    "allLoaded": "All notifications loaded",
+    "loadingMore": "Loading more notifications..."
   },
   "history": {
     "title": "History",

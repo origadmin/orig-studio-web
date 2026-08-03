@@ -1,5 +1,5 @@
 import {Spinner} from "@/components/ui/spinner"
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Bell, Check, Trash2, Loader2, CheckSquare, X, Eye} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
@@ -41,6 +41,15 @@ const NotificationCenter: React.FC = () => {
     const pageSize = PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
     const hasMore = page * pageSize < total;
 
+    const loadingMoreRef = useRef(false);
+    const hasMoreRef = useRef(false);
+    const pageRef = useRef(1);
+    const observerRef = useRef<IntersectionObserver | null>(null);
+
+    useEffect(() => { loadingMoreRef.current = loadingMore; }, [loadingMore]);
+    useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+    useEffect(() => { pageRef.current = page; }, [page]);
+
     const fetchNotifications = useCallback(async (pageNum: number = 1, append: boolean = false) => {
         try {
             if (append) {
@@ -76,10 +85,23 @@ const NotificationCenter: React.FC = () => {
         }
     }, [pageSize]);
 
-    const loadMore = useCallback(() => {
-        if (!hasMore || loadingMore) return;
-        fetchNotifications(page + 1, true);
-    }, [hasMore, loadingMore, page, fetchNotifications]);
+    const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+        if (observerRef.current) {
+            observerRef.current.disconnect();
+        }
+        if (node) {
+            observerRef.current = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting && !loadingMoreRef.current && hasMoreRef.current) {
+                        loadingMoreRef.current = true;
+                        fetchNotifications(pageRef.current + 1, true);
+                    }
+                },
+                {rootMargin: '200px'},
+            );
+            observerRef.current.observe(node);
+        }
+    }, [fetchNotifications]);
 
     useEffect(() => {
         fetchNotifications(1, false);
@@ -416,30 +438,17 @@ const NotificationCenter: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
-                            <div className="flex flex-col items-center gap-3 pt-4 mt-4 border-t">
+                            <div ref={sentinelRef} className="flex flex-col items-center gap-3 pt-4 mt-4 border-t">
                                 {total > 0 && (
                                     <p className="text-xs text-muted-foreground">
                                         {t('notifications.totalNotifications', {total})}
                                     </p>
                                 )}
-                                {hasMore && (
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={loadMore}
-                                        disabled={loadingMore}
-                                    >
-                                        {loadingMore ? (
-                                            <>
-                                                <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
-                                                {t('common.loading')}
-                                            </>
-                                        ) : (
-                                            <>
-                                                {t('common.loadMore')}
-                                            </>
-                                        )}
-                                    </Button>
+                                {loadingMore && (
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <Loader2 className="w-4 h-4 animate-spin"/>
+                                        <span className="text-sm">{t('notifications.loadingMore')}</span>
+                                    </div>
                                 )}
                                 {!hasMore && total > pageSize && (
                                     <p className="text-xs text-muted-foreground">
