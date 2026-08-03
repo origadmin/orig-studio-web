@@ -130,7 +130,10 @@
     "switchToChinese": "中文",
     "switchToJapanese": "日本語",
     "showMore": "もっと見る",
-    "showLess": "折りたたむ"
+    "showLess": "折りたたむ",
+    "myHome": "マイプロフィール",
+    "overview": "概要",
+    "myWorkspace": "マイワークスペース"
   },
   "header": {
     "searchPlaceholder": "動画、タグ、ユーザーを検索..."

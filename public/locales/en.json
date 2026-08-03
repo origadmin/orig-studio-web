@@ -130,7 +130,10 @@
     "switchToChinese": "中文",
     "switchToJapanese": "日本語",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "myHome": "My Profile",
+    "overview": "Overview",
+    "myWorkspace": "My Workspace"
   },
   "header": {
     "searchPlaceholder": "Search videos, tags, users..."

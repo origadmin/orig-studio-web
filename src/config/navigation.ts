@@ -6,6 +6,7 @@ import {
     Compass,
     Tags,
     LayoutGrid,
+    Bell,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -52,6 +53,12 @@ export const NAV_CONFIG: NavSection[] = [
                 to: '/@__handle__',
                 icon: UserCircle,
                 isDynamic: true,
+            },
+            {
+                id: 'notifications',
+                label: 'nav.notifications',
+                to: '/me/notifications',
+                icon: Bell,
             },
             {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},
         ],

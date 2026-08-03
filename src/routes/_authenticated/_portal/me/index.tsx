@@ -1,17 +1,9 @@
 import {createFileRoute, redirect} from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authenticated/_portal/me/')({
-    beforeLoad: ({context}) => {
-        const username = context.auth.user?.username;
-        if (username) {
-            throw redirect({
-                to: '/$handle',
-                params: {handle: '@' + username},
-                replace: true,
-            });
-        }
+    beforeLoad: () => {
         throw redirect({
-            to: '/auth/signin',
+            to: '/me/videos',
             replace: true,
         });
     },

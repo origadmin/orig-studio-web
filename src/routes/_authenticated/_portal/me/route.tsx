@@ -1,8 +1,18 @@
-import {createFileRoute, Outlet, Link, useLocation, redirect} from '@tanstack/react-router';
+import {createFileRoute, Outlet, Link, useLocation} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {LayoutDashboard, Tv, Video, FileText, ListVideo, Heart, History, ExternalLink} from 'lucide-react';
+import {
+    LayoutDashboard,
+    Tv,
+    Video,
+    FileText,
+    ListVideo,
+    Heart,
+    History,
+    ExternalLink,
+    Bell,
+} from 'lucide-react';
 
 function MeLayout() {
     const {t} = useTranslation();
@@ -17,6 +27,7 @@ function MeLayout() {
         {id: 'playlists', label: t('nav.playlists'), icon: ListVideo, to: '/me/playlists'},
         {id: 'history', label: t('nav.history'), icon: History, to: '/me/history'},
         {id: 'favorites', label: t('nav.favorites'), icon: Heart, to: '/me/favorites'},
+        {id: 'notifications', label: t('nav.notifications'), icon: Bell, to: '/me/notifications'},
     ];
 
     const isTabActive = (to: string) => {
@@ -25,6 +36,40 @@ function MeLayout() {
         }
         return location.pathname.startsWith(to);
     };
+
+    const getPageTitle = (): {title: string; subtitle?: string} => {
+        const path = location.pathname;
+        if (path.startsWith('/me/notifications')) {
+            return {title: t('notifications.title')};
+        }
+        if (path.startsWith('/me/channels')) {
+            return {title: t('nav.myChannels')};
+        }
+        if (path.startsWith('/me/videos')) {
+            return {title: t('nav.myVideos')};
+        }
+        if (path.startsWith('/me/articles')) {
+            return {title: t('nav.myArticles')};
+        }
+        if (path.startsWith('/me/playlists')) {
+            return {title: t('nav.playlists')};
+        }
+        if (path.startsWith('/me/history')) {
+            return {title: t('nav.history')};
+        }
+        if (path.startsWith('/me/favorites')) {
+            return {title: t('nav.favorites')};
+        }
+        if (path.startsWith('/me/subscription')) {
+            return {title: t('nav.mySubscription')};
+        }
+        if (path === '/me' || path === '/me/') {
+            return {title: t('nav.overview')};
+        }
+        return {title: t('nav.myWorkspace')};
+    };
+
+    const pageTitle = getPageTitle();
 
     return (
         <div className="-mx-4 md:-mx-6 lg:-mx-8">
@@ -42,10 +87,10 @@ function MeLayout() {
                             </Avatar>
                             <div className="min-w-0">
                                 <h1 className="text-xl font-bold text-foreground truncate">
-                                    {t('nav.myHome')}
+                                    {pageTitle.title}
                                 </h1>
                                 <p className="text-sm text-muted-foreground truncate">
-                                    {user?.username || user?.displayName}
+                                    {pageTitle.subtitle ?? (user?.username || user?.displayName)}
                                 </p>
                             </div>
                         </div>
