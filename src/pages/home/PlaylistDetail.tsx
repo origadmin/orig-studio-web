@@ -99,7 +99,11 @@ const PlaylistDetailPage: React.FC = () => {
             setIsDeleting(true);
             await playlistApi.delete(playlist.id);
             setShowDeleteDialog(false);
-            navigate({to: '/me/playlists'});
+            if (user?.username) {
+                navigate({to: '/$handle', params: {handle: '@' + user.username}, search: {tab: 'playlists'}});
+            } else {
+                navigate({to: '/me/playlists'});
+            }
         } catch (err) {
             console.error('Failed to delete playlist:', err);
         } finally {
@@ -135,12 +139,21 @@ const PlaylistDetailPage: React.FC = () => {
                 <ListVideo size={48} className="mx-auto mb-3 opacity-30"/>
                 <p className="text-lg mb-1">{t('playlists.notFound')}</p>
                 <p className="text-sm mb-4">{t('playlists.notFoundDesc')}</p>
-                <Link to="/me/playlists">
-                    <Button variant="outline">
-                        <ArrowLeft className="w-4 h-4 mr-2"/>
-                        {t('playlists.backToList')}
-                    </Button>
-                </Link>
+                {user?.username ? (
+                    <Link to="/$handle" params={{handle: '@' + user.username}} search={{tab: 'playlists'}}>
+                        <Button variant="outline">
+                            <ArrowLeft className="w-4 h-4 mr-2"/>
+                            {t('playlists.backToList')}
+                        </Button>
+                    </Link>
+                ) : (
+                    <Link to="/me/playlists">
+                        <Button variant="outline">
+                            <ArrowLeft className="w-4 h-4 mr-2"/>
+                            {t('playlists.backToList')}
+                        </Button>
+                    </Link>
+                )}
             </div>
         );
     }
@@ -151,9 +164,20 @@ const PlaylistDetailPage: React.FC = () => {
             <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
-                        <Link to="/me/playlists" className="text-muted-foreground hover:text-foreground transition-colors">
-                            <ArrowLeft className="w-5 h-5"/>
-                        </Link>
+                        {user?.username ? (
+                            <Link
+                                to="/$handle"
+                                params={{handle: '@' + user.username}}
+                                search={{tab: 'playlists'}}
+                                className="text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                <ArrowLeft className="w-5 h-5"/>
+                            </Link>
+                        ) : (
+                            <Link to="/me/playlists" className="text-muted-foreground hover:text-foreground transition-colors">
+                                <ArrowLeft className="w-5 h-5"/>
+                            </Link>
+                        )}
                         <ListVideo size={24} className="text-primary flex-shrink-0"/>
                         <h1 className="text-2xl font-bold text-foreground line-clamp-2">{playlist.title}</h1>
                         <Badge variant={playlist.is_public ? 'default' : 'secondary'} className="flex-shrink-0">

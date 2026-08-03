@@ -39,6 +39,7 @@ import {
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import SubscribeButton from './SubscribeButton';
 import NotificationBell from './NotificationBell';
+import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
 
 interface ChannelHeaderProps {
@@ -65,6 +66,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     onNotificationSettingChange,
 }) => {
     const {t} = useTranslation();
+    const {user} = useAuth();
     const [showUnsubscribeDialog, setShowUnsubscribeDialog] = useState(false);
     const [unsubscribing, setUnsubscribing] = useState(false);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
@@ -203,7 +205,9 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                             </div>
                         ) : isOwner ? (
                             <Link
-                                to="/me/channels"
+                                to="/$handle"
+                                params={{handle: user?.username ? '@' + user.username : '@me'}}
+                                search={{tab: 'channels'}}
                                 className="text-xs sm:text-sm text-muted-foreground/60 hover:text-primary transition-colors italic"
                             >
                                 {t('channel.addDescription')}
@@ -255,12 +259,20 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                         ) : (
                             <>
                                 <Button asChild size="sm">
-                                    <Link to="/me/videos">
+                                    <Link
+                                        to="/$handle"
+                                        params={{handle: user?.username ? '@' + user.username : '@me'}}
+                                        search={{tab: 'videos'}}
+                                    >
                                         <Upload className="w-4 h-4"/>
                                     </Link>
                                 </Button>
                                 <Button asChild variant="outline" size="sm">
-                                    <Link to="/me/channels">
+                                    <Link
+                                        to="/$handle"
+                                        params={{handle: user?.username ? '@' + user.username : '@me'}}
+                                        search={{tab: 'channels'}}
+                                    >
                                         <Settings className="w-4 h-4"/>
                                     </Link>
                                 </Button>

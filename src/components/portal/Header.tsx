@@ -371,7 +371,9 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                             <ExternalLink size={16}/> {t('me.viewPublicProfile')}
                                         </Link>
                                         <Link
-                                            to="/me/channels"
+                                            to="/$handle"
+                                            params={{handle: '@' + user.username}}
+                                            search={{tab: 'channels'}}
                                             onClick={() => setUserMenuOpen(false)}
                                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
                                         >
@@ -387,7 +389,9 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                                             <Upload size={16}/> {t('nav.uploadVideo')}
                                         </button>
                                         <Link
-                                            to="/me/favorites"
+                                            to="/$handle"
+                                            params={{handle: '@' + user.username}}
+                                            search={{tab: 'favorites'}}
                                             onClick={() => setUserMenuOpen(false)}
                                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-accent"
                                         >

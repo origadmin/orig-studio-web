@@ -7,6 +7,7 @@ import {useUploadState} from '@/contexts/UploadContext';
 import {useTranslation} from 'react-i18next';
 import {formatFileSize} from '@/lib/format';
 import {cn} from '@/lib/utils';
+import {useAuth} from '@/hooks/useAuth';
 
 const getFileIcon = (type: string) => {
     if (type.startsWith('video/')) return FileVideo;
@@ -37,6 +38,7 @@ const UploadCenter: React.FC<UploadCenterProps> = ({onNewUpload}) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const {tasks, activeCount, pauseTask, resumeTask, removeTask, clearCompleted, openDialog} = useUploadState();
+    const {user} = useAuth();
 
     const hasTasks = tasks.length > 0;
     const recentTasks = tasks.slice(0, 5);
@@ -220,7 +222,9 @@ const UploadCenter: React.FC<UploadCenterProps> = ({onNewUpload}) => {
                     {t('upload.newUpload', '新上传')}
                 </button>
                 <Link
-                    to="/me/videos"
+                    to="/$handle"
+                    params={{handle: user?.username ? '@' + user.username : '@me'}}
+                    search={{tab: 'videos'}}
                     className="flex items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground py-1.5 px-3 rounded-lg hover:bg-accent/50 transition-colors"
                     onClick={() => setOpen(false)}
                 >

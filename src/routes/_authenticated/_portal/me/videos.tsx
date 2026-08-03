@@ -7,6 +7,7 @@ export const Route = createFileRoute('/_authenticated/_portal/me/videos')({
             throw redirect({
                 to: '/$handle',
                 params: {handle: '@' + username},
+                search: {tab: 'videos'},
                 replace: true,
             });
         }

@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next';
 import {useNavigate} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
 import {Upload, FileVideo, ListVideo, MessageSquare, Info, Tv, FileText, UserCheck, Heart, History} from 'lucide-react';
+import {useAuth} from '@/hooks/useAuth';
 
 interface EmptyStateProps {
     type: 'videos' | 'playlists' | 'community' | 'home' | 'channels' | 'articles' | 'followers' | 'favorites' | 'history';
@@ -13,6 +14,8 @@ interface EmptyStateProps {
 const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId: _channelId}) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
+    const {user} = useAuth();
+    const username = user?.username;
 
     const configs = {
         videos: {
@@ -22,7 +25,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
                 ? t('channel.emptyVideosDescOwner')
                 : t('channel.emptyVideosDescVisitor'),
             action: isOwner ? (
-                <Button onClick={() => navigate({to: '/me/videos'})}>
+                <Button onClick={() => navigate({
+                    to: '/$handle',
+                    params: {handle: username ? '@' + username : '@me'},
+                    search: {tab: 'videos'},
+                })}>
                     <Upload className="w-4 h-4 mr-1"/>
                     {t('channel.uploadVideo')}
                 </Button>
@@ -59,7 +66,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
             title: t('channel.emptyHomeTitle'),
             desc: isOwner ? t('channel.emptyHomeDescOwner') : t('channel.emptyHomeDescVisitor'),
             action: isOwner ? (
-                <Button onClick={() => navigate({to: '/me/videos'})}>
+                <Button onClick={() => navigate({
+                    to: '/$handle',
+                    params: {handle: username ? '@' + username : '@me'},
+                    search: {tab: 'videos'},
+                })}>
                     <Upload className="w-4 h-4 mr-1"/>
                     {t('channel.startCreating')}
                 </Button>
@@ -70,7 +81,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({type, isOwner = false, channelId
             title: t('profile.noChannels'),
             desc: isOwner ? (t('profile.noChannelsDescOwner')) : (t('profile.noChannelsDescVisitor')),
             action: isOwner ? (
-                <Button onClick={() => navigate({to: '/me/channels'})}>
+                <Button onClick={() => navigate({
+                    to: '/$handle',
+                    params: {handle: username ? '@' + username : '@me'},
+                    search: {tab: 'channels'},
+                })}>
                     <Tv className="w-4 h-4 mr-1"/>
                     {t('profile.createChannel')}
                 </Button>

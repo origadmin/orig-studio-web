@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useMemo, useEffect, useRef} from 'react';
 import {useTranslation} from 'react-i18next';
-import {useNavigate} from '@tanstack/react-router';
+import {useNavigate, useSearch} from '@tanstack/react-router';
 import {
     usePublicProfile,
     useMediaList,
@@ -114,8 +114,27 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {user: currentUser, isAuthenticated} = useAuth();
     const {modules} = useModuleState();
     const {openDialog} = useUploadState();
-    const [ownerTab, setOwnerTab] = useState<OwnerTab>('videos');
-    const [visitorTab, setVisitorTab] = useState<VisitorTab>('videos');
+    const search = useSearch({strict: false }) as Record<string, unknown>;
+    const validOwnerTabs = useMemo(() => new Set<OwnerTab>(['videos','channels','articles','followers','favorites','playlists','history','about']), []);
+    const validVisitorTabs = useMemo(() => new Set<VisitorTab>(['videos','channels','playlists','followers','about']), []);
+    const _tab = search.tab;
+    const initialOwnerTab = validOwnerTabs.has(_tab as OwnerTab) ? (_tab as OwnerTab) : 'videos';
+    const initialVisitorTab = validVisitorTabs.has(_tab as VisitorTab) ? (_tab as VisitorTab) : 'videos';
+    const [ownerTab, setOwnerTab] = useState<OwnerTab>(initialOwnerTab);
+    const [visitorTab, setVisitorTab] = useState<VisitorTab>(initialVisitorTab);
+
+    // Sync external URL tab changes (browser back/forward, Link nav) to local state.
+    // Internal tab clicks update state directly (do NOT push URL) so history stack stays clean.
+    useEffect(() => {
+        const next = search.tab as OwnerTab | undefined;
+        if (next && validOwnerTabs.has(next) && next !== ownerTab) {
+            setOwnerTab(next);
+        }
+        const nextV = search.tab as VisitorTab | undefined;
+        if (nextV && validVisitorTabs.has(nextV) && nextV !== visitorTab) {
+            setVisitorTab(nextV);
+        }
+    }, [search.tab, validOwnerTabs, validVisitorTabs, ownerTab, visitorTab]);
 
     // Filter out articles tab when articles module is disabled
     const visibleOwnerTabs = useMemo(() => {
