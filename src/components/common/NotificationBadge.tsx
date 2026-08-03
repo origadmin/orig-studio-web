@@ -164,7 +164,7 @@ const NotificationBadge: React.FC = () => {
         if (n.action && n.action.startsWith('/')) {
             return n.action;
         }
-        return '/me/notifications';
+        return '/notifications';
     };
 
     return (
@@ -301,7 +301,7 @@ const NotificationBadge: React.FC = () => {
                     <Separator/>
                     <div className="p-2">
                         <Link
-                            to="/me/notifications"
+                            to="/notifications"
                             className="flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 py-1.5 rounded-lg hover:bg-accent/50 transition-colors"
                         >
                             {t('notifications.viewAll', 'View all notifications')}

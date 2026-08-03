@@ -57,7 +57,7 @@ export const NAV_CONFIG: NavSection[] = [
             {
                 id: 'notifications',
                 label: 'nav.notifications',
-                to: '/me/notifications',
+                to: '/notifications',
                 icon: Bell,
             },
             {id: 'my-subscription', label: 'nav.mySubscription', to: '/me/subscription', icon: CreditCard, module: 'payment'},

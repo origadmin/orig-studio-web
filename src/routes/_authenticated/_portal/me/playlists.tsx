@@ -1,5 +1,18 @@
-import {createFileRoute, lazyRouteComponent} from '@tanstack/react-router';
+import {createFileRoute, redirect} from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authenticated/_portal/me/playlists')({
-    component: lazyRouteComponent(() => import('@/pages/home/me/Playlists')),
+    beforeLoad: ({context}) => {
+        const username = context.auth.user?.username;
+        if (username) {
+            throw redirect({
+                to: '/$handle',
+                params: {handle: '@' + username},
+                replace: true,
+            });
+        }
+        throw redirect({
+            to: '/auth/signin',
+            replace: true,
+        });
+    },
 });

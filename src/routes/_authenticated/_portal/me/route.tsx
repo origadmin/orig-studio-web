@@ -2,46 +2,15 @@ import {createFileRoute, Outlet, Link, useLocation} from '@tanstack/react-router
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {
-    LayoutDashboard,
-    Tv,
-    Video,
-    FileText,
-    ListVideo,
-    Heart,
-    History,
-    ExternalLink,
-    Bell,
-} from 'lucide-react';
+import {ExternalLink} from 'lucide-react';
 
 function MeLayout() {
     const {t} = useTranslation();
     const {user} = useAuth();
     const location = useLocation();
 
-    const tabs = [
-        {id: 'overview', label: t('nav.overview'), icon: LayoutDashboard, to: '/me'},
-        {id: 'channels', label: t('nav.myChannels'), icon: Tv, to: '/me/channels'},
-        {id: 'videos', label: t('nav.myVideos'), icon: Video, to: '/me/videos'},
-        {id: 'articles', label: t('nav.myArticles'), icon: FileText, to: '/me/articles'},
-        {id: 'playlists', label: t('nav.playlists'), icon: ListVideo, to: '/me/playlists'},
-        {id: 'history', label: t('nav.history'), icon: History, to: '/me/history'},
-        {id: 'favorites', label: t('nav.favorites'), icon: Heart, to: '/me/favorites'},
-        {id: 'notifications', label: t('nav.notifications'), icon: Bell, to: '/me/notifications'},
-    ];
-
-    const isTabActive = (to: string) => {
-        if (to === '/me') {
-            return location.pathname === '/me' || location.pathname === '/me/';
-        }
-        return location.pathname.startsWith(to);
-    };
-
     const getPageTitle = (): {title: string; subtitle?: string} => {
         const path = location.pathname;
-        if (path.startsWith('/me/notifications')) {
-            return {title: t('notifications.title')};
-        }
         if (path.startsWith('/me/channels')) {
             return {title: t('nav.myChannels')};
         }
@@ -105,30 +74,6 @@ function MeLayout() {
                             )}
                         </div>
                     </div>
-
-                    <nav className="flex gap-1 overflow-x-auto scrollbar-hide mt-4" role="tablist">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = isTabActive(tab.to);
-                            return (
-                                <Link
-                                    key={tab.id}
-                                    to={tab.to as any}
-                                    className={`relative py-2.5 px-3 font-medium text-sm whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 rounded-t-lg ${
-                                        isActive
-                                            ? 'text-foreground bg-muted/50'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                                    }`}
-                                >
-                                    <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`}/>
-                                    <span>{tab.label}</span>
-                                    {isActive && (
-                                        <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full"/>
-                                    )}
-                                </Link>
-                            );
-                        })}
-                    </nav>
                 </div>
             </div>
 

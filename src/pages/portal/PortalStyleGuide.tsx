@@ -677,7 +677,7 @@ export default function PortalStyleGuide() {
 
                 <div className="flex justify-end pt-6 border-t border-border mt-6">
                     <Button asChild>
-                        <Link to="/me/notifications">
+                        <Link to="/notifications">
                             <Bell className="w-4 h-4 mr-1.5" />
                             {t('portalStyleGuide.viewNotifications', '查看通知中心示例')}
                         </Link>

@@ -62,6 +62,7 @@ import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authen
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
 import { Route as AuthenticatedAdminAdsRouteImport } from "./routes/_authenticated/admin/ads";
 import { Route as AuthenticatedPortalSubscriptionsRouteImport } from "./routes/_authenticated/_portal/subscriptions";
+import { Route as AuthenticatedPortalNotificationsRouteImport } from "./routes/_authenticated/_portal/notifications";
 import { Route as AuthenticatedAdminMediaRouteRouteImport } from "./routes/_authenticated/admin/media/route";
 import { Route as AuthenticatedAdminArticlesRouteRouteImport } from "./routes/_authenticated/admin/articles/route";
 import { Route as AuthenticatedPortalMeRouteRouteImport } from "./routes/_authenticated/_portal/me/route";
@@ -372,6 +373,12 @@ const AuthenticatedPortalSubscriptionsRoute =
     path: "/subscriptions",
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any);
+const AuthenticatedPortalNotificationsRoute =
+  AuthenticatedPortalNotificationsRouteImport.update({
+    id: "/notifications",
+    path: "/notifications",
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any);
 const AuthenticatedAdminMediaRouteRoute =
   AuthenticatedAdminMediaRouteRouteImport.update({
     id: "/media",
@@ -565,6 +572,7 @@ export interface FileRoutesByFullPath {
   "/me": typeof AuthenticatedPortalMeRouteRouteWithChildren;
   "/admin/articles": typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   "/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
+  "/notifications": typeof AuthenticatedPortalNotificationsRoute;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -639,6 +647,7 @@ export interface FileRoutesByTo {
   "/watch": typeof PortalWatchRoute;
   "/auth/signin": typeof AuthSigninRoute;
   "/auth/signup": typeof AuthSignupRoute;
+  "/notifications": typeof AuthenticatedPortalNotificationsRoute;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -722,6 +731,7 @@ export interface FileRoutesById {
   "/_authenticated/_portal/me": typeof AuthenticatedPortalMeRouteRouteWithChildren;
   "/_authenticated/admin/articles": typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   "/_authenticated/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
+  "/_authenticated/_portal/notifications": typeof AuthenticatedPortalNotificationsRoute;
   "/_authenticated/_portal/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/_authenticated/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/_authenticated/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -804,6 +814,7 @@ export interface FileRouteTypes {
     | "/me"
     | "/admin/articles"
     | "/admin/media"
+    | "/notifications"
     | "/subscriptions"
     | "/admin/ads"
     | "/admin/categories"
@@ -878,6 +889,7 @@ export interface FileRouteTypes {
     | "/watch"
     | "/auth/signin"
     | "/auth/signup"
+    | "/notifications"
     | "/subscriptions"
     | "/admin/ads"
     | "/admin/categories"
@@ -960,6 +972,7 @@ export interface FileRouteTypes {
     | "/_authenticated/_portal/me"
     | "/_authenticated/admin/articles"
     | "/_authenticated/admin/media"
+    | "/_authenticated/_portal/notifications"
     | "/_authenticated/_portal/subscriptions"
     | "/_authenticated/admin/ads"
     | "/_authenticated/admin/categories"
@@ -1397,6 +1410,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedPortalSubscriptionsRouteImport;
       parentRoute: typeof AuthenticatedPortalRoute;
     };
+    "/_authenticated/_portal/notifications": {
+      id: "/_authenticated/_portal/notifications";
+      path: "/notifications";
+      fullPath: "/notifications";
+      preLoaderRoute: typeof AuthenticatedPortalNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedPortalRoute;
+    };
     "/_authenticated/admin/media": {
       id: "/_authenticated/admin/media";
       path: "/media";
@@ -1737,6 +1757,7 @@ const AuthenticatedPortalMeRouteRouteWithChildren =
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalArticlesRouteRoute: typeof AuthenticatedPortalArticlesRouteRouteWithChildren;
   AuthenticatedPortalMeRouteRoute: typeof AuthenticatedPortalMeRouteRouteWithChildren;
+  AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute;
   AuthenticatedPortalSubscriptionsRoute: typeof AuthenticatedPortalSubscriptionsRoute;
   AuthenticatedPortalMediaShortTokenEditRoute: typeof AuthenticatedPortalMediaShortTokenEditRoute;
 }
@@ -1745,6 +1766,7 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
   AuthenticatedPortalArticlesRouteRoute:
     AuthenticatedPortalArticlesRouteRouteWithChildren,
   AuthenticatedPortalMeRouteRoute: AuthenticatedPortalMeRouteRouteWithChildren,
+  AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
   AuthenticatedPortalSubscriptionsRoute: AuthenticatedPortalSubscriptionsRoute,
   AuthenticatedPortalMediaShortTokenEditRoute:
     AuthenticatedPortalMediaShortTokenEditRoute,

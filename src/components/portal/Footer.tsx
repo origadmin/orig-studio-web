@@ -38,7 +38,7 @@ const Footer = () => {
                     <FooterSection title="Account" links={[
                         {label: 'My Profile', to: '/u/1'},
                         {label: 'My Favorites', to: '/me/favorites'},
-                        {label: 'Notifications', to: '/me/notifications'},
+                        {label: 'Notifications', to: '/notifications'},
                         {label: 'Sign In', to: '/auth/signin'},
                     ]}/>
                 </div>
