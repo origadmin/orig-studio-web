@@ -603,7 +603,9 @@
     "batchSelect": "一括選択",
     "selectAll": "すべて選択",
     "selectedCount": "{{count}}/{{total}} 件選択",
-    "viewDetail": "詳細を見る"
+    "viewDetail": "詳細を見る",
+    "totalNotifications": "{{total}} 件の通知",
+    "allLoaded": "すべての通知を読み込みました"
   },
   "history": {
     "title": "視聴履歴",

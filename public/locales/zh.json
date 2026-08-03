@@ -608,7 +608,9 @@
     "batchSelect": "批量选择",
     "selectAll": "全选",
     "selectedCount": "已选择 ({{count}}/{{total}})",
-    "viewDetail": "查看详情"
+    "viewDetail": "查看详情",
+    "totalNotifications": "{{total}} 条通知",
+    "allLoaded": "已加载全部通知"
   },
   "history": {
     "title": "历史记录",

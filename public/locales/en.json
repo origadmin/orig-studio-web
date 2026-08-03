@@ -603,7 +603,9 @@
     "batchSelect": "Batch Select",
     "selectAll": "Select All",
     "selectedCount": "{{count}}/{{total}} selected",
-    "viewDetail": "View Details"
+    "viewDetail": "View Details",
+    "totalNotifications": "{{total}} notifications",
+    "allLoaded": "All notifications loaded"
   },
   "history": {
     "title": "History",

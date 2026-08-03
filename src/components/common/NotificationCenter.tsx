@@ -1,6 +1,6 @@
 import {Spinner} from "@/components/ui/spinner"
-import React, {useState, useEffect} from 'react';
-import {Bell, Check, Trash2, Loader2, CheckSquare, X, ChevronLeft, ChevronRight, Eye} from 'lucide-react';
+import React, {useState, useEffect, useCallback} from 'react';
+import {Bell, Check, Trash2, Loader2, CheckSquare, X, Eye} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -17,7 +17,7 @@ import {
 import {formatDate} from '@/lib/format';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {useNotificationState} from '@/contexts/NotificationContext';
-import {usePagination} from '@/hooks/usePagination';
+import {PAGINATION_CONFIG} from '@/config/pagination';
 import ErrorPage from '@/components/common/ErrorPage';
 
 const NotificationCenter: React.FC = () => {
@@ -34,29 +34,56 @@ const NotificationCenter: React.FC = () => {
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
     const [confirmClearType, setConfirmClearType] = useState<'all' | 'read' | null>(null);
     const [clearing, setClearing] = useState(false);
-    const {page, pageSize, total, totalPages, setPage, setTotal, getParams} = usePagination({initialPageSize: 20});
+    const [page, setPage] = useState(1);
+    const [total, setTotal] = useState(0);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    useEffect(() => {
-        fetchNotifications();
-    }, [page]);
+    const pageSize = PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
+    const hasMore = page * pageSize < total;
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = useCallback(async (pageNum: number = 1, append: boolean = false) => {
         try {
-            setLoading(true);
+            if (append) {
+                setLoadingMore(true);
+            } else {
+                setLoading(true);
+                setSelectedIds(new Set());
+                setBatchMode(false);
+            }
             setError(null);
-            setSelectedIds(new Set());
-            setBatchMode(false);
-            const response = await notificationApi.getAll(getParams());
+            const response = await notificationApi.getAll({
+                page: pageNum,
+                page_size: pageSize,
+            });
             const items = Array.isArray(response?.items) ? response.items : [];
-            setNotifications(items);
             setTotal(response?.total ?? items.length);
+            if (append) {
+                setNotifications(prev => [...prev, ...items]);
+                setPage(pageNum);
+            } else {
+                setNotifications(items);
+                setPage(pageNum);
+            }
         } catch (err) {
             setError('Failed to fetch notifications');
             console.error('Failed to fetch notifications:', err);
         } finally {
-            setLoading(false);
+            if (append) {
+                setLoadingMore(false);
+            } else {
+                setLoading(false);
+            }
         }
-    };
+    }, [pageSize]);
+
+    const loadMore = useCallback(() => {
+        if (!hasMore || loadingMore) return;
+        fetchNotifications(page + 1, true);
+    }, [hasMore, loadingMore, page, fetchNotifications]);
+
+    useEffect(() => {
+        fetchNotifications(1, false);
+    }, [fetchNotifications]);
 
     const handleMarkAsRead = async (id: number) => {
         try {
@@ -389,69 +416,37 @@ const NotificationCenter: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
-                            {total > pageSize && (() => {
-                                const startItem = (page - 1) * pageSize + 1;
-                                const endItem = Math.min(page * pageSize, total);
-                                return (
-                                    <div className="flex items-center justify-between pt-4 mt-4 border-t">
-                                        <p className="text-xs text-muted-foreground">
-                                            {startItem}-{endItem} / {total}
-                                        </p>
-                                        <div className="flex items-center gap-1">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                disabled={page <= 1}
-                                                onClick={() => setPage(page - 1)}
-                                            >
-                                                <ChevronLeft className="w-4 h-4"/>
-                                            </Button>
-                                            {Array.from({length: Math.min(totalPages, 3)}, (_, i) => {
-                                                let pageNum: number;
-                                                if (totalPages <= 3) {
-                                                    pageNum = i + 1;
-                                                } else if (page <= 2) {
-                                                    pageNum = i + 1;
-                                                } else if (page >= totalPages - 1) {
-                                                    pageNum = totalPages - 2 + i;
-                                                } else {
-                                                    pageNum = page - 1 + i;
-                                                }
-                                                return (
-                                                    <Button
-                                                        key={pageNum}
-                                                        variant={pageNum === page ? 'default' : 'outline'}
-                                                        size="sm"
-                                                        onClick={() => setPage(pageNum)}
-                                                    >
-                                                        {pageNum}
-                                                    </Button>
-                                                );
-                                            })}
-                                            {totalPages > 3 && page < totalPages - 1 && (
-                                                <span className="text-slate-300 mx-1">...</span>
-                                            )}
-                                            {totalPages > 3 && page < totalPages - 1 && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setPage(totalPages)}
-                                                >
-                                                    {totalPages}
-                                                </Button>
-                                            )}
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                disabled={page >= totalPages}
-                                                onClick={() => setPage(page + 1)}
-                                            >
-                                                <ChevronRight className="w-4 h-4"/>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                );
-                            })()}
+                            <div className="flex flex-col items-center gap-3 pt-4 mt-4 border-t">
+                                {total > 0 && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('notifications.totalNotifications', {total})}
+                                    </p>
+                                )}
+                                {hasMore && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={loadMore}
+                                        disabled={loadingMore}
+                                    >
+                                        {loadingMore ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+                                                {t('common.loading')}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {t('common.loadMore')}
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
+                                {!hasMore && total > pageSize && (
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('notifications.allLoaded')}
+                                    </p>
+                                )}
+                            </div>
                         </>
                     )}
                 </CardContent>
