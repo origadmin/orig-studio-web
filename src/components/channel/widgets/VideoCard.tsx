@@ -173,7 +173,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
 
     return (
         <div
-            className={`group cursor-pointer ${sizeClasses[size]}`}
+            className={`group cursor-pointer min-w-0 ${sizeClasses[size]}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={() => navigate({to: '/watch', search: {v: video.short_token || String(video.id)}})}
@@ -272,7 +272,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                    <h3 className="font-medium text-sm line-clamp-2 break-words group-hover:text-primary transition-colors leading-snug">
                         {video.title}
                     </h3>
                     <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">

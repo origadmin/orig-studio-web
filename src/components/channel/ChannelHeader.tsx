@@ -143,7 +143,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             </div>
 
             {/* Channel Info Bar */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6 -mt-8 sm:-mt-14 relative z-10 pb-4">
                     {/* Avatar */}
                     <Avatar className="w-16 h-16 sm:w-28 sm:h-28 md:w-[120px] md:h-[120px] border-4 border-background shadow-lg flex-shrink-0">

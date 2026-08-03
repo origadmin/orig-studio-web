@@ -5,7 +5,7 @@ import {cn} from "@/lib/utils"
 /**
  * Card — aligned to the Stitch design system.
  * Default container uses `rounded-xl border bg-card shadow-sm` (per
- * projects/orig-cms-ee/_docs/stitch_orig_studio_design_system/stitch_design_system.md).
+ * projects/orig-cms-ee/docs/design/ui-design-system/design-system.md).
  * CardHeader / CardTitle / CardContent / CardFooter follow the same scale.
  */
 const Card = React.forwardRef<
