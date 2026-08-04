@@ -17,6 +17,7 @@ export interface User {
     status: number | string;
     is_me?: boolean;
     subscriber_count?: number;
+    media_count?: number;
     total_views?: number;
     is_verified?: boolean;
     channel_id?: string;
@@ -38,6 +39,7 @@ export const userSchema = z.object({
     status: z.union([z.number(), z.string()]),
     is_me: z.boolean().optional(),
     subscriber_count: z.number().optional(),
+    media_count: z.number().optional(),
     total_views: z.number().optional(),
     is_verified: z.boolean().optional(),
     channel_id: z.string().optional(),
@@ -199,6 +201,7 @@ function normalizeUser(raw: any): User {
         status: raw.status,
         is_me: typeof raw.is_me === 'boolean' ? raw.is_me : undefined,
         subscriber_count: typeof raw.subscriber_count === 'number' ? raw.subscriber_count : (typeof raw.follower_count === 'number' ? raw.follower_count : 0),
+        media_count: typeof raw.media_count === 'number' ? raw.media_count : 0,
         total_views: typeof raw.total_views === 'number' ? raw.total_views : (typeof raw.view_count === 'number' ? raw.view_count : 0),
         is_verified: typeof raw.is_verified === 'boolean' ? raw.is_verified : false,
         channel_id: safe(raw.channel_id, undefined),

@@ -459,7 +459,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
                         {/* Video grid with infinite scroll */}
                         {videosLoading && videoItems.length === 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                 {[1,2,3,4,5,6,7,8].map(i => (
                                     <div key={i} className="animate-pulse">
                                         <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -476,7 +476,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                             <EmptyState type="videos" isOwner={true}/>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                     {videoItems.map(item => (
                                         <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={false}/>
                                     ))}
@@ -694,7 +694,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         )}
                         <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
-                                <Film size={14}/> {profile ? (profile.media_count ?? 0) : '—'} {t('profile.videos')}
+                                <Film size={14}/> {profile ? (profile.media_count || videoItems.length) : '—'} {t('profile.videos')}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Users size={14}/> {profile.subscriber_count || 0} {t('common.followers')}
@@ -826,7 +826,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         {visitorTab === 'videos' && (
                             <>
                                 {videosLoading && videoItems.length === 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                         {[1,2,3,4,5,6,7,8].map(i => (
                                             <div key={i} className="animate-pulse">
                                                 <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -843,7 +843,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     <EmptyState type="videos" isOwner={false}/>
                                 ) : (
                                     <>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                             {videoItems.map(item => (
                                                 <VideoCard key={item.id} video={item} isOwner={false} showChannelInfo={false}/>
                                             ))}
@@ -1089,7 +1089,7 @@ const ContentSection: React.FC<{
 
     if (loading) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                     <div key={i} className="animate-pulse">
                         <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -1106,7 +1106,7 @@ const ContentSection: React.FC<{
     return (
         <div>
             {items.length > 0 && renderItem ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                     {items.map(item => renderItem(item))}
                 </div>
             ) : (
@@ -1128,7 +1128,7 @@ const ContentSection: React.FC<{
 const ProfileVideosTab: React.FC<{videos: any[]; loading: boolean; isOwner: boolean}> = ({videos, loading, isOwner}) => {
     if (loading) {
         return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                     <div key={i} className="animate-pulse">
                         <div className="aspect-video bg-muted rounded-lg mb-2"/>
@@ -1145,7 +1145,7 @@ const ProfileVideosTab: React.FC<{videos: any[]; loading: boolean; isOwner: bool
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
             {videos.map(video => (
                 <VideoCard key={video.id} video={video} isOwner={isOwner} showChannelInfo={false}/>
             ))}

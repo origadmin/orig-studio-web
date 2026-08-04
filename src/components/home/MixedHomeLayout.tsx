@@ -63,7 +63,7 @@ const MixedHomeLayout: React.FC = () => {
                                     {t('home.viewAll')}
                                 </Link>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                 {videos.slice(0, 6).map((video) => {
                                     const user = video?.edges?.user?.[0];
                                     const thumbUrl = getImageUrl(video?.thumbnail, 'thumbnail');
@@ -191,7 +191,7 @@ const MixedHomeLayout: React.FC = () => {
                 </TabsContent>
 
                 <TabsContent value="videos">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                         {videos.map((video) => {
                             const user = video?.edges?.user?.[0];
                             const thumbUrl = getImageUrl(video?.thumbnail, 'thumbnail');

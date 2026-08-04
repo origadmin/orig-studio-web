@@ -275,9 +275,9 @@ const VideoCard: React.FC<VideoCardProps> = ({
                     <h3 className="font-medium text-sm line-clamp-2 break-words group-hover:text-primary transition-colors leading-snug">
                         {video.title}
                     </h3>
-                    <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1 text-xs text-muted-foreground min-w-0">
                         {video.user?.username && (
-                            <span className="truncate min-w-0">@{video.user.nickname || video.user.username}</span>
+                            <span className="shrink-0">@{video.user.nickname || video.user.username}</span>
                         )}
                         {video.user?.username && video.view_count !== undefined && (
                             <span className="shrink-0">·</span>

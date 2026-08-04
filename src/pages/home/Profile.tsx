@@ -427,7 +427,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                     {activeTab === 'home' && (
                         (channelsLoading || videosLoading) && channels.length === 0 && videos.length === 0 ? (
                             <div className="space-y-8">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
                                     {[1, 2, 3].map((i) => (
                                         <div key={i} className="animate-pulse">
                                             <div className="h-24 bg-muted rounded-lg"/>
@@ -438,7 +438,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                                         <div key={i} className="animate-pulse">
                                             <div className="aspect-video bg-muted rounded-lg"/>
@@ -473,7 +473,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                 {t('home.viewAll') || 'View all'}
                                             </button>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
                                             {channels.slice(0, 3).map(ch => (
                                                 <Link key={ch.id} to="/c/$id" params={{id: ch.short_token || ch.id}} className="group">
                                                     <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
@@ -519,7 +519,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                             {t('home.viewAll') || 'View all'}
                                                         </button>
                                                     </div>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                                         {group.items.slice(0, 8).map(video => (
                                                             <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
                                                                 <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
@@ -653,7 +653,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                 <h3 className="text-base font-medium">{group.name}</h3>
                                                 <span className="text-xs text-muted-foreground">{group.items.length}</span>
                                             </div>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                                 {group.items.map(video => (
                                                     <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
                                                         <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
@@ -702,7 +702,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                             {articlesLoading && articles.length === 0 ? (
                                 <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div>
                             ) : articles.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                     {articles.map(article => (
                                         <Link key={article.id} to="/articles/$slug" params={{slug: article.slug || article.id}} className="group">
                                             <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
@@ -758,7 +758,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                             {playlistsLoading && playlists.length === 0 ? (
                             <div className="text-center py-12 text-muted-foreground">{t('common.loading')}</div>
                         ) : playlists.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                                 {playlists.map(pl => (
                                     <Link key={pl.id} to="/playlist/$token" params={{token: pl.short_token || pl.id}} className="group">
                                         <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-700">

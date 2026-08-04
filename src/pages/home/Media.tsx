@@ -53,7 +53,7 @@ export default function MediaPage() {
                 <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-8">
                     <div className="animate-pulse space-y-4">
                         <div className="h-8 bg-muted rounded w-48"></div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                             {[1, 2, 3, 4].map(i => (
                                 <div key={i} className="bg-white rounded-lg overflow-hidden">
                                     <div className="h-48 bg-muted"></div>
@@ -126,7 +126,7 @@ export default function MediaPage() {
                         {t('media.noMedia')}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                         {mediaList.map((media) => (
                             <Link
                                 key={media.id}

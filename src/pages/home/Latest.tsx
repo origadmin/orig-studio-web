@@ -84,7 +84,7 @@ const LatestPage = () => {
                 <h1 className="text-2xl font-bold text-foreground">{t('latest.title')}</h1>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-5">
                 {items.map((media) => (
                     <Link key={media.id} to="/watch" search={{v: media.short_token}} className="group">
                         <div
