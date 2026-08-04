@@ -11,6 +11,9 @@ export interface Category {
     parent_id?: number;
     order?: number;
     status?: number;
+    thumbnail?: string;
+    icon?: string;
+    color?: string;
     media_count: number;
     create_time?: string;
     update_time?: string;
@@ -129,10 +132,11 @@ export const categoryApi = {
         const response = await api.get<unknown>("/categories", params);
         return normalizeCategoryList(response);
     },
-    get: (id: number | string) => api.get<Category>(`/categories/${id}`),
+    // Public portal routes use slug as identity key (D1: public=slug / admin=id)
+    get: (slug: string) => api.get<Category>(`/categories/${slug}`),
     create: (data: Partial<Category>) => api.post<Category>("/categories", data),
-    update: (id: number | string, data: Partial<Category>) => api.put<Category>(`/categories/${id}`, data),
-    delete: (id: number | string) => api.del<void>(`/categories/${id}`),
+    update: (slug: string, data: Partial<Category>) => api.put<Category>(`/categories/${slug}`, data),
+    delete: (slug: string) => api.del<void>(`/categories/${slug}`),
 };
 
 // ==================== Admin Category API (requires JWT + Admin) ====================
