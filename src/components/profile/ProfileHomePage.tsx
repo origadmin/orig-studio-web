@@ -14,6 +14,8 @@ import {
     useUserPlaylists,
     useUserChannels,
     useUserFollowers,
+    useUserStats,
+    useMyStats,
 } from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
@@ -176,6 +178,13 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         if (!profile?.id) return undefined;
         return String(profile.id);
     }, [profile?.id]);
+
+    // BUG-099 / ADR-17: the header video count is sourced from the DEDICATED
+    // user stats interface (total_medias), fully decoupled from the content
+    // list below. Owner reads /me/stats; visitor reads /users/:slug/stats.
+    const {data: myStats} = useMyStats(isProfileLoaded && isOwner);
+    const {data: userStats} = useUserStats(username, isProfileLoaded && !isOwner);
+    const headerVideoCount = (isOwner ? myStats?.total_medias : userStats?.total_medias) ?? 0;
 
     const {data: userChannelsData, isLoading: channelsLoading} = useUserChannels(
         isProfileLoaded ? username : null
@@ -694,7 +703,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         )}
                         <div className="flex items-center gap-4 mt-1.5 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
-                                <Film size={14}/> {profile ? (profile.media_count || videoItems.length) : '—'} {t('profile.videos')}
+                                <Film size={14}/> {headerVideoCount} {t('profile.videos')}
                             </span>
                             <span className="flex items-center gap-1">
                                 <Users size={14}/> {profile.subscriber_count || 0} {t('common.followers')}

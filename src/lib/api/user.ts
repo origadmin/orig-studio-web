@@ -227,6 +227,16 @@ function normalizeUserList(raw: unknown): unknown {
     return {items: [], total: 0, page: 1, page_size: 0};
 }
 
+// Dedicated user stats interface (BUG-099 / ADR-17): the profile header count
+// MUST come from this independent endpoint, never from the content list length.
+export interface UserStats {
+    total_views: number;
+    total_likes: number;
+    total_medias: number;
+    total_followers: number;
+    total_following?: number;
+}
+
 export const userApi = {
     // list users
     list: async (params?: { page?: number; page_size?: number; keyword?: string; status?: string; role?: string }) => {
@@ -329,6 +339,16 @@ export const userApi = {
     // Get user's channels (public)
     getUserChannels: (slug: string, params?: { page?: number; limit?: number; page_size?: number }) =>
         api.get<{items: any[]; total: number; page: number; page_size: number}>(`/users/${slug}/channels`, params),
+
+    // ==================== Dedicated User Stats APIs (decoupled from content list) ====================
+    // Get a user's profile stats by username/slug/id (public) — returns total_medias etc.
+    // Mounted at /api/v1/users/{id}/stats by the gateway.
+    getUserStats: (id: string) =>
+        api.get<UserStats>(`/users/${id}/stats`),
+
+    // Get the current authenticated user's own stats — mounted at /api/v1/me/stats.
+    getMyStats: () =>
+        api.get<UserStats>("/me/stats"),
 };
 
 // ==================== Admin User API (UUID based, requires JWT + Admin) ====================

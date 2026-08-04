@@ -112,7 +112,7 @@ const VideoCardWithHover: React.FC<VideoCardWithHoverProps> = ({video}) => {
 
             {/* Info area */}
             <div className="p-3">
-                <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+                <h3 className="font-medium text-foreground text-sm line-clamp-2 mb-2 group-hover:text-primary transition-colors min-h-10">
                     <Link to="/watch" search={{v: video.short_token || String(video.id)}}>{video.title}</Link>
                 </h3>
 

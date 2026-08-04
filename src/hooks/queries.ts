@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import {mediaApi, publicMediaApi, adminMediaApi, type Media, type UpdateMediaRequest, normalizeMedia, normalizeMediaList} from '@/lib/api/media';
 import {categoryApi, type Category} from '@/lib/api/category';
 import {channelApi, type Channel, type ChannelDetail, type ChannelLimits} from '@/lib/api/channel';
-import {userApi, type PublicProfile} from '@/lib/api/user';
+import {userApi, type PublicProfile, type UserStats} from '@/lib/api/user';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
 import {reviewApi} from '@/lib/api/review';
@@ -443,6 +443,37 @@ export function useUserFollowers(slug: string | null | undefined, params?: { pag
             return res;
         },
         enabled: !!slug && enabled !== false,
+    });
+}
+
+/**
+ * useUserStats: Get a user's dedicated profile stats (e.g. total_medias) via the
+ * dedicated user stats interface (/users/:slug/stats). Intentionally decoupled
+ * from the content list so the profile header count never depends on the loaded
+ * video cards (BUG-099 / ADR-17).
+ */
+export function useUserStats(slug: string | null | undefined, enabled?: boolean) {
+    return useQuery({
+        queryKey: ['user-stats', slug],
+        queryFn: async (): Promise<UserStats | null> => {
+            if (!slug) return null;
+            return await userApi.getUserStats(slug);
+        },
+        enabled: !!slug && enabled !== false,
+    });
+}
+
+/**
+ * useMyStats: Get the current user's own dedicated stats (/me/stats).
+ * Mirrors useUserStats but resolves the caller identity server-side.
+ */
+export function useMyStats(enabled?: boolean) {
+    return useQuery({
+        queryKey: ['my-stats'],
+        queryFn: async (): Promise<UserStats | null> => {
+            return await userApi.getMyStats();
+        },
+        enabled: enabled !== false,
     });
 }
 
