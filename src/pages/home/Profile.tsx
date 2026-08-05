@@ -767,7 +767,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                                     <ListVideo className="w-10 h-10 text-muted-foreground"/>
                                                 </div>
                                                 <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                                                    {pl.media_items?.length || 0} {t('common.videos')}
+                                                    {pl.media_count ?? pl.media_items?.length ?? 0} {t('common.videos')}
                                                 </div>
                                             </div>
                                             <div className="p-4">

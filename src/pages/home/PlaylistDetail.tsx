@@ -57,15 +57,16 @@ const PlaylistDetailPage: React.FC = () => {
         queryKey: ['playlist', token],
         queryFn: async () => {
             if (!token) throw new Error('No playlist token provided');
-            const response = await playlistApi.get(token);
-            return response.playlist as Playlist;
+            // playlistApi.get normalizes both contracts (EE root `items`,
+            // CE `playlist.media_details`) - see BUG-128.
+            return await playlistApi.get(token);
         },
         enabled: !!token,
     });
 
-    const playlist = playlistData;
+    const playlist: Playlist | undefined = playlistData?.playlist;
     const isOwner = isAuthenticated && user && playlist && String(user.id) === String(playlist.user_id);
-    const mediaItems: PlaylistMediaItem[] = playlist?.media_details || [];
+    const mediaItems: PlaylistMediaItem[] = playlistData?.items ?? [];
 
     const handleEdit = () => {
         if (!playlist) return;

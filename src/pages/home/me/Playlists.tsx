@@ -142,7 +142,7 @@ const PlaylistsPage = () => {
                                     <div className="absolute bottom-3 left-3 flex items-center gap-2">
                                         <Video size={14} className="text-white/80"/>
                                         <span
-                                            className="text-white text-sm">{pl.media_items?.length || 0} {t('common.videos_count')}</span>
+                                            className="text-white text-sm">{pl.media_count ?? pl.media_items?.length ?? 0} {t('common.videos_count')}</span>
                                     </div>
                                     <div className="absolute top-3 right-3">
                                         <span className={`text-xs px-2 py-0.5 rounded-full ${
