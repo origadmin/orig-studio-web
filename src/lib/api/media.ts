@@ -828,8 +828,10 @@ export const publicMediaApi = {
     },
 
     // 更新媒体（需要 JWT + owner 权限，使用 short_token）
+    // 后端 proto UpdateMediaRequest 为嵌套结构 { id, media, update_mask }，
+    // 因此此处把扁平的 UpdateMediaRequest 包进 media 字段，使 wire 形状与契约一致。
     update: (shortToken: string, data: UpdateMediaRequest) =>
-        api.put<Media>(`/medias/${shortToken}`, data),
+        api.put<Media>(`/medias/${shortToken}`, { media: data }),
 
     // ==================== 点赞/点踩 API (使用 short_token) ====================
     likes: {
