@@ -30,6 +30,23 @@ export default defineConfig({
             dependencies: ['setup'],
             testMatch: /(portal-interaction|auth)\.spec\.ts/,
         },
+        {
+            // BUG-143: anonymous browser-level check of the /tag/{slug} route.
+            // No setup dependency: the tags/tag pages are public and this must
+            // run against the deployed nginx frontend (see APP constant in spec).
+            name: 'bug143',
+            use: {...devices['Desktop Chrome']},
+            testMatch: /bug-143-tag-routing\.spec\.ts/,
+        },
+        {
+            // BUG-144: anonymous browser-level check of /categories data correctness.
+            // No setup dependency: the categories page is public and the spec drives
+            // the real deployment at APP=http://localhost:8080 (see APP in spec).
+            // Requires `npx playwright install chromium` before running.
+            name: 'bug-categories',
+            use: {...devices['Desktop Chrome']},
+            testMatch: /bug-categories\.spec\.ts/,
+        },
     ],
     webServer: {
         command: 'bun run dev',
