@@ -1,12 +1,14 @@
 /**
  * Unit tests for category tree utility functions.
- * Covers: buildCategoryTree, flattenCategoryTree, getTreeSelectOptions, getDescendantIds
+ * Covers: buildCategoryTree, flattenCategoryTree, getTreeSelectOptions, getDescendantIds,
+ * getVideoGenreOptions
  */
 import {
   buildCategoryTree,
   flattenCategoryTree,
   getTreeSelectOptions,
   getDescendantIds,
+  getVideoGenreOptions,
   type CategoryTreeNode,
 } from '@/lib/utils/categoryTree';
 import type { Category } from '@/lib/api/category';
@@ -354,5 +356,76 @@ describe('getDescendantIds', () => {
     const descendants = getDescendantIds(tree, 2);
 
     expect(descendants).toEqual([4]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getVideoGenreOptions (BUG-145)
+// ---------------------------------------------------------------------------
+
+describe('getVideoGenreOptions', () => {
+  /**
+   * Mirrors the post-migration taxonomy: three module roots, genres under the
+   * `video` root only. `content_categories` is shared across modules, so the
+   * root a category sits under is what anchors it to a module.
+   */
+  function makeSharedTaxonomy(): Category[] {
+    return [
+      makeCategory({ id: 14, slug: 'video', name: '视频', parent_id: 0, order: 0 }),
+      makeCategory({ id: 1, slug: 'music', name: '音乐', parent_id: 0, order: 1 }),
+      makeCategory({ id: 15, slug: 'article', name: '文章', parent_id: 0, order: 2 }),
+      makeCategory({ id: 3, slug: 'tutorial', name: '教程', parent_id: 14, order: 3 }),
+      makeCategory({ id: 2, slug: 'gaming', name: '游戏', parent_id: 14, order: 8 }),
+      makeCategory({ id: 9, slug: 'other', name: '其他', parent_id: 14, order: 99 }),
+    ];
+  }
+
+  it('returns only genres under the video root', () => {
+    const options = getVideoGenreOptions(makeSharedTaxonomy());
+
+    expect(options.map(o => o.slug)).toEqual(['tutorial', 'gaming', 'other']);
+  });
+
+  it('never offers a module root as a selectable genre', () => {
+    const options = getVideoGenreOptions(makeSharedTaxonomy());
+    const slugs = options.map(o => o.slug);
+
+    // Picking 音乐 for a video is exactly the BUG-145 mis-anchoring.
+    expect(slugs).not.toContain('video');
+    expect(slugs).not.toContain('music');
+    expect(slugs).not.toContain('article');
+  });
+
+  it('re-bases depth so first-level genres render flush', () => {
+    const options = getVideoGenreOptions(makeSharedTaxonomy());
+
+    expect(options.every(o => o.depth === 0)).toBe(true);
+  });
+
+  it('keeps nested sub-genres indented relative to their parent genre', () => {
+    const flat = [
+      ...makeSharedTaxonomy(),
+      makeCategory({ id: 20, slug: 'fps', name: 'FPS', parent_id: 2, order: 1 }),
+    ];
+    const options = getVideoGenreOptions(flat);
+    const fps = options.find(o => o.slug === 'fps');
+
+    expect(fps).toBeDefined();
+    expect(fps!.depth).toBe(1);
+  });
+
+  it('falls back to the flat list when no video root exists (pre-migration DB)', () => {
+    const legacy = [
+      makeCategory({ id: 1, slug: 'music', parent_id: 0 }),
+      makeCategory({ id: 3, slug: 'education', parent_id: 0 }),
+    ];
+    const options = getVideoGenreOptions(legacy);
+
+    // Must not render an empty dropdown on an un-migrated database.
+    expect(options.map(o => o.slug).sort()).toEqual(['education', 'music']);
+  });
+
+  it('returns empty array for empty input', () => {
+    expect(getVideoGenreOptions([])).toEqual([]);
   });
 });

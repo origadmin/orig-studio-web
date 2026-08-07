@@ -23,6 +23,20 @@ import {PAGINATION_CONFIG} from '@/config/pagination';
 import {useAuth} from '@/hooks/useAuth';
 
 /**
+ * Stable scalar for an array filter so it can take part in a React Query key.
+ *
+ * Array params (`category_ids`, `tags`) MUST be represented in the query key.
+ * They were omitted once, and the result was silent breakage: selecting a genre
+ * only changed `category_ids`, the key stayed identical, React Query served the
+ * cached unfiltered page and never fired a request. Sorting keeps the key stable
+ * when the caller builds the array in a different order.
+ */
+const arrayKeyPart = (v: unknown): string | null => {
+    if (!Array.isArray(v) || v.length === 0) return null;
+    return [...v].map(String).sort().join(',');
+};
+
+/**
  * keys factory
  */
 export const mediaKeys = {
@@ -35,6 +49,8 @@ export const mediaKeys = {
         params.user_id ?? null,
         params.channel_id ?? null,
         params.category_id ?? null,
+        arrayKeyPart(params.category_ids),
+        arrayKeyPart(params.tags),
         params.status ?? null,
         params.type ?? null,
         params.keyword ?? params.search ?? null,
@@ -96,11 +112,14 @@ export function useMediaList(params: {
                 page_size: params.page_size,
                 type: params.type,
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
-                category_ids: params.category_ids && params.category_ids.length > 0 ? params.category_ids.join(',') : undefined,
+                // Pass as array; the axios paramsSerializer emits repeated keys
+                // (category_ids=2&category_ids=1), which the gateway BindQuery parses.
+                category_ids: params.category_ids && params.category_ids.length > 0 ? params.category_ids : undefined,
                 user_id: params.user_id || undefined,
                 channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 keyword: params.search || params.keyword,
-                tags: params.tags && params.tags.length > 0 ? params.tags.join(',') : undefined,
+                // Same repeated-key treatment as category_ids (fixes multi-tag filtering too).
+                tags: params.tags && params.tags.length > 0 ? params.tags : undefined,
                 state: params.status,
                 featured: params.featured != null ? String(params.featured) : undefined,
                 order_by: params.order_by || params.sort,

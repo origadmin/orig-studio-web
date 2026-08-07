@@ -229,6 +229,48 @@ export function getTreeSelectOptions(
 }
 
 // ---------------------------------------------------------------------------
+// VIDEO_ROOT_SLUG / getVideoGenreOptions
+// ---------------------------------------------------------------------------
+
+/**
+ * Slug of the module root that anchors the video taxonomy.
+ *
+ * `content_categories` is a *shared* table (the backend entity has edges to
+ * Media, Article and Channel), so a category belongs to a module by virtue of
+ * which root it sits under — not by any `type` field on the media row. The
+ * seed plants three roots: `video`, `music`, `article`.
+ */
+export const VIDEO_ROOT_SLUG = 'video';
+
+/**
+ * Returns the selectable genre options for a *video* (media) form.
+ *
+ * Only descendants of the `video` root are selectable: the module roots
+ * themselves (视频/音乐/文章) are anchors, not genres, and picking 音乐 for a
+ * video is exactly the BUG-145 mis-anchoring we are fixing.
+ *
+ * Falls back to the full flat list when no `video` root exists yet (older DB
+ * that has not run migration 0002), so the form never renders empty.
+ *
+ * @param flatList - Flat array of Category from the API
+ * @returns Flat, depth-annotated options in tree display order
+ */
+export function getVideoGenreOptions(flatList: Category[]): TreeSelectOption[] {
+  if (!flatList || flatList.length === 0) return [];
+
+  const tree = buildCategoryTree(flatList);
+  const videoRoot = tree.find(n => n.slug === VIDEO_ROOT_SLUG);
+
+  // No video root => pre-migration DB. Keep the old flat behaviour.
+  if (!videoRoot) return getTreeSelectOptions(tree);
+
+  // Re-base depth so the first genre level renders without indentation.
+  const options = getTreeSelectOptions(videoRoot.children);
+  const baseDepth = videoRoot.depth + 1;
+  return options.map(o => ({...o, depth: Math.max(0, o.depth - baseDepth)}));
+}
+
+// ---------------------------------------------------------------------------
 // getDescendantIds
 // ---------------------------------------------------------------------------
 

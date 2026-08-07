@@ -7,6 +7,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {Separator} from '@/components/ui/separator';
 import {formatFileSize, formatDuration} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
+import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
 import type {Media} from '@/lib/api/media';
 import type {Channel} from '@/lib/api/channel';
 
@@ -40,6 +41,9 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
     const categoriesList = (categories as any)?.items
         ? (categories as any).items
         : Array.isArray(categories) ? categories : [];
+    // BUG-145: a video may only be anchored to a genre under the `video` root.
+    // Module roots (视频/音乐/文章) are anchors, not selectable genres.
+    const genreOptions = getVideoGenreOptions(categoriesList);
 
     const na = t('common.na', 'N/A');
     const techResolution = media.width && media.height ? `${media.width} x ${media.height}` : na;
@@ -81,9 +85,9 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="_none_">{t('media.editForm.noCategory', 'No category')}</SelectItem>
-                        {categoriesList.map((cat: any) => (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                                {cat.name}
+                        {genreOptions.map(cat => (
+                            <SelectItem key={cat.id} value={String(cat.id)} disabled={cat.isDisabled}>
+                                {cat.depth > 0 ? `${'\u00A0'.repeat(cat.depth * 4)}${cat.name}` : cat.name}
                             </SelectItem>
                         ))}
                     </SelectContent>

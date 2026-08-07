@@ -9,6 +9,7 @@ import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} fr
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
 import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
+import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
@@ -247,6 +248,12 @@ export default function MediaEditPage() {
     const updateMutation = useUpdateMedia();
     const deleteMutation = useDeleteMedia();
     const {data: categoriesData} = useCategoryList();
+    // BUG-145: only genres under the `video` root are valid for a video.
+    // The module roots (视频/音乐/文章) anchor modules and are not selectable.
+    const genreOptions = useMemo(
+        () => getVideoGenreOptions(categoriesData?.items ?? []),
+        [categoriesData]
+    );
 
     // Form state with dirty tracking
     const {form, setForm, isDirty, resetDirty, syncFromData} = useDirtyState({
@@ -1088,8 +1095,10 @@ export default function MediaEditPage() {
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem value="0">{t('mediaEdit.general', '通用')}</SelectItem>
-                                                                {categoriesData?.items?.map((cat: any) => (
-                                                                    <SelectItem key={cat.id} value={String(cat.id)}>{cat.name}</SelectItem>
+                                                                {genreOptions.map(cat => (
+                                                                    <SelectItem key={cat.id} value={String(cat.id)} disabled={cat.isDisabled}>
+                                                                        {cat.depth > 0 ? `${'\u00A0'.repeat(cat.depth * 4)}${cat.name}` : cat.name}
+                                                                    </SelectItem>
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
