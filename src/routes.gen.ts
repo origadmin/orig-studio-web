@@ -25,7 +25,7 @@ import { Route as PortalLatestRouteImport } from "./routes/_portal/latest";
 import { Route as PortalFeaturedRouteImport } from "./routes/_portal/featured";
 import { Route as PortalExploreRouteImport } from "./routes/_portal/explore";
 import { Route as PortalCookiesRouteImport } from "./routes/_portal/cookies";
-import { Route as PortalCategoriesRouteImport } from "./routes/_portal/categories";
+import { Route as PortalBrowseRouteImport } from "./routes/_portal/browse";
 import { Route as PortalAboutRouteImport } from "./routes/_portal/about";
 import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
 import { Route as AuthenticatedSettingsRouteImport } from "./routes/_authenticated/settings";
@@ -36,7 +36,6 @@ import { Route as AuthenticatedAdminIndexRouteImport } from "./routes/_authentic
 import { Route as PortalUIdRouteImport } from "./routes/_portal/u.$id";
 import { Route as PortalPlaylistTokenRouteImport } from "./routes/_portal/playlist.$token";
 import { Route as PortalPSlugRouteImport } from "./routes/_portal/p.$slug";
-import { Route as PortalChannelIdRouteImport } from "./routes/_portal/channel.$id";
 import { Route as PortalCIdRouteImport } from "./routes/_portal/c.$id";
 import { Route as PortalHandleSplatRouteImport } from "./routes/_portal/$handle/$";
 import { Route as AuthenticatedSettingsProfileRouteImport } from "./routes/_authenticated/settings.profile";
@@ -170,9 +169,9 @@ const PortalCookiesRoute = PortalCookiesRouteImport.update({
   path: "/cookies",
   getParentRoute: () => PortalRouteRoute,
 } as any);
-const PortalCategoriesRoute = PortalCategoriesRouteImport.update({
-  id: "/categories",
-  path: "/categories",
+const PortalBrowseRoute = PortalBrowseRouteImport.update({
+  id: "/browse",
+  path: "/browse",
   getParentRoute: () => PortalRouteRoute,
 } as any);
 const PortalAboutRoute = PortalAboutRouteImport.update({
@@ -222,11 +221,6 @@ const PortalPlaylistTokenRoute = PortalPlaylistTokenRouteImport.update({
 const PortalPSlugRoute = PortalPSlugRouteImport.update({
   id: "/p/$slug",
   path: "/p/$slug",
-  getParentRoute: () => PortalRouteRoute,
-} as any);
-const PortalChannelIdRoute = PortalChannelIdRouteImport.update({
-  id: "/channel/$id",
-  path: "/channel/$id",
   getParentRoute: () => PortalRouteRoute,
 } as any);
 const PortalCIdRoute = PortalCIdRouteImport.update({
@@ -554,7 +548,7 @@ export interface FileRoutesByFullPath {
   "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/$handle": typeof PortalHandleRouteWithChildren;
   "/about": typeof PortalAboutRoute;
-  "/categories": typeof PortalCategoriesRoute;
+  "/browse": typeof PortalBrowseRoute;
   "/cookies": typeof PortalCookiesRoute;
   "/explore": typeof PortalExploreRoute;
   "/featured": typeof PortalFeaturedRoute;
@@ -598,7 +592,6 @@ export interface FileRoutesByFullPath {
   "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/$handle/$": typeof PortalHandleSplatRoute;
   "/c/$id": typeof PortalCIdRoute;
-  "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
@@ -633,7 +626,7 @@ export interface FileRoutesByTo {
   "/": typeof PortalIndexRoute;
   "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/about": typeof PortalAboutRoute;
-  "/categories": typeof PortalCategoriesRoute;
+  "/browse": typeof PortalBrowseRoute;
   "/cookies": typeof PortalCookiesRoute;
   "/explore": typeof PortalExploreRoute;
   "/featured": typeof PortalFeaturedRoute;
@@ -673,7 +666,6 @@ export interface FileRoutesByTo {
   "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/$handle/$": typeof PortalHandleSplatRoute;
   "/c/$id": typeof PortalCIdRoute;
-  "/channel/$id": typeof PortalChannelIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
   "/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/u/$id": typeof PortalUIdRoute;
@@ -712,7 +704,7 @@ export interface FileRoutesById {
   "/_authenticated/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/_portal/$handle": typeof PortalHandleRouteWithChildren;
   "/_portal/about": typeof PortalAboutRoute;
-  "/_portal/categories": typeof PortalCategoriesRoute;
+  "/_portal/browse": typeof PortalBrowseRoute;
   "/_portal/cookies": typeof PortalCookiesRoute;
   "/_portal/explore": typeof PortalExploreRoute;
   "/_portal/featured": typeof PortalFeaturedRoute;
@@ -757,7 +749,6 @@ export interface FileRoutesById {
   "/_authenticated/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/_portal/$handle/$": typeof PortalHandleSplatRoute;
   "/_portal/c/$id": typeof PortalCIdRoute;
-  "/_portal/channel/$id": typeof PortalChannelIdRoute;
   "/_portal/p/$slug": typeof PortalPSlugRoute;
   "/_portal/playlist/$token": typeof PortalPlaylistTokenRoute;
   "/_portal/u/$id": typeof PortalUIdRoute;
@@ -796,7 +787,7 @@ export interface FileRouteTypes {
     | "/settings"
     | "/$handle"
     | "/about"
-    | "/categories"
+    | "/browse"
     | "/cookies"
     | "/explore"
     | "/featured"
@@ -840,7 +831,6 @@ export interface FileRouteTypes {
     | "/settings/profile"
     | "/$handle/$"
     | "/c/$id"
-    | "/channel/$id"
     | "/p/$slug"
     | "/playlist/$token"
     | "/u/$id"
@@ -875,7 +865,7 @@ export interface FileRouteTypes {
     | "/"
     | "/settings"
     | "/about"
-    | "/categories"
+    | "/browse"
     | "/cookies"
     | "/explore"
     | "/featured"
@@ -915,7 +905,6 @@ export interface FileRouteTypes {
     | "/settings/profile"
     | "/$handle/$"
     | "/c/$id"
-    | "/channel/$id"
     | "/p/$slug"
     | "/playlist/$token"
     | "/u/$id"
@@ -953,7 +942,7 @@ export interface FileRouteTypes {
     | "/_authenticated/settings"
     | "/_portal/$handle"
     | "/_portal/about"
-    | "/_portal/categories"
+    | "/_portal/browse"
     | "/_portal/cookies"
     | "/_portal/explore"
     | "/_portal/featured"
@@ -998,7 +987,6 @@ export interface FileRouteTypes {
     | "/_authenticated/settings/profile"
     | "/_portal/$handle/$"
     | "/_portal/c/$id"
-    | "/_portal/channel/$id"
     | "/_portal/p/$slug"
     | "/_portal/playlist/$token"
     | "/_portal/u/$id"
@@ -1151,11 +1139,11 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PortalCookiesRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
-    "/_portal/categories": {
-      id: "/_portal/categories";
-      path: "/categories";
-      fullPath: "/categories";
-      preLoaderRoute: typeof PortalCategoriesRouteImport;
+    "/_portal/browse": {
+      id: "/_portal/browse";
+      path: "/browse";
+      fullPath: "/browse";
+      preLoaderRoute: typeof PortalBrowseRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
     "/_portal/about": {
@@ -1226,13 +1214,6 @@ declare module "@tanstack/react-router" {
       path: "/p/$slug";
       fullPath: "/p/$slug";
       preLoaderRoute: typeof PortalPSlugRouteImport;
-      parentRoute: typeof PortalRouteRoute;
-    };
-    "/_portal/channel/$id": {
-      id: "/_portal/channel/$id";
-      path: "/channel/$id";
-      fullPath: "/channel/$id";
-      preLoaderRoute: typeof PortalChannelIdRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
     "/_portal/c/$id": {
@@ -1633,7 +1614,7 @@ const PortalHandleRouteWithChildren = PortalHandleRoute._addFileChildren(
 interface PortalRouteRouteChildren {
   PortalHandleRoute: typeof PortalHandleRouteWithChildren;
   PortalAboutRoute: typeof PortalAboutRoute;
-  PortalCategoriesRoute: typeof PortalCategoriesRoute;
+  PortalBrowseRoute: typeof PortalBrowseRoute;
   PortalCookiesRoute: typeof PortalCookiesRoute;
   PortalExploreRoute: typeof PortalExploreRoute;
   PortalFeaturedRoute: typeof PortalFeaturedRoute;
@@ -1647,7 +1628,6 @@ interface PortalRouteRouteChildren {
   PortalWatchRoute: typeof PortalWatchRoute;
   PortalIndexRoute: typeof PortalIndexRoute;
   PortalCIdRoute: typeof PortalCIdRoute;
-  PortalChannelIdRoute: typeof PortalChannelIdRoute;
   PortalPSlugRoute: typeof PortalPSlugRoute;
   PortalPlaylistTokenRoute: typeof PortalPlaylistTokenRoute;
   PortalUIdRoute: typeof PortalUIdRoute;
@@ -1656,7 +1636,7 @@ interface PortalRouteRouteChildren {
 const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalHandleRoute: PortalHandleRouteWithChildren,
   PortalAboutRoute: PortalAboutRoute,
-  PortalCategoriesRoute: PortalCategoriesRoute,
+  PortalBrowseRoute: PortalBrowseRoute,
   PortalCookiesRoute: PortalCookiesRoute,
   PortalExploreRoute: PortalExploreRoute,
   PortalFeaturedRoute: PortalFeaturedRoute,
@@ -1670,7 +1650,6 @@ const PortalRouteRouteChildren: PortalRouteRouteChildren = {
   PortalWatchRoute: PortalWatchRoute,
   PortalIndexRoute: PortalIndexRoute,
   PortalCIdRoute: PortalCIdRoute,
-  PortalChannelIdRoute: PortalChannelIdRoute,
   PortalPSlugRoute: PortalPSlugRoute,
   PortalPlaylistTokenRoute: PortalPlaylistTokenRoute,
   PortalUIdRoute: PortalUIdRoute,

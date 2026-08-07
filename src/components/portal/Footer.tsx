@@ -26,7 +26,7 @@ const Footer = () => {
                     <FooterSection title="Platform" links={[
                         {label: 'Explore', to: '/'},
                         {label: 'Trending', to: '/trending'},
-                        {label: 'Categories', to: '/categories'},
+                        {label: 'Browse', to: '/browse'},
                         {label: 'Channels', to: '/c/1'},
                     ]}/>
 

@@ -10,6 +10,6 @@ const PageLoader = () => (
     </div>
 );
 
-export const Route = createFileRoute('/_portal/categories')({
+export const Route = createFileRoute('/_portal/browse')({
     component: () => <Suspense fallback={<PageLoader />}><Page /></Suspense>,
 });

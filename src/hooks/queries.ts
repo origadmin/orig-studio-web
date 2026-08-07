@@ -155,11 +155,13 @@ export function useInfiniteMediaList(params: {
     status?: string;
     type?: string;
     category_id?: number | null;
+    category_ids?: number[];
     user_id?: string | number;
     channel_id?: string | number;
     featured?: boolean;
     order_by?: string;
     descending?: boolean;
+    created_after?: string;
     enabled?: boolean;
 }) {
     const isEnabled = params.enabled !== undefined ? params.enabled : true;
@@ -171,12 +173,15 @@ export function useInfiniteMediaList(params: {
                 page_size: params.page_size,
                 type: params.type,
                 category_id: params.category_id != null && params.category_id > 0 ? params.category_id : undefined,
+                // Same repeated-key treatment as useMediaList (category_ids=2&category_ids=1)
+                category_ids: params.category_ids && params.category_ids.length > 0 ? params.category_ids : undefined,
                 user_id: params.user_id != null ? String(params.user_id) : undefined,
                 channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 state: params.status,
                 featured: params.featured ? '1' : undefined,
                 order_by: params.order_by,
                 descending: params.descending,
+                created_after: params.created_after,
             };
             Object.keys(apiParams).forEach(key => {
                 if (apiParams[key] === undefined || apiParams[key] === null) {

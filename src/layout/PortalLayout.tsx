@@ -13,12 +13,10 @@ const PortalLayout = () => {
     const {isDark, toggleDark} = useTheme();
     const location = useLocation();
 
-    const hideCategoryChips = location.pathname.startsWith('/categories') ||
-        location.pathname.startsWith('/me') ||
-        location.pathname.startsWith('/admin') ||
-        location.pathname.startsWith('/upload') ||
-        location.pathname.startsWith('/@') ||
-        location.pathname.startsWith('/u/');
+    // BUG-170: 顶部分类 chips 只在首页显示（首页是分类聚合入口，YouTube 式）。
+    // 其他页面各有导航语义——/browse 有完整筛选区、/tags 有标签云、/search 有结果，
+    // 全站每页顶部分类排是噪音（用户反馈「乱、不美观」）。
+    const hideCategoryChips = location.pathname !== '/';
 
     useEffect(() => {
         const saved = localStorage.getItem('sidebarCollapsed') === 'true';
