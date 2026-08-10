@@ -26,7 +26,7 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
     // Resolve the tag by slug to obtain its canonical title (used for media filtering).
     // If the slug does not resolve (e.g. non-ASCII tag whose slug is Base58 on the
     // backend), fall back to using the raw slug as the filter term.
-    const {data: tag, isLoading: tagLoading} = useQuery({
+    const {data: tag, isLoading: tagLoading, isFetched: tagFetched} = useQuery({
         queryKey: ['tag', slug],
         queryFn: () => tagApi.get(slug),
         retry: false,
@@ -35,10 +35,16 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
     const tagTitle = tag?.title ?? slug;
     const tagColor = tag?.color || colorFromName(tagTitle);
 
+    // BUG-171: the backend filters media by jsonb tag TITLE, not by slug. The
+    // title is only known after the tag query settles, so the media query must
+    // stay disabled until then — otherwise the first render fires
+    // `?tags={slug}` (0 results, flash of the empty state) before refetching
+    // with the correct title.
     const {data: mediaData, isLoading, error} = useMediaList({
         page: 1,
         page_size: 24,
         tags: [tagTitle],
+        enabled: tagFetched,
     });
 
     const items = mediaData?.items || [];
@@ -72,7 +78,7 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
                 </div>
             </div>
 
-            {isLoading || tagLoading ? (
+            {tagLoading || !tagFetched || isLoading ? (
                 <div className="flex items-center justify-center py-20">
                     <Spinner/>
                 </div>

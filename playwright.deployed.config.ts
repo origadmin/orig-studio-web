@@ -20,7 +20,9 @@ export default defineConfig({
     testDir: './e2e',
     // `_probe-*` files are ad-hoc diagnostics (network tracing, DOM dumps) that
     // print instead of asserting; keep them runnable through this config.
-    testMatch: /(bug-categories|bug-145-genre-select|bug-143-tag-routing|_probe-[a-z-]+)\.spec\.ts/,
+    // BUG-001 (admin access gate), BUG-004 (banner tracks), BUG-007 (autoplay
+    // card) added to the deployed-verification set so their fixes get evidence.
+    testMatch: /(bug-categories|bug-145-genre-select|bug-143-tag-routing|bug-171-tag-detail|bug-00[147][a-z0-9-]*|bug-15[34][a-z0-9-]*|_probe-[a-z0-9-]+)\.spec\.ts/,
     fullyParallel: false,
     workers: 1,
     retries: 0,
