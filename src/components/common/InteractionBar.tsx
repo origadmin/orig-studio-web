@@ -103,8 +103,10 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 const likeStatus: LikeResponse = usePublicApi
                     ? await publicMediaApi.likes.getStatus(apiIdentifier)
                     : await mediaApi.likes.getStatus(mediaId);
-                setLikeCount(likeStatus.like_count);
-                setDislikeCount(likeStatus.dislike_count);
+                // BUG-147: 后端 int64 经 proto JSON 序列化为字符串，必须转 number，
+                // 否则 "0" + 1 = "01"（字符串拼接）。dislike/favorite 同理。
+                setLikeCount(Number(likeStatus.like_count) || 0);
+                setDislikeCount(Number(likeStatus.dislike_count) || 0);
                 setIsLiked(likeStatus.is_liked);
                 setIsDisliked(likeStatus.is_disliked);
             } catch (err) {
@@ -116,7 +118,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 const favStatus: FavoriteResponse = usePublicApi
                     ? await publicMediaApi.favorites.getStatus(apiIdentifier)
                     : await mediaApi.favorites.getStatus(mediaId);
-                setFavoriteCount(favStatus.favorite_count);
+                setFavoriteCount(Number(favStatus.favorite_count) || 0);
                 setIsFavorited(favStatus.is_favorited);
             } catch (err) {
                 console.error('Failed to fetch favorite status:', err);
@@ -168,8 +170,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 : await mediaApi.likes.toggle(mediaId);
 
             // 使用服务器返回的最终状态更新
-            setLikeCount(response.like_count);
-            setDislikeCount(response.dislike_count);
+            setLikeCount(Number(response.like_count) || 0);
+            setDislikeCount(Number(response.dislike_count) || 0);
             setIsLiked(response.is_liked);
             setIsDisliked(response.is_disliked);
         } catch (err) {
@@ -209,8 +211,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                 : await mediaApi.likes.toggleDislike(mediaId);
 
             // 使用服务器返回的最终状态更新
-            setLikeCount(response.like_count);
-            setDislikeCount(response.dislike_count);
+            setLikeCount(Number(response.like_count) || 0);
+            setDislikeCount(Number(response.dislike_count) || 0);
             setIsLiked(response.is_liked);
             setIsDisliked(response.is_disliked);
         } catch (err) {
@@ -395,7 +397,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                     ) : (
                         <ThumbsUp className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`}/>
                     )}
-                    <span className="font-medium">{formatViews(likeCount)}</span>
+                    <span className="font-medium" data-testid="like-count">{formatViews(likeCount)}</span>
                 </Button>
                 <div className="w-px h-4 bg-border"/>
                 <Button
