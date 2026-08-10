@@ -7,11 +7,25 @@ export interface Tag {
   slug: string;
   description?: string;
   color?: string;
-  count: number;
+  /**
+   * BUG-180: the backend field is `media_count` (int64 → protojson string).
+   * `count` was never populated, so the admin table showed 0 for every tag and
+   * the "unused tags" stat counted the whole table.
+   */
+  media_count?: number | string;
+  /** @deprecated legacy alias, never returned by the API — use media_count */
+  count?: number;
   status: string;
   create_time: string;
   update_time: string;
 }
+
+/** Normalised video count for an admin tag row. */
+export const tagMediaCount = (tag: Pick<Tag, "media_count" | "count">): number => {
+  const raw = tag.media_count ?? tag.count ?? 0;
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : raw;
+  return Number.isFinite(n) ? n : 0;
+};
 
 export interface TagListResponse {
   items: Tag[];

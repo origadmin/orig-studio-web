@@ -1,4 +1,4 @@
-import type {Tag} from '@/lib/api/tag';
+import {tagMediaCount, type Tag} from '@/lib/api/tag';
 
 export interface TagSuggestionOptions {
     limit?: number;
@@ -29,7 +29,8 @@ export function getTagSuggestions(
         .filter((x) => x.score >= 0)
         .sort((a, b) => {
             if (b.score !== a.score) return b.score - a.score;
-            return (b.tag.count || 0) - (a.tag.count || 0);
+            // BUG-180: `count` is not a backend field; the real one is `media_count`.
+            return tagMediaCount(b.tag) - tagMediaCount(a.tag);
         })
         .slice(0, limit)
         .map((x) => x.tag);

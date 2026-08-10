@@ -30,7 +30,7 @@ import {
 import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import {adminTagApi, Tag, CreateTagRequest, UpdateTagRequest} from '@/lib/api/admin-tags';
+import {adminTagApi, tagMediaCount, Tag, CreateTagRequest, UpdateTagRequest} from '@/lib/api/admin-tags';
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
 import {getTagColor} from '@/lib/utils/tag-color';
@@ -186,7 +186,7 @@ const Tags: React.FC = () => {
 
     const totalTags = tags.length;
     const activeTags = tags.length;
-    const unusedTags = tags.filter(tag => (tag.count || 0) === 0).length;
+    const unusedTags = tags.filter(tag => tagMediaCount(tag) === 0).length;
     const colorAlerts = 0;
 
     const startItem = (searchParams.page - 1) * searchParams.page_size + 1;
@@ -387,7 +387,7 @@ const Tags: React.FC = () => {
                                     <TableCell className="px-6 py-3.5">
                                         <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-muted-foreground">{tag.slug}</code>
                                     </TableCell>
-                                    <TableCell className="px-6 py-3.5 text-sm text-card-foreground">{tag.count || 0}</TableCell>
+                                    <TableCell className="px-6 py-3.5 text-sm text-card-foreground">{tagMediaCount(tag)}</TableCell>
                                     <TableCell className="px-6 py-3.5 text-sm text-muted-foreground">{formatDateTime(tag.create_time)}</TableCell>
                                     <TableCell className="px-6 py-3.5 text-right">
                                         <div className="flex justify-end gap-1">

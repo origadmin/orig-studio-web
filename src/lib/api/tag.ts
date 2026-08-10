@@ -9,10 +9,24 @@ export interface Tag {
     description?: string;
     color?: string;
     status?: string;
+    /**
+     * BUG-180: the backend field is `media_count` (int64, serialised as a string by
+     * protojson). The UI previously read a `count` field that no endpoint ever
+     * returned, so every tag rendered "0 videos" and the count-based sort was a
+     * no-op. `count` is kept as a fallback for any legacy/mocked payload.
+     */
+    media_count?: number | string;
     count?: number;
     create_time: string;
     update_time?: string;
 }
+
+/** Normalised video count for a tag, tolerant of protojson's int64-as-string. */
+export const tagMediaCount = (tag: Pick<Tag, 'media_count' | 'count'>): number => {
+    const raw = tag.media_count ?? tag.count ?? 0;
+    const n = typeof raw === 'string' ? Number.parseInt(raw, 10) : raw;
+    return Number.isFinite(n) ? n : 0;
+};
 
 export const tagApi = {
     getAll: () => api.get<PaginatedResponse<Tag>>("/tags"),

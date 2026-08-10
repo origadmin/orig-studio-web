@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {useTranslation} from 'react-i18next';
 import {useNavigate, Link} from '@tanstack/react-router';
 import {Button} from '@/components/ui/button';
@@ -53,6 +53,23 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
     const [subscribed, setSubscribed] = useState(isSubscribed);
     const [contentEmpty, setContentEmpty] = useState(false);
 
+    // BUG-178: `useState(isSubscribed)` only captures the value of the FIRST render.
+    // The subscription status query cannot start until the channel resolves (it needs
+    // channel.short_token), which is the very moment this component mounts — so the
+    // prop is always `false` at mount and flips to `true` one tick later. Without this
+    // sync the channel page kept showing "Subscribe" for an already-subscribed channel,
+    // while the watch page (whose SubscribeButton fetches its own status) showed
+    // "Subscribed" — the inconsistency the user reported.
+    useEffect(() => {
+        setSubscribed(isSubscribed);
+    }, [isSubscribed]);
+
+    // Keep the header count in sync when the channel payload is refetched, but key on
+    // the channel identity so an optimistic +1/-1 is not clobbered mid-flight.
+    useEffect(() => {
+        setSubscriberCount(channel.subscriber_count || 0);
+    }, [channel.id]);
+
     const subscribeMutation = useSubscribe();
     const unsubscribeMutation = useUnsubscribe();
     const notificationMutation = useUpdateNotificationSetting();
@@ -74,6 +91,16 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
             page_size: videosPageSize,
         }
     );
+    // BUG-179: the header used to print `channel.media_count`, a denormalized column
+    // that no write path maintains (it is 0 for every channel), so a channel with
+    // videos still advertised "0 videos" right above a populated video grid. The
+    // channel videos endpoint already returns an authoritative total — use it, and
+    // only fall back to the stored column while the query is in flight. A keyword
+    // filter narrows that total, so the stored value is preferred in that case.
+    const headerVideoCount = (!videosKeyword && videosQueryData?.total != null)
+        ? videosQueryData.total
+        : (channel.media_count || 0);
+
     const handleVideosSortChange = useCallback((s: string) => {
         setVideosSort(s);
         setVideosPage(1);
@@ -132,7 +159,9 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                     isOwner={isOwner}
                     isFromMeChannel={isFromMeChannel}
                     isSubscribed={subscribed}
+                    subscriptionLoading={subscriptionLoading}
                     subscriberCount={subscriberCount}
+                    videoCount={headerVideoCount}
                     subscribing={subscribeMutation.isPending || unsubscribeMutation.isPending}
                     onSubscribe={handleSubscribe}
                     onUnsubscribe={handleUnsubscribe}

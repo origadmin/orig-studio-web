@@ -4,7 +4,7 @@ import {Tag as TagIcon, Hash, Search} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
-import {tagApi, type Tag} from '@/lib/api/tag';
+import {tagApi, tagMediaCount, type Tag} from '@/lib/api/tag';
 import {colorFromName} from '@/lib/utils/tag-color';
 import {generateSlug} from '@/lib/utils/slug';
 import {getTagSuggestions} from '@/lib/utils/tag-suggest';
@@ -52,9 +52,16 @@ const TagsPage = () => {
     // BUG-154: 联想候选（前缀优先 + 子串），供搜索框下拉使用
     const suggestions = getTagSuggestions(tags, filter);
 
+    // BUG-180: sort by the real video count (backend `media_count`) so tags that
+    // actually have videos surface first — previously every tag reported 0 and the
+    // grid order was arbitrary, so a visitor's first click usually hit an empty tag.
+    // Ties fall back to title order for a stable, predictable grid.
     const sortedTags = filter
         ? [...filteredTags].sort((a, b) => a.title.localeCompare(b.title))
-        : [...filteredTags].sort((a, b) => (b.count || 0) - (a.count || 0));
+        : [...filteredTags].sort((a, b) => {
+            const diff = tagMediaCount(b) - tagMediaCount(a);
+            return diff !== 0 ? diff : a.title.localeCompare(b.title);
+        });
 
     // A ?tag={slug} filter turns this collection page into the tag detail view.
     if (urlTagSlug) {
@@ -159,7 +166,7 @@ const TagsPage = () => {
                                     >
                                         <Hash size={14} className="shrink-0" style={{color: tagColor}}/>
                                         <span className="truncate">{s.title}</span>
-                                        <span className="ml-auto text-xs text-muted-foreground">{t('tags.videosCount', {count: s.count || 0})}</span>
+                                        <span className="ml-auto text-xs text-muted-foreground">{t('tags.videosCount', {count: tagMediaCount(s)})}</span>
                                     </Link>
                                 </li>
                             );
@@ -193,7 +200,7 @@ const TagsPage = () => {
                                     <p className="text-sm font-medium text-foreground truncate transition-colors group-hover:text-primary" style={{color: tagColor}}>
                                         {tag.title}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">{t('tags.videosCount', {count: tag.count || 0})}</p>
+                                    <p className="text-xs text-muted-foreground">{t('tags.videosCount', {count: tagMediaCount(tag)})}</p>
                                 </div>
                             </Link>
                         );

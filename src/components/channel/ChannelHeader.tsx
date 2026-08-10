@@ -47,7 +47,13 @@ interface ChannelHeaderProps {
     isOwner: boolean;
     isFromMeChannel?: boolean;
     isSubscribed?: boolean;
+    /** Subscription status query still in flight — render the button as pending
+     *  instead of falsely advertising "Subscribe" (BUG-178). */
+    subscriptionLoading?: boolean;
     subscriberCount?: number;
+    /** Authoritative video total from the channel videos endpoint. Falls back to
+     *  the (unmaintained) channel.media_count column when omitted (BUG-179). */
+    videoCount?: number;
     subscribing?: boolean;
     onSubscribe?: () => void;
     onUnsubscribe?: () => Promise<void>;
@@ -59,7 +65,9 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     isOwner,
     isFromMeChannel: _isFromMeChannel = false,
     isSubscribed = false,
+    subscriptionLoading = false,
     subscriberCount = 0,
+    videoCount: videoCountProp,
     subscribing = false,
     onSubscribe,
     onUnsubscribe,
@@ -77,9 +85,8 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     const [shareError, setShareError] = useState<string | null>(null);
 
     // Build the canonical channel share URL using /c/{short_token}
-    const channelShareUrl = channel.short_token
-        ? `${window.location.origin}/c/${channel.short_token}`
-        : `${window.location.origin}/channel/${channel.id}`;
+    // (the /channel/{id} route was removed — /c/{id} is the single canonical path)
+    const channelShareUrl = `${window.location.origin}/c/${channel.short_token || channel.id}`;
 
     const handleShareClick = useCallback(() => {
         setShowShareDialog(true);
@@ -122,7 +129,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
         }
     };
 
-    const videoCount = channel.media_count || 0;
+    const videoCount = videoCountProp ?? (channel.media_count || 0);
     const subCount = subscriberCount || channel.subscriber_count || 0;
     const viewCount = channel.total_views || 0;
     const description = channel.description || '';
@@ -222,6 +229,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                                 <SubscribeButton
                                     isSubscribed={isSubscribed}
                                     isOwner={isOwner}
+                                    statusLoading={subscriptionLoading}
                                     subscriberCount={subscriberCount}
                                     subscribing={subscribing}
                                     onSubscribe={onSubscribe}

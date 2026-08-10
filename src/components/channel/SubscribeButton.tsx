@@ -6,6 +6,10 @@ import {CheckCircle, UserPlus, Loader2} from 'lucide-react';
 interface SubscribeButtonProps {
     isSubscribed: boolean;
     isOwner: boolean;
+    /** Subscription status not resolved yet. Renders a disabled placeholder so the
+     *  button never claims "Subscribe" for a channel the viewer already follows
+     *  (BUG-178). */
+    statusLoading?: boolean;
     subscriberCount?: number;
     subscribing?: boolean;
     onSubscribe?: () => void;
@@ -15,6 +19,7 @@ interface SubscribeButtonProps {
 const SubscribeButton: React.FC<SubscribeButtonProps> = ({
     isSubscribed,
     isOwner,
+    statusLoading = false,
     subscriberCount: _subscriberCount = 0,
     subscribing = false,
     onSubscribe,
@@ -23,6 +28,15 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
     const {t} = useTranslation();
 
     if (isOwner) return null;
+
+    if (statusLoading) {
+        return (
+            <Button variant="default" disabled className="pointer-events-none">
+                <Loader2 className="w-4 h-4 mr-1 animate-spin"/>
+                {t('channel.subscribe')}
+            </Button>
+        );
+    }
 
     return (
         <Button
