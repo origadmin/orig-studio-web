@@ -12,40 +12,34 @@ import {useCategoryList} from '@/hooks/queries';
 import {HashtagText} from '@/components/common/HashtagText';
 import {mergeTagsWithHashtags} from '@/lib/utils/hashtag';
 import {colorFromName} from '@/lib/utils/tag-color';
+import {sanitizeSearchQuery} from '@/lib/utils/search';
+import {generateSlug} from '@/lib/utils/slug';
+import type {Media} from '@/lib/api/media';
 
 const SearchPage = () => {
     const {t} = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
-    const searchParams = useSearch({strict: false}) as { q?: string; tag?: string; category_id?: string };
+    const searchParams = useSearch({strict: false}) as { q?: string; category_id?: string };
 
     const [searchQuery, setSearchQuery] = useState('');
     const [inputValue, setInputValue] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
-    const [selectedTag, setSelectedTag] = useState<string>('');
     const [page, setPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
     const pageSize = 10;
 
     useEffect(() => {
-        const tag = searchParams.tag || '';
-        const q = searchParams.q || '';
+        const q = sanitizeSearchQuery(searchParams.q || '');
         const categoryId = searchParams.category_id || '';
 
-        if (tag) {
-            setSelectedTag(tag);
-            setSearchQuery(tag);
-            setInputValue(tag);
-        } else if (q) {
-            setSelectedTag('');
-            setSearchQuery(q);
-            setInputValue(q);
-        }
+        setSearchQuery(q);
+        setInputValue(q);
         if (categoryId) {
             setSelectedCategory(categoryId);
         }
         setPage(1);
-    }, [searchParams.tag, searchParams.q, searchParams.category_id]);
+    }, [searchParams.q, searchParams.category_id]);
 
     const {data: categories} = useCategoryList();
 
@@ -53,8 +47,7 @@ const SearchPage = () => {
         page,
         page_size: pageSize,
         status: 'active',
-        keyword: selectedTag ? undefined : searchQuery,
-        tags: selectedTag ? [selectedTag] : undefined,
+        keyword: searchQuery,
         category_id: selectedCategory ? Number(selectedCategory) : undefined
     });
 
@@ -63,11 +56,12 @@ const SearchPage = () => {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        setSearchQuery(inputValue);
-        setSelectedTag('');
+        const cleanQuery = sanitizeSearchQuery(inputValue);
+        setSearchQuery(cleanQuery);
+        setInputValue(cleanQuery);
         setPage(1);
         const params = new URLSearchParams();
-        if (inputValue) params.set('q', inputValue);
+        if (cleanQuery) params.set('q', cleanQuery);
         if (selectedCategory) params.set('category_id', selectedCategory);
         window.history.replaceState({}, '', `/search?${params.toString()}`);
     };
@@ -75,8 +69,9 @@ const SearchPage = () => {
     const handleCategoryChange = (categoryId: string) => {
         setSelectedCategory(categoryId);
         setPage(1);
+        const cleanQuery = sanitizeSearchQuery(searchQuery);
         const params = new URLSearchParams();
-        if (searchQuery) params.set('q', searchQuery);
+        if (cleanQuery) params.set('q', cleanQuery);
         if (categoryId) params.set('category_id', categoryId);
         window.history.replaceState({}, '', `/search?${params.toString()}`);
     };
@@ -85,7 +80,6 @@ const SearchPage = () => {
         setSearchQuery('');
         setInputValue('');
         setSelectedCategory('');
-        setSelectedTag('');
         setPage(1);
         window.history.replaceState({}, '', '/search');
     };
@@ -220,7 +214,7 @@ const SearchPage = () => {
             {!isLoading && !error && searchResults.length > 0 && (
                 <>
                     <div className="space-y-6">
-                        {searchResults.map(item => (
+                        {searchResults.map((item: Media) => (
                             <Link key={item.id} to="/watch" search={{v: item.short_token}}
                                   className="flex flex-col md:flex-row gap-6 group p-4 rounded-card hover:bg-muted/50 transition-all">
                                 <div
@@ -262,22 +256,18 @@ const SearchPage = () => {
                                         const allTags = mergeTagsWithHashtags(item.tags || [], item.title, item.description);
                                         return allTags.length > 0 && (
                                             <div className="flex flex-wrap gap-1.5 pt-1">
-                                                {allTags.map(tag => (
-                                                    <Link
-                                                        key={tag}
-                                                        to="/search"
-                                                        search={{tag: tag}}
-                                                        className="text-xs px-1.5 py-0.5 rounded-full hover:opacity-80 transition-opacity"
-                                                        style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedTag(tag);
-                                                            setSearchQuery(tag);
-                                                            setInputValue(tag);
-                                                            setPage(1);
-                                                        }}
-                                                    >#{tag}</Link>
-                                                ))}
+                                                {allTags.map(tag => {
+                                                    const slug = generateSlug(tag);
+                                                    return (
+                                                        <Link
+                                                            key={tag}
+                                                            to="/tags"
+                                                            search={{v: slug}}
+                                                            className="text-xs px-1.5 py-0.5 rounded-full hover:opacity-80 transition-opacity"
+                                                            style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
+                                                        >#{tag}</Link>
+                                                    );
+                                                })}
                                             </div>
                                         );
                                     })()}

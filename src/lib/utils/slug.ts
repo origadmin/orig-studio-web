@@ -5,8 +5,26 @@
  * The actual slug is generated on the backend using the definitive algorithm
  * (pure ASCII -> slugify, non-ASCII -> Base58 encode).
  *
- * The frontend only does a simple slugify for preview purposes.
+ * The frontend mirrors the backend algorithm exactly (see
+ * internal/pkg/hashtag/hashtag.go) so that hashtag links built from raw text
+ * resolve to the same /tag/{slug} URL the backend understands.
  */
+
+/**
+ * Bitcoin Base58 alphabet (no 0/O/I/l) — MUST match internal/pkg/hashtag.
+ */
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+/**
+ * Max slug length — MUST match internal/pkg/hashtag.MaxSlugLength.
+ */
+const MAX_SLUG_LENGTH = 100;
+
+/**
+ * Fallback slug when generation yields an empty result —
+ * MUST match internal/pkg/hashtag.FallbackSlug.
+ */
+export const FALLBACK_SLUG = 'tag';
 
 /**
  * Checks if a string contains only ASCII characters.
@@ -21,25 +39,72 @@ function isASCII(s: string): boolean {
 }
 
 /**
+ * Encodes a byte array using the Bitcoin Base58 alphabet —
+ * MUST match internal/pkg/hashtag.base58Encode.
+ */
+function base58Encode(data: Uint8Array): string {
+  if (data.length === 0) {
+    return FALLBACK_SLUG;
+  }
+
+  // Count leading zero bytes (they become leading '1's in Base58)
+  let leadingZeros = 0;
+  for (const b of data) {
+    if (b === 0) {
+      leadingZeros++;
+    } else {
+      break;
+    }
+  }
+
+  // Convert to big integer (BigInt) and encode
+  let num = 0n;
+  for (const b of data) {
+    num = (num << 8n) | BigInt(b);
+  }
+
+  const base = 58n;
+  let encoded = '';
+  while (num > 0n) {
+    const mod = num % base;
+    encoded = BASE58_ALPHABET[Number(mod)] + encoded;
+    num = num / base;
+  }
+
+  // Add leading '1's for each leading zero byte
+  encoded = '1'.repeat(leadingZeros) + encoded;
+
+  // Truncate to max slug length
+  if (encoded.length > MAX_SLUG_LENGTH) {
+    encoded = encoded.slice(0, MAX_SLUG_LENGTH);
+  }
+
+  return encoded || FALLBACK_SLUG;
+}
+
+/**
  * Generates a URL-friendly slug from a name string.
- * For pure ASCII names: lowercase, replace non-alphanumeric with hyphens.
- * For names with non-ASCII characters: returns a placeholder indicating
- * the slug will be auto-generated on the backend (Base58 encoded).
+ * Strategy (one-size-fits-all, mirrors backend GenerateTagSlug):
+ * - Pure ASCII names: slugify (lowercase, replace non-alphanum with hyphens)
+ * - Names with any non-ASCII: Base58-encode the entire name (UTF-8 bytes)
+ *
+ * Empty results fall back to FALLBACK_SLUG ("tag").
  *
  * @param name - The tag name to generate a slug from
  * @returns The generated slug string
  */
 export function generateSlug(name: string): string {
-  if (!name || !name.trim()) {
-    return '';
+  if (!name) {
+    return FALLBACK_SLUG;
   }
 
   const trimmed = name.trim();
+  if (!trimmed) {
+    return FALLBACK_SLUG;
+  }
 
   if (!isASCII(trimmed)) {
-    // Non-ASCII names will be Base58-encoded on the backend.
-    // Show a placeholder to indicate auto-generation.
-    return '(auto-generated)';
+    return base58Encode(new TextEncoder().encode(trimmed));
   }
 
   // Simple slugify for ASCII names
@@ -51,5 +116,11 @@ export function generateSlug(name: string): string {
   // Collapse consecutive hyphens
   slug = slug.replace(/-{2,}/g, '-');
 
-  return slug;
+  if (slug.length > MAX_SLUG_LENGTH) {
+    slug = slug.slice(0, MAX_SLUG_LENGTH);
+    // Trim trailing hyphen if truncation left one
+    slug = slug.replace(/-+$/, '');
+  }
+
+  return slug || FALLBACK_SLUG;
 }

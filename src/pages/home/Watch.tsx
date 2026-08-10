@@ -32,6 +32,7 @@ import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
 import {colorFromName} from '@/lib/utils/tag-color';
 import {mergeTagsWithHashtags} from '@/lib/utils/hashtag';
+import {generateSlug} from '@/lib/utils/slug';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import AdDisplay from '@/components/portal/AdDisplay';
@@ -508,15 +509,18 @@ const WatchPage = () => {
                                 {(() => {
                                     // 双保险：1) 后端返回的 media.tags; 2) 从标题/描述文本解析 #hashtag 并合并去重（与 Search.tsx 一致）
                                     const merged = mergeTagsWithHashtags(media.tags || [], media.title || '', media.description);
-                                    return merged.map(tag => (
-                                        <Link
-                                            key={tag}
-                                            to="/search"
-                                            search={{tag: tag}}
-                                            className="text-xs px-1.5 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                            style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
-                                        >#{tag}</Link>
-                                    ));
+                                    return merged.map(tag => {
+                                        const slug = generateSlug(tag);
+                                        return (
+                                            <Link
+                                                key={tag}
+                                                to="/tags"
+                                                search={{v: slug}}
+                                                className="text-xs px-1.5 py-0.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                                style={{color: colorFromName(tag), backgroundColor: colorFromName(tag) + '15'}}
+                                            >#{tag}</Link>
+                                        );
+                                    });
                                 })()}
                             </div>
                             <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
