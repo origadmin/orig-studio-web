@@ -488,12 +488,14 @@ const InteractionBar: React.FC<InteractionBarProps> = ({mediaId, shortToken, com
                         <Download className="w-4 h-4 mr-2"/>
                         {isDownloading ? t('common.loading') : t('watch.download')}
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator/>
                     {!isOwner && (
-                        <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
-                            <Flag className="w-4 h-4 mr-2"/>
-                            {t('report.reportVideo')}
-                        </DropdownMenuItem>
+                        <>
+                            <DropdownMenuSeparator/>
+                            <DropdownMenuItem onClick={handleOpenReportDialog} className="text-amber-600 focus:text-amber-600">
+                                <Flag className="w-4 h-4 mr-2"/>
+                                {t('report.reportVideo')}
+                            </DropdownMenuItem>
+                        </>
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>
