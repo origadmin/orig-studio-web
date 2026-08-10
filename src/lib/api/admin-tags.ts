@@ -91,9 +91,17 @@ export const adminTagApi = {
   },
 
   // Create tag
+  // BUG-180 (creation path): the admin feature's own POST /admin/tags write
+  // endpoint is unreachable through the gateway — the gateway's gRPC-gateway
+  // mux consumes the request body before the admin handler runs, so every
+  // admin tag create arrives with an empty title and 500s
+  // ("validator failed for field Tag.title"). The public TagService
+  // (POST /api/v1/tags) is the only tag write path that survives the gateway
+  // and now carries description/color, so we route creation there.
   create: async (data: CreateTagRequest): Promise<Tag> => {
-    const response = await api.post<Tag>('/admin/tags', data);
-    return response;
+    const {status: _status, ...rest} = data;
+    const response = await api.post<{ tag: Tag }>('/tags', {tag: rest});
+    return (response as { tag?: Tag }).tag ?? (response as Tag);
   },
 
   // Update tag

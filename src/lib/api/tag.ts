@@ -36,7 +36,10 @@ export const tagApi = {
     // falls back to filtering media by the slug, which matches nothing).
     get: (slug: string) =>
         api.get<{ tag: Tag }>(`/tags/${slug}`).then((r) => ((r as { tag?: Tag }).tag ?? r) as Tag),
-    create: (data: Partial<Tag>) => api.post<Tag>("/tags", data),
+    // Create tag. The gRPC gateway maps POST /api/v1/tags to TagService.CreateTag,
+    // which expects a nested `{ tag: {...} }` envelope (BUG-180: a flat body
+    // returns 400 "tag is required"). The response is also wrapped: { tag: Tag }.
+    create: (data: Partial<Tag>) => api.post<{ tag: Tag }>("/tags", {tag: data}).then((r) => ((r as { tag?: Tag }).tag ?? r) as Tag),
     // Update tag by slug
     update: (slug: string, data: Partial<Tag>) => api.put<Tag>(`/tags/${slug}`, data),
     // Delete tag by slug
