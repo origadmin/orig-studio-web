@@ -52,4 +52,55 @@ test.describe('BUG-171: tag detail page resolves title, not slug', () => {
 
         await page.screenshot({path: 'e2e-evidence/bug171-tag-detail.png', fullPage: false});
     });
+
+    /**
+     * BUG-171b: the heading used to render the raw slug while the tag query was
+     * in flight, and `colorFromName` hashed that slug into a different palette
+     * entry — so users saw a green "2zrbYkYek" repaint into "视频".
+     *
+     * A post-load DOM assertion cannot catch this (the flash is already gone),
+     * so an init script records EVERY h1 text the page ever produced and the
+     * test asserts the slug is not among them.
+     */
+    test('the heading never flashes the raw slug before resolving to the title', async ({page}) => {
+        await page.addInitScript(() => {
+            const seen: string[] = [];
+            (window as unknown as {__h1History: string[]}).__h1History = seen;
+            const snapshot = () => {
+                document.querySelectorAll('h1').forEach((h) => {
+                    const text = (h.textContent || '').trim();
+                    if (text && seen[seen.length - 1] !== text) {
+                        seen.push(text);
+                    }
+                });
+            };
+            const start = () => {
+                snapshot();
+                new MutationObserver(snapshot).observe(document.documentElement, {
+                    subtree: true,
+                    childList: true,
+                    characterData: true,
+                });
+            };
+            if (document.documentElement) {
+                start();
+            } else {
+                document.addEventListener('DOMContentLoaded', start);
+            }
+        });
+
+        await page.goto(`${APP}/tags?v=${SLUG}`);
+        await expect(page.getByRole('heading', {name: new RegExp(TAG_TITLE)}))
+            .toBeVisible({timeout: 10000});
+        await page.waitForLoadState('networkidle');
+
+        const history = await page.evaluate(
+            () => (window as unknown as {__h1History: string[]}).__h1History,
+        );
+
+        // The slug must never have been painted as a heading, at any point.
+        expect(history.some((text) => text.includes(SLUG))).toBe(false);
+        // ...and the real title must be there, proving the observer was live.
+        expect(history.some((text) => text.includes(TAG_TITLE))).toBe(true);
+    });
 });

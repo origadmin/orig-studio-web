@@ -26,14 +26,21 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
     // Resolve the tag by slug to obtain its canonical title (used for media filtering).
     // If the slug does not resolve (e.g. non-ASCII tag whose slug is Base58 on the
     // backend), fall back to using the raw slug as the filter term.
-    const {data: tag, isLoading: tagLoading, isFetched: tagFetched} = useQuery({
+    const {data: tag, isFetched: tagFetched} = useQuery({
         queryKey: ['tag', slug],
         queryFn: () => tagApi.get(slug),
         retry: false,
     });
 
     const tagTitle = tag?.title ?? slug;
-    const tagColor = tag?.color || colorFromName(tagTitle);
+
+    // BUG-171b: nothing derived from the slug may be painted before the tag
+    // query settles. `tagTitle` falls back to the raw slug, and `colorFromName`
+    // hashes it into a *different* palette entry than the real title
+    // ('2zrbYkYek' -> green, '视频' -> another hue), so rendering early caused a
+    // visible two-step flash: green "2zrbYkYek" -> recoloured "视频".
+    const tagResolved = tagFetched;
+    const tagColor = tagResolved ? (tag?.color || colorFromName(tagTitle)) : undefined;
 
     // BUG-171: the backend filters media by jsonb tag TITLE, not by slug. The
     // title is only known after the tag query settles, so the media query must
@@ -62,15 +69,25 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
                 </Link>
                 <div className="flex items-center gap-2 min-w-0">
                     <span
-                        className="flex items-center justify-center w-9 h-9 rounded-full shrink-0"
-                        style={{backgroundColor: `${tagColor}1A`, color: tagColor}}
+                        className={`flex items-center justify-center w-9 h-9 rounded-full shrink-0 ${tagResolved ? '' : 'bg-muted animate-pulse text-muted-foreground'}`}
+                        style={tagResolved ? {backgroundColor: `${tagColor}1A`, color: tagColor} : undefined}
                     >
                         <Hash size={18}/>
                     </span>
                     <div className="min-w-0">
-                        <h1 className="text-2xl font-bold text-foreground truncate" style={{color: tagColor}}>
-                            {tagLoading ? slug : tagTitle}
-                        </h1>
+                        {tagResolved ? (
+                            <h1 className="text-2xl font-bold text-foreground truncate" style={{color: tagColor}}>
+                                {tagTitle}
+                            </h1>
+                        ) : (
+                            // Skeleton, not the slug: painting the slug here is what produced
+                            // the "green 2zrbYkYek -> 视频" flash (BUG-171b).
+                            <div
+                                className="h-8 w-40 max-w-full rounded bg-muted animate-pulse"
+                                role="status"
+                                aria-label={t('common.loading', 'Loading')}
+                            />
+                        )}
                         {tag?.description && (
                             <p className="text-sm text-muted-foreground truncate">{tag.description}</p>
                         )}
@@ -78,7 +95,7 @@ const TagDetailView = ({slug}: TagDetailViewProps) => {
                 </div>
             </div>
 
-            {tagLoading || !tagFetched || isLoading ? (
+            {!tagResolved || isLoading ? (
                 <div className="flex items-center justify-center py-20">
                     <Spinner/>
                 </div>
