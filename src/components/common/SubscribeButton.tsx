@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {Button} from '@/components/ui/button';
 import {UserPlus, UserCheck, Loader2, ChevronDown, Bell, BellOff, AlertTriangle} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
@@ -49,6 +49,28 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
     const [showNotificationMenu, setShowNotificationMenu] = useState(false);
     const [notificationPref, setNotificationPref] = useState<NotificationPreference>('all');
     const [prefLoading, setPrefLoading] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // 点击外部 / 按 Esc 关闭通知偏好下拉（BUG-177：原实现无外部点击监听，菜单常驻不收）
+    useEffect(() => {
+        if (!showNotificationMenu) return;
+        const onPointerDown = (e: MouseEvent | TouchEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setShowNotificationMenu(false);
+            }
+        };
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setShowNotificationMenu(false);
+        };
+        document.addEventListener('mousedown', onPointerDown);
+        document.addEventListener('touchstart', onPointerDown);
+        document.addEventListener('keydown', onKeyDown);
+        return () => {
+            document.removeEventListener('mousedown', onPointerDown);
+            document.removeEventListener('touchstart', onPointerDown);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    }, [showNotificationMenu]);
 
     useEffect(() => {
         const fetchStatus = async () => {
@@ -158,7 +180,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
 
     return (
         <>
-            <div className="relative inline-flex">
+            <div className="relative inline-flex" ref={menuRef}>
                 <Button
                     onClick={handleSubscribe}
                     disabled={loading || initialLoading}
