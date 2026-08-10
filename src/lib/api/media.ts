@@ -168,6 +168,7 @@ export interface UserSummary {
 export interface ChannelSummary {
     id: string;
     name: string;
+    user_id?: string;
 }
 
 // CategorySummary 是 edges.category 中返回的分类摘要
