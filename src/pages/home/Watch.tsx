@@ -458,10 +458,12 @@ const WatchPage = () => {
                                         <span className="font-bold text-muted-foreground">{t('watch.deletedUser')}</span>
                                     )}
                                 </div>
-                                <SubscribeButton
-                                    channelId={media.channel_id || ''}
-                                    className="ml-4 rounded-full"
-                                />
+                                {media.channel_id ? (
+                                    <SubscribeButton
+                                        channelId={media.channel_id}
+                                        className="ml-4 rounded-full"
+                                    />
+                                ) : null}
                             </div>
                         </div>
 
