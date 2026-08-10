@@ -214,13 +214,14 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                     )}
                 </Button>
 
-                {!isOwner && subscriberCount > 0 && (
-                    <span className={`ml-2 text-xs sm:text-sm ${
-                        isSubscribed ? 'text-gray-500 dark:text-muted-foreground' : 'text-gray-600 dark:text-gray-300'
-                    }`}>
-                        {formatCount(subscriberCount)} {t('common.subscribers')}
-                    </span>
-                )}
+                {/* BUG-181: the inline "X 位订阅者" next to the button is removed.
+                 * It duplicated the channel/page-level subscriber count (which is the
+                 * single source of truth) and frequently disagreed with it because the
+                 * two reads came from different APIs (`channel.subscriber_count` here
+                 * vs. `user.subscriber_count`/channel-card counts elsewhere). Watch pages
+                 * still show the count under the channel name; channel pages show it in
+                 * the header; profile pages show channel-card counts. The internal
+                 * `subscriberCount` state is preserved for optimistic +/-1 bookkeeping. */}
 
                 {/* Notification Preference Dropdown (YouTube style, 紧凑版) */}
                 {showNotificationMenu && (
@@ -229,8 +230,12 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                         bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700
                         py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200
                     ">
+                        {/* BUG-182: the dropdown header label was rendered at 10px,
+                         * well below the rest of the menu (14px) and the page body,
+                         * making it nearly unreadable. Lift to text-sm font-semibold
+                         * to match the global DropdownMenuLabel convention. */}
                         <div className="px-3 py-1.5 border-b border-gray-100 dark:border-gray-800">
-                            <p className="text-[10px] font-semibold text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                            <p className="text-sm font-semibold text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
                                 {t('subscriptions.notifications')}
                             </p>
                         </div>
