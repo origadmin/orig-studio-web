@@ -630,9 +630,9 @@ export const mediaApi = {
         // 点赞/取消点赞
         toggle: (token: string | number) =>
             api.post<LikeResponse>(`/medias/${token}/likes`),
-        // 点踩/取消点踩
+        // 点踩/取消点踩（独立端点；原先误接 DELETE /likes=unlike，无法产生 dislike）
         toggleDislike: (token: string | number) =>
-            api.del<LikeResponse>(`/medias/${token}/likes`),
+            api.post<LikeResponse>(`/medias/${token}/dislikes`),
     },
 
     // ==================== 收藏 API (使用 short_token) ====================
@@ -841,9 +841,9 @@ export const publicMediaApi = {
         // 点赞/取消点赞（需要 JWT）
         toggle: (shortToken: string) =>
             api.post<LikeResponse>(`/medias/${shortToken}/likes`),
-        // 点踩/取消点踩（需要 JWT）
+        // 点踩/取消点踩（需要 JWT，独立端点）
         toggleDislike: (shortToken: string) =>
-            api.del<LikeResponse>(`/medias/${shortToken}/likes`),
+            api.post<LikeResponse>(`/medias/${shortToken}/dislikes`),
     },
 
     // ==================== 收藏 API (使用 short_token) ====================
