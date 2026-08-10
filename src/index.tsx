@@ -9,6 +9,7 @@ import {NotificationProvider} from '@/contexts/NotificationContext';
 import {UploadProvider} from '@/contexts/UploadContext';
 import {ThemeProvider} from '@/themes';
 import {routeTree} from './routes.gen';
+import {plainParseSearch, plainStringifySearch} from '@/lib/router-search';
 import './i18n';
 import './index.css';
 
@@ -40,6 +41,10 @@ function InnerApp() {
         context: {get auth() { return authRef.current; }},
         defaultPreload: 'intent',
         pathParamsAllowedCharacters: ['@'],
+        // BUG-183: default serializer JSON-quotes JSON-parseable strings, so the
+        // tag `1` produced ?v="1". Plain strings must stay verbatim in the URL.
+        parseSearch: plainParseSearch,
+        stringifySearch: plainStringifySearch,
     }), []);
 
     return <RouterProvider router={router}/>;

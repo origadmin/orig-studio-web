@@ -124,7 +124,10 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
 
 const WatchPage = () => {
     const {t} = useTranslation();
-    const {v: shortToken, autoplay: urlAutoPlay} = useSearch({strict: false});
+    const {v: rawToken, autoplay: urlAutoPlay} = useSearch({strict: false});
+    // BUG-183: coerce to string — the search serializer may hand back a number
+    // for numeric-looking tokens.
+    const shortToken = rawToken != null ? String(rawToken) : undefined;
     const navigate = useNavigate();
     // ✅ 使用新的 usePublicMediaDetail hook (short_token based)
     const {data: media, isLoading: isMediaLoading, error: mediaError} = usePublicMediaDetail(shortToken as string);

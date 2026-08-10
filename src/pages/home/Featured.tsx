@@ -219,7 +219,11 @@ const FeaturedPage = () => {
     const {t} = useTranslation();
     const search = useSearch({strict: false}) as {category_id?: number};
     const [sortMode, setSortMode] = useState<SortMode>('latest');
-    const [selectedCategory, setSelectedCategory] = useState<number | null>(search.category_id || null);
+    // BUG-183: the router may hand back category_id as a string (plain search
+    // values stay strings); coerce to number so the strict === filter works.
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(
+        search.category_id != null ? Number(search.category_id) : null,
+    );
 
     const {data, isLoading, error} = useMediaList({
         featured: 'true',

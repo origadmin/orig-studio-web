@@ -6,6 +6,7 @@ import {
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {ThemeProvider} from '@/themes';
 import TagsPage from '@/pages/home/Tags';
+import {plainParseSearch, plainStringifySearch} from '@/lib/router-search';
 
 // i18n mock (returns the key as the translated string)
 jest.mock('react-i18next', () => ({
@@ -33,6 +34,12 @@ jest.mock('@/lib/api/tag', () => ({
         getAll: jest.fn().mockResolvedValue({items: [
             {id: '1', title: 'Music', slug: 'music', color: '#ff0000', count: 0},
         ], total: 1}),
+    },
+    // TagsPage sorts by tagMediaCount(); provide the real helper's behavior
+    tagMediaCount: (tag: any) => {
+        const raw = tag?.media_count ?? tag?.count ?? 0;
+        const n = typeof raw === 'string' ? Number.parseInt(raw, 10) : raw;
+        return Number.isFinite(n) ? n : 0;
     },
 }));
 
@@ -62,7 +69,10 @@ const routeTree = rootRoute.addChildren([portalRoute.addChildren([tagsRoute])]);
 
 const renderAt = (url: string) => {
     const history = createMemoryHistory({initialEntries: [url]});
-    const router = createRouter({routeTree, history, context: {auth: null}} as any);
+    const router = createRouter({
+        routeTree, history, context: {auth: null},
+        parseSearch: plainParseSearch, stringifySearch: plainStringifySearch,
+    } as any);
     const queryClient = new QueryClient();
     render(
         <QueryClientProvider client={queryClient}>
@@ -106,6 +116,18 @@ describe('Tag routing (regression for BUG-143: tag link must not become /search?
             expect(router.state.location.searchStr).toBe('?v=music');
             expect(router.state.location.search).toEqual({v: 'music'});
             expect(router.state.location.href).toBe('/tags?v=music');
+        });
+    });
+
+    it('numeric tag slug serializes WITHOUT quotes (regression BUG-183: ?v="1")', async () => {
+        const router = renderAt('/tags');
+
+        await router.navigate({to: '/tags', search: {v: '1'}} as any);
+
+        await waitFor(() => {
+            // The whole point: a bare-number slug must stay `?v=1`, never `?v="1"`.
+            expect(router.state.location.searchStr).toBe('?v=1');
+            expect(router.state.location.search).toEqual({v: '1'});
         });
     });
 

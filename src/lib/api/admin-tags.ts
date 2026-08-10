@@ -101,7 +101,8 @@ export const adminTagApi = {
   create: async (data: CreateTagRequest): Promise<Tag> => {
     const {status: _status, ...rest} = data;
     const response = await api.post<{ tag: Tag }>('/tags', {tag: rest});
-    return (response as { tag?: Tag }).tag ?? (response as Tag);
+    const envelope = response as { tag?: Tag };
+    return envelope.tag ?? (response as unknown as Tag);
   },
 
   // Update tag

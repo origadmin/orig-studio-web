@@ -15,7 +15,10 @@ const TagsPage = () => {
     // URL standard: /tags?v={slug} (GOV-STD-URL D1: unified `v` = value).
     // Legacy ?tag={slug} still read for compatibility (D8), new writes use `v`.
     const search = useSearch({strict: false}) as {v?: string; tag?: string};
-    const urlTagSlug = (search.v ?? search.tag)?.trim() || null;
+    // BUG-183: always coerce to string — the router may hand back a number for
+    // numeric-looking values (or legacy quoted values) depending on the search
+    // serializer; `.trim()` would crash on anything non-string.
+    const urlTagSlug = (search.v != null ? String(search.v) : search.tag != null ? String(search.tag) : '').trim() || null;
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
