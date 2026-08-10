@@ -41,9 +41,7 @@ import type {Ad, AdCreative} from '@/lib/api/portal';
 
 const WATCHED_HISTORY_KEY = 'watch_autoplay_history';
 const WATCHED_HISTORY_LIMIT = 20;
-const SIDEBAR_AD_DECISION_KEY_PREFIX = 'ad-watch-sidebar-';   // 按视频维度：ad-watch-sidebar-{shortToken}
-const SIDEBAR_AD_DECISION_TTL_MS = 10 * 60 * 1000;          // 同一视频 10 分钟内不跳变；不同视频独立决策
-const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：每视频独立 70% 显示概率（真正让用户感知随机）
+const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：每视频独立 70% 显示概率；前端内存态决策，刷新/卸载即重摇（BUG-172）
 
 const getWatchedHistory = (): string[] => {
     try {
@@ -200,52 +198,34 @@ const WatchPage = () => {
     const error = mediaError ? t('watch.failedToLoad') : null;
 
     const {data: adPlacements = []} = usePublicAdPlacements();
-    const sidebarAds = React.useMemo<Array<Ad | AdCreative>>(() => {
-        // 按视频短 token 维度决策（不再按全局 session 一次性决策=命中即全局命中）
-        if (!shortToken) return [];
+    // 侧边栏广告：前端内存态决策（BUG-172 修复）
+    // - 刷新 / 卸载组件 → ref 重置 → 重新摇（满足"按几率显示"）
+    // - 组件内 re-render / query refetch → ref 不变 → 不重摇（保留原防抖意图）
+    // - 切视频（shortToken 变）→ effect 重跑 → 重新摇（保留"按视频维度"意图）
+    const watchSidebarItems = React.useMemo<Array<Ad | AdCreative>>(() => {
         const p = adPlacements.find(x => x.slug === 'watch-sidebar');
-        const items = [...(p?.ads || []), ...(p?.creatives || [])] as Array<Ad | AdCreative>;
-        if (!items || items.length === 0) return [];
+        return [...(p?.ads || []), ...(p?.creatives || [])] as Array<Ad | AdCreative>;
+    }, [adPlacements]);
 
-        const DECISION_KEY = SIDEBAR_AD_DECISION_KEY_PREFIX + String(shortToken);
-
-        // Session storage 防抖：同一视频 10 分钟内保持同一决策（连续刷新不跳变）
-        let decision: {shown: boolean; adId?: string; decidedAt: number} | null = null;
-        try {
-            const raw = sessionStorage.getItem(DECISION_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw) as {shown: boolean; adId?: string; decidedAt: number};
-                if (Date.now() - parsed.decidedAt < SIDEBAR_AD_DECISION_TTL_MS) {
-                    decision = parsed;
-                }
-            }
-        } catch {}
-
-        // 如果已有有效决策且 adId 仍然存在，则直接用该决策
-        if (decision) {
-            if (!decision.shown) return [];
-            if (decision.adId) {
-                const found = items.find(a => String(a.id) === String(decision.adId));
-                if (found) return [found];
-            }
-        }
-
-        // 每视频首次打开：独立跑 70% 概率（不同视频互不影响 → 用户真正感知到随机）
+    const sidebarDecisionRef = React.useRef<{shown: boolean; adId?: string} | null>(null);
+    const [sidebarDecision, setSidebarDecision] = React.useState<{shown: boolean; adId?: string} | null>(null);
+    React.useEffect(() => {
+        if (!shortToken) return;
+        if (sidebarDecisionRef.current) return;            // 同实例内已决策 → 防 re-render 抖动
+        const items = watchSidebarItems;
+        if (items.length === 0) return;                    // 数据未就绪：先不决策（不设 ref），等 placement 加载完成后再摇
         const shouldShow = Math.random() < SIDEBAR_AD_SHOW_PROBABILITY;
-        if (!shouldShow) {
-            try { sessionStorage.setItem(DECISION_KEY, JSON.stringify({shown: false, decidedAt: Date.now()})); } catch {}
-            return [];
-        }
-
-        // 随机选 1 条（替代固定 sidebarAds[0]）
+        if (!shouldShow) { sidebarDecisionRef.current = {shown: false}; return; }   // null → 派生为 []
         const chosen = items[Math.floor(Math.random() * items.length)];
-        try {
-            sessionStorage.setItem(DECISION_KEY, JSON.stringify({
-                shown: true, adId: String(chosen.id), decidedAt: Date.now(),
-            }));
-        } catch {}
-        return [chosen];
-    }, [adPlacements, shortToken]);    // ✅ 关键：增加 shortToken 依赖 → 切视频就重新随机
+        sidebarDecisionRef.current = {shown: true, adId: String(chosen.id)};
+        setSidebarDecision({shown: true, adId: String(chosen.id)});
+    }, [shortToken, watchSidebarItems]);
+
+    const sidebarAds = React.useMemo<Array<Ad | AdCreative>>(() => {
+        if (!sidebarDecision?.shown || !sidebarDecision.adId) return [];
+        const found = watchSidebarItems.find(a => String(a.id) === String(sidebarDecision.adId));
+        return found ? [found] : [];
+    }, [sidebarDecision, watchSidebarItems]);
 
     // Next video for YouTube-style autoplay countdown
     const nextVideo: NextVideoInfo | null = recommendations.length > 0 ? {
