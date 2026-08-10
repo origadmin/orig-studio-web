@@ -305,6 +305,9 @@ const WatchPage = () => {
 
     const mediaUser = media.edges?.user?.[0];
     const isProcessing = media.encoding_status !== 'success';
+    // BUG-176: 频道主视角下统一隐藏订阅按钮 + 订阅者数（避免在自有频道页面出现
+    // "1 位订阅者"这种鸡肋数字。判定=频道的 user_id == 当前登录用户 id）
+    const isChannelOwner = !!(user && media.channel?.user_id && String(media.channel.user_id) === String(user.id));
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 relative w-full max-w-screen-2xl mx-auto">
@@ -452,15 +455,18 @@ const WatchPage = () => {
                                                   className="font-bold text-foreground hover:text-info transition-colors">
                                                 {mediaUser.nickname || mediaUser.username}
                                             </Link>
-                                            <p className="text-xs text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
+                                            {!isChannelOwner && (
+                                                <p className="text-xs text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
+                                            )}
                                         </>
                                     ) : (
                                         <span className="font-bold text-muted-foreground">{t('watch.deletedUser')}</span>
                                     )}
                                 </div>
-                                {media.channel_id && media.channel?.user_id !== user?.id ? (
+                                {media.channel_id && !isChannelOwner ? (
                                     <SubscribeButton
                                         channelId={media.channel_id}
+                                        isOwner={isChannelOwner}
                                         className="ml-4 rounded-full"
                                     />
                                 ) : null}

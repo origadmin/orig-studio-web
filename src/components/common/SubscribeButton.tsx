@@ -19,6 +19,11 @@ interface SubscribeButtonProps {
     className?: string;
     size?: 'sm' | 'default' | 'lg';
     variant?: 'default' | 'outline';
+    /**
+     * 当前登录用户即频道主。true 时不渲染"X 位订阅者"计数（与隐藏订阅按钮保持一致，
+     * 避免频道主在自己频道页看到自己订阅自己的 1 位订阅者这种鸡肋数字）。
+     */
+    isOwner?: boolean;
 }
 
 type NotificationPreference = 'all' | 'personalized' | 'none';
@@ -30,7 +35,8 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                                                              size = 'default',
                                                              // variant prop is accepted for API stability; visual style is
                                                              // determined by the subscribed/unsubscribed state below.
-                                                             variant: _variant = 'default'
+                                                             variant: _variant = 'default',
+                                                             isOwner = false,
                                                          }) => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
@@ -186,7 +192,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                     )}
                 </Button>
 
-                {subscriberCount > 0 && (
+                {!isOwner && subscriberCount > 0 && (
                     <span className={`ml-2 text-xs sm:text-sm ${
                         isSubscribed ? 'text-gray-500 dark:text-muted-foreground' : 'text-gray-600 dark:text-gray-300'
                     }`}>
@@ -194,15 +200,15 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                     </span>
                 )}
 
-                {/* Notification Preference Dropdown (YouTube style) */}
+                {/* Notification Preference Dropdown (YouTube style, 紧凑版) */}
                 {showNotificationMenu && (
                     <div className="
-                        absolute top-full left-0 mt-2 w-64
+                        absolute top-full left-0 mt-1.5 w-52
                         bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700
-                        py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200
+                        py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200
                     ">
-                        <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
-                            <p className="text-xs font-semibold text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
+                        <div className="px-3 py-1.5 border-b border-gray-100 dark:border-gray-800">
+                            <p className="text-[10px] font-semibold text-gray-500 dark:text-muted-foreground uppercase tracking-wider">
                                 {t('subscriptions.notifications')}
                             </p>
                         </div>
@@ -211,17 +217,17 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                             onClick={() => handleUpdateNotification('all')}
                             disabled={prefLoading}
                             className={`
-                                w-full px-4 py-2.5 flex items-center gap-3 text-left
+                                w-full px-3 py-1.5 flex items-center gap-2 text-left text-sm
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors
                                 ${notificationPref === 'all' ? 'bg-blue-50 dark:bg-blue-900/20 text-info dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}
                             `}
                         >
-                            <Bell className="w-4 h-4"/>
+                            <Bell className="w-3.5 h-3.5"/>
                             <span className="flex-1">
                                 {t('subscriptions.all')}
                             </span>
                             {notificationPref === 'all' && (
-                                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
                             )}
                         </button>
 
@@ -229,17 +235,17 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                             onClick={() => handleUpdateNotification('personalized')}
                             disabled={prefLoading}
                             className={`
-                                w-full px-4 py-2.5 flex items-center gap-3 text-left
+                                w-full px-3 py-1.5 flex items-center gap-2 text-left text-sm
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors
                                 ${notificationPref === 'personalized' ? 'bg-blue-50 dark:bg-blue-900/20 text-info dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}
                             `}
                         >
-                            <Bell className="w-4 h-4"/>
+                            <Bell className="w-3.5 h-3.5"/>
                             <span className="flex-1">
                                 {t('subscriptions.personalized')}
                             </span>
                             {notificationPref === 'personalized' && (
-                                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
                             )}
                         </button>
 
@@ -247,21 +253,21 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                             onClick={() => handleUpdateNotification('none')}
                             disabled={prefLoading}
                             className={`
-                                w-full px-4 py-2.5 flex items-center gap-3 text-left
+                                w-full px-3 py-1.5 flex items-center gap-2 text-left text-sm
                                 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors
                                 ${notificationPref === 'none' ? 'bg-blue-50 dark:bg-blue-900/20 text-info dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}
                             `}
                         >
-                            <BellOff className="w-4 h-4"/>
+                            <BellOff className="w-3.5 h-3.5"/>
                             <span className="flex-1">
                                 {t('subscriptions.none')}
                             </span>
                             {notificationPref === 'none' && (
-                                <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                                <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
                             )}
                         </button>
 
-                        <div className="border-t border-gray-100 dark:border-gray-800 my-1"></div>
+                        <div className="border-t border-gray-100 dark:border-gray-800 my-0.5"></div>
 
                         <button
                             onClick={() => {
@@ -269,11 +275,11 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                                 setShowUnsubscribeDialog(true);
                             }}
                             className="
-                                w-full px-4 py-2.5 flex items-center gap-3 text-left
+                                w-full px-3 py-1.5 flex items-center gap-2 text-left text-sm
                                 text-destructive dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-medium
                             "
                         >
-                            <UserPlus className="w-4 h-4 rotate-180"/>
+                            <UserPlus className="w-3.5 h-3.5 rotate-180"/>
                             <span>
                                 {t('subscriptions.unsubscribe')}
                             </span>
