@@ -42,7 +42,7 @@ import type {Ad, AdCreative} from '@/lib/api/portal';
 
 const WATCHED_HISTORY_KEY = 'watch_autoplay_history';
 const WATCHED_HISTORY_LIMIT = 20;
-const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：每视频独立 70% 显示概率；前端内存态决策，刷新/卸载即重摇（BUG-172）
+const SIDEBAR_AD_SHOW_PROBABILITY = 0.7;                     // 阶段1：每视频独立 70% 显示概率；前端内存态决策，刷新/卸载即重摇（BUG-172/BUG-187）
 
 const getWatchedHistory = (): string[] => {
     try {
@@ -84,6 +84,7 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
             to="/watch"
             search={{v: item.short_token, autoplay: undefined}}
             className="flex gap-3 group"
+            data-testid="rec-card"
         >
             <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
                 {hasImage ? (
@@ -229,18 +230,33 @@ const WatchPage = () => {
         return [...(p?.ads || []), ...(p?.creatives || [])] as Array<Ad | AdCreative>;
     }, [adPlacements]);
 
-    const sidebarDecisionRef = React.useRef<{shown: boolean; adId?: string} | null>(null);
+    // BUG-187: 用户主动关闭侧栏广告后，同一视频内不重显；切换视频时随决策一起复位（内存态，刷新后随 BUG-172 重新摇）
+    const sidebarDismissedRef = React.useRef(false);
+    const [sidebarDismissed, setSidebarDismissed] = React.useState(false);
+
+    // BUG-187: 决策按视频维度（shortToken）记录。
+    // 同视频内 re-render 不重摇（防抖动）；切换视频（shortToken 变）必须重摇，
+    // 否则广告会跨视频"常驻"。ref 存 {token, decision}，token 不一致即视为新视频→重摇。
+    const sidebarDecisionRef = React.useRef<{token: string; decision: {shown: boolean; adId?: string}} | null>(null);
     const [sidebarDecision, setSidebarDecision] = React.useState<{shown: boolean; adId?: string} | null>(null);
     React.useEffect(() => {
         if (!shortToken) return;
-        if (sidebarDecisionRef.current) return;            // 同实例内已决策 → 防 re-render 抖动
+        if (sidebarDecisionRef.current && sidebarDecisionRef.current.token === shortToken) return; // 同视频已决策 → 防 re-render 抖动
         const items = watchSidebarItems;
         if (items.length === 0) return;                    // 数据未就绪：先不决策（不设 ref），等 placement 加载完成后再摇
+        // 新视频：复位用户手动关闭态，让本视频按新决策重新决定是否展示
+        sidebarDismissedRef.current = false;
+        setSidebarDismissed(false);
         const shouldShow = Math.random() < SIDEBAR_AD_SHOW_PROBABILITY;
-        if (!shouldShow) { sidebarDecisionRef.current = {shown: false}; return; }   // null → 派生为 []
+        if (!shouldShow) {
+            sidebarDecisionRef.current = {token: shortToken, decision: {shown: false}};
+            setSidebarDecision({shown: false});
+            return;   // shown:false → 派生为 []
+        }
         const chosen = items[Math.floor(Math.random() * items.length)];
-        sidebarDecisionRef.current = {shown: true, adId: String(chosen.id)};
-        setSidebarDecision({shown: true, adId: String(chosen.id)});
+        const decision = {shown: true, adId: String(chosen.id)};
+        sidebarDecisionRef.current = {token: shortToken, decision};
+        setSidebarDecision(decision);
     }, [shortToken, watchSidebarItems]);
 
     const sidebarAds = React.useMemo<Array<Ad | AdCreative>>(() => {
@@ -568,8 +584,17 @@ const WatchPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {sidebarAds.length > 0 && (
-                        <AdDisplay key={sidebarAds[0].id} ad={sidebarAds[0]} variant="sidebar"/>
+                    {!sidebarDismissed && sidebarAds.length > 0 && (
+                        <AdDisplay
+                            key={sidebarAds[0].id}
+                            ad={sidebarAds[0]}
+                            variant="sidebar"
+                            onClose={() => {
+                                if (sidebarDismissedRef.current) return;
+                                sidebarDismissedRef.current = true;
+                                setSidebarDismissed(true);
+                            }}
+                        />
                     )}
                     {recommendations.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-4 italic">{t('watch.noRecommendations')}</p>

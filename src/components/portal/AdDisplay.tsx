@@ -1,6 +1,6 @@
 import React from 'react';
 import {Link} from '@tanstack/react-router';
-import {ExternalLink} from 'lucide-react';
+import {ExternalLink, X} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
@@ -10,6 +10,11 @@ import type {Ad, AdCreative} from '@/lib/api/portal';
 interface AdCardProps {
     ad: Ad | AdCreative;
     variant?: 'card' | 'rectangle' | 'leaderboard' | 'feed' | 'sidebar';
+    /**
+     * BUG-187: 仅 sidebar 变体生效，提供时右上角渲染关闭按钮。
+     * 由外层（Watch 页）维护 dismiss 状态，决定渲染/卸载。
+     */
+    onClose?: () => void;
 }
 
 function getAdImageUrl(ad: Ad | AdCreative): string {
@@ -24,7 +29,7 @@ function getAdImageUrl(ad: Ad | AdCreative): string {
 const isTrackableAd = (item: Ad | AdCreative): item is Ad =>
     'placement_id' in item && !!item.placement_id;
 
-const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
+const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card', onClose}) => {
     const {t} = useTranslation();
     const [imgError, setImgError] = React.useState(false);
 
@@ -154,7 +159,8 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                 target={ad.link_url ? '_blank' : undefined}
                 rel="noopener noreferrer"
                 onClick={handleClick}
-                className="relative block w-full aspect-[4/3] rounded-lg overflow-hidden border border-dashed border-amber-500/40 group bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20"
+                className="relative block w-full aspect-[16/9] rounded-lg overflow-hidden border border-dashed border-amber-500/40 group bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-950/30 dark:to-orange-900/20"
+                data-testid="sidebar-ad"
             >
                 {hasImage ? (
                     <img src={imageUrl} alt={ad.title}
@@ -173,6 +179,21 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card'}) => {
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
+                {/* BUG-187: 关闭按钮——让用户主动关掉侧栏广告，避免大块占位持续干扰右侧浏览 */}
+                {onClose && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onClose();
+                        }}
+                        aria-label={t('ad.closeAd', '关闭广告')}
+                        className="absolute top-2 left-2 z-10 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                    >
+                        <X className="w-3.5 h-3.5"/>
+                    </button>
+                )}
                 <Badge variant="secondary" className="absolute top-2 right-2 text-xs bg-background/80 backdrop-blur-sm text-amber-600 border-amber-500/40">
                     {badgeLabel}
                 </Badge>
