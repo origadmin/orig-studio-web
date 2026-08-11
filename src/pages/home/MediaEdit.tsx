@@ -156,11 +156,12 @@ export default function MediaEditPage() {
                     featured: isAdmin ? form.featured : undefined,
                     listable: isAdmin ? form.listable : undefined,
                 },
-                // BUG-105 AIP-134: full-field mask so empty values (channel_id "")
-                // actually clear the field on the backend.
+                // BUG-105 AIP-134: full-field mask (camelCase paths, protobuf
+                // FieldMask JSON) so empty values (channelId "") actually clear
+                // the field on the backend.
                 update_mask: [
-                    'title', 'description', 'category_id', 'channel_id', 'tags', 'privacy',
-                    'enable_comments', 'allow_download',
+                    'title', 'description', 'categoryId', 'channelId', 'tags', 'privacy',
+                    'enableComments', 'allowDownload',
                     ...(isAdmin ? ['state', 'featured', 'listable'] : []),
                 ],
             });
