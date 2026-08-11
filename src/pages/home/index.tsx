@@ -101,7 +101,7 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
     );
 };
 
-const VIDEO_CARD_WIDTH = 240;
+const VIDEO_CARD_WIDTH = 360;
 const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
 
