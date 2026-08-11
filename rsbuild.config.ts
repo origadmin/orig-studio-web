@@ -27,6 +27,8 @@ export default defineConfig({
     },
     output: {
         assetPrefix: '/', // Ensure resources load with absolute paths in nested routes
+        // 每次构建前清空 dist，避免旧 hash 的 orphan chunk 残留被误部署（曾致广告位 4:3/16:9 随机，BUG-187）
+        cleanDistPath: true,
     },
     performance: {
         buildCache: false,
