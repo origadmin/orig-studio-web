@@ -136,7 +136,7 @@ const AutoFitRow: React.FC<{
     const cardWidth = w > 0 ? (w - (cols - 1) * HSCROLL_GAP) / cols : TARGET_CARD;
     const offset = buttonOffset === 'thumb' ? (cardWidth * 9 / 16) / 2 : buttonOffset;
     return (
-        <div ref={ref} className="w-full">
+        <div ref={ref} className="w-full" data-autofit-row="true" data-autofit-cols={cols}>
             <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP}>
                 {children(cardWidth)}
             </HorizontalScroll>
