@@ -831,8 +831,12 @@ export const publicMediaApi = {
     // 更新媒体（需要 JWT + owner 权限，使用 short_token）
     // 后端 proto UpdateMediaRequest 为嵌套结构 { id, media, update_mask }，
     // 因此此处把扁平的 UpdateMediaRequest 包进 media 字段，使 wire 形状与契约一致。
-    update: (shortToken: string, data: UpdateMediaRequest) =>
-        api.put<Media>(`/medias/${shortToken}`, { media: data }),
+    // BUG-105: 传入 update_mask（AIP-134 FieldMask paths）时启用掩码语义——含
+    // channel_id 且值为空串即表示"移到无频道（清空归属）"；不传则走 legacy 全量合并。
+    update: (shortToken: string, data: UpdateMediaRequest, updateMask?: string[]) =>
+        api.put<Media>(`/medias/${shortToken}`, updateMask && updateMask.length > 0
+            ? {media: data, update_mask: {paths: updateMask}}
+            : {media: data}),
 
     // ==================== 点赞/点踩 API (使用 short_token) ====================
     likes: {

@@ -145,7 +145,9 @@ export default function MediaEditPage() {
                     title: form.title,
                     description: form.description,
                     category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
-                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : undefined,
+                    // BUG-105: '' (from the _none_ option) must reach the backend as
+                    // an empty string so the update_mask can clear the assignment.
+                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : '',
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     state: isAdmin ? form.state : undefined,
@@ -154,6 +156,13 @@ export default function MediaEditPage() {
                     featured: isAdmin ? form.featured : undefined,
                     listable: isAdmin ? form.listable : undefined,
                 },
+                // BUG-105 AIP-134: full-field mask so empty values (channel_id "")
+                // actually clear the field on the backend.
+                update_mask: [
+                    'title', 'description', 'category_id', 'channel_id', 'tags', 'privacy',
+                    'enable_comments', 'allow_download',
+                    ...(isAdmin ? ['state', 'featured', 'listable'] : []),
+                ],
             });
             resetDirty();
             setSuccess();

@@ -3,7 +3,6 @@ import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
 import {useMyChannels} from '@/hooks/queries';
 import {useUploadState} from '@/contexts/UploadContext';
-import {CreateChannelDialog} from '@/components/channel/CreateChannelDialog';
 import {Button} from '@/components/ui/button';
 import {
     Dialog,
@@ -20,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp, Plus, Tv} from 'lucide-react';
+import {UploadCloud, X, FileVideo, Image as ImageIcon, Music, FileUp} from 'lucide-react';
 import {formatFileSize} from '@/lib/format';
 import {cn} from '@/lib/utils';
 
@@ -33,6 +32,9 @@ const getFileIcon = (type: string) => {
 
 const ACCEPTED_TYPES = 'video/*,image/*,audio/*';
 const MAX_FILE_SIZE = 500 * 1024 * 1024;
+// BUG-105: sentinel for "upload without a channel" (distinct from '' = not yet
+// chosen, which gets auto-selected to the first channel when channels exist).
+const NONE_CHANNEL = '_none_';
 
 export const UploadDialog: React.FC = () => {
     const {t} = useTranslation();
@@ -42,7 +44,6 @@ export const UploadDialog: React.FC = () => {
     const [selectedChannelId, setSelectedChannelId] = useState<string>('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [isDragActive, setIsDragActive] = useState(false);
-    const [createChannelOpen, setCreateChannelOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const channelList = Array.isArray(channels) ? channels : [];
@@ -50,10 +51,6 @@ export const UploadDialog: React.FC = () => {
 
     const getChannelValue = useCallback((ch: any) => {
         return ch.id?.toString() || ch.short_token || '';
-    }, []);
-
-    const handleChannelCreated = useCallback(() => {
-        setCreateChannelOpen(false);
     }, []);
 
     const handleFiles = useCallback((files: FileList | File[]) => {
@@ -95,7 +92,9 @@ export const UploadDialog: React.FC = () => {
         if (selectedFiles.length === 0) return;
 
         selectedFiles.forEach(file => {
-            const meta = selectedChannelId ? {channelId: selectedChannelId} : {};
+            // BUG-105: allow uploading without a channel (unassigned). Only attach
+            // channelId when a real channel is selected, never the _none_ sentinel.
+            const meta = selectedChannelId && selectedChannelId !== NONE_CHANNEL ? {channelId: selectedChannelId} : {};
             addTask(file, meta);
         });
 
@@ -124,40 +123,24 @@ export const UploadDialog: React.FC = () => {
     }, [isDialogOpen]);
 
     const selectedChannel = channelList.find(ch => getChannelValue(ch) === selectedChannelId);
-    const canStart = selectedFiles.length > 0;
-
-    return (
+    const canStart = selectedFiles.length > 0;    return (
         <>
             <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
                 <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
                     <DialogHeader>
                         <DialogTitle>{t('upload.uploadVideo', '上传视频')}</DialogTitle>
                         <DialogDescription>
-                            {t('upload.uploadDescription', '选择要上传的文件，发布到')} <span className="font-medium text-foreground">{selectedChannel?.name || '...'}</span>
+                            {t('upload.uploadDescription', '选择要上传的文件，发布到')} <span className="font-medium text-foreground">{selectedChannel?.name || t('upload.noChannel', '未选择频道（未归类）')}</span>
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="flex-1 overflow-y-auto space-y-4 py-2 px-6">
-                        {!hasChannels && !channelsLoading ? (
-                            <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
-                                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                                    <Tv className="w-8 h-8 text-muted-foreground/50"/>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-foreground">
-                                        {t('channel.noChannelsTitle', '你还没有频道')}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {t('upload.needChannelToUpload', '上传视频前需要先创建一个频道')}
-                                    </p>
-                                </div>
-                                <Button onClick={() => setCreateChannelOpen(true)}>
-                                    <Plus className="w-4 h-4 mr-2"/>
-                                    {t('channel.create.title', '创建频道')}
-                                </Button>
+                        {!hasChannels && !channelsLoading && (
+                            <div className="rounded-lg bg-muted/60 px-4 py-3 text-xs text-muted-foreground">
+                                {t('upload.unassignedHint', '未选择频道，视频将标记为「未归类」——不会出现在订阅流，可在编辑时移动到频道。')}
                             </div>
-                        ) : (
-                            <>
+                        )}
+                        <>
                                 <div
                                     role="button"
                                     tabIndex={0}
@@ -229,7 +212,6 @@ export const UploadDialog: React.FC = () => {
                                     </div>
                                 )}
                             </>
-                        )}
                     </div>
 
                     <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">
@@ -241,6 +223,7 @@ export const UploadDialog: React.FC = () => {
                                         <SelectValue placeholder={t('upload.selectChannel', '选择频道')}/>
                                     </SelectTrigger>
                                     <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value={NONE_CHANNEL}>{t('upload.noChannel', '未选择频道（未归类）')}</SelectItem>
                                         {channelList.map(ch => (
                                             <SelectItem key={ch.id} value={getChannelValue(ch)}>
                                                 {ch.name}
@@ -268,12 +251,6 @@ export const UploadDialog: React.FC = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            <CreateChannelDialog
-                open={createChannelOpen}
-                onOpenChange={setCreateChannelOpen}
-                onSuccess={handleChannelCreated}
-            />
         </>
     );
 };

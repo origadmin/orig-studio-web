@@ -313,8 +313,8 @@ export function useUpdateMedia() {
 export function useUpdatePublicMedia() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({shortToken, data}: { shortToken: string; data: UpdateMediaRequest }) =>
-            publicMediaApi.update(shortToken, data),
+        mutationFn: ({shortToken, data, update_mask}: { shortToken: string; data: UpdateMediaRequest; update_mask?: string[] }) =>
+            publicMediaApi.update(shortToken, data, update_mask),
         onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({queryKey: ['publicMedia', 'detail', variables.shortToken]});
             queryClient.invalidateQueries({queryKey: mediaKeys.all});

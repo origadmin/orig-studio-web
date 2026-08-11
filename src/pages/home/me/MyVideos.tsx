@@ -141,10 +141,8 @@ const MyVideos = () => {
         if (item.edges?.channels?.[0]?.name) {
             return {name: item.edges.channels[0].name, token: item.edges.channels[0].short_token};
         }
-        if (!chId) {
-            const defaultCh = channels.find(c => c.is_default);
-            if (defaultCh) return {name: defaultCh.name, token: defaultCh.short_token};
-        }
+        // BUG-105: no channel fallback to the default channel — a video without
+        // channel_id is genuinely unassigned and must render as 「未归类」.
         return null;
     };
 
@@ -199,6 +197,7 @@ const MyVideos = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{t('video.allChannels', '全部频道')}</SelectItem>
+                        <SelectItem value="__unassigned__">{t('video.unassigned', '未归类')}</SelectItem>
                         {channels.map(ch => (
                             <SelectItem key={ch.id} value={String(ch.id)}>
                                 {ch.is_default ? `${ch.name} (${t('common.default', '默认')})` : ch.name}
@@ -206,7 +205,7 @@ const MyVideos = () => {
                         ))}
                     </SelectContent>
                 </Select>
-                {selectedChannelId !== 'all' && channelMap.get(selectedChannelId) && (
+                {selectedChannelId !== 'all' && selectedChannelId !== '__unassigned__' && channelMap.get(selectedChannelId) && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                         <Tv className="w-3 h-3"/>
                         {channelMap.get(selectedChannelId)!.name}
@@ -289,6 +288,15 @@ const MyVideos = () => {
                                                     <span className="truncate">{channelInfo.name}</span>
                                                 </span>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {!channelInfo && (
+                                        <div className="mt-2">
+                                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                                <Tv className="w-3 h-3"/>
+                                                <span>{t('video.unassigned', '未归类')}</span>
+                                            </span>
                                         </div>
                                     )}
 

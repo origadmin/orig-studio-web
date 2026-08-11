@@ -7,6 +7,7 @@ import type {TFunction} from 'i18next';
 import {cn} from '@/lib/utils';
 import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
+import {adminApi, type Channel as AdminChannel} from '@/lib/api/admin';
 import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
 import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
@@ -261,6 +262,7 @@ export default function MediaEditPage() {
         description: '',
         state: 'draft',
         category_id: '' as string | number,
+        channel_id: '' as string | number,
         tags: '',
         privacy: 1,
         featured: false,
@@ -270,6 +272,8 @@ export default function MediaEditPage() {
         language: 'en',
         rating: 'general',
     });
+
+    const [channels, setChannels] = useState<AdminChannel[]>([]);
 
     const [stats, setStats] = useState<MediaStats | null>(null);
     const [tasks, setTasks] = useState<EncodingTask[]>([]);
@@ -301,6 +305,7 @@ export default function MediaEditPage() {
                 description: media.description || '',
                 state: media.state || 'draft',
                 category_id: media.category_id ?? '',
+                channel_id: media.channel_id ?? '',
                 tags: serializeTags(media.tags || []),
                 privacy: normalizePrivacy(media.privacy),
                 featured: media.featured || false,
@@ -320,6 +325,14 @@ export default function MediaEditPage() {
             adminMediaApi.getTasks(id).then((res) => setTasks(extractTasks(res))).catch(() => {});
         }
     }, [id]);
+
+    // BUG-105: load all channels for the channel-assignment selector.
+    useEffect(() => {
+        adminApi.getChannels({page: 1, page_size: 100}).then((res: any) => {
+            const list = Array.isArray(res?.items) ? res.items : [];
+            setChannels(list);
+        }).catch(() => {});
+    }, []);
 
     // SSE: 转码事件流实时更新
     useEffect(() => {
@@ -384,6 +397,8 @@ export default function MediaEditPage() {
                     description: form.description,
                     state: form.state,
                     category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
+                    // BUG-105: '' (from the "无频道" option) clears the assignment.
+                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? String(form.channel_id) : '',
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     featured: form.featured,
@@ -800,7 +815,22 @@ export default function MediaEditPage() {
                     <div className="space-y-3 pt-3 border-t border-border">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">{t('mediaEdit.channel', '频道')}</span>
-                            <span className="font-semibold">{getChannelName()}</span>
+                            <Select
+                                value={form.channel_id !== '' && form.channel_id !== undefined ? String(form.channel_id) : '_none_'}
+                                onValueChange={(val) => setForm({...form, channel_id: val === '_none_' ? '' : val})}
+                            >
+                                <SelectTrigger className="h-7 w-auto min-w-[130px] gap-1 border-none bg-muted hover:bg-accent px-2 text-sm">
+                                    <SelectValue placeholder={t('mediaEdit.selectChannel', '选择频道')}/>
+                                </SelectTrigger>
+                                <SelectContent position="popper" sideOffset={4}>
+                                    <SelectItem value="_none_">{t('mediaEdit.noChannel', '无频道（未归类）')}</SelectItem>
+                                    {channels.map((ch) => (
+                                        <SelectItem key={ch.id} value={String(ch.id)}>
+                                            {ch.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
