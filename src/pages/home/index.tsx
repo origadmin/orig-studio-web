@@ -9,6 +9,7 @@ import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import type {Ad, AdCreative} from '@/lib/api/portal';
+import {filterHomeAdSections} from '@/lib/adHomeSections';
 import {FeedAdCard} from '@/components/portal/AdDisplay';
 import HeroBanner, {type HeroBannerItem} from '@/components/common/HeroBanner';
 import {usePortalConfig} from '@/hooks/queries';
@@ -190,8 +191,6 @@ const HomePage = () => {
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
 
-    const hasHotBanner = activeBanners.some(b => b.type === 'hot_videos');
-    const hasNewBanner = activeBanners.some(b => b.type === 'new_videos');
     const {data: hotVideosData} = useMediaList({
         page: 1,
         page_size: 20,
@@ -213,48 +212,10 @@ const HomePage = () => {
             const c2 = b.bg_color_end || '#1e3a8a';
             const bgGradient = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
 
-            if (b.type === 'hot_videos') {
-                const videos = (hotVideosData?.items || []).slice(0, b.count || 5);
-                for (const v of videos) {
-                    items.push({
-                        id: `banner-${b.id}-${v.id}`,
-                        title: v.title || '',
-                        subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-                        thumbnail: v.thumbnail || v.poster || '',
-                        bgGradient,
-                        shortToken: v.short_token,
-                        badge: b.badge_text || 'HOT',
-                        type: 'video',
-                        duration: v.duration,
-                        viewCount: v.view_count,
-                        createTime: v.create_time,
-                        user: v.edges?.user?.[0] ? {
-                            name: v.edges.user[0].nickname || v.edges.user[0].username || '',
-                            avatar: v.edges.user[0].avatar,
-                        } : undefined,
-                    });
-                }
-            } else if (b.type === 'new_videos') {
-                const videos = (newVideosData?.items || []).slice(0, b.count || 5);
-                for (const v of videos) {
-                    items.push({
-                        id: `banner-${b.id}-${v.id}`,
-                        title: v.title || '',
-                        subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-                        thumbnail: v.thumbnail || v.poster || '',
-                        bgGradient,
-                        shortToken: v.short_token,
-                        badge: b.badge_text || 'NEW',
-                        type: 'video',
-                        duration: v.duration,
-                        viewCount: v.view_count,
-                        createTime: v.create_time,
-                        user: v.edges?.user?.[0] ? {
-                            name: v.edges.user[0].nickname || v.edges.user[0].username || '',
-                            avatar: v.edges.user[0].avatar,
-                        } : undefined,
-                    });
-                }
+            if (b.type === 'hot_videos' || b.type === 'new_videos') {
+                // BUG-004：hot_videos / new_videos 不再展开为多个 Hero slide，
+                // 改为下方独立视频轨道（见 videoTracks）。
+                continue;
             } else {
                 // 自定义 Banner（custom / ad）：按优先级取图片资源
                 const thumb = b.image_mobile_url || b.image_url || '';
@@ -272,7 +233,38 @@ const HomePage = () => {
             }
         }
         return items;
-    }, [activeBanners, i18n.language, hotVideosData, newVideosData]);
+    }, [activeBanners, i18n.language]);
+
+    // BUG-004：hot_videos / new_videos 类型 banner 渲染为独立视频轨道（不再占用 Hero），
+    // 保留 banner 标题（本地化）与 count 配置。
+    const videoTracks = useMemo(() => {
+        const lang = i18n.language;
+        const tracks: { key: string; title: string; icon: 'flame' | 'sparkles'; videos: Media[] }[] = [];
+        for (const b of activeBanners) {
+            if (b.type === 'hot_videos') {
+                const videos = (hotVideosData?.items || []).slice(0, b.count || 5);
+                if (videos.length) {
+                    tracks.push({
+                        key: `track-hot-${b.id}`,
+                        title: getLocalizedText(b.title, b.title_i18n, lang) || t('home.hotVideos', '热门视频'),
+                        icon: 'flame',
+                        videos,
+                    });
+                }
+            } else if (b.type === 'new_videos') {
+                const videos = (newVideosData?.items || []).slice(0, b.count || 5);
+                if (videos.length) {
+                    tracks.push({
+                        key: `track-new-${b.id}`,
+                        title: getLocalizedText(b.title, b.title_i18n, lang) || t('home.newVideos', '最新视频'),
+                        icon: 'sparkles',
+                        videos,
+                    });
+                }
+            }
+        }
+        return tracks;
+    }, [activeBanners, i18n.language, hotVideosData, newVideosData, t]);
 
     const heroMode = useMemo<'card' | 'wide'>(() => {
         const firstActive = activeBanners.find(b => b.display_mode);
@@ -296,19 +288,7 @@ const HomePage = () => {
     }, [adPlacements]);
 
     const homeAdSections = useMemo(() => {
-        const sections: {type: string; name: string; ads: (Ad | AdCreative)[]}[] = [];
-        for (const p of activeAdPlacements) {
-            if (p.slug === 'home-feed') continue;
-            const items = [...(p.ads || []), ...(p.creatives || [])];
-            if (items.length > 0) {
-                sections.push({
-                    type: p.type || 'custom',
-                    name: p.name || p.slug || '',
-                    ads: items,
-                });
-            }
-        }
-        return sections;
+        return filterHomeAdSections(activeAdPlacements);
     }, [activeAdPlacements]);
 
     const feedAds = useMemo<(Ad | AdCreative)[]>(() => {
@@ -395,6 +375,24 @@ const HomePage = () => {
                         ))}</AutoFitRow>
                     </section>
                 )}
+
+                {videoTracks.map((track) => (
+                    <section key={track.key}>
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                {track.icon === 'flame'
+                                    ? <Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>
+                                    : <Sparkles className="w-5 h-5 text-sky-500" fill="currentColor"/>}
+                                {track.title}
+                            </h2>
+                        </div>
+                        <AutoFitRow>{(cw) => track.videos.map((media: Media) => (
+                            <div key={media.id} style={{width: cw}}>
+                                <VideoCard media={media} size="md"/>
+                            </div>
+                        ))}</AutoFitRow>
+                    </section>
+                ))}
 
                 {recommendVideos.length > 0 && (
                     <section>
