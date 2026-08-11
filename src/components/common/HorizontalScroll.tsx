@@ -7,6 +7,12 @@ interface HorizontalScrollProps {
     className?: string;
     buttonOffset?: number;
     scrollAmount?: number;
+    /**
+     * BUG-191(v2)：翻页步进像素。设置后点击左右按钮按该像素精确滑动
+     * （通常传入 卡宽+间距），保证每次滑动后仍对齐、不切半截。
+     * 不设置时回退到 scrollAmount 比例模式。
+     */
+    scrollStep?: number;
 }
 
 const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
@@ -14,6 +20,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     className,
     buttonOffset = 0,
     scrollAmount = 0.85,
+    scrollStep,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -50,12 +57,12 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     const scrollByAmount = useCallback((direction: 'left' | 'right') => {
         const el = containerRef.current;
         if (!el) return;
-        const amount = el.clientWidth * scrollAmount;
+        const amount = scrollStep ?? el.clientWidth * scrollAmount;
         el.scrollBy({
             left: direction === 'left' ? -amount : amount,
             behavior: 'smooth',
         });
-    }, [scrollAmount]);
+    }, [scrollAmount, scrollStep]);
 
     const buttonTop = buttonOffset > 0 ? buttonOffset : '38%';
 
@@ -69,8 +76,6 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
                     WebkitOverflowScrolling: 'touch',
-                    scrollPaddingLeft: '4px',
-                    scrollPaddingRight: '4px',
                 }}
             >
                 <style>{`

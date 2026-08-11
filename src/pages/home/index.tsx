@@ -101,16 +101,53 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
     );
 };
 
-const VIDEO_CARD_WIDTH = 360;
-const AD_CARD_WIDTH = 280;
 const AD_INSERT_INTERVAL = 6;
+
+const HSCROLL_GAP = 16; // 与 HorizontalScroll 容器 gap-4 保持一致
+const MAX_ROW_COLS = 6; // BUG-191(v2)：最大 6 列（与底部主网格 3xl:grid-cols-6 一致）
+const TARGET_CARD = 320; // 单卡目标宽度，用于推算可见列数
+
+/**
+ * BUG-191(v2)：顶部横向滑动行改为"按视口铺满"的自适应布局。
+ * - 测量容器宽度，按 cols = clamp(floor((w+gap)/(TARGET+gap)), 1, MAX_ROW_COLS) 推算可见列数；
+ * - cardWidth = (w-(cols-1)*gap)/cols，令卡片恰好铺满可见区域；
+ * - 静止时一屏恰好&完整显示整数张卡，右缘不出现半截被切；
+ * - 翻页按一张卡步进（scrollStep = 卡宽+间距），保证每次滑动后仍对齐；
+ * - 内容多于可见列时仍可横向滑动。
+ */
+const AutoFitRow: React.FC<{
+    children: (cardWidth: number) => React.ReactNode;
+    buttonOffset?: number | 'thumb';
+}> = ({children, buttonOffset = 'thumb'}) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [w, setW] = React.useState(0);
+    React.useLayoutEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const update = () => setW(el.clientWidth);
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+    const cols = w > 0
+        ? Math.min(MAX_ROW_COLS, Math.max(1, Math.floor((w + HSCROLL_GAP) / (TARGET_CARD + HSCROLL_GAP))))
+        : MAX_ROW_COLS;
+    const cardWidth = w > 0 ? (w - (cols - 1) * HSCROLL_GAP) / cols : TARGET_CARD;
+    const offset = buttonOffset === 'thumb' ? (cardWidth * 9 / 16) / 2 : buttonOffset;
+    return (
+        <div ref={ref} className="w-full">
+            <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP}>
+                {children(cardWidth)}
+            </HorizontalScroll>
+        </div>
+    );
+};
 
 const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}}> = ({placement}) => {
     const {t} = useTranslation();
     const hasAds = placement.ads && placement.ads.length > 0;
     if (!hasAds) return null;
-    const thumbHeight = VIDEO_CARD_WIDTH * 9 / 16;
-    const cardOffset = thumbHeight / 2;
     return (
         <section>
             <div className="flex items-center justify-between mb-3">
@@ -119,13 +156,11 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
                     {t('ad.sponsoredContent', '赞助推荐')}
                 </h2>
             </div>
-            <HorizontalScroll buttonOffset={cardOffset}>
-                {placement.ads.map((ad) => (
-                    <div key={ad.id} style={{width: AD_CARD_WIDTH}}>
-                        <AdDisplay ad={ad} variant="card"/>
-                    </div>
-                ))}
-            </HorizontalScroll>
+            <AutoFitRow>{(cw) => placement.ads.map((ad) => (
+                <div key={ad.id} style={{width: cw}}>
+                    <AdDisplay ad={ad} variant="card"/>
+                </div>
+            ))}</AutoFitRow>
         </section>
     );
 };
@@ -336,11 +371,6 @@ const HomePage = () => {
         return () => observer.disconnect();
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const cardOffset = useMemo(() => {
-        const thumbHeight = VIDEO_CARD_WIDTH * 9 / 16;
-        return thumbHeight / 2;
-    }, []);
-
     return (
         <div className="w-full">
             {heroItems.length > 0 && (
@@ -358,13 +388,11 @@ const HomePage = () => {
                                 {t('home.featuredVideos', '精选推荐')}
                             </h2>
                         </div>
-                        <HorizontalScroll buttonOffset={cardOffset}>
-                            {featuredVideos.map((media: Media) => (
-                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
-                                    <VideoCard media={media} size="md"/>
-                                </div>
-                            ))}
-                        </HorizontalScroll>
+                        <AutoFitRow>{(cw) => featuredVideos.map((media: Media) => (
+                            <div key={media.id} style={{width: cw}}>
+                                <VideoCard media={media} size="md"/>
+                            </div>
+                        ))}</AutoFitRow>
                     </section>
                 )}
 
@@ -384,13 +412,11 @@ const HomePage = () => {
                                 {t('home.refresh', '换一批')}
                             </button>
                         </div>
-                        <HorizontalScroll buttonOffset={cardOffset}>
-                            {recommendVideos.map((media: Media) => (
-                                <div key={media.id} style={{width: VIDEO_CARD_WIDTH}}>
-                                    <VideoCard media={media} size="md"/>
-                                </div>
-                            ))}
-                        </HorizontalScroll>
+                        <AutoFitRow>{(cw) => recommendVideos.map((media: Media) => (
+                            <div key={media.id} style={{width: cw}}>
+                                <VideoCard media={media} size="md"/>
+                            </div>
+                        ))}</AutoFitRow>
                     </section>
                 )}
 

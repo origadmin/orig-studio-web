@@ -391,6 +391,10 @@ const mockRoutes: [RegExp, MockHandler][] = [
     // Ad Slots — matches OpenAPI /api/v1/admin/ads/slots
     [/\/admin\/ads\/slots/, () => Array.from({length: 6}, (_, i) => genAdSlot(i))],
 
+    // Public ad placements — consumed by usePublicAdPlacements (home page).
+    // 返回空数组，足以让首页渲染（赞助推荐区在无广告时整段不渲染）。
+    [/\/ads\/placements(\?|$)/, () => []],
+
     // Notifications
     [/\/admin\/notifications(\?|$)/, () => paginate(Array.from({length: 30}, (_, i) => genNotification(i)), 1, 20)],
 
