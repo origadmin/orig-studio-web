@@ -120,7 +120,7 @@ const MembersPage = () => {
                     <Link
                         key={member.id}
                         to="/u/$id"
-                        params={{id: String(member.id)}}
+                        params={{id: member.slug || String(member.id)}}
                         className="group p-4 bg-card border border-border rounded-card hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all"
                     >
                         <div className="flex items-center gap-3">

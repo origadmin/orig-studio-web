@@ -12,6 +12,7 @@ export interface SubscriptionListResponse {
         user_id: string;
         name?: string;
         username: string;
+        slug?: string;
         avatar?: string;
         short_token?: string;
         channel_id?: string;

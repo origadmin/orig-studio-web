@@ -7,9 +7,9 @@ import {
     useMyChannels,
     useFavoriteList,
     useHistoryList,
-    useSubscriptionStatus,
-    useSubscribe,
-    useUnsubscribe,
+    useUserSubscriptionStatus,
+    useUserSubscribe,
+    useUserUnsubscribe,
     useDeleteMedia,
     useUserPlaylists,
     useUserChannels,
@@ -172,7 +172,18 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const isOwner = profile?.is_owner === true
         || (isAuthenticated && !!currentUser && !!profile && currentUser.username === profile.username);
 
-    const isProfileLoaded = !!profile && profile.username === username;
+    // BUG-193 G3-A: profile is "loaded" once fetched, regardless of whether the
+    // path segment is the user's uuid, username, or slug (GetUserBySlug resolves
+    // all three: slug → username → uuid). Previously this required username to
+    // equal the path segment, which is false for /u/{uuid} and /u/{slug}, so all
+    // `enabled: isProfileLoaded` sub-queries (stats/videos/followers/playlists)
+    // never fired → counts stayed 0 and videos never rendered.
+    const isProfileLoaded = !!profile && (
+        profile.id === username ||
+        profile.username === username ||
+        profile.slug === username ||
+        profile.slug === `u-${username}`
+    );
 
     const profileIdStr = useMemo(() => {
         if (!profile?.id) return undefined;
@@ -237,24 +248,32 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     );
     const playlists = Array.isArray((playlistsData as any)?.items) ? (playlistsData as any).items : [];
 
-    const channelToken = profile?.default_channel_token || null;
-    const subscriptionQuery = useSubscriptionStatus(
-        channelToken && !isOwner && isAuthenticated ? channelToken : null
+    // BUG-193 G3-B2: the backend never returns `default_channel_token` on the
+    // public profile response (field doesn't exist in user.proto), so deriving
+    // subscription status from it always fell to null → the subscribe button
+    // always showed 「订阅」. Drive it from the user-level endpoint instead:
+    // GET /users/{slug}/subscription (already mounted at user_service.proto:241),
+    // which the backend resolves by slug → username → uuid.
+    const profileSlug = profile?.slug || profile?.username || null;
+    const subscriptionQuery = useUserSubscriptionStatus(
+        !isOwner && isAuthenticated ? profileSlug : null
     );
-    const subscribeMutation = useSubscribe();
-    const unsubscribeMutation = useUnsubscribe();
+    const subscribeMutation = useUserSubscribe();
+    const unsubscribeMutation = useUserUnsubscribe();
 
     const handleSubscribe = () => {
-        if (!channelToken) return;
-        subscribeMutation.mutate(channelToken);
+        if (!profileSlug) return;
+        subscribeMutation.mutate(profileSlug);
     };
 
     const handleUnsubscribe = () => {
-        if (!channelToken) return;
-        unsubscribeMutation.mutate(channelToken);
+        if (!profileSlug) return;
+        unsubscribeMutation.mutate(profileSlug);
     };
 
-    // Use /c/{short_token} for channel share URL, fallback to /@username only when no token
+    // /c/{short_token} is the preferred channel share target; fall back to /@username
+    // only when the channel token is unavailable (BUG-194 fills it server-side).
+    const channelToken = profile?.default_channel_token || null;
     const channelShareUrl = channelToken
         ? `${window.location.origin}/c/${channelToken}`
         : `${window.location.origin}/@${username}`;
@@ -383,7 +402,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     const handleManageClick = (tab: typeof OWNER_TABS[number]) => {
         if (tab.key === 'followers' && profile) {
-            navigate({to: tab.manageTo, params: {id: profile.id}, search: {tab: 'followers'} as any});
+            navigate({to: tab.manageTo, params: {id: profile.slug || profile.username}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
             setOwnerTab('about');
         } else if (tab.key === 'videos' || tab.key === 'channels' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'playlists' || tab.key === 'articles') {
@@ -742,7 +761,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                         {t('profile.createPlaylist')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
-                                    <DropdownMenuItem onClick={() => navigate({to: '/u/$id', params: {id: profile.id}, search: {tab: 'profile'}})}>
+                                    <DropdownMenuItem onClick={() => navigate({to: '/u/$id', params: {id: profile.slug || profile.username}, search: {tab: 'profile'}})}>
                                         <Pencil className="w-4 h-4 mr-2"/>
                                         {t('profile.editProfile')}
                                     </DropdownMenuItem>

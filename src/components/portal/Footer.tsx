@@ -1,8 +1,10 @@
 import React from 'react';
 import {Link} from '@tanstack/react-router';
 import {Globe, Heart, Mail, Video, MessageCircle} from 'lucide-react';
+import {useAuth} from '@/hooks/useAuth';
 
 const Footer = () => {
+    const {user: currentUser} = useAuth();
     return (
         <footer className="border-t border-border py-8">
             <div className="container mx-auto px-4">
@@ -36,7 +38,7 @@ const Footer = () => {
                     ]}/>
 
                     <FooterSection title="Account" links={[
-                        {label: 'My Profile', to: '/u/1'},
+                        {label: 'My Profile', to: '/u/$id', params: {id: currentUser?.slug || currentUser?.username || '1'}},
                         {label: 'My Favorites', to: '/me/favorites'},
                         {label: 'Notifications', to: '/notifications'},
                         {label: 'Sign In', to: '/auth/signin'},
@@ -62,14 +64,14 @@ const Footer = () => {
 
 const FooterSection = ({title, links}: {
     title: string;
-    links: { label: string; to: string; search?: Record<string, any> }[]
+    links: { label: string; to: string; search?: Record<string, any>; params?: Record<string, any> }[]
 }) => (
     <div className="space-y-2">
         <h4 className="text-xs font-bold text-foreground uppercase tracking-widest">{title}</h4>
         <ul className="space-y-1.5">
             {links.map((link) => (
                 <li key={link.label}>
-                    <Link to={link.to} search={link.search}
+                    <Link to={link.to} search={link.search} params={link.params}
                           className="text-xs text-muted-foreground font-medium hover:text-info transition-all hover:translate-x-0.5 inline-block">
                         {link.label}
                     </Link>

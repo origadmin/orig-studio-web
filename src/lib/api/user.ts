@@ -7,6 +7,7 @@ import type {SubscriptionListResponse} from "./subscription";
 export interface User {
     id: string;
     username: string;
+    slug?: string;
     nickname?: string;
     email: string;
     avatar?: string;
@@ -191,6 +192,7 @@ function normalizeUser(raw: any): User {
     return {
         id: String(raw.id || ''),
         username: String(raw.username || raw.name || ''),
+        slug: safe(raw.slug, undefined),
         nickname: safe(raw.nickname),
         email: String(raw.email || ''),
         avatar: safe(raw.avatar),

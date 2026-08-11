@@ -795,7 +795,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                     {t('profile.followersCount', {count: followersTotal})}
                                 </p>
                                 {followers.map(follower => (
-                                    <Link key={follower.id} to="/u/$id" params={{id: follower.id}}
+                                    <Link key={follower.id} to="/u/$id" params={{id: follower.slug || follower.id}}
                                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                         <Avatar className="w-10 h-10">
                                             <AvatarImage src={getImageUrl(follower.avatar, 'avatar')} loading="lazy"

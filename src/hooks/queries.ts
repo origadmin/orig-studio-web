@@ -559,6 +559,44 @@ export function useUnsubscribe() {
     });
 }
 
+// ==================== User-level subscription (BUG-193 G3-B2) ====================
+// Backend GET /users/{slug}/subscription already exists (user_service.proto:241).
+// These hooks drive the profile page's subscribe button by USER slug/id (which the
+// backend GetUserBySlug resolves: slug → username → uuid), instead of relying on
+// `default_channel_token` which the backend never returns.
+
+export function useUserSubscriptionStatus(slug: string | null | undefined) {
+    return useQuery({
+        queryKey: ['user-subscription', slug],
+        queryFn: async (): Promise<{is_subscribed: boolean; subscriber_count?: number}> => {
+            if (!slug) return {is_subscribed: false};
+            const res = await userApi.getSubscriptionStatus(slug);
+            return res as {is_subscribed: boolean; subscriber_count?: number};
+        },
+        enabled: !!slug,
+    });
+}
+
+export function useUserSubscribe() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (slug: string) => userApi.subscribe(slug),
+        onSuccess: (_data, slug) => {
+            queryClient.invalidateQueries({queryKey: ['user-subscription', slug]});
+        },
+    });
+}
+
+export function useUserUnsubscribe() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (slug: string) => userApi.unsubscribe(slug),
+        onSuccess: (_data, slug) => {
+            queryClient.invalidateQueries({queryKey: ['user-subscription', slug]});
+        },
+    });
+}
+
 export function useUpdateNotificationSetting() {
     const queryClient = useQueryClient();
     return useMutation({
