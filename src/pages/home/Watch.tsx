@@ -86,7 +86,7 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
             className="flex gap-3 group"
             data-testid="rec-card"
         >
-            <div className="relative w-48 aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+            <div className="relative w-40 aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
                 {hasImage ? (
                     <img
                         src={imageUrl}
@@ -109,7 +109,7 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
                     {formatDuration(item.duration)}
                 </div>
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex-1 min-w-0 flex flex-col justify-start">
                 <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-info transition-colors">
                     {item.title}
                 </h4>
