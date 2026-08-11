@@ -179,7 +179,8 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card', onClose}) => {
                     </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"/>
-                {/* BUG-187: 关闭按钮——让用户主动关掉侧栏广告，避免大块占位持续干扰右侧浏览 */}
+                {/* BUG-187: 关闭按钮——让用户主动关掉侧栏广告，避免大块占位持续干扰右侧浏览。
+                    BUG-190: 关闭按钮与"赞助" Badge 互换左右位置——关闭按钮靠右贴近常见交互直觉，Badge 靠左贴近分类语义。 */}
                 {onClose && (
                     <button
                         type="button"
@@ -189,12 +190,13 @@ const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card', onClose}) => {
                             onClose();
                         }}
                         aria-label={t('ad.closeAd', '关闭广告')}
-                        className="absolute top-2 left-2 z-10 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                        className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
                     >
                         <X className="w-3.5 h-3.5"/>
                     </button>
                 )}
-                <Badge variant="secondary" className="absolute top-2 right-2 text-xs bg-background/80 backdrop-blur-sm text-amber-600 border-amber-500/40">
+                {/* BUG-190: Badge 移到左上，与关闭按钮互换左右。 */}
+                <Badge variant="secondary" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm text-amber-600 border-amber-500/40">
                     {badgeLabel}
                 </Badge>
                 <div className="absolute bottom-0 left-0 right-0 p-3">

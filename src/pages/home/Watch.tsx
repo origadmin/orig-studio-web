@@ -79,14 +79,16 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
     const imageUrl = getImageUrl(item.thumbnail || item.poster, 'thumbnail');
     const hasImage = !!(item.thumbnail || item.poster) && !imgError;
 
+    // BUG-190: 整宽结构——缩略图撑满侧栏与广告卡同 16:9，标题/作者/views 在缩略图下方左对齐；
+    // 替换原先 `flex flex-row` 的小缩略图+右侧文字块模式，消除"瘦高+左右 1/3 余白"。
     return (
         <Link
             to="/watch"
             search={{v: item.short_token, autoplay: undefined}}
-            className="flex gap-3 group"
+            className="flex flex-col gap-2 group block w-full"
             data-testid="rec-card"
         >
-            <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
                 {hasImage ? (
                     <img
                         src={imageUrl}
@@ -109,7 +111,7 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
                     {formatDuration(item.duration)}
                 </div>
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0">
                 <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug group-hover:text-info transition-colors">
                     {item.title}
                 </h4>
