@@ -129,3 +129,24 @@ vite-env.d.ts
 *.go
 !embed.go
 !embed_dev.go
+
+# ============================================================
+# CLEANUP QUARANTINE + PREVENTION (added 2026-08-11)
+# ============================================================
+# Quarantine dir for moved-out junk (never commit)
+tmp/
+
+# Playwright user-data-dir browser profiles (NEVER commit Chromium caches)
+# Root cause of repo bloat: playwright userDataDir set to relative 'admin'/'anon'
+# Anchor admin/ to repo root so it only matches the Playwright profile dir,
+# NOT the real source dirs src/components/admin and src/pages/admin.
+/admin/
+anon/
+user-data/
+playwright-profiles/
+
+# one-off probe / debug scripts
+probe_*.cjs
+probe_*.mjs
+*subcount*.cjs
+scripts/*-debug.cjs

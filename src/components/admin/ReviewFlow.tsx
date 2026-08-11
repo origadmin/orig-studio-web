@@ -439,7 +439,7 @@ const ReviewFlow: React.FC = () => {
                             {t('review.batchReviewDescription', {count: selectedItems.length})}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-4 px-6 py-4">
                         <div>
                             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 {t('common.status')}
@@ -495,7 +495,7 @@ const ReviewFlow: React.FC = () => {
                         </DialogDescription>
                     </DialogHeader>
                     {currentItem && (
-                        <div className="space-y-4 py-4">
+                        <div className="space-y-4 px-6 py-4">
                             <div className="space-y-2">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     {t('common.media')}

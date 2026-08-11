@@ -337,7 +337,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                             {t('channel.shareDescription', {channel: channel.name}) || `Share ${channel.name} with your friends`}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-4 px-6">
                         {/* Share Link */}
                         <div className="flex items-center gap-2">
                             <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">

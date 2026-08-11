@@ -137,7 +137,7 @@ export const UploadDialog: React.FC = () => {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="flex-1 overflow-y-auto space-y-4 py-2 px-0.5">
+                    <div className="flex-1 overflow-y-auto space-y-4 py-2 px-6">
                         {!hasChannels && !channelsLoading ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
                                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">

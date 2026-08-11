@@ -25,6 +25,10 @@ const REPORT_REASONS = [
     {value: 'SPAM', labelKey: 'report.reasonSpam', defaultLabel: 'Spam'},
     {value: 'HARASSMENT', labelKey: 'report.reasonHarassment', defaultLabel: 'Harassment'},
     {value: 'INAPPROPRIATE', labelKey: 'report.reasonInappropriate', defaultLabel: 'Inappropriate Content'},
+    {value: 'PLAYBACK_ERROR', labelKey: 'report.reasonPlaybackError', defaultLabel: 'Playback Error / Stuck'},
+    {value: 'SUBTITLE_ERROR', labelKey: 'report.reasonSubtitleError', defaultLabel: 'Subtitle Missing / Wrong'},
+    {value: 'QUALITY_ISSUE', labelKey: 'report.reasonQualityIssue', defaultLabel: 'Quality / Encoding Issue'},
+    {value: 'BROKEN_LINK', labelKey: 'report.reasonBrokenLink', defaultLabel: 'Broken / Unreachable Link'},
     {value: 'OTHER', labelKey: 'report.reasonOther', defaultLabel: 'Other'},
 ];
 
@@ -65,8 +69,8 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
             onOpenChange(newOpen);
         };
 
-        const titleKey = targetType === 'media' ? 'report.reportVideo' : 'report.reportComment';
-        const descKey = targetType === 'media' ? 'report.reportVideoDesc' : 'report.reportCommentDesc';
+        const titleKey = 'report.title';
+        const descKey = 'report.desc';
 
         return (
             <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -74,14 +78,14 @@ const ReportDialog: React.FC<ReportDialogProps> = React.memo(
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Flag className="w-5 h-5 text-destructive"/>
-                            {t(titleKey) || (targetType === 'media' ? 'Report Video' : 'Report Comment')}
+                            {t(titleKey) || 'Report / Feedback'}
                         </DialogTitle>
                         <DialogDescription>
-                            {t(descKey) || 'Submit a report. Our team will review it.'}
+                            {t(descKey) || 'Submit an issue or feedback about this content. Our team will review it.'}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-4 px-6 py-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 {t('report.reason')} *

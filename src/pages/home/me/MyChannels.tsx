@@ -276,7 +276,7 @@ const MyChannels = () => {
                             {editChannel?.name}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 px-6 py-4">
                         <div className="grid gap-2">
                             <Label>{t('channel.create.name_label')}</Label>
                             <Input

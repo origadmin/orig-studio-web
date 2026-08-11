@@ -215,7 +215,7 @@ const PlaylistsPage = () => {
                             {t('playlists.createPlaylistDesc')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 mt-4">
+                    <div className="space-y-4 mt-4 px-6">
                         <div>
                             <label className="text-sm font-medium mb-1 block">{t('playlists.title')}</label>
                             <Input

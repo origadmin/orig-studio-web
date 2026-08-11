@@ -1001,7 +1001,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                             {t('channel.shareDescription', {channel: profile?.nickname || profile?.username || username}) || `Share this channel with your friends`}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-4 px-6">
                         <div className="flex items-center gap-2">
                             <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                                 <Link2 className="w-4 h-4 text-gray-500 flex-shrink-0"/>

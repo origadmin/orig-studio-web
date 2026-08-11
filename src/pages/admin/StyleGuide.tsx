@@ -696,7 +696,7 @@ export default function StyleGuidePage() {
                     <DialogTitle>{t('styleGuide.dialogTitle', '确认操作')}</DialogTitle>
                     <DialogDescription>{t('styleGuide.dialogDesc', '此操作无法撤销，确定要继续吗？')}</DialogDescription>
                   </DialogHeader>
-                  <div className="py-4">
+                  <div className="px-6 py-4">
                     <p className="text-sm text-muted-foreground">{t('styleGuide.dialogContent', '对话框内容区域放在这里。可以放置表单、确认信息或任意内容。')}</p>
                   </div>
                   <DialogFooter>

@@ -82,7 +82,7 @@ export function MediaEditDialog({open, onOpenChange, media, onSuccess}: MediaEdi
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 px-6 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="title">{t('upload.titleLabel')}</Label>
                             <Input

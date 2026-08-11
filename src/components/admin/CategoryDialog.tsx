@@ -141,7 +141,7 @@ export const CategoryDialog: React.FC<CategoryDialogProps> = ({
           <DialogTitle>{getTitle()}</DialogTitle>
           <DialogDescription>{getDescription()}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 px-6 py-4">
           <div>
             <label className="block text-sm font-medium mb-1">
               {t('admin.name')} *

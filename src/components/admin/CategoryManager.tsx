@@ -340,7 +340,7 @@ const CategoryManager: React.FC = () => {
                             {t('admin.createCategoryDesc')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-4 px-6 py-4">
                         <div>
                             <h4 className="text-sm font-medium text-muted-foreground mb-2">
                                 {t('admin.name')} *
@@ -423,7 +423,7 @@ const CategoryManager: React.FC = () => {
                             {t('admin.editCategoryDesc')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
+                    <div className="space-y-4 px-6 py-4">
                         <div>
                             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 {t('admin.name')} *

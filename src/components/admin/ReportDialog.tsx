@@ -27,6 +27,10 @@ const REPORT_REASONS = [
   { value: 'SPAM', label: 'Spam' },
   { value: 'HARASSMENT', label: 'Harassment' },
   { value: 'INAPPROPRIATE', label: 'Inappropriate' },
+  { value: 'PLAYBACK_ERROR', label: 'Playback Error / Stuck' },
+  { value: 'SUBTITLE_ERROR', label: 'Subtitle Missing / Wrong' },
+  { value: 'QUALITY_ISSUE', label: 'Quality / Encoding Issue' },
+  { value: 'BROKEN_LINK', label: 'Broken / Unreachable Link' },
   { value: 'OTHER', label: 'Other' },
 ];
 
@@ -68,13 +72,13 @@ export const ReportDialog: React.FC<ReportDialogProps> = React.memo(
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Report Comment</DialogTitle>
+            <DialogTitle>Report / Feedback</DialogTitle>
             <DialogDescription>
-              Submit a report for this comment. The admin team will review it.
+              Submit an issue or feedback about this comment. The admin team will review it.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 px-6 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Reason *</label>
               <Select value={reason} onValueChange={setReason}>

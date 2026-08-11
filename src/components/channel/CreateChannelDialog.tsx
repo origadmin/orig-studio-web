@@ -203,7 +203,7 @@ export function CreateChannelDialog({open, onOpenChange, onSuccess}: CreateChann
                         {t('channel.create.limit_reached_message', {max: maxChannels})}
                     </div>
                 ) : (
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 px-6 py-4">
                         {errors._form && (
                             <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
                                 {errors._form}
