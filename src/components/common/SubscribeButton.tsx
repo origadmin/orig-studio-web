@@ -24,6 +24,11 @@ interface SubscribeButtonProps {
      * 避免频道主在自己频道页看到自己订阅自己的 1 位订阅者这种鸡肋数字）。
      */
     isOwner?: boolean;
+    /**
+     * BUG-185: 订阅/退订成功后回调 delta（+1/-1），供外层（如 Watch 页）把实时计数
+     * 同步到页面级的订阅数展示。计数绝对值以 user_subscriptions 表为准。
+     */
+    onSubscriberCountChange?: (delta: number) => void;
 }
 
 type NotificationPreference = 'all' | 'personalized' | 'none';
@@ -37,6 +42,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
                                                              // determined by the subscribed/unsubscribed state below.
                                                              variant: _variant = 'default',
                                                              isOwner = false,
+                                                             onSubscriberCountChange,
                                                          }) => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
@@ -114,6 +120,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
             await channelApi.subscribe(channelId);
             setIsSubscribed(true);
             setSubscriberCount(prev => prev + 1);
+            onSubscriberCountChange?.(1);
         } catch (err) {
             console.error('Failed to subscribe:', err);
         } finally {
@@ -129,6 +136,7 @@ const SubscribeButton: React.FC<SubscribeButtonProps> = ({
             await channelApi.unsubscribe(channelId);
             setIsSubscribed(false);
             setSubscriberCount(prev => Math.max(0, prev - 1));
+            onSubscriberCountChange?.(-1);
             setShowUnsubscribeDialog(false);
         } catch (err) {
             console.error('Failed to unsubscribe:', err);

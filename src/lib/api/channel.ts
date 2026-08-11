@@ -165,7 +165,11 @@ export const channelApi = {
         ),
 
     getSubscriberCount: (channelToken: string) =>
-        api.get<{count: number}>(`/channels/${channelToken}/subscribers`, {count: 'true'}),
+        // BUG-185: proto field is `count_only` (GetChannelSubscribersRequest).
+        // The old `count=true` never matched a proto field, so the gateway fell
+        // through to the list branch and `count` was always 0 — the live
+        // subscriber count was never actually fetched anywhere.
+        api.get<{count: number}>(`/channels/${channelToken}/subscribers`, {count_only: true}),
 
     getAll: (params?: {page?: number; page_size?: number}) => api.get<PaginatedResponse<Channel>>('/channels', params),
 

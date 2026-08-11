@@ -18,6 +18,7 @@ import {formatViews, formatDate, formatDuration} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {publicMediaApi, adminMediaApi, encodingApi, type Media} from '@/lib/api/media';
 import {commentApi} from '@/lib/api/comment';
+import {channelApi} from '@/lib/api/channel';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {usePlayerSettings} from '@/hooks/usePlayerSettings';
@@ -142,12 +143,30 @@ const WatchPage = () => {
     const viewCountedRef = useRef(false);
     const addedToHistoryRef = useRef(false);
 
+    // BUG-185: 订阅数的实时来源是 user_subscriptions 表
+    // （GET /channels/{token}/subscribers?count=true）；media.edges.user[0].subscriber_count
+    // 是未维护的陈旧快照（恒 0）。null = 尚未取到，回退到快照值。
+    const [liveSubscriberCount, setLiveSubscriberCount] = useState<number | null>(null);
+
     // Sync commentCount when media loads
     useEffect(() => {
         if (media?.comment_count !== undefined) {
             setCommentCount(media.comment_count);
         }
     }, [media?.comment_count]);
+
+    // BUG-185: 频道订阅数拉取（无需登录；token 变化时重取）
+    useEffect(() => {
+        if (!media?.channel_id) {
+            setLiveSubscriberCount(null);
+            return;
+        }
+        let cancelled = false;
+        channelApi.getSubscriberCount(media.channel_id)
+            .then((r) => { if (!cancelled) setLiveSubscriberCount(r.count); })
+            .catch(() => { /* 取数失败保持快照回退，不阻塞页面 */ });
+        return () => { cancelled = true; };
+    }, [media?.channel_id]);
 
     // Reset view count and history flag when shortToken changes
     useEffect(() => {
@@ -459,7 +478,7 @@ const WatchPage = () => {
                                                 {mediaUser.nickname || mediaUser.username}
                                             </Link>
                                             {!isChannelOwner && (
-                                                <p className="text-xs text-muted-foreground">{formatViews(mediaUser.subscriber_count || 0)} {t('common.subscribers')}</p>
+                                                <p className="text-xs text-muted-foreground">{formatViews(liveSubscriberCount ?? (mediaUser.subscriber_count || 0))} {t('common.subscribers')}</p>
                                             )}
                                         </>
                                     ) : (
@@ -471,6 +490,8 @@ const WatchPage = () => {
                                         channelId={media.channel_id}
                                         isOwner={isChannelOwner}
                                         className="ml-4 rounded-full"
+                                        // BUG-185: 订阅/退订成功后同步实时计数（以 subscriptions 表为准）
+                                        onSubscriberCountChange={(delta) => setLiveSubscriberCount(prev => Math.max(0, (prev ?? 0) + delta))}
                                     />
                                 ) : null}
                             </div>
