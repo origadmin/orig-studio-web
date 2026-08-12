@@ -14,7 +14,8 @@ export interface RegenerateThumbnailRequest {
 }
 
 export interface RegenerateThumbnailResponse {
-    thumbnail: string;
+    thumbnail?: string;
+    thumbnail_url?: string;
     thumbnail_time?: number;
     message?: string;
     success?: boolean;
@@ -25,6 +26,9 @@ export interface RegenerateThumbnailResponse {
  * null-safe place (no `?.` chains at call sites). Returns "" when absent.
  */
 export function pickThumbnail(res: RegenerateThumbnailResponse | undefined): string {
+    if (res && typeof res.thumbnail_url === "string" && res.thumbnail_url.length > 0) {
+        return res.thumbnail_url;
+    }
     if (res && typeof res.thumbnail === "string" && res.thumbnail.length > 0) {
         return res.thumbnail;
     }
@@ -60,21 +64,22 @@ export const spriteApi = {
 
     /**
      * Set the cover to the WHOLE sprite sheet image (admin only, uses ID).
-     * Sends `use_sprite_sheet: true` on the regen route so the backend points
-     * the cover at the sprite sheet asset instead of sampling a single frame.
+     * Uses the proto `set-thumbnail` route with `use_sprite_sheet: true` so the
+     * backend points the cover at the sprite sheet asset instead of sampling a
+     * single frame. (Matches backend proto `SetThumbnail`.)
      */
     setSpriteSheetThumbnail: (id: string) =>
-        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/regen-thumbnail`, {use_sprite_sheet: true}),
+        api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/set-thumbnail`, {use_sprite_sheet: true}),
 
     /** Set the cover to the WHOLE sprite sheet image (owner only, uses short_token) */
     setOwnerSpriteSheetThumbnail: (shortToken: string) =>
-        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/regen-thumbnail`, {use_sprite_sheet: true}),
+        api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/set-thumbnail`, {use_sprite_sheet: true}),
 
     /** Upload a custom cover image (owner only, uses short_token) */
     uploadCustomThumbnail: (shortToken: string, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/set-thumbnail`, formData, {
+        return api.post<RegenerateThumbnailResponse>(`/me/medias/${shortToken}/thumbnail/upload`, formData, {
             headers: {'Content-Type': 'multipart/form-data'},
         });
     },
@@ -83,7 +88,7 @@ export const spriteApi = {
     uploadAdminCustomThumbnail: (id: string, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/set-thumbnail`, formData, {
+        return api.post<RegenerateThumbnailResponse>(`/admin/medias/${id}/thumbnail/upload`, formData, {
             headers: {'Content-Type': 'multipart/form-data'},
         });
     },
