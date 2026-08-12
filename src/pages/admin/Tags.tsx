@@ -184,10 +184,35 @@ const Tags: React.FC = () => {
         loadTags({...searchParams, page: 1});
     };
 
-    const totalTags = tags.length;
-    const activeTags = tags.length;
-    const unusedTags = tags.filter(tag => tagMediaCount(tag) === 0).length;
-    const colorAlerts = 0;
+    // Stats (BUG-205: page-level cards = global base data; unfiltered fetch,
+    // not affected by search/filter or the current page)
+    const [statsTags, setStatsTags] = useState<{total: number; active: number; unused: number; colorAlerts: number}>({total: 0, active: 0, unused: 0, colorAlerts: 0});
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await adminTagApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                if (cancelled) return;
+                const items = Array.isArray(res?.items) ? res.items : [];
+                const toCount = (v: number | string | undefined): number =>
+                    typeof v === 'string' ? (parseInt(v, 10) || 0) : (v || 0);
+                setStatsTags({
+                    total: res?.total ?? items.length,
+                    active: items.filter((tag) => tag.status === 'active').length,
+                    unused: items.filter((tag) => toCount(tag.media_count) === 0).length,
+                    colorAlerts: items.filter((tag) => !tag.color).length,
+                });
+            } catch {
+                // Best-effort global stats; keep zeros on failure.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const totalTags = statsTags.total;
+    const activeTags = statsTags.active;
+    const unusedTags = statsTags.unused;
+    const colorAlerts = statsTags.colorAlerts;
 
     const startItem = (searchParams.page - 1) * searchParams.page_size + 1;
     const endItem = Math.min(searchParams.page * searchParams.page_size, total);

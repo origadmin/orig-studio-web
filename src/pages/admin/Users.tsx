@@ -83,6 +83,29 @@ export default function UsersPage() {
     }
   };
 
+  // Stats (BUG-211⑩: page-level cards = global base data; unfiltered fetch,
+  // not affected by keyword/role filter or the current page)
+  const [statsUsers, setStatsUsers] = useState<{total: number; active: number; admins: number; editors: number}>({total: 0, active: 0, admins: 0, editors: 0});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await adminUserApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+        if (cancelled) return;
+        const items = Array.isArray(res?.items) ? res.items : [];
+        setStatsUsers({
+          total: res?.total ?? items.length,
+          active: items.filter((u: User) => getUserStatusLabel(u.status) === 'active').length,
+          admins: items.filter((u: User) => u.role === 'admin').length,
+          editors: items.filter((u: User) => u.role === 'editor').length,
+        });
+      } catch {
+        // Best-effort global stats; keep zeros on failure.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const exportUsers = (list: User[]) => {
     if (!list || list.length === 0) return;
     const headers = ['username', 'email', 'role', 'status', 'create_time'];
@@ -247,7 +270,7 @@ export default function UsersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.totalUsers') || 'Total Users'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{total}</h3>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsUsers.total}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                 <Users className="w-5 h-5"/>
@@ -261,7 +284,7 @@ export default function UsersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.activeUsers') || 'Active'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => getUserStatusLabel(u.status) === 'active').length}</h3>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsUsers.active}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center">
                 <UserCheck className="w-5 h-5"/>
@@ -275,7 +298,7 @@ export default function UsersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.admins') || 'Admins'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'admin').length}</h3>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsUsers.admins}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-400 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5"/>
@@ -289,7 +312,7 @@ export default function UsersPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.editors') || 'Editors'}</p>
-                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{users.filter(u => u.role === 'editor').length}</h3>
+                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsUsers.editors}</h3>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-300 rounded-xl flex items-center justify-center">
                 <Edit3 className="w-5 h-5"/>

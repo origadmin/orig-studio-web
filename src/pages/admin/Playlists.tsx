@@ -22,6 +22,7 @@ import {adminPlaylistApi, Playlist} from '@/lib/api/playlist';
 import {formatDateTime, formatNumber, formatViews} from '@/lib/format';
 import {extractList} from '@/lib/extract';
 import {usePagination} from '@/hooks/usePagination';
+import {PAGINATION_CONFIG} from '@/config/pagination';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
@@ -94,17 +95,36 @@ const Playlists: React.FC = () => {
         return matchesSearch && matchesVisibility;
     });
 
-    // Stats calculations
-    const totalPlaylists = total;
-    const publicCount = playlists.filter(p => p.is_public).length;
-    const totalItems = playlists.reduce(
-        (sum, p) => sum + (p.media_items?.length || p.media_details?.length || 0),
-        0,
-    );
-    const totalViews = playlists.reduce(
-        (sum, p) => sum + (p.media_details?.reduce((s, m) => s + (m.view_count || 0), 0) || 0),
-        0,
-    );
+    // Stats (BUG-207: page-level cards = global base data; unfiltered fetch,
+    // not affected by search/visibility filter or the current page)
+    const [statsPlaylists, setStatsPlaylists] = useState<{total: number; public: number; items: number; views: number}>({total: 0, public: 0, items: 0, views: 0});
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await adminPlaylistApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                if (cancelled) return;
+                const items = Array.isArray(res?.items) ? res.items : [];
+                setStatsPlaylists({
+                    total: res?.total ?? items.length,
+                    public: items.filter((p) => p.is_public).length,
+                    items: items.reduce((sum, p) => sum + (p.media_items?.length || p.media_details?.length || 0), 0),
+                    views: items.reduce(
+                        (sum, p) => sum + (p.media_details?.reduce((s, m) => s + (m.view_count || 0), 0) || 0),
+                        0,
+                    ),
+                });
+            } catch {
+                // Best-effort global stats; keep zeros on failure.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const totalPlaylists = statsPlaylists.total;
+    const publicCount = statsPlaylists.public;
+    const totalItems = statsPlaylists.items;
+    const totalViews = statsPlaylists.views;
 
     const startItem = total > 0 ? (page - 1) * pageSize + 1 : 0;
     const endItem = Math.min(page * pageSize, total);

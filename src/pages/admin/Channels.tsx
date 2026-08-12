@@ -20,6 +20,7 @@ import {
 import {adminApi, Channel} from '@/lib/api/admin';
 import {usePagination} from '@/hooks/usePagination';
 import {formatNumber as fmtNumber} from '@/lib/format';
+import {PAGINATION_CONFIG} from '@/config/pagination';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
@@ -153,10 +154,33 @@ const Channels: React.FC = () => {
         return matchesSearch && matchesVerification;
     });
 
-    const totalSubscribers = channels.reduce((sum, c) => sum + (c.subscriber_count || 0), 0);
-    const verifiedCount = channels.filter(c => c.is_verified === true || c.status === 'verified').length;
-    const pendingCount = channels.filter(c => c.status === 'pending').length;
-    const verifiedRatio = total > 0 ? Math.round((verifiedCount / total) * 100) : 0;
+    // Stats (BUG-210: page-level cards = global base data; unfiltered fetch,
+    // not affected by search/filter or the current page)
+    const [statsChannels, setStatsChannels] = useState<{total: number; subs: number; verified: number; pending: number}>({total: 0, subs: 0, verified: 0, pending: 0});
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await adminApi.getChannels({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                if (cancelled) return;
+                const items = Array.isArray(res?.items) ? res.items : [];
+                setStatsChannels({
+                    total: res?.total ?? items.length,
+                    subs: items.reduce((sum, c) => sum + (c.subscriber_count || 0), 0),
+                    verified: items.filter((c) => c.is_verified === true || c.status === 'verified').length,
+                    pending: items.filter((c) => c.status === 'pending').length,
+                });
+            } catch {
+                // Best-effort global stats; keep zeros on failure.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const totalSubscribers = statsChannels.subs;
+    const verifiedCount = statsChannels.verified;
+    const pendingCount = statsChannels.pending;
+    const verifiedRatio = statsChannels.total > 0 ? Math.round((statsChannels.verified / statsChannels.total) * 100) : 0;
 
     const getStatusBadge = (status: string, isVerified?: boolean) => {
         if (isVerified) {
@@ -246,7 +270,7 @@ const Channels: React.FC = () => {
                         <div className="flex items-start justify-between">
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.channelTotal') || 'Total Channels'}</p>
-                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{total || channels.length}</h3>
+                                <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsChannels.total}</h3>
                             </div>
                             <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                 <Tv className="w-5 h-5"/>

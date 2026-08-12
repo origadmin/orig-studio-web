@@ -186,10 +186,33 @@ export default function MediaPage() {
         return getFullUrl(path) || '';
     };
 
-    // Stats
-    const totalAssets = total || mediaList.length;
-    const activeTranscodes = mediaList.filter((m: Media) => m.encoding_status === 'processing').length;
-    const failedTasks = mediaList.filter((m: Media) => m.encoding_status === 'failed').length;
+    // Stats (BUG-203: page-level cards = global base data; unfiltered, not
+    // affected by keyword/state/type/tags filters or pagination)
+    const [statsMedia, setStatsMedia] = useState<{total: number; processing: number; failed: number}>({total: 0, processing: 0, failed: 0});
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const [listRes, encRes] = await Promise.all([
+                    adminMediaApi.list({page: 1, page_size: 1}),
+                    encodingApi.getTasks({page: 1, page_size: 1, only_stats: true}),
+                ]);
+                if (cancelled) return;
+                setStatsMedia({
+                    total: listRes?.total ?? 0,
+                    processing: encRes?.processing_count ?? 0,
+                    failed: encRes?.failed_count ?? 0,
+                });
+            } catch {
+                // Best-effort global stats; keep zeros on failure.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const totalAssets = statsMedia.total;
+    const activeTranscodes = statsMedia.processing;
+    const failedTasks = statsMedia.failed;
 
     // Pagination
     const totalPages = Math.ceil(total / searchParams.page_size);

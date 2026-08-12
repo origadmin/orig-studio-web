@@ -330,12 +330,33 @@ export default function TranscodingStatus() {
         });
     };
 
-    const [stats, setStats] = useState<{
+    const [globalStats, setGlobalStats] = useState<{
         active: number;
         queued: number;
         completed: number;
         failed: number;
     }>({active: 0, queued: 0, completed: 0, failed: 0});
+
+    // Stats (BUG-208: page-level cards = global base data; unfiltered
+    // `only_stats` fetch, not affected by status/profile/search filters)
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await encodingApi.getTasks({page: 1, page_size: 1, only_stats: true});
+                if (cancelled) return;
+                setGlobalStats({
+                    active: res?.processing_count || 0,
+                    queued: res?.pending_count || 0,
+                    completed: res?.success_count || 0,
+                    failed: res?.failed_count || 0,
+                });
+            } catch {
+                // Best-effort global stats; keep zeros on failure.
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const [availableProfiles, setAvailableProfiles] = useState<string[]>([]);
 
@@ -391,13 +412,6 @@ export default function TranscodingStatus() {
 
             const response = await encodingApi.getTasks(params);
             setFilteredData(response);
-
-            setStats({
-                active: response?.processing_count || 0,
-                queued: response?.pending_count || 0,
-                completed: response?.success_count || 0,
-                failed: response?.failed_count || 0,
-            });
         } catch (err: any) {
             console.error("Failed to fetch tasks:", err);
             setError(err?.message || t('admin.loadTasksFailed', '加载转码任务失败'));
@@ -579,26 +593,26 @@ export default function TranscodingStatus() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <StatCard
                     label={t('admin.activeJobs', '活跃任务')}
-                    value={stats.active}
+                    value={globalStats.active}
                     icon={Activity}
                     color="sky"
                     description={sseStatus.connected ? t('admin.realTime', '实时') : t('admin.latestSnapshot', '最新快照')}
                 />
                 <StatCard
                     label={t('admin.inQueue', '排队中')}
-                    value={stats.queued}
+                    value={globalStats.queued}
                     icon={Clock}
                     color="amber"
                 />
                 <StatCard
                     label={t('admin.completed', '已完成')}
-                    value={stats.completed}
+                    value={globalStats.completed}
                     icon={CheckCircle2}
                     color="emerald"
                 />
                 <StatCard
                     label={t('admin.failed', '失败')}
-                    value={stats.failed}
+                    value={globalStats.failed}
                     icon={XCircle}
                     color="red"
                 />
