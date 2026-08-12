@@ -196,6 +196,25 @@ function createRequest() {
         headers: {
             "Content-Type": "application/json",
         },
+        // Serialize array params as repeated keys WITHOUT brackets
+        // (e.g. category_ids=[2,1] -> "category_ids=2&category_ids=1").
+        // The Kratos HTTP gateway's BindQuery only parses repeated keys, not
+        // the axios-default "category_ids[]=2&category_ids[]=1" bracket form,
+        // nor comma-joined strings (which 400 with a ParseInt error).
+        paramsSerializer: {
+            serialize: (params: Record<string, unknown>) => {
+                const sp = new URLSearchParams();
+                Object.entries(params ?? {}).forEach(([key, value]) => {
+                    if (value === undefined || value === null) return;
+                    if (Array.isArray(value)) {
+                        value.forEach((v) => sp.append(key, String(v)));
+                    } else {
+                        sp.append(key, String(value));
+                    }
+                });
+                return sp.toString();
+            },
+        },
     });
 
     // Request Interceptor
