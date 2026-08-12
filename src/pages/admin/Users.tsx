@@ -83,6 +83,25 @@ export default function UsersPage() {
     }
   };
 
+  const exportUsers = (list: User[]) => {
+    if (!list || list.length === 0) return;
+    const headers = ['username', 'email', 'role', 'status', 'create_time'];
+    const escapeCsv = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = list.map((u) =>
+      [u.username, u.email, u.role, u.status, u.create_time].map(escapeCsv).join(',')
+    );
+    const csv = [headers.map(escapeCsv).join(','), ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `users-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const resetForm = () => {
     setFormData({
       username: '',
@@ -296,7 +315,7 @@ export default function UsersPage() {
           </div>
           <Select
             value={searchParams.role}
-            onValueChange={(value) => setSearchParams({...searchParams, role: value})}
+            onValueChange={(value) => { const next = {...searchParams, role: value, page: 1}; setSearchParams(next); loadUsers(next); }}
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder={t('admin.allRoles') || 'All Roles'}/>
@@ -310,11 +329,11 @@ export default function UsersPage() {
           </Select>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => loadUsers()}>
             <Filter className="w-4 h-4"/>
             {t('admin.filters') || 'Filters'}
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => exportUsers(users)} disabled={users.length === 0}>
             <Download className="w-4 h-4"/>
             {t('admin.export') || 'Export'}
           </Button>
