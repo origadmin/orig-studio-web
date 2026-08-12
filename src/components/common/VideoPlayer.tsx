@@ -958,58 +958,67 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                         <X size={20}/>
                     </button>
 
-                    {/* Next video card - bottom right */}
-                    <div className="flex items-end gap-4 max-w-md w-full">
-                        <div className="flex-1 min-w-0">
-                            <p className="text-white/80 text-sm mb-2">{t('videoPlayer.nextUp', 'Next up')}</p>
-                            <h3 className="text-white font-semibold text-lg line-clamp-2 leading-tight mb-1">
-                                {nextVideo.title}
-                            </h3>
-                            {nextVideo.channelName && (
-                                <p className="text-white/70 text-sm">{nextVideo.channelName}</p>
-                            )}
-                            <button
-                                onClick={playNow}
-                                className="mt-3 flex items-center gap-2 bg-white text-black px-5 py-2 rounded-full font-medium text-sm hover:bg-white/90 transition-colors"
-                            >
-                                <NextIcon size={16}/>
-                                {t('videoPlayer.playNow', 'Play now')}
-                            </button>
+                    {/* Next video — one integrated card (YouTube-style): thumbnail is the
+                        visual主体, info + actions + countdown overlaid on it. */}
+                    {/* Width tracks the player (28% of container), clamped so it never
+                        blows up on huge players nor collapses on tiny ones. */}
+                    <div className="relative w-[28%] max-w-[320px] min-w-[220px] aspect-video rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/20 bg-black">
+                        <img
+                            src={getFullUrl(nextVideo.thumbnail)}
+                            alt={nextVideo.title}
+                            className="w-full h-full object-cover"
+                        />
+                        {/* legibility gradient */}
+                        <div
+                            className="absolute inset-0"
+                            style={{background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.15) 100%)'}}
+                        />
+
+                        {/* Next up badge — top left */}
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 text-white text-xs font-medium bg-black/45 backdrop-blur-sm px-2 py-1 rounded">
+                            <NextIcon size={13}/>
+                            {t('videoPlayer.nextUp', 'Next up')}
                         </div>
 
-                        {/* Thumbnail with countdown ring */}
-                        <div className="relative shrink-0">
-                            <div className="w-40 md:w-48 aspect-video rounded-lg overflow-hidden bg-black/40 shadow-2xl">
-                                <img
-                                    src={getFullUrl(nextVideo.thumbnail)}
-                                    alt={nextVideo.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                            {/* Circular countdown */}
-                            <div className="absolute -bottom-2 -left-2 w-10 h-10">
-                                <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
-                                    <circle
-                                        cx="18" cy="18" r="16"
-                                        fill="none"
-                                        stroke="rgba(255,255,255,0.3)"
-                                        strokeWidth="2"
-                                    />
+                        {/* Countdown ring — centered, high contrast */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="relative w-16 h-16">
+                                <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
+                                    <circle cx="18" cy="18" r="16" fill="rgba(0,0,0,0.45)" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5"/>
                                     <circle
                                         cx="18" cy="18" r="16"
                                         fill="none"
                                         stroke="white"
-                                        strokeWidth="2"
+                                        strokeWidth="2.5"
                                         strokeLinecap="round"
                                         strokeDasharray={`${(autoplayCountdown / 5) * 100.53} 100.53`}
                                         style={{transition: 'stroke-dasharray 1s linear'}}
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-white text-sm font-bold">{autoplayCountdown}</span>
+                                    <span className="text-white text-lg font-bold tabular-nums">{autoplayCountdown}</span>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Title + channel — bottom left */}
+                        <div className="absolute bottom-3 left-3 right-28 pr-1">
+                            <h3 className="text-white font-semibold text-sm line-clamp-2 leading-tight drop-shadow">
+                                {nextVideo.title}
+                            </h3>
+                            {nextVideo.channelName && (
+                                <p className="text-white/80 text-xs mt-0.5 truncate">{nextVideo.channelName}</p>
+                            )}
+                        </div>
+
+                        {/* Play now — bottom right overlay */}
+                        <button
+                            onClick={playNow}
+                            className="absolute bottom-3 right-3 flex items-center gap-2 bg-white text-black px-4 py-1.5 rounded-full font-medium text-sm hover:bg-white/90 transition-colors shadow-lg"
+                        >
+                            <NextIcon size={16}/>
+                            {t('videoPlayer.playNow', 'Play now')}
+                        </button>
                     </div>
                 </div>
             )}
