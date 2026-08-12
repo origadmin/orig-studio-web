@@ -368,7 +368,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                                 ) : (
                                     <SubscribeButton
                                         channelId={channels[0]?.short_token || ''}
-                                        initialSubscriberCount={user.subscriber_count || 0}
                                     />
                                 )}
                             </div>

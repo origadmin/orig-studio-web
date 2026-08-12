@@ -20,9 +20,12 @@ interface UseChannelReturn {
  * useChannel Hook v4.0 (F019)
  *
  * 支持多种路由来源:
- * - /c/{token} 或 /channel/{id} → 路径参数方式 (getByToken)
- * - /@{handle}              → Handle resolution (resolveHandle)
- * - /me/channel             → 当前用户频道 (getMyChannel)
+ * - /c/{token}            → 路径参数方式 (getByToken)
+ * - /@{handle}            → Handle resolution (resolveHandle)
+ * - /me/channel           → 当前用户频道 (getMyChannel)
+ *
+ * 注意: /channel/{id} 路由已删除（2026-08-07 URL 规范统一），
+ * 频道唯一 canonical path 为 /c/{id}。
  */
 const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
     const {enabled = true} = options;
@@ -38,8 +41,6 @@ const useChannel = (options: UseChannelOptions = {}): UseChannelReturn => {
         handle = pathname.slice(2);
     } else if (pathname.startsWith('/c/')) {
         token = pathname.slice(3);
-    } else if (pathname.startsWith('/channel/')) {
-        token = pathname.slice(9);
     }
 
     const {user, isAuthenticated} = useAuth();

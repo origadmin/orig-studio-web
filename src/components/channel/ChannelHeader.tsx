@@ -14,7 +14,6 @@ import {
     ChevronDown,
     Check,
     Link2,
-    Bell,
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -37,8 +36,7 @@ import {
     AvatarImage,
 } from '@/components/ui/avatar';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
-import SubscribeButton from './SubscribeButton';
-import NotificationBell from './NotificationBell';
+import SubscribeButton from '@/components/common/SubscribeButton';
 import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
 
@@ -46,43 +44,29 @@ interface ChannelHeaderProps {
     channel: ChannelDetail;
     isOwner: boolean;
     isFromMeChannel?: boolean;
-    isSubscribed?: boolean;
-    /** Subscription status query still in flight — render the button as pending
-     *  instead of falsely advertising "Subscribe" (BUG-178). */
-    subscriptionLoading?: boolean;
     subscriberCount?: number;
     /** Authoritative video total from the channel videos endpoint. Falls back to
      *  the (unmaintained) channel.media_count column when omitted (BUG-179). */
     videoCount?: number;
-    subscribing?: boolean;
-    onSubscribe?: () => void;
-    onUnsubscribe?: () => Promise<void>;
-    onNotificationSettingChange?: (setting: string) => Promise<void> | void;
+    /** BUG-212: 订阅/退订 delta 回写，供 header 计数实时同步。 */
+    onSubscriberCountChange?: (delta: number) => void;
 }
 
 const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     channel,
     isOwner,
     isFromMeChannel: _isFromMeChannel = false,
-    isSubscribed = false,
-    subscriptionLoading = false,
     subscriberCount = 0,
     videoCount: videoCountProp,
-    subscribing = false,
-    onSubscribe,
-    onUnsubscribe,
-    onNotificationSettingChange,
+    onSubscriberCountChange,
 }) => {
     const {t} = useTranslation();
     const {user} = useAuth();
-    const [showUnsubscribeDialog, setShowUnsubscribeDialog] = useState(false);
-    const [unsubscribing, setUnsubscribing] = useState(false);
-    const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-
     // Share state
     const [showShareDialog, setShowShareDialog] = useState(false);
     const [shareCopied, setShareCopied] = useState(false);
     const [shareError, setShareError] = useState<string | null>(null);
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
     // Build the canonical channel share URL using /c/{short_token}
     // (the /channel/{id} route was removed — /c/{id} is the single canonical path)
@@ -118,16 +102,6 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             }
         }
     }, [channel.name, channelShareUrl]);
-
-    const handleUnsubscribeConfirm = async () => {
-        try {
-            setUnsubscribing(true);
-            await onUnsubscribe?.();
-            setShowUnsubscribeDialog(false);
-        } finally {
-            setUnsubscribing(false);
-        }
-    };
 
     const videoCount = videoCountProp ?? (channel.media_count || 0);
     const subCount = subscriberCount || channel.subscriber_count || 0;
@@ -226,23 +200,13 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                     <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                         {!isOwner ? (
                             <>
+                                {/* BUG-212: 统一订阅按钮（common/SubscribeButton 自管状态 + 乐观切换 + 计数回写），
+                                    不再有独立铃铛/通知偏好控件 */}
                                 <SubscribeButton
-                                    isSubscribed={isSubscribed}
+                                    channelId={channel.short_token || channel.id}
                                     isOwner={isOwner}
-                                    statusLoading={subscriptionLoading}
-                                    subscriberCount={subscriberCount}
-                                    subscribing={subscribing}
-                                    onSubscribe={onSubscribe}
-                                    onUnsubscribeClick={() =>
-                                        setShowUnsubscribeDialog(true)
-                                    }
-                                />
-
-                                <NotificationBell
-                                    isSubscribed={isSubscribed}
-                                    onSettingChange={
-                                        onNotificationSettingChange
-                                    }
+                                    className="ml-0"
+                                    onSubscriberCountChange={onSubscriberCountChange}
                                 />
 
                                 <DropdownMenu>
@@ -292,41 +256,6 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                     </div>
                 </div>
             </div>
-
-            {/* Unsubscribe Confirmation Dialog */}
-            <Dialog
-                open={showUnsubscribeDialog}
-                onOpenChange={setShowUnsubscribeDialog}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{t('channel.confirmUnsubscribeTitle')}</DialogTitle>
-                        <DialogDescription>
-                            {t('channel.confirmUnsubscribeDesc', {
-                                channel: channel.name,
-                            })}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setShowUnsubscribeDialog(false)}
-                            disabled={unsubscribing}
-                        >
-                            {t('common.cancel')}
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleUnsubscribeConfirm}
-                            disabled={unsubscribing}
-                        >
-                            {unsubscribing
-                                ? t('channel.unsubscribing')
-                                : t('channel.unsubscribe')}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             {/* Share Channel Dialog */}
             <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
@@ -398,7 +327,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                             >
                                 <div className="w-10 h-10 bg-info rounded-full flex items-center justify-center">
                                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
                                     </svg>
                                 </div>
                                 <span className="text-xs text-gray-600 dark:text-muted-foreground">Telegram</span>

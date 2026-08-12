@@ -13,12 +13,7 @@ import {
 import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2} from 'lucide-react';
 import type {ChannelDetail} from '@/lib/api/channel';
 import type {Media} from '@/lib/api/media';
-import {
-    useChannelVideos,
-    useSubscribe,
-    useUnsubscribe,
-    useUpdateNotificationSetting,
-} from '@/hooks/queries';
+import {useChannelVideos} from '@/hooks/queries';
 import {mediaApi} from '@/lib/api/media';
 import {subscriptionApi, type SubscriptionListResponse} from '@/lib/api/subscription';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
@@ -43,36 +38,18 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
     channel,
     isOwner,
     isFromMeChannel = false,
-    isSubscribed = false,
-    subscriptionLoading = false,
 }) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('home');
     const [subscriberCount, setSubscriberCount] = useState(channel.subscriber_count || 0);
-    const [subscribed, setSubscribed] = useState(isSubscribed);
     const [contentEmpty, setContentEmpty] = useState(false);
-
-    // BUG-178: `useState(isSubscribed)` only captures the value of the FIRST render.
-    // The subscription status query cannot start until the channel resolves (it needs
-    // channel.short_token), which is the very moment this component mounts — so the
-    // prop is always `false` at mount and flips to `true` one tick later. Without this
-    // sync the channel page kept showing "Subscribe" for an already-subscribed channel,
-    // while the watch page (whose SubscribeButton fetches its own status) showed
-    // "Subscribed" — the inconsistency the user reported.
-    useEffect(() => {
-        setSubscribed(isSubscribed);
-    }, [isSubscribed]);
 
     // Keep the header count in sync when the channel payload is refetched, but key on
     // the channel identity so an optimistic +1/-1 is not clobbered mid-flight.
     useEffect(() => {
         setSubscriberCount(channel.subscriber_count || 0);
     }, [channel.id]);
-
-    const subscribeMutation = useSubscribe();
-    const unsubscribeMutation = useUnsubscribe();
-    const notificationMutation = useUpdateNotificationSetting();
 
     const channelToken = channel.short_token || channel.id;
 
@@ -122,34 +99,9 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
         setContentEmpty(empty);
     }, []);
 
-    const handleSubscribe = () => {
-        if (!channelToken) return;
-        setSubscribed(true);
-        setSubscriberCount((prev) => prev + 1);
-        subscribeMutation.mutate(channelToken, {
-            onError: () => {
-                setSubscribed(false);
-                setSubscriberCount((prev) => Math.max(0, prev - 1));
-            },
-        });
-    };
-
-    const handleUnsubscribe = async () => {
-        if (!channelToken) return;
-        setSubscribed(false);
-        setSubscriberCount((prev) => Math.max(0, prev - 1));
-        unsubscribeMutation.mutate(channelToken, {
-            onError: () => {
-                setSubscribed(true);
-                setSubscriberCount((prev) => prev + 1);
-            },
-        });
-    };
-
-    const handleNotificationSettingChange = async (setting: string) => {
-        if (!channelToken) return;
-        await notificationMutation.mutateAsync({channelToken, setting});
-    };
+    const handleSubscriberCountChange = useCallback((delta: number) => {
+        setSubscriberCount((prev) => Math.max(0, prev + delta));
+    }, []);
 
     return (
         <div className="channel-page min-h-screen bg-background">
@@ -158,14 +110,9 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                     channel={channel}
                     isOwner={isOwner}
                     isFromMeChannel={isFromMeChannel}
-                    isSubscribed={subscribed}
-                    subscriptionLoading={subscriptionLoading}
                     subscriberCount={subscriberCount}
                     videoCount={headerVideoCount}
-                    subscribing={subscribeMutation.isPending || unsubscribeMutation.isPending}
-                    onSubscribe={handleSubscribe}
-                    onUnsubscribe={handleUnsubscribe}
-                    onNotificationSettingChange={handleNotificationSettingChange}
+                    onSubscriberCountChange={handleSubscriberCountChange}
                 />
 
                 <ChannelNav
