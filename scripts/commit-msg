@@ -1,0 +1,30 @@
+#!/bin/sh
+# Commit message validation hook (committed to web/scripts/).
+# Mirrors the auto-installed local hook: runs scripts/commit-msg-check.ps1
+# to enforce English-only Conventional Commits. Activated via core.hooksPath
+# (set by scripts/install-hooks.ts on `bun install` -> package.json "prepare").
+# Converts both paths to Windows form so PowerShell can resolve them under Git Bash.
+REPO_ROOT=$(git rev-parse --show-toplevel)
+SCRIPT="$REPO_ROOT/scripts/commit-msg-check.ps1"
+MSG_FILE="$1"
+
+to_win() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$1"
+    else
+        echo "$1" | sed 's|^/\([a-zA-Z]\)/|\1:\\|; s|/|\\|g'
+    fi
+}
+
+SCRIPT_WIN=$(to_win "$SCRIPT")
+MSG_WIN=$(to_win "$MSG_FILE")
+
+if command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -CommitMsgFile "$MSG_WIN"
+elif command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN" -CommitMsgFile "$MSG_WIN"
+else
+    echo "ERROR: PowerShell not found - cannot run commit-msg checks"
+    exit 1
+fi
+exit $?

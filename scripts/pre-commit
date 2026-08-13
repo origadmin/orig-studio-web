@@ -1,0 +1,34 @@
+#!/bin/sh
+# Pre-commit pollution check hook (committed to web/scripts/).
+# Mirrors the auto-installed local hook: delegates to the PARENT repo's
+# scripts/pre-commit-check.ps1 (the shared dual-gate), so web/ submodules
+# obey the same pollution/design-placement rules as the root repo.
+# Activated via core.hooksPath (set by scripts/install-hooks.ts).
+REPO_ROOT=$(git rev-parse --show-toplevel)
+PARENT_ROOT=$(cd "$REPO_ROOT/.." && pwd)
+SCRIPT="$PARENT_ROOT/scripts/pre-commit-check.ps1"
+
+to_win() {
+    if command -v cygpath >/dev/null 2>&1; then
+        cygpath -w "$1"
+    else
+        echo "$1" | sed 's|^/\([a-zA-Z]\)/|\1:\\|; s|/|\\|g'
+    fi
+}
+
+SCRIPT_WIN=$(to_win "$SCRIPT")
+
+if [ ! -f "$SCRIPT" ]; then
+    echo "WARNING: pre-commit-check.ps1 not found at $SCRIPT - skipping check"
+    exit 0
+fi
+
+if command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN"
+elif command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$SCRIPT_WIN"
+else
+    echo "ERROR: PowerShell not found - cannot run pre-commit checks"
+    exit 1
+fi
+exit $?
