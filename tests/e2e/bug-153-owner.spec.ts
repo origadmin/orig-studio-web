@@ -76,7 +76,7 @@ test.describe('BUG-153 owner view: no orphan separator below Download', () => {
         expect(sepCount, 'owner view must have ZERO separators (was 1 in f4dcf81)').toBe(0);
 
         await page.screenshot({
-            path: 'e2e-evidence/bug153-menu-owner.png',
+            path: path.join(__dirname, '..', 'e2e-evidence', 'bug153-menu-owner.png'),
             fullPage: false,
         });
     });

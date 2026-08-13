@@ -1,11 +1,16 @@
 import {test, expect} from '@playwright/test';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * BUG-007 browser-level verification (real deployment: nginx :8080 -> backend).
  * Fix (option A): the autoplay countdown panel is now ONE integrated card —
  * the thumbnail is the visual主体, with "Next up" badge, title/channel,
  * Play now button, and an enlarged centered countdown ring overlaid on it.
- * Screenshot proof: web/e2e-evidence/bug007-autoplay-card.png
+ * Screenshot proof: web/tests/e2e-evidence/bug007-autoplay-card.png
  */
 
 const DESKTOP = {width: 1280, height: 900};
@@ -41,6 +46,6 @@ test.describe('BUG-007: autoplay-next renders as one integrated thumbnail card',
         await expect(page.getByText('Next up')).toBeVisible({timeout: 12000});
         await expect(page.getByText('Play now')).toBeVisible({timeout: 5000});
 
-        await page.screenshot({path: 'e2e-evidence/bug007-autoplay-card.png', fullPage: false});
+        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug007-autoplay-card.png'), fullPage: false});
     });
 });

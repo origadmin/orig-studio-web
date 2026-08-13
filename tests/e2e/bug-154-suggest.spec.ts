@@ -1,10 +1,15 @@
 import {test, expect} from '@playwright/test';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * BUG-154 browser-level verification (real deployment: nginx :8080 -> backend).
  * Fix: tag search now renders an autocomplete combobox; typing a prefix shows a
  * listbox of suggestions (exact match > prefix > substring). Screenshot proof
- * lives in web/e2e-evidence/bug154-autocomplete.png.
+ * lives in web/tests/e2e-evidence/bug154-autocomplete.png.
  */
 
 const DESKTOP = {width: 1280, height: 800};
@@ -30,6 +35,6 @@ test.describe('BUG-154: tag search autocomplete dropdown', () => {
         await expect(listbox.getByText('4', {exact: true})).toBeVisible();
         await expect(listbox.getByText('4K', {exact: true})).toBeVisible();
 
-        await page.screenshot({path: 'e2e-evidence/bug154-autocomplete.png'});
+        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug154-autocomplete.png')});
     });
 });

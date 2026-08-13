@@ -14,15 +14,14 @@ Thumbs.db
 *.log
 
 # Playwright
-test-results/
-test-results-deployed/
+tests/test-results/
 playwright-report/
 playwright-report-deployed/
 playwright/.cache/
-# e2e-evidence/ holds screenshots referenced from BUG-145/BUG-148 docs and is
+# tests/e2e-evidence/ holds screenshots referenced from BUG docs and is
 # intentionally checked in (small PNGs); only the throwaway debug-* files
 # under it should be ignored.
-e2e-evidence/debug-*
+tests/e2e-evidence/
 
 # ============================================================
 # AI TOOL POLLUTION - ABSOLUTELY FORBIDDEN IN REPOSITORY

@@ -17,7 +17,7 @@ import {defineConfig, devices} from '@playwright/test';
  *       node node_modules/@playwright/test/cli.js test -c playwright.deployed.config.ts
  */
 export default defineConfig({
-    testDir: './e2e',
+    testDir: './tests/e2e',
     // `_probe-*` files are ad-hoc diagnostics (network tracing, DOM dumps) that
     // print instead of asserting; keep them runnable through this config.
     // BUG-001 (admin access gate), BUG-004 (banner tracks), BUG-007 (autoplay

@@ -1,4 +1,9 @@
 import {test, expect} from '@playwright/test';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * BUG-153 browser-level verification (real deployment: nginx :8080 -> backend).
@@ -11,7 +16,7 @@ import {test, expect} from '@playwright/test';
  * [Download][Separator][Report] in both old and new code. So this spec captures
  * the non-owner menu (proving the rebuilt container is live and the menu renders
  * with a correctly-placed separator); the owner-state visual confirmation needs a
- * logged-in owner session. Screenshot: web/e2e-evidence/bug153-menu-nonowner.png.
+ * logged-in owner session. Screenshot: web/tests/e2e-evidence/bug153-menu-nonowner.png.
  */
 
 const DESKTOP = {width: 1280, height: 800};
@@ -51,6 +56,6 @@ await page.waitForTimeout(800);
         const sepCount = await menu.getByRole('separator').count();
         console.log('BUG-153 non-owner separator count =', sepCount);
 
-        await page.screenshot({path: 'e2e-evidence/bug153-menu-nonowner.png'});
+        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug153-menu-nonowner.png')});
     });
 });

@@ -1,10 +1,15 @@
 import {test, expect} from '@playwright/test';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * BUG-004 browser-level verification (real deployment: nginx :8080 -> backend).
  * Fix (option A): only `custom`/`ad` banners enter the Hero carousel; `hot_videos`
  * / `new_videos` banners render as independent HorizontalScroll video tracks.
- * Screenshot proof: web/e2e-evidence/bug004-banner-tracks.png
+ * Screenshot proof: web/tests/e2e-evidence/bug004-banner-tracks.png
  */
 
 const DESKTOP = {width: 1280, height: 900};
@@ -29,6 +34,6 @@ test.describe('BUG-004: hot/new banners render as tracks, not Hero slides', () =
         // Hero 本身仍应有 slide（custom banner 正常渲染）。
         await expect(heroSlides.first()).toBeVisible();
 
-        await page.screenshot({path: 'e2e-evidence/bug004-banner-tracks.png', fullPage: false});
+        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug004-banner-tracks.png'), fullPage: false});
     });
 });
