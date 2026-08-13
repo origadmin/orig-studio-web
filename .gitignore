@@ -150,3 +150,14 @@ probe_*.cjs
 probe_*.mjs
 *subcount*.cjs
 scripts/*-debug.cjs
+
+# one-off bug probe scripts must NOT live at web/ root (BUG-213).
+# They were migrated from web/ root into web/tests/bugs/ on 2026-08-13.
+# Keep them on disk for reference only; never commit.
+bug[0-9][0-9][0-9]-*.cjs
+
+# probes migrated from web/ root into web/tests/bugs/ (BUG-213).
+# tests/bugs/ also holds committed regression specs (B087..B101), so only
+# ignore the loose *.cjs probe class, not the whole directory.
+tests/bugs/*.cjs
+tests/bugs/bug190-visual/
