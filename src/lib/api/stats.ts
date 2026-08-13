@@ -52,41 +52,22 @@ export interface DashboardStats {
     }>;
 }
 
+export interface StatPoint {
+    date: string;
+    value: number;
+}
+
 export interface MediaStats {
-    total: number;
-    by_type: {
-        video: number;
-        image: number;
-        audio: number;
-        other: number;
-    };
-    by_status: {
-        pending: number;
-        approved: number;
-        rejected: number;
-    };
-    by_date: Array<{
-        date: string;
-        count: number;
-    }>;
+    total_uploads: number;
+    total_views: number;
+    daily_stats: StatPoint[];
 }
 
 export interface UserStats {
-    total: number;
-    by_role: {
-        admin: number;
-        editor: number;
-        user: number;
-    };
-    by_status: {
-        active: number;
-        inactive: number;
-        banned: number;
-    };
-    by_date: Array<{
-        date: string;
-        count: number;
-    }>;
+    total_users: number;
+    new_users: number;
+    active_users: number;
+    daily_stats: StatPoint[];
 }
 
 export const statsApi = {
@@ -105,22 +86,18 @@ export const statsApi = {
     // Get traffic stats (Admin)
     getTraffic: (params?: { days?: number }) =>
         api.get<{
-            views: Array<{
-                date: string;
-                views: number;
-            }>;
-            unique_visitors: Array<{
-                date: string;
-                visitors: number;
-            }>;
+            total_bandwidth: number;
+            total_requests: number;
+            daily_stats: StatPoint[];
         }>('/admin/stats/traffic', params),
 
     // Get revenue stats (Admin)
-    getRevenue: (params?: { days?: number; type?: 'daily' | 'weekly' | 'monthly' }) =>
+    // NOTE: amounts are in minor units (cents); divide by 100 for display.
+    getRevenue: (params?: { days?: number }) =>
         api.get<{
-            revenue: Array<{
-                date: string;
-                amount: number;
-            }>;
+            total_revenue: number;
+            subscription_revenue: number;
+            ad_revenue: number;
+            daily_stats: StatPoint[];
         }>('/admin/stats/revenue', params),
 };

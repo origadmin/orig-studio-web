@@ -54,6 +54,7 @@ import {
     SelectItem,
 } from "@/components/ui/select";
 import {encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
+import {statsApi} from '@/lib/api/stats';
 import {useAdminMediaList, useDeleteMedia} from '@/hooks/queries';
 import {UploadComponent} from '@/components/upload/UploadComponent';
 import {getFullUrl, cn} from '@/lib/utils';
@@ -193,16 +194,16 @@ export default function MediaPage() {
         let cancelled = false;
         (async () => {
             try {
-                const [listRes, encRes] = await Promise.all([
-                    adminMediaApi.list({page: 1, page_size: 1}),
-                    encodingApi.getTasks({page: 1, page_size: 1, only_stats: true}),
-                ]);
-                if (cancelled) return;
-                setStatsMedia({
-                    total: listRes?.total ?? 0,
-                    processing: encRes?.processing_count ?? 0,
-                    failed: encRes?.failed_count ?? 0,
-                });
+            const [mediaRes, encRes] = await Promise.all([
+                statsApi.getMedia(),
+                encodingApi.getTasks({page: 1, page_size: 1}),
+            ]);
+            if (cancelled) return;
+            setStatsMedia({
+                total: mediaRes?.total_uploads ?? 0,
+                processing: encRes?.processing_count ?? 0,
+                failed: encRes?.failed_count ?? 0,
+            });
             } catch {
                 // Best-effort global stats; keep zeros on failure.
             }

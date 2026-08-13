@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     CreditCard, Plus, Edit, Trash2, Receipt, Wallet, ChevronLeft, ChevronRight,
     CheckCircle2, XCircle,
@@ -34,6 +34,12 @@ import {
 import {
     type SubscriptionPlan, type CreateSubscriptionPlanRequest, type UpdateSubscriptionPlanRequest,
 } from '@/lib/api/payment';
+import {statsApi} from '@/lib/api/stats';
+
+const fmtCents = (c: number): string => {
+    const v = c / 100;
+    return '$' + v.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+};
 
 /* ------------------------------------------------------------------ */
 /*  Revenue Sparkline Card                                             */
@@ -75,6 +81,19 @@ export default function PaymentPage() {
     const {t} = useTranslation();
     useFeatureFlags(); // respect feature gate
     const [activeTab, setActiveTab] = useState('plans');
+
+    const [revenue, setRevenue] = useState<{
+        total_revenue: number;
+        subscription_revenue: number;
+        ad_revenue: number;
+    } | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        statsApi.getRevenue()
+            .then(r => { if (!cancelled) setRevenue(r as {total_revenue: number; subscription_revenue: number; ad_revenue: number}); })
+            .catch(() => {/* keep null → cards show placeholder */});
+        return () => { cancelled = true; };
+    }, []);
 
     return (
         <div className="p-6 space-y-8">
@@ -119,25 +138,25 @@ export default function PaymentPage() {
             <section className="grid grid-cols-1 md:grid-cols-4 gap-2">
                 <RevenueCard
                     label={t('admin.totalRevenue', 'TOTAL REVENUE')}
-                    value="$428,930.00"
+                    value={revenue ? fmtCents(revenue.total_revenue) : '—'}
                     colorClass="text-primary"
                     path="M0,35 Q20,30 40,32 T80,20 T120,25 T160,10 T200,5"
                 />
                 <RevenueCard
-                    label={t('admin.activeSubscriptions', 'ACTIVE SUBSCRIPTIONS')}
-                    value="1,204"
+                    label={t('admin.subscriptionRevenue', 'SUBSCRIPTION REVENUE')}
+                    value={revenue ? fmtCents(revenue.subscription_revenue) : '—'}
                     colorClass="text-success"
                     path="M0,25 Q20,28 40,20 T80,22 T120,15 T160,18 T200,10"
                 />
                 <RevenueCard
-                    label={t('admin.churnRate', 'CHURN RATE')}
-                    value="2.4%"
+                    label={t('admin.adRevenue', 'AD REVENUE')}
+                    value={revenue ? fmtCents(revenue.ad_revenue) : '—'}
                     colorClass="text-destructive"
                     path="M0,10 Q20,15 40,12 T80,25 T120,20 T160,35 T200,38"
                 />
                 <RevenueCard
-                    label={t('admin.pendingPayouts', 'PENDING PAYOUTS')}
-                    value="$12,400"
+                    label={t('admin.activeSubscriptions', 'ACTIVE SUBSCRIPTIONS')}
+                    value="N/A"
                     colorClass="text-secondary"
                     path="M0,30 L20,30 L40,28 L60,28 L80,25 L100,25 L120,22 L140,22 L160,20 L180,20 L200,18"
                 />
