@@ -39,11 +39,50 @@ interface Comment {
 
 const PAGE_SIZE = 50;
 
+// BUG-223 最终设计（用户确认）：
+//  - 每次点击展开 3 层（防 10 万层炸掉，最核心）
+//  - per-node：每个被截断的子节点下独立显示按钮，点击只展开该节点子树 3 层
+//  - 按钮文字统一「Show more replies」（展开）/「Hide replies」（收起），无数量统计
+const MAX_VISIBLE_DEPTH = 3;
+const DEPTH_STEP = 3;
+
+/** 线程最大深度：递归找 node 子树中最深的评论深度（node 自身 depth 为 nodeDepth）—— 判断 ROOT 是否全展开 */
+function maxDepthOf(node: Comment, nodeDepth: number): number {
+    if (!node.replies || node.replies.length === 0) return nodeDepth;
+    let max = nodeDepth;
+    for (const child of node.replies) {
+        max = Math.max(max, maxDepthOf(child, nodeDepth + 1));
+    }
+    return max;
+}
+
+/**
+ * BUG-223: 从任意评论 id 沿 parent 链向上找到线程根 id，并返回该评论距根的深度。
+ * @returns { rootId, depth } — rootId 为线程根评论 id；depth 为传入评论的深度（根=0）
+ */
+function resolveThread(commentId: string, flatList: Comment[]): {rootId: string; depth: number} {
+    let current = commentId;
+    let depth = 0;
+    const seen = new Set<string>();
+    while (current && !seen.has(current)) {
+        seen.add(current);
+        const c = flatList.find(x => x.id === current);
+        if (!c) break;
+        const parentId = c.reply_to_comment_id || c.parent_id;
+        if (!parentId) break;
+        current = parentId;
+        depth += 1;
+    }
+    return {rootId: current, depth};
+}
+
 const CommentItem: React.FC<{
     comment: Comment;
     depth: number;
-    expandedReplies: Set<string>;
-    toggleReplies: (id: string) => void;
+    inheritedMaxDepth: number;
+    expandedNodes: Map<string, number>;
+    toggleRoot: (id: string, targetDepth: number) => void;
+    loadNodeDeeper: (id: string, targetDepth: number) => void;
     commentLikes: Map<string, CommentLikeResponse>;
     likingComments: Set<string>;
     replyingTo: {id: string; username: string} | null;
@@ -70,14 +109,25 @@ const CommentItem: React.FC<{
     userAvatar: string;
     userInitial: string;
 }> = ({
-    comment, depth, expandedReplies, toggleReplies, commentLikes, likingComments,
+    comment, depth, inheritedMaxDepth, expandedNodes, toggleRoot, loadNodeDeeper, commentLikes, likingComments,
     replyingTo, replyText, showReplyEmojiPicker, isAuthenticated, user, isSubmittingReply,
     deletingCommentId, t, navigate, onLike, onDislike, onReply, onDelete, onReport,
     onReplyTextChange, onSubmitReply, onCancelReply, onToggleEmoji, onAddEmoji,
     replyEmojiPickerRef, formatDate, userAvatar, userInitial
 }) => {
     const hasReplies = comment.replies && comment.replies.length > 0;
-    const isExpanded = expandedReplies.has(comment.id);
+    const isRoot = depth === 0;
+    // BUG-223 最终：per-node 展开深度 —— ownMaxDepth = 继承深度 或 该节点被展开的深度（0 = 未展开/收起）
+    const extraDepth = expandedNodes.get(comment.id) ?? 0;
+    // ROOT 收起时 inheritedMaxDepth=0（不渲染 children）；展开后继承 + extra
+    const ownMaxDepth = Math.max(inheritedMaxDepth, extraDepth);
+    // children 渲染：children 深度 depth+1 ≤ ownMaxDepth
+    const childrenVisible = hasReplies && ownMaxDepth > 0 && depth + 1 <= ownMaxDepth;
+    // 该节点 children 被截断（有更深未显示）→ per-node 显示「Show more replies」
+    const canLoadDeeper = hasReplies && depth + 1 > ownMaxDepth;
+    // ROOT 全部展开（ownMaxDepth ≥ 线程最大深度）→ 按钮变「Hide replies」
+    const fullDepth = isRoot ? maxDepthOf(comment, 0) : 0;
+    const fullyExpanded = isRoot && ownMaxDepth > 0 && ownMaxDepth >= fullDepth;
     const content = comment.content || comment.text || '';
     const isReplyingToThis = replyingTo?.id === comment.id;
     const size = depth === 0 ? 'h-9 w-9' : 'h-8 w-8';
@@ -184,16 +234,28 @@ const CommentItem: React.FC<{
                     </div>
                 )}
 
-                {hasReplies && (
+                {isRoot && hasReplies && (
+                    // BUG-223 最终：ROOT 按钮 —— 收起态「Show more replies」（展开 3 层）/ 展开态「Hide replies」（收起整线程，隐藏要求不变）
                     <button
-                        onClick={() => toggleReplies(comment.id)}
-                        className="mt-2 flex items-center gap-1.5 text-info font-medium text-sm px-1 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                        onClick={() => toggleRoot(comment.id, ownMaxDepth > 0 ? 0 : MAX_VISIBLE_DEPTH)}
+                        className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-info font-medium transition-colors"
                     >
-                        <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? '' : '-rotate-90'}`}/>
-                        {isExpanded
+                        <ChevronDown className={`w-3 h-3 ${ownMaxDepth > 0 ? '' : '-rotate-90'}`}/>
+                        {ownMaxDepth > 0
                             ? t('watch.hideReplies', 'Hide replies')
-                            : t('watch.viewReplies', `View ${comment.replies!.length} ${comment.replies!.length === 1 ? 'reply' : 'replies'}`)
+                            : t('watch.showMoreReplies', 'Show more replies')
                         }
+                    </button>
+                )}
+
+                {!isRoot && canLoadDeeper && (
+                    // BUG-223 最终：per-node —— 该节点 children 被截断（有更深未显示），独立「Show more replies」，点击只展开该节点子树 3 层
+                    <button
+                        onClick={() => loadNodeDeeper(comment.id, ownMaxDepth + DEPTH_STEP)}
+                        className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-info font-medium transition-colors"
+                    >
+                        <ChevronDown className="w-3 h-3 -rotate-90"/>
+                        {t('watch.showMoreReplies', 'Show more replies')}
                     </button>
                 )}
 
@@ -263,44 +325,44 @@ const CommentItem: React.FC<{
                     </div>
                 )}
 
-                {hasReplies && isExpanded && (
-                    <div className="mt-1 border-l-2 border-gray-200 dark:border-gray-700 pl-4 ml-2 space-y-0">
-                        {comment.replies!.map(reply => (
-                            <CommentItem
-                                key={reply.id}
-                                comment={reply}
-                                depth={depth + 1}
-                                expandedReplies={expandedReplies}
-                                toggleReplies={toggleReplies}
-                                commentLikes={commentLikes}
-                                likingComments={likingComments}
-                                replyingTo={replyingTo}
-                                replyText={replyText}
-                                showReplyEmojiPicker={showReplyEmojiPicker}
-                                isAuthenticated={isAuthenticated}
-                                user={user}
-                                isSubmittingReply={isSubmittingReply}
-                                deletingCommentId={deletingCommentId}
-                                t={t}
-                                navigate={navigate}
-                                onLike={onLike}
-                                onDislike={onDislike}
-                                onReply={onReply}
-                                onDelete={onDelete}
-                                onReport={onReport}
-                                onReplyTextChange={onReplyTextChange}
-                                onSubmitReply={onSubmitReply}
-                                onCancelReply={onCancelReply}
-                                onToggleEmoji={onToggleEmoji}
-                                onAddEmoji={onAddEmoji}
-                                replyEmojiPickerRef={replyEmojiPickerRef}
-                                formatDate={formatDate}
-                                userAvatar={userAvatar}
-                                userInitial={userInitial}
-                            />
-                        ))}
+                {childrenVisible && comment.replies!.map(reply => (
+                    // BUG-223 视觉修复：每条子评论独立 border-l-2 包裹，垂直线只到该评论底部，避免"一拉到底"
+                    <div key={reply.id} className="mt-1 border-l-2 border-gray-200 dark:border-gray-700 pl-4 ml-2">
+                        <CommentItem
+                            comment={reply}
+                            depth={depth + 1}
+                            inheritedMaxDepth={ownMaxDepth}
+                            expandedNodes={expandedNodes}
+                            toggleRoot={toggleRoot}
+                            loadNodeDeeper={loadNodeDeeper}
+                            commentLikes={commentLikes}
+                            likingComments={likingComments}
+                            replyingTo={replyingTo}
+                            replyText={replyText}
+                            showReplyEmojiPicker={showReplyEmojiPicker}
+                            isAuthenticated={isAuthenticated}
+                            user={user}
+                            isSubmittingReply={isSubmittingReply}
+                            deletingCommentId={deletingCommentId}
+                            t={t}
+                            navigate={navigate}
+                            onLike={onLike}
+                            onDislike={onDislike}
+                            onReply={onReply}
+                            onDelete={onDelete}
+                            onReport={onReport}
+                            onReplyTextChange={onReplyTextChange}
+                            onSubmitReply={onSubmitReply}
+                            onCancelReply={onCancelReply}
+                            onToggleEmoji={onToggleEmoji}
+                            onAddEmoji={onAddEmoji}
+                            replyEmojiPickerRef={replyEmojiPickerRef}
+                            formatDate={formatDate}
+                            userAvatar={userAvatar}
+                            userInitial={userInitial}
+                        />
                     </div>
-                )}
+                ))}
             </div>
         </div>
     );
@@ -312,7 +374,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
     const navigate = useNavigate();
     const [comments, setComments] = useState<Comment[]>([]);
     const [allFlatComments, setAllFlatComments] = useState<Comment[]>([]);
-    const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
+    // BUG-223 最终：per-node 展开深度 —— nodeId → 该节点已展开到的深度（0/不存在 = 未展开）
+    const [expandedNodes, setExpandedNodes] = useState<Map<string, number>>(new Map());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [commentText, setCommentText] = useState('');
@@ -526,7 +589,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
             setReplyText('');
             setShowReplyEmojiPicker(false);
             setReplyingTo(null);
-            setExpandedReplies(prev => new Set(prev).add(replyingTo.id));
+            // BUG-223: 回复后展开所属线程，确保新回复可见（展开到 MAX_VISIBLE_DEPTH 或该节点自身深度+1 的较大值）
+            const {rootId, depth: replyingToDepth} = resolveThread(replyingTo.id, allFlatComments);
+            setExpandedNodes(prev => {
+                const next = new Map(prev);
+                const current = next.get(rootId) ?? 0;
+                next.set(rootId, Math.max(current, replyingToDepth + 1, MAX_VISIBLE_DEPTH));
+                return next;
+            });
             await fetchComments(1, false);
         } catch (err: any) {
             console.error('Failed to submit reply:', err);
@@ -632,11 +702,21 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
         setShowReplyEmojiPicker(false);
     };
 
-    const toggleReplies = (commentId: string) => {
-        setExpandedReplies(prev => {
-            const next = new Set(prev);
-            if (next.has(commentId)) next.delete(commentId);
-            else next.add(commentId);
+    // BUG-223 最终：ROOT 按钮 —— targetDepth>0（Show more replies 展开/继续展开）或 =0（Hide replies 收起）
+    const toggleRoot = (rootId: string, targetDepth: number) => {
+        setExpandedNodes(prev => {
+            const next = new Map(prev);
+            if (targetDepth <= 0) next.delete(rootId);
+            else next.set(rootId, targetDepth);
+            return next;
+        });
+    };
+
+    // per-node：展开该节点子树 DEPTH_STEP 层
+    const loadNodeDeeper = (nodeId: string, targetDepth: number) => {
+        setExpandedNodes(prev => {
+            const next = new Map(prev);
+            next.set(nodeId, targetDepth);
             return next;
         });
     };
@@ -799,8 +879,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
                             key={comment.id}
                             comment={comment}
                             depth={0}
-                            expandedReplies={expandedReplies}
-                            toggleReplies={toggleReplies}
+                            inheritedMaxDepth={0}
+                            expandedNodes={expandedNodes}
+                            toggleRoot={toggleRoot}
+                            loadNodeDeeper={loadNodeDeeper}
                             commentLikes={commentLikes}
                             likingComments={likingComments}
                             replyingTo={replyingTo}
