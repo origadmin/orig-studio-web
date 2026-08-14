@@ -1,4 +1,6 @@
 import {useState, useEffect, useMemo, useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
+import type {TFunction} from 'i18next';
 import {useParams, useNavigate} from '@tanstack/react-router';
 import {usePublicMediaDetail, useUpdatePublicMedia, useDeleteMedia, useCategoryList, useMyChannels} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
@@ -12,6 +14,7 @@ import {Button} from '@/components/ui/button';
 import {AlertTriangle, ArrowLeft, Play, Pencil} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl} from '@/lib/utils';
+import {buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {useQueryClient} from '@tanstack/react-query';
 
@@ -42,36 +45,40 @@ function normalizePrivacy(value: unknown): number {
     return 1;
 }
 
-const STATE_BADGE_MAP: Record<string, { variant: HeaderBadgeConfig['variant']; label: string }> = {
-    active: {variant: 'default', label: 'Published'},
-    draft: {variant: 'secondary', label: 'Draft'},
-    deleted: {variant: 'destructive', label: 'Deleted'},
+const STATE_BADGE_MAP: Record<string, { variant: HeaderBadgeConfig['variant'] }> = {
+    active: {variant: 'default'},
+    draft: {variant: 'secondary'},
+    deleted: {variant: 'destructive'},
 };
 
-function mapMediaToHeaderBadges(media: any, isAdmin: boolean): HeaderBadgeConfig[] {
+function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
     badges.push({
         type: 'media-type',
         variant: 'outline',
         label: media.type,
-        ariaLabel: `Media type: ${media.type}`,
+        ariaLabel: `${t('mediaEdit.mediaTypeAria', 'Media type')}: ${media.type}`,
     });
 
-    const stateConfig = STATE_BADGE_MAP[media.state] || {variant: 'outline' as const, label: media.state};
+    const stateLabel = media.state === 'active' ? t('admin.publishedStatus', 'Published')
+        : media.state === 'draft' ? t('admin.draftStatus', 'Draft')
+        : media.state === 'deleted' ? t('admin.deletedStatus', 'Deleted')
+        : media.state;
+    const stateConfig = STATE_BADGE_MAP[media.state] || {variant: 'outline' as const};
     badges.push({
         type: 'state',
         variant: stateConfig.variant,
-        label: stateConfig.label,
-        ariaLabel: `Status: ${stateConfig.label}`,
+        label: stateLabel,
+        ariaLabel: `${t('mediaEdit.stateAria', 'Status')}: ${stateLabel}`,
     });
 
     if (isAdmin && media.featured) {
         badges.push({
             type: 'featured',
             variant: 'outline',
-            label: 'Featured',
-            ariaLabel: 'Featured content',
+            label: t('mediaEdit.featured', 'Featured'),
+            ariaLabel: t('mediaEdit.featuredContent', 'Featured content'),
             className: 'text-warning border-amber-300',
         });
     }
@@ -89,6 +96,7 @@ export default function MediaEditPage() {
     const {shortToken} = useParams({strict: false}) as { shortToken: string };
     const navigate = useNavigate();
     const {user, isAdmin} = useAuth();
+    const {t} = useTranslation();
     const {data: media, isLoading, error} = usePublicMediaDetail(shortToken);
     const updateMutation = useUpdatePublicMedia();
     const deleteMutation = useDeleteMedia();
@@ -96,7 +104,7 @@ export default function MediaEditPage() {
     const {data: channelsData} = useMyChannels(true);
     const channels = Array.isArray(channelsData) ? channelsData : (channelsData as any)?.items || [];
 
-    const {form, setForm, isDirty, resetDirty} = useDirtyState<MediaEditFormState>({
+    const {form, setForm, isDirty, resetDirty, syncFromData} = useDirtyState<MediaEditFormState>({
         title: '',
         description: '',
         category_id: '' as string | number,
@@ -139,12 +147,19 @@ export default function MediaEditPage() {
         if (!shortToken || isSaving) return;
         setSaving();
         try {
+            // BUG-134: an unselected category resolves to the `video` module root
+            // ("视频类") so empty media are anchored to the video class.
+            const categoriesList = (categoriesData as any)?.items ?? [];
+            const videoRootId = buildCategoryTree(categoriesList).find(n => n.slug === VIDEO_ROOT_SLUG)?.id;
+            const resolvedCategoryId = form.category_id !== '' && form.category_id !== undefined
+                ? Number(form.category_id)
+                : (videoRootId ?? undefined);
             await updateMutation.mutateAsync({
                 shortToken,
                 data: {
                     title: form.title,
                     description: form.description,
-                    category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
+                    category_id: resolvedCategoryId,
                     // BUG-105: '' (from the _none_ option) must reach the backend as
                     // an empty string so the update_mask can clear the assignment.
                     channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : '',
@@ -165,14 +180,19 @@ export default function MediaEditPage() {
                     ...(isAdmin ? ['state', 'featured', 'listable'] : []),
                 ],
             });
-            resetDirty();
+            // Keep local form in sync with the persisted value (BUG-134 default).
+            if (form.category_id !== resolvedCategoryId) {
+                syncFromData({...form, category_id: resolvedCategoryId});
+            } else {
+                resetDirty();
+            }
             setSuccess();
-            toast.success('Saved successfully');
+            toast.success(t('mediaEdit.saveSuccess', 'Saved successfully'));
         } catch (err: any) {
             setError();
-            toast.error(`Save failed: ${err?.message || 'Unknown error'}`);
+            toast.error(`${t('mediaEdit.saveFailed', 'Save failed')}: ${err?.message || t('common.unknownError', 'Unknown error')}`);
         }
-    }, [shortToken, isSaving, form, isAdmin, updateMutation, setSaving, setSuccess, setError, resetDirty]);
+    }, [shortToken, isSaving, form, isAdmin, updateMutation, setSaving, setSuccess, setError, resetDirty, syncFromData, categoriesData]);
 
     const handleDelete = useCallback(async () => {
         if (!media?.id) return;
@@ -184,7 +204,7 @@ export default function MediaEditPage() {
             navigate({to: '/'});
         } catch (err: any) {
             setIsDeleting(false);
-            toast.error(`Delete failed: ${err?.message || 'Unknown error'}`);
+            toast.error(`${t('mediaEdit.deleteFailed', 'Delete failed')}: ${err?.message || t('common.unknownError', 'Unknown error')}`);
         }
     }, [media?.id, deleteMutation, navigate]);
 
@@ -214,7 +234,7 @@ export default function MediaEditPage() {
 
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
-    const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, isAdmin) : [], [media, isAdmin]);
+    const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, isAdmin, t) : [], [media, isAdmin, t]);
     const encodingConfig = useMemo(() => media ? mapEncodingStatus(media.encoding_status) : undefined, [media]);
 
     if (isLoading) {
@@ -229,9 +249,9 @@ export default function MediaEditPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <AlertTriangle className="w-12 h-12 text-destructive"/>
-                <p className="text-lg text-muted-foreground">Unable to load media info</p>
+                <p className="text-lg text-muted-foreground">{t('mediaEdit.loadFailed', 'Unable to load media info')}</p>
                 <Button variant="outline" onClick={() => navigate({to: '/'})}>
-                    <ArrowLeft className="w-4 h-4 mr-2"/>Back to Home
+                    <ArrowLeft className="w-4 h-4 mr-2"/>{t('mediaEdit.backToHome', 'Back to Home')}
                 </Button>
             </div>
         );
@@ -242,9 +262,9 @@ export default function MediaEditPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
                 <AlertTriangle className="w-12 h-12 text-destructive"/>
-                <p className="text-lg text-muted-foreground">You do not have permission to edit this media</p>
+                <p className="text-lg text-muted-foreground">{t('mediaEdit.permissionDenied', 'You do not have permission to edit this media')}</p>
                 <Button variant="outline" onClick={() => navigate({to: '/watch', search: {v: shortToken}})}>
-                    <ArrowLeft className="w-4 h-4 mr-2"/>Back to Video
+                    <ArrowLeft className="w-4 h-4 mr-2"/>{t('mediaEdit.backToVideo', 'Back to Video')}
                 </Button>
             </div>
         );
@@ -252,18 +272,20 @@ export default function MediaEditPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <EditPageHeader
-                title={media.title || 'Untitled Media'}
-                isDirty={isDirty}
-                isSaving={isSaving}
-                saveState={saveState}
-                onBack={handleBack}
-                onSave={handleSave}
-                onPreview={handlePreview}
-                onDelete={() => setDeleteDialogOpen(true)}
-                badges={headerBadges}
-                encodingStatus={encodingConfig}
-            />
+                <EditPageHeader
+                    title={form.title || 'Untitled Media'}
+                    editableTitle={form.title}
+                    onTitleChange={(v) => setForm({...form, title: v})}
+                    isDirty={isDirty}
+                    isSaving={isSaving}
+                    saveState={saveState}
+                    onBack={handleBack}
+                    onSave={handleSave}
+                    onPreview={handlePreview}
+                    onDelete={() => setDeleteDialogOpen(true)}
+                    badges={headerBadges}
+                    encodingStatus={encodingConfig}
+                />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -284,7 +306,7 @@ export default function MediaEditPage() {
                     <div className="space-y-6">
                         <div className="bg-card rounded-lg border p-4">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="font-medium">Preview</h3>
+                                <h3 className="font-medium">{t('mediaEdit.preview', 'Preview')}</h3>
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -292,7 +314,7 @@ export default function MediaEditPage() {
                                     className="h-7 px-2 text-xs gap-1"
                                 >
                                     <Pencil className="w-3 h-3"/>
-                                    更换封面
+                                    {t('mediaEdit.changeThumbnail', 'Change thumbnail')}
                                 </Button>
                             </div>
                             <div
@@ -316,29 +338,29 @@ export default function MediaEditPage() {
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-white text-sm font-medium">
                                         <Pencil className="w-4 h-4"/>
-                                        点击更换封面
+                                        {t('mediaEdit.clickToChangeThumbnail', 'Click to change thumbnail')}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="bg-card rounded-lg border p-4 space-y-3">
-                            <h3 className="font-medium">Info</h3>
+                            <h3 className="font-medium">{t('mediaEdit.info', 'Info')}</h3>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Duration</span>
+                                    <span className="text-muted-foreground">{t('mediaEdit.duration', 'Duration')}</span>
                                     <span className="text-xs">
                                         {media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Resolution</span>
+                                    <span className="text-muted-foreground">{t('mediaEdit.resolution', 'Resolution')}</span>
                                     <span className="text-xs">
                                         {media.width && media.height ? `${media.width}x${media.height}` : 'N/A'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Encoding</span>
+                                    <span className="text-muted-foreground">{t('mediaEdit.encoding', 'Encoding')}</span>
                                     <span className="text-xs">{media.encoding_status}</span>
                                 </div>
                             </div>

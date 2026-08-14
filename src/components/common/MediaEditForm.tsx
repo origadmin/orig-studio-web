@@ -7,7 +7,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/c
 import {Separator} from '@/components/ui/separator';
 import {formatFileSize, formatDuration} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
-import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
+import {getVideoGenreOptions, buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
 import type {Media} from '@/lib/api/media';
 import type {Channel} from '@/lib/api/channel';
 
@@ -44,6 +44,10 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
     // BUG-145: a video may only be anchored to a genre under the `video` root.
     // Module roots (视频/音乐/文章) are anchors, not selectable genres.
     const genreOptions = getVideoGenreOptions(categoriesList);
+    // BUG-134: an unselected media defaults to the `video` module root
+    // ("视频类") instead of an empty "No category" entry. The root is offered
+    // as the first (default) selectable option below.
+    const videoRoot = buildCategoryTree(categoriesList).find(n => n.slug === VIDEO_ROOT_SLUG);
 
     const na = t('common.na', 'N/A');
     const techResolution = media.width && media.height ? `${media.width} x ${media.height}` : na;
@@ -54,15 +58,6 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
 
     return (
         <div className="space-y-6">
-            <div className="space-y-2">
-                <Label htmlFor="title">{t('media.editForm.title', 'Title')}</Label>
-                <Input
-                    id="title"
-                    value={form.title}
-                    onChange={e => setForm({...form, title: e.target.value})}
-                />
-            </div>
-
             <div className="space-y-2">
                 <Label htmlFor="description">{t('media.editForm.description', 'Description')}</Label>
                 <Textarea
@@ -77,14 +72,20 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
             <div className="space-y-2">
                 <Label>{t('media.editForm.category', 'Category')}</Label>
                 <Select
-                    value={form.category_id !== '' && form.category_id !== undefined ? String(form.category_id) : '_none_'}
-                    onValueChange={val => setForm({...form, category_id: val === '_none_' ? '' : val})}
+                    value={
+                        form.category_id !== '' && form.category_id !== undefined
+                            ? String(form.category_id)
+                            : (videoRoot ? String(videoRoot.id) : '')
+                    }
+                    onValueChange={val => setForm({...form, category_id: val})}
                 >
                     <SelectTrigger>
                         <SelectValue placeholder={t('media.editForm.selectCategory', 'Select category')}/>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="_none_">{t('media.editForm.noCategory', 'No category')}</SelectItem>
+                        {videoRoot && (
+                            <SelectItem value={String(videoRoot.id)}>{videoRoot.name}</SelectItem>
+                        )}
                         {genreOptions.map(cat => (
                             <SelectItem key={cat.id} value={String(cat.id)} disabled={cat.isDisabled}>
                                 {cat.depth > 0 ? `${'\u00A0'.repeat(cat.depth * 4)}${cat.name}` : cat.name}
