@@ -193,21 +193,9 @@ const HomePage = () => {
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
 
-    // BUG-226(翻页修正)：拉满 30 条，给热门/最新轨道留出整屏翻页的内容余量
-    // （实际展示条数仍由 banner 的 count 配置决定，这里只保证数据源足够）。
-    const {data: hotVideosData} = useMediaList({
-        page: 1,
-        page_size: 30,
-        order_by: 'view_count',
-        descending: true,
-    });
-    const {data: newVideosData} = useMediaList({
-        page: 1,
-        page_size: 30,
-        order_by: 'create_time',
-        descending: true,
-    });
-
+    // 所有活跃 banner（custom / ad / hot_videos / new_videos）统一进 Hero 轮播。
+    // hot_videos / new_videos 由后端 enrichDynamicBanner 补出封面图（image_url），
+    // 直接作为轮播卡片；不再像 BUG-004 那样把它们拆成下方独立视频轨道。
     const heroItems = useMemo<HeroBannerItem[]>(() => {
         const lang = i18n.language;
         const items: HeroBannerItem[] = [];
@@ -215,60 +203,26 @@ const HomePage = () => {
             const c1 = b.bg_color_start || '#0f172a';
             const c2 = b.bg_color_end || '#1e3a8a';
             const bgGradient = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
-
-            if (b.type === 'hot_videos' || b.type === 'new_videos') {
-                // BUG-004：hot_videos / new_videos 不再展开为多个 Hero slide，
-                // 改为下方独立视频轨道（见 videoTracks）。
-                continue;
-            } else {
-                // 自定义 Banner（custom / ad）：按优先级取图片资源
-                const thumb = b.image_mobile_url || b.image_url || '';
-                items.push({
-                    id: String(b.id),
-                    title: getLocalizedText(b.title, b.title_i18n, lang),
-                    subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
-                    thumbnail: thumb,
-                    videoUrl: b.video_url || undefined,
-                    bgGradient,
-                    url: b.primary_btn_url && b.primary_btn_url.startsWith('/') ? b.primary_btn_url : (b.primary_btn_url && /^https?:\/\//.test(b.primary_btn_url) ? b.primary_btn_url : undefined),
-                    badge: b.badge_text || undefined,
-                    type: b.type === 'ad' ? 'ad' : (b.primary_btn_url ? 'link' : 'custom'),
-                });
-            }
+            const isVideoBanner = b.type === 'hot_videos' || b.type === 'new_videos';
+            const thumb = b.image_mobile_url || b.image_url || '';
+            items.push({
+                id: String(b.id),
+                title: getLocalizedText(b.title, b.title_i18n, lang),
+                subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
+                thumbnail: thumb,
+                videoUrl: b.video_url || undefined,
+                bgGradient,
+                url: b.primary_btn_url && b.primary_btn_url.startsWith('/')
+                    ? b.primary_btn_url
+                    : (b.primary_btn_url && /^https?:\/\//.test(b.primary_btn_url)
+                        ? b.primary_btn_url
+                        : (isVideoBanner ? '/videos' : undefined)),
+                badge: b.badge_text || undefined,
+                type: b.type === 'ad' ? 'ad' : (b.primary_btn_url || isVideoBanner ? 'link' : 'custom'),
+            });
         }
         return items;
     }, [activeBanners, i18n.language]);
-
-    // BUG-004：hot_videos / new_videos 类型 banner 渲染为独立视频轨道（不再占用 Hero），
-    // 保留 banner 标题（本地化）与 count 配置。
-    const videoTracks = useMemo(() => {
-        const lang = i18n.language;
-        const tracks: { key: string; title: string; icon: 'flame' | 'sparkles'; videos: Media[] }[] = [];
-        for (const b of activeBanners) {
-            if (b.type === 'hot_videos') {
-                const videos = (hotVideosData?.items || []).slice(0, b.count || 5);
-                if (videos.length) {
-                    tracks.push({
-                        key: `track-hot-${b.id}`,
-                        title: getLocalizedText(b.title, b.title_i18n, lang) || t('home.hotVideos', '热门视频'),
-                        icon: 'flame',
-                        videos,
-                    });
-                }
-            } else if (b.type === 'new_videos') {
-                const videos = (newVideosData?.items || []).slice(0, b.count || 5);
-                if (videos.length) {
-                    tracks.push({
-                        key: `track-new-${b.id}`,
-                        title: getLocalizedText(b.title, b.title_i18n, lang) || t('home.newVideos', '最新视频'),
-                        icon: 'sparkles',
-                        videos,
-                    });
-                }
-            }
-        }
-        return tracks;
-    }, [activeBanners, i18n.language, hotVideosData, newVideosData, t]);
 
     const heroMode = useMemo<'card' | 'wide'>(() => {
         const firstActive = activeBanners.find(b => b.display_mode);
@@ -368,24 +322,6 @@ const HomePage = () => {
                         ))}</AutoFitRow>
                     </section>
                 )}
-
-                {videoTracks.map((track) => (
-                    <section key={track.key}>
-                        <div className="flex items-center justify-between mb-3">
-                            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                {track.icon === 'flame'
-                                    ? <Flame className="w-5 h-5 text-orange-500" fill="currentColor"/>
-                                    : <Sparkles className="w-5 h-5 text-sky-500" fill="currentColor"/>}
-                                {track.title}
-                            </h2>
-                        </div>
-                        <AutoFitRow>{(cw) => track.videos.map((media: Media) => (
-                            <div key={media.id} style={{width: cw}}>
-                                <VideoCard media={media} size="md"/>
-                            </div>
-                        ))}</AutoFitRow>
-                    </section>
-                ))}
 
                 {recommendVideos.length > 0 && (
                     <section>
