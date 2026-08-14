@@ -108,6 +108,13 @@ const HSCROLL_GAP = 16; // 与 HorizontalScroll 容器 gap-4 保持一致
 const MAX_ROW_COLS = 6; // BUG-191(v2)：最大 6 列（与底部主网格 3xl:grid-cols-6 一致）
 const TARGET_CARD = 320; // 单卡目标宽度，用于推算可见列数
 
+// BUG-226(为您推荐回退修复)：只渲染「整页」个数的卡片。
+// pageMode 按一整屏翻页，若卡片总数不是可见列数 cols 的整数倍，最后一页会只剩半行卡片
+// （"截取显示一半"）。按 cols 取整页倍数丢弃余数，保证每一页都铺满整行；
+// 卡片数不足两行（len < cols*2，不会产生分页）时保持原样。
+const fullPageCount = (len: number, cols: number) =>
+    len >= cols * 2 ? Math.floor(len / cols) * cols : len;
+
 /**
  * BUG-191(v2)：顶部横向滑动行改为"按视口铺满"的自适应布局。
  * - 测量容器宽度，按 cols = clamp(floor((w+gap)/(TARGET+gap)), 1, MAX_ROW_COLS) 推算可见列数；
@@ -117,7 +124,7 @@ const TARGET_CARD = 320; // 单卡目标宽度，用于推算可见列数
  * - 内容多于可见列时仍可横向滑动。
  */
 const AutoFitRow: React.FC<{
-    children: (cardWidth: number) => React.ReactNode;
+    children: (cardWidth: number, cols: number) => React.ReactNode;
     buttonOffset?: number | 'thumb';
 }> = ({children, buttonOffset = 'thumb'}) => {
     const ref = useRef<HTMLDivElement>(null);
@@ -139,7 +146,7 @@ const AutoFitRow: React.FC<{
     return (
         <div ref={ref} className="w-full" data-autofit-row="true" data-autofit-cols={cols}>
             <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP} pageMode>
-                {children(cardWidth)}
+                {children(cardWidth, cols)}
             </HorizontalScroll>
         </div>
     );
@@ -157,7 +164,7 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
                     {t('ad.sponsoredContent', '赞助推荐')}
                 </h2>
             </div>
-            <AutoFitRow>{(cw) => placement.ads.map((ad) => (
+            <AutoFitRow>{(cw, cols) => placement.ads.slice(0, fullPageCount(placement.ads.length, cols)).map((ad) => (
                 <div key={ad.id} style={{width: cw}}>
                     <AdDisplay ad={ad} variant="card"/>
                 </div>
@@ -326,7 +333,7 @@ const HomePage = () => {
                                 {t('home.featuredVideos', '精选推荐')}
                             </h2>
                         </div>
-                        <AutoFitRow>{(cw) => featuredVideos.map((media: Media) => (
+                        <AutoFitRow>{(cw, cols) => featuredVideos.slice(0, fullPageCount(featuredVideos.length, cols)).map((media: Media) => (
                             <div key={media.id} style={{width: cw}}>
                                 <VideoCard media={media} size="md"/>
                             </div>
@@ -350,7 +357,7 @@ const HomePage = () => {
                                 {t('home.refresh', '换一批')}
                             </button>
                         </div>
-                        <AutoFitRow>{(cw) => recommendVideos.map((media: Media) => (
+                        <AutoFitRow>{(cw, cols) => recommendVideos.slice(0, fullPageCount(recommendVideos.length, cols)).map((media: Media) => (
                             <div key={media.id} style={{width: cw}}>
                                 <VideoCard media={media} size="md"/>
                             </div>
