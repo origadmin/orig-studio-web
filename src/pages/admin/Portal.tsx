@@ -1719,7 +1719,7 @@ const AdManagerTab: React.FC = () => {
                         <div className="flex flex-wrap gap-2">
                             {placements.map(p => {
                                 const isSelected = p.id === selectedPlacementId;
-                                const currentAds = selectedPlacementId === p.id ? creatives.length : 0;
+                                const currentAds = p.creative_count || 0;
                                 return (
                                     <button
                                         key={p.id}
@@ -1842,8 +1842,11 @@ const AdManagerTab: React.FC = () => {
                                                     {c.badge_text && <Badge variant="secondary" className="text-xs">{c.badge_text}</Badge>}
                                                     {!c.is_active && <Badge variant="soft-neutral" className="text-xs">{t('admin.inactive', '禁用')}</Badge>}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3">
+                                                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
                                                     <span>{t('admin.priority', '优先级')}: {c.priority}</span>
+                                                    <span>{t('admin.impressions', '曝光')}: {c.impressions ?? 0}</span>
+                                                    <span>{t('admin.clicks', '点击')}: {c.clicks ?? 0}</span>
+                                                    <span>{t('admin.ctr', 'CTR')}: {c.impressions ? `${((c.clicks ?? 0) / c.impressions * 100).toFixed(1)}%` : '—'}</span>
                                                     {c.link_url && <a href={c.link_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1"><Link2 className="w-3 h-3"/>{t('ad.viewDetail', '查看')}</a>}
                                                 </div>
                                             </div>

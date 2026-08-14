@@ -25,25 +25,25 @@ function getAdImageUrl(ad: Ad | AdCreative): string {
     return getFullUrl(ad.image_url || '') || '';
 }
 
-// 仅 legacy Ad 有关联广告位，才上报曝光/点击；创意库 item 无独立曝光/点击端点。
-const isTrackableAd = (item: Ad | AdCreative): item is Ad =>
-    'placement_id' in item && !!item.placement_id;
+// 上报端点前缀：legacy Ad 走 /ads，创意库 AdCreative 走 /creatives（BUG-173）。
+const trackBase = (item: Ad | AdCreative): string =>
+    ('placement_id' in item && !!item.placement_id) ? '/ads' : '/creatives';
 
 const AdDisplay: React.FC<AdCardProps> = ({ad, variant = 'card', onClose}) => {
     const {t} = useTranslation();
     const [imgError, setImgError] = React.useState(false);
 
     const handleImpression = async () => {
-        if (!isTrackableAd(ad)) return;
+        if (!ad.id) return;
         try {
-            await api.post(`/ads/${ad.id}/impression`);
+            await api.post(`${trackBase(ad)}/${ad.id}/impression`);
         } catch {}
     };
 
     const handleClick = async () => {
-        if (!isTrackableAd(ad)) return;
+        if (!ad.id) return;
         try {
-            await api.post(`/ads/${ad.id}/click`);
+            await api.post(`${trackBase(ad)}/${ad.id}/click`);
         } catch {}
     };
 

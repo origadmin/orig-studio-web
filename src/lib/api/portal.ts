@@ -194,6 +194,7 @@ export interface AdPlacement {
     max_ads: number;
     is_active: boolean;
     sequence: number;
+    creative_count?: number;
 }
 
 export interface Ad {
