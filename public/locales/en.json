@@ -244,6 +244,8 @@
     "deletedUser": "Deleted User",
     "comments": "comments",
     "noComments": "No comments yet. Be the first to comment!",
+    "viewReplies": "View replies",
+    "hideReplies": "Hide replies",
     "addComment": "Add a comment...",
     "postComment": "Comment",
     "pleaseLoginToComment": "Sign in to add a comment",
@@ -262,7 +264,8 @@
     "loginToSave": "Please login to save to playlist",
     "commentBlocked": "This comment has been blocked",
     "loadMore": "Load more comments",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "showMoreReplies": "Show more replies"
   },
   "report": {
     "reportVideo": "Report Video",
@@ -501,7 +504,12 @@
     "tagCount": "{{count}} tags",
     "searchPlaceholder": "Search tags...",
     "videosCount": "{{count}} videos",
-    "noMatch": "No matching tags found"
+    "noMatch": "No matching tags found",
+    "hotTags": "Hot Tags",
+    "sortBy": "Sort",
+    "sortHeat": "Heat",
+    "sortName": "Name",
+    "sortNewest": "Newest"
   },
   "members": {
     "title": "Members",
@@ -737,6 +745,9 @@
     "tags": "Tags",
     "comments": "Comments",
     "notifications": "Notifications",
+    "impressions": "Impressions",
+    "clicks": "Clicks",
+    "ctr": "CTR",
     "notificationsDesc": "Configure, broadcast, and audit system-wide alerts.",
     "notificationsCompose": "Compose",
     "notificationsTabSend": "Send Notification",
@@ -1784,6 +1795,14 @@
     "setFeatured": "Featured",
     "unfeature": "Unfeature",
     "setFeature": "Set as Featured",
+    "preview": "Preview",
+    "info": "Info",
+    "encoding": "Encoding",
+    "backToHome": "Back to Home",
+    "permissionDenied": "You do not have permission to edit this media",
+    "backToVideo": "Back to Video",
+    "changeThumbnail": "Change thumbnail",
+    "clickToChangeThumbnail": "Click to change thumbnail"
     "stateStatus": "State & Status",
     "identity": "Identity",
     "shortToken": "Short Token",

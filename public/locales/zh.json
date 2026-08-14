@@ -249,6 +249,8 @@
     "deletedUser": "已注销用户",
     "comments": "条评论",
     "noComments": "暂无评论，成为第一个评论的人吧！",
+    "viewReplies": "展开回复",
+    "hideReplies": "收起回复",
     "addComment": "添加评论...",
     "postComment": "评论",
     "pleaseLoginToComment": "登录后才能发表评论",
@@ -267,7 +269,8 @@
     "loginToSave": "请登录后保存到播放列表",
     "commentBlocked": "该评论已被屏蔽",
     "loadMore": "加载更多评论",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "showMoreReplies": "展开更多回复"
   },
   "report": {
     "reportVideo": "举报视频",
@@ -506,7 +509,12 @@
     "tagCount": "{{count}} 个标签",
     "searchPlaceholder": "搜索标签...",
     "videosCount": "{{count}} 个视频",
-    "noMatch": "没有找到匹配的标签"
+    "noMatch": "没有找到匹配的标签",
+    "hotTags": "热门标签",
+    "sortBy": "排序",
+    "sortHeat": "热度",
+    "sortName": "名称",
+    "sortNewest": "最新"
   },
   "members": {
     "title": "成员",
@@ -695,6 +703,7 @@
   },
   "auth": {
     "loginRequired": "需要登录",
+    "signin": "登录",
     "signIn": {
       "title": "欢迎回来",
       "desc": "输入您的账号信息以登录",
@@ -1080,7 +1089,7 @@
     "bannerManagement": "Banner管理",
     "bannerManagementDesc": "管理首页Banner轮播图",
     "addBanner": "添加Banner",
-    "noBanners": "暂无Banner",
+    "noBanners": "暂无 Banner",
     "createBanner": "创建Banner",
     "editBanner": "编辑Banner",
     "bannerTitle": "标题",
@@ -1276,10 +1285,8 @@
     "adPlacementsNav": "广告位",
     "adCreativeNav": "广告",
     "adCreativeTab": "广告创意",
-    "preview": "预览",
     "ratio": "比例",
     "validity": "有效期",
-    "noBanners": "暂无 Banner",
     "searchPlaceholder": "搜索...",
     "searchAssets": "搜索媒体资源...",
     "totalAssets": "媒体总数",
@@ -1867,7 +1874,15 @@
     "unfeatured": "已取消推荐",
     "setFeatured": "已设为推荐",
     "unfeature": "取消推荐",
-    "setFeature": "设为推荐"
+    "setFeature": "设为推荐",
+    "preview": "预览",
+    "info": "信息",
+    "encoding": "转码",
+    "backToHome": "返回首页",
+    "permissionDenied": "您没有权限编辑此媒体",
+    "backToVideo": "返回视频",
+    "changeThumbnail": "更换封面",
+    "clickToChangeThumbnail": "点击更换封面"
   },
   "permissions": {
     "title": "管理后台",
@@ -2079,6 +2094,9 @@
       "mediaId": "媒体ID",
       "profile": "配置",
       "priority": "优先级",
+      "impressions": "曝光",
+      "clicks": "点击",
+      "ctr": "点击率",
       "createdAt": "创建时间",
       "startedAt": "开始时间",
       "completedAt": "完成时间",

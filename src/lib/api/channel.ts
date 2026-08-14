@@ -153,10 +153,14 @@ export const channelApi = {
         api.del<SubscribeResponse>(`/channels/${channelToken}/subscription`),
 
     getSubscriptionStatus: (channelToken: string) =>
-        api.get<{is_subscribed: boolean}>(`/channels/${channelToken}/subscription`),
+        api.get<{is_subscribed: boolean; notification_preference?: string}>(`/channels/${channelToken}/subscription`),
 
+    // BUG-198: gateway bridges /channels/* via gRPC-gateway (media_service.proto
+    // UpdateChannelNotification, body:"*"), which decodes the JSON body into
+    // UpdateChannelNotificationRequest by proto field name `notification_preference`.
+    // Sending `setting` makes NotificationPreference arrive empty -> 500 -> rollback.
     updateNotificationSetting: (channelToken: string, setting: string) =>
-        api.put<NotificationSettingResponse>(`/channels/${channelToken}/notification`, {setting}),
+        api.put<NotificationSettingResponse>(`/channels/${channelToken}/notification`, {notification_preference: setting}),
 
     getSubscribers: (channelToken: string, params?: {page?: number; page_size?: number}) =>
         api.get<{items: string[]; total: number; page: number; page_size: number}>(

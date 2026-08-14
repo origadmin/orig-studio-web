@@ -244,6 +244,8 @@
     "deletedUser": "削除されたユーザー",
     "comments": "件のコメント",
     "noComments": "コメントはまだありません。最初のコメントを書きましょう！",
+    "viewReplies": "返信を展開",
+    "hideReplies": "返信を隠す",
     "addComment": "コメントを追加...",
     "postComment": "コメント",
     "pleaseLoginToComment": "コメントするにはログインしてください",
@@ -262,7 +264,8 @@
     "loginToSave": "プレイリストに保存するにはログインしてください",
     "commentBlocked": "このコメントはブロックされています",
     "loadMore": "もっとコメントを読み込む",
-    "loading": "読み込み中..."
+    "loading": "読み込み中...",
+    "showMoreReplies": "さらに返信を表示"
   },
   "report": {
     "reportVideo": "動画を報告",
@@ -501,7 +504,12 @@
     "tagCount": "{{count}}個のタグ",
     "searchPlaceholder": "タグを検索...",
     "videosCount": "{{count}}本の動画",
-    "noMatch": "一致するタグが見つかりません"
+    "noMatch": "一致するタグが見つかりません",
+    "hotTags": "人気タグ",
+    "sortBy": "並び替え",
+    "sortHeat": "人気",
+    "sortName": "名前",
+    "sortNewest": "新着"
   },
   "members": {
     "title": "メンバー",
@@ -737,6 +745,9 @@
     "tags": "タグ",
     "comments": "コメント数",
     "notifications": "通知管理",
+    "impressions": "インプレッション",
+    "clicks": "クリック",
+    "ctr": "CTR",
     "content": "コンテンツ",
     "articles": "記事",
     "manageArticles": "記事を管理",
@@ -1596,6 +1607,13 @@
     "setFeatured": "おすすめに設定",
     "unfeature": "おすすめ解除",
     "setFeature": "おすすめに設定",
+    "preview": "プレビュー",
+    "info": "情報",
+    "backToHome": "ホームに戻る",
+    "permissionDenied": "このメディアを編集する権限がありません",
+    "backToVideo": "動画に戻る",
+    "changeThumbnail": "サムネイルを変更",
+    "clickToChangeThumbnail": "クリックしてサムネイルを変更"
     "state": "ライフサイクル",
     "lifecycle": "Lifecycle",
     "review": "Review",
