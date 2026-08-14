@@ -189,7 +189,7 @@ export default function MediaPage() {
 
     // Stats (BUG-203: page-level cards = global base data; unfiltered, not
     // affected by keyword/state/type/tags filters or pagination)
-    const [statsMedia, setStatsMedia] = useState<{total: number; processing: number; failed: number}>({total: 0, processing: 0, failed: 0});
+    const [statsMedia, setStatsMedia] = useState<{total: number; processing: number; failed: number; storageUsed: number}>({total: 0, processing: 0, failed: 0, storageUsed: 0});
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -203,6 +203,7 @@ export default function MediaPage() {
                 total: mediaRes?.total_uploads ?? 0,
                 processing: encRes?.processing_count ?? 0,
                 failed: encRes?.failed_count ?? 0,
+                storageUsed: mediaRes?.storage_used ?? 0,
             });
             } catch {
                 // Best-effort global stats; keep zeros on failure.
@@ -343,7 +344,7 @@ export default function MediaPage() {
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.storageUsed', '存储使用')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">-</h3>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">{statsMedia.storageUsed > 0 ? formatFileSize(statsMedia.storageUsed) : 'N/A'}</h3>
                             <div className="w-32 h-1.5 bg-muted rounded-full mt-3 overflow-hidden">
                                 <div className="h-full bg-indigo-600 w-[0%]"></div>
                             </div>

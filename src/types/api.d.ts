@@ -5920,6 +5920,8 @@ export interface components {
             /** Format: int32 */
             total_views?: number;
             daily_stats?: components["schemas"]["api.v1.services.types.StatPoint"][];
+            /** Format: int64 */
+            storage_used?: number;
         };
         "api.v1.services.media.GetMediaStreamResponse": {
             stream_url?: string;

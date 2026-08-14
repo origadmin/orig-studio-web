@@ -60,6 +60,7 @@ export interface StatPoint {
 export interface MediaStats {
     total_uploads: number;
     total_views: number;
+    storage_used?: number;
     daily_stats: StatPoint[];
 }
 
