@@ -38,6 +38,17 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    // BUG-226(精确页数)：读取 flex 行实际 gap（容器 gap-4=16px，但以 DOM 实测为准），
+    // 页数/步进计算必须把 gap 算进去，否则会多算一页并留下"幻影滚动余量"。
+    const getGap = useCallback((el: HTMLElement) => {
+        if (el.children.length > 1) {
+            const a = el.children[0] as HTMLElement;
+            const b = el.children[1] as HTMLElement;
+            return b.offsetLeft - a.offsetLeft - a.offsetWidth;
+        }
+        return 16;
+    }, []);
+
     const updateScrollState = useCallback(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -48,12 +59,16 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         setShowButtons(left || right);
 
         if (pageMode && el.clientWidth > 0) {
-            const tp = Math.max(1, Math.ceil(el.scrollWidth / el.clientWidth));
-            const pg = Math.min(tp, Math.max(1, Math.floor(el.scrollLeft / el.clientWidth) + 1));
+            // (scrollWidth+gap)/(clientWidth+gap) = 卡片数/可见列数，精确等于真实页数；
+            // 用 clientWidth 直接除会因 N-1 个 gap 多算一页（"最后一页统计不对"）。
+            const gap = getGap(el);
+            const pageStep = el.clientWidth + gap;
+            const tp = Math.max(1, Math.round((el.scrollWidth + gap) / pageStep));
+            const pg = Math.min(tp, Math.max(1, Math.floor(el.scrollLeft / pageStep) + 1));
             setTotalPages((prev) => (prev === tp ? prev : tp));
             setPage((prev) => (prev === pg ? prev : pg));
         }
-    }, [pageMode]);
+    }, [pageMode, getGap]);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -71,11 +86,12 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         };
     }, [updateScrollState, children]);
 
-    // 单步像素：pageMode 下一整屏（一次跳满当前可见列），否则原逻辑（单卡或比例）。
+    // 单步像素：pageMode 下整页 = 可见宽 + gap（一次恰好推进整页，不产生错位余量），
+    // 否则原逻辑（单卡或比例）。
     const stepPixels = useCallback((el: HTMLDivElement) => {
-        if (pageMode) return el.clientWidth;
+        if (pageMode) return el.clientWidth + getGap(el);
         return scrollStep ?? el.clientWidth * scrollAmount;
-    }, [pageMode, scrollAmount, scrollStep]);
+    }, [pageMode, scrollAmount, scrollStep, getGap]);
 
     const scrollByAmount = useCallback((direction: 'left' | 'right') => {
         const el = containerRef.current;
@@ -91,8 +107,8 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         const el = containerRef.current;
         if (!el) return;
         const idx = Math.min(Math.max(1, target), totalPages);
-        el.scrollTo({left: (idx - 1) * el.clientWidth, behavior: 'smooth'});
-    }, [totalPages]);
+        el.scrollTo({left: (idx - 1) * (el.clientWidth + getGap(el)), behavior: 'smooth'});
+    }, [totalPages, getGap]);
 
     const buttonTop = buttonOffset > 0 ? buttonOffset : '38%';
 
