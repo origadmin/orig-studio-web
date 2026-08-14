@@ -79,11 +79,12 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         };
     }, [updateScrollState, children]);
 
-    // 单步像素：pageMode 下整页 = 可见宽 + gap（一次恰好推进整页），否则原逻辑（单卡或比例）。
+    // 单步像素：pageMode 下整页 = clientWidth（已恰好 = cols*cw + (cols-1)*gap，one screen）。
+    // 之前误加 getGap() 导致步进多算一个 gap，翻页后首张左半/末张右半被切（即用户截图现象）。
     const stepPixels = useCallback((el: HTMLDivElement) => {
-        if (pageMode) return el.clientWidth + getGap(el);
+        if (pageMode) return el.clientWidth;
         return scrollStep ?? el.clientWidth * scrollAmount;
-    }, [pageMode, scrollAmount, scrollStep, getGap]);
+    }, [pageMode, scrollAmount, scrollStep]);
 
     const scrollByAmount = useCallback((direction: 'left' | 'right') => {
         const el = containerRef.current;
@@ -108,12 +109,12 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         );
 
     return (
-        <div ref={wrapperRef} className={cn('relative group/scroll', className)}>
+        <div ref={wrapperRef} className={cn('relative group/scroll w-full box-border', className)}>
             <div
                 ref={containerRef}
                 data-hscroll="true"
                 className={cn(
-                    'flex gap-4 pb-2 scroll-smooth',
+                    'flex gap-4 pb-2 scroll-smooth w-full box-border',
                     // BUG-226：pageMode 下禁用自由横滑（overflow-x-hidden），只能靠按钮整屏翻页。
                     pageMode ? 'overflow-x-hidden' : 'overflow-x-auto',
                 )}
