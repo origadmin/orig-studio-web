@@ -5,7 +5,7 @@ import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
-import {useMediaList} from '@/hooks/queries';
+import {useInfiniteMediaList, useMediaList} from '@/hooks/queries';
 import type {Media} from '@/lib/api/media';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import type {Ad, AdCreative} from '@/lib/api/portal';
@@ -254,27 +254,27 @@ const HomePage = () => {
         return [...(p?.ads || []), ...(p?.creatives || [])];
     }, [activeAdPlacements]);
 
-    const FEED_PAGE_SIZE = 12;
-    const [feedPage, setFeedPage] = useState(1);
-
     const {
-        data: feedData,
-        isLoading: feedLoading,
-    } = useMediaList({
-        page: feedPage,
-        page_size: FEED_PAGE_SIZE,
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isFetching,
+    } = useInfiniteMediaList({
+        page_size: 12,
     });
 
-    const items: Media[] = useMemo(() => feedData?.items || [], [feedData]);
-    const feedTotal = feedData?.total || 0;
-    const feedTotalPages = Math.max(1, Math.ceil(feedTotal / FEED_PAGE_SIZE));
-    const feedPageNumbers = useMemo(() => {
-        const start = Math.max(1, feedPage - 2);
-        const end = Math.min(feedTotalPages, Math.max(5, feedPage + 2));
-        const arr: number[] = [];
-        for (let i = start; i <= end; i++) arr.push(i);
-        return arr;
-    }, [feedPage, feedTotalPages]);
+    const items: Media[] = useMemo(() => {
+        let result: Media[] = [];
+        if (data?.pages) {
+            for (const page of data.pages) {
+                if (page?.items) {
+                    result = result.concat(page.items);
+                }
+            }
+        }
+        return result;
+    }, [data]);
 
     const mergedItems: (Media | {__ad: true; ad: Ad | AdCreative; key: string})[] = useMemo(() => {
         if (feedAds.length === 0) return items;
@@ -290,13 +290,24 @@ const HomePage = () => {
         return result;
     }, [items, feedAds]);
 
-    const feedTopRef = useRef<HTMLDivElement>(null);
+    const sentinelRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (feedPage > 1) {
-            feedTopRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    fetchNextPage();
+                }
+            },
+            {threshold: 0.1}
+        );
+
+        if (sentinelRef.current) {
+            observer.observe(sentinelRef.current);
         }
-    }, [feedPage]);
+
+        return () => observer.disconnect();
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     return (
         <div className="w-full">
@@ -354,12 +365,12 @@ const HomePage = () => {
                     />
                 ))}
 
-                <section ref={feedTopRef}>
-                    {feedLoading && mergedItems.length === 0 ? (
+                <section>
+                    {isFetching && mergedItems.length === 0 ? (
                         <div className="py-20 text-center text-muted-foreground">
                             <Spinner size="sm"/>
                         </div>
-                    ) : mergedItems.length === 0 ? (
+                    ) : mergedItems.length === 0 && !isFetchingNextPage ? (
                         <div className="py-20 text-center text-muted-foreground">
                             <p>{t('common.noData', '暂无数据')}</p>
                         </div>
@@ -378,42 +389,17 @@ const HomePage = () => {
                     )}
                 </section>
 
-                {mergedItems.length > 0 && feedTotalPages > 1 && (
-                    <div className="flex justify-center pt-8">
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setFeedPage((p) => Math.max(1, p - 1))}
-                                disabled={feedPage === 1}
-                                className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {t('common.previous')}
-                            </button>
-                            {feedPageNumbers.map((n) => (
-                                <button
-                                    key={n}
-                                    type="button"
-                                    onClick={() => setFeedPage(n)}
-                                    className={`px-4 py-2 rounded-lg ${
-                                        feedPage === n
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-muted text-foreground hover:bg-muted/80'
-                                    }`}
-                                >
-                                    {n}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => setFeedPage((p) => p + 1)}
-                                disabled={feedPage >= feedTotalPages}
-                                className="px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {t('common.next')}
-                            </button>
+                <div ref={sentinelRef} className="flex flex-col items-center py-8">
+                    {isFetchingNextPage && (
+                        <div className="flex items-center gap-3 text-muted-foreground py-2">
+                            <Spinner size="sm"/>
+                            <span className="text-sm">{t('common.loading', '加载中...')}</span>
                         </div>
-                    </div>
-                )}
+                    )}
+                    {!hasNextPage && mergedItems.length > 0 && (
+                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                    )}
+                </div>
             </div>
         </div>
     );
