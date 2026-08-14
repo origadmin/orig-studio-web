@@ -169,14 +169,16 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
 const HomePage = () => {
     const {t, i18n} = useTranslation();
 
+    // BUG-226(翻页修正)：拉满 30 条，保证最大宽度 6 列下也能整屏翻 5 页。
     const {data: featuredData} = useMediaList({
         page: 1,
-        page_size: 12,
+        page_size: 30,
         featured: true,
     });
     const featuredVideos = featuredData?.items || [];
 
-    const {data: recommendData} = useMediaList({page: 1, page_size: 24});
+    // BUG-226(翻页修正)：拉满 30 条并取消切片到 12 的限制，让整屏翻页有足够内容。
+    const {data: recommendData} = useMediaList({page: 1, page_size: 30});
     const [recoSeed, setRecoSeed] = useState(0);
     const recommendVideos = useMemo<Media[]>(() => {
         const pool = recommendData?.items || [];
@@ -185,21 +187,23 @@ const HomePage = () => {
             const j = Math.floor(Math.random() * (i + 1));
             [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-        return arr.slice(0, 12);
+        return arr.slice(0, 30);
     }, [recommendData?.items, recoSeed]);
 
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
 
+    // BUG-226(翻页修正)：拉满 30 条，给热门/最新轨道留出整屏翻页的内容余量
+    // （实际展示条数仍由 banner 的 count 配置决定，这里只保证数据源足够）。
     const {data: hotVideosData} = useMediaList({
         page: 1,
-        page_size: 20,
+        page_size: 30,
         order_by: 'view_count',
         descending: true,
     });
     const {data: newVideosData} = useMediaList({
         page: 1,
-        page_size: 20,
+        page_size: 30,
         order_by: 'create_time',
         descending: true,
     });
