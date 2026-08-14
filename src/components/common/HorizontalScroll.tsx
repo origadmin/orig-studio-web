@@ -20,6 +20,12 @@ interface HorizontalScrollProps {
      * - 不开启时维持原「单卡自由滑动」行为，兼容 StyleGuide 等其它调用方。
      */
     pageMode?: boolean;
+    /**
+     * BUG-226(精确页数)：整页翻页时每页的卡片数（可见列数）。
+     * 传入后页数 = ceil(卡片数/pageSize)，与 scrollWidth 推算无关，精确且不"伸缩"；
+     * 不传时回退到 (scrollWidth+gap)/(clientWidth+gap) 推算。
+     */
+    pageSize?: number;
 }
 
 const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
@@ -29,6 +35,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     scrollAmount = 0.85,
     scrollStep,
     pageMode = false,
+    pageSize,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -59,16 +66,19 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         setShowButtons(left || right);
 
         if (pageMode && el.clientWidth > 0) {
-            // (scrollWidth+gap)/(clientWidth+gap) = 卡片数/可见列数，精确等于真实页数；
-            // 用 clientWidth 直接除会因 N-1 个 gap 多算一页（"最后一页统计不对"）。
             const gap = getGap(el);
             const pageStep = el.clientWidth + gap;
-            const tp = Math.max(1, Math.round((el.scrollWidth + gap) / pageStep));
+            // 精确页数：有 pageSize 时 = ceil(卡片数/pageSize)（与 scrollWidth 无关，不"伸缩"）；
+            // 否则回退 (scrollWidth+gap)/(clientWidth+gap)（gap 补偿，避免多算一页）。
+            const n = el.children.length;
+            const tp = pageSize && pageSize > 0
+                ? Math.max(1, Math.ceil(n / pageSize))
+                : Math.max(1, Math.ceil((el.scrollWidth + gap) / pageStep));
             const pg = Math.min(tp, Math.max(1, Math.floor(el.scrollLeft / pageStep) + 1));
             setTotalPages((prev) => (prev === tp ? prev : tp));
             setPage((prev) => (prev === pg ? prev : pg));
         }
-    }, [pageMode, getGap]);
+    }, [pageMode, getGap, pageSize]);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -152,9 +162,10 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             // 避免透明热区吞掉卡片点击、或悬停时点击穿透到卡片。
                             'opacity-0 pointer-events-none group-hover/scroll:opacity-100 group-hover/scroll:pointer-events-auto',
                             'left-0 -translate-x-1/2',
-                            // 边界态（已到第 1 页）：!important 压过悬停变体，彻底隐藏且不拦截，
-                            // 用户不会看到"能点却穿透"的箭头导致误触下方卡片。
-                            !canScrollLeft && '!opacity-0 !pointer-events-none !scale-90',
+                            // BUG-226(边界态)：已到第 1 页时按钮**可见但置灰禁用**——不隐藏！
+                            // 隐藏会在用户连点/惯性点击时让点击落到卡片（100% 误触）。
+                            // 保持可见并吸收点击（pointer-events-auto），点了只是无操作。
+                            !canScrollLeft && '!opacity-40 cursor-not-allowed',
                         )}
                         style={{top: buttonTop}}
                         aria-label="Previous"
@@ -173,7 +184,7 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             'transition-all duration-200 ease-out',
                             'opacity-0 pointer-events-none group-hover/scroll:opacity-100 group-hover/scroll:pointer-events-auto',
                             'right-0 translate-x-1/2',
-                            !canScrollRight && '!opacity-0 !pointer-events-none !scale-90',
+                            !canScrollRight && '!opacity-40 cursor-not-allowed',
                         )}
                         style={{top: buttonTop}}
                         aria-label="Next"
