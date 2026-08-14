@@ -255,7 +255,13 @@ const HomePage = () => {
                     ? b.primary_btn_url
                     : (b.primary_btn_url && /^https?:\/\//.test(b.primary_btn_url)
                         ? b.primary_btn_url
-                        : (isVideoBanner ? '/videos' : undefined)),
+                        // BUG-228(v4)：聚合 banner 跳真实存在的视频列表路由
+                        // （new_videos→/latest 按时间；hot_videos→/trending 按热度），
+                        // 之前硬编码 /videos 是死链（路由不存在 → "主页不存在或尚未公开"）。
+                        // 实测验证：/latest /trending /watch?v= 全部 HTTP 200 且渲染对应内容。
+                        : (isVideoBanner
+                            ? (b.type === 'hot_videos' ? '/trending' : '/latest')
+                            : undefined)),
                 badge: b.badge_text || undefined,
                 type: b.type === 'ad' ? 'ad' : (b.primary_btn_url || isVideoBanner ? 'link' : 'custom'),
             });
