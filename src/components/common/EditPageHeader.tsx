@@ -1,6 +1,7 @@
 import {memo, useMemo} from 'react';
 import {ArrowLeft, Save, Play, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
 import {Separator} from '@/components/ui/separator';
 import {
@@ -50,6 +51,9 @@ export interface EditPageHeaderProps {
   onDelete: () => void;
   badges: HeaderBadgeConfig[];
   encodingStatus?: EncodingStatusConfig;
+  /** When provided, the title renders as an inline editable input (BUG-135, mirrors admin's title-in-h1 pattern). */
+  editableTitle?: string;
+  onTitleChange?: (value: string) => void;
 }
 
 const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
@@ -116,6 +120,8 @@ const TitleWithBadges = memo(function TitleWithBadges({
   encodingStatus,
   maxBadges,
   showEncodingStatus,
+  editableTitle,
+  onTitleChange,
 }: {
   title: string;
   isDirty: boolean;
@@ -123,6 +129,8 @@ const TitleWithBadges = memo(function TitleWithBadges({
   encodingStatus?: EncodingStatusConfig;
   maxBadges: number;
   showEncodingStatus: boolean;
+  editableTitle?: string;
+  onTitleChange?: (value: string) => void;
 }) {
   const sortedBadges = useMemo(() =>
     badges
@@ -141,10 +149,20 @@ const TitleWithBadges = memo(function TitleWithBadges({
 
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <h1 className="text-base font-semibold truncate">
-        {title || '未命名媒体'}
-        {isDirty && <DirtyIndicator/>}
-      </h1>
+      {editableTitle !== undefined && onTitleChange ? (
+        <Input
+          value={editableTitle}
+          onChange={(e) => onTitleChange(e.target.value)}
+          placeholder="未命名媒体"
+          aria-label="标题"
+          className="text-base font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
+        />
+      ) : (
+        <h1 className="text-base font-semibold truncate">
+          {title || '未命名媒体'}
+          {isDirty && <DirtyIndicator/>}
+        </h1>
+      )}
       {(visibleBadges.length > 0 || (showEncodingStatus && encodingStatus) || overflowCount > 0) && (
         <div className="flex items-center gap-1.5 shrink-0">
           {visibleBadges.map((badge) => {
@@ -314,6 +332,8 @@ export function EditPageHeader({
   onDelete,
   badges,
   encodingStatus,
+  editableTitle,
+  onTitleChange,
 }: EditPageHeaderProps) {
   const isSm = useMediaQuery('(min-width: 640px)');
   const isLg = useMediaQuery('(min-width: 1024px)');
@@ -340,6 +360,8 @@ export function EditPageHeader({
             encodingStatus={encodingStatus}
             maxBadges={maxBadges}
             showEncodingStatus={showEncodingStatus}
+            editableTitle={editableTitle}
+            onTitleChange={onTitleChange}
           />
         </div>
         <HeaderActions
