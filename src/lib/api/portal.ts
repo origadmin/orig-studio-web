@@ -58,7 +58,7 @@ export interface Banner {
     start_at?: string;
     end_at?: string;
     auto_slide_interval?: number;
-    type?: 'custom' | 'hot_videos' | 'new_videos' | 'ad';
+    type?: 'custom' | 'video' | 'hot_videos' | 'new_videos' | 'ad';
     count?: number;
     category_id?: string;
     display_mode?: 'wide' | 'narrow';

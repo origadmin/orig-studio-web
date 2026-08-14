@@ -220,7 +220,10 @@ const HomePage = () => {
             const c1 = b.bg_color_start || '#0f172a';
             const c2 = b.bg_color_end || '#1e3a8a';
             const bgGradient = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
-            const isVideoBanner = b.type === 'hot_videos' || b.type === 'new_videos';
+            // 视频类 banner 判定：legacy hot_videos/new_videos + 方案 A 的 'video'（单视频绑定）。
+            // 必须覆盖 'video'，否则后端 applyVideoToBanner 补的 video_url（HlsFile/mp4）会被透传，
+            // HeroBanner 激活时自动播放真实视频 → 播放画面与海报完全不同（"海报错乱"）。
+            const isVideoBanner = b.type === 'hot_videos' || b.type === 'new_videos' || b.type === 'video';
             const thumb = b.image_mobile_url || b.image_url || '';
             items.push({
                 id: String(b.id),
