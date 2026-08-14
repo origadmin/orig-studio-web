@@ -698,7 +698,7 @@ const BannersTab: React.FC = () => {
     const getTypeMeta = (type?: string): { label: string; cls: string } => {
         switch (type) {
             case 'video':
-                return {label: t('admin.bannerTypeVideo', '视频（单条）'), cls: 'bg-emerald-50 text-emerald-600 border-emerald-200'};
+                return {label: t('admin.bannerTypeVideo', '视频'), cls: 'bg-emerald-50 text-emerald-600 border-emerald-200'};
             case 'hot_videos':
                 return {label: t('admin.bannerTypeHot', '最火视频'), cls: 'bg-red-50 text-red-600 border-red-200'};
             case 'new_videos':
@@ -721,7 +721,7 @@ const BannersTab: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义Banner')}</SelectItem>
-                        <SelectItem value="video">{t('admin.bannerTypeVideo', '视频（单条）')}</SelectItem>
+                        <SelectItem value="video">{t('admin.bannerTypeVideo', '视频')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -737,7 +737,7 @@ const BannersTab: React.FC = () => {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label>{t('admin.bannerBindVideo', '绑定视频（一条对应一个视频）')}</Label>
+                        <Label>{t('admin.bannerBindVideo', '关联视频')}</Label>
                         <div className="flex items-center gap-2">
                             <Button
                                 type="button"
@@ -755,7 +755,7 @@ const BannersTab: React.FC = () => {
                                 <span className="truncate">{form.primary_btn_url}</span>
                             </div>
                         )}
-                        <p className="text-xs text-muted-foreground">{t('admin.bannerVideoHint', '选中的视频海报自动作为 Banner 图片，点击跳转视频播放页；用「复制配置」可快速平铺多个视频')}</p>
+                        <p className="text-xs text-muted-foreground">{t('admin.bannerVideoHint', '选择一个视频作为本 Banner 的内容，封面与点击跳转自动生效')}</p>
                     </div>
                 </>
             )}
