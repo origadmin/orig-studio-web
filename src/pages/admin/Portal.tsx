@@ -1,8 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {
     Layout, Plus, Edit, Trash2, Settings, ChevronDown,
     GripVertical, ArrowUp, ArrowDown, Megaphone, BarChart3, ImageOff,
     Calendar, Minus, Link2, Navigation, Image as ImageIcon, Layers, Clock as ClockIcon, Film,
+    Copy, Search, Video,
 } from 'lucide-react';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {Link} from '@tanstack/react-router';
@@ -41,6 +42,8 @@ import {
 } from '@/hooks/queries';
 import {type NavItem, type Banner, type CreateNavItemRequest, type CreateBannerRequest, type UpdateBannerRequest, type AdPlacement, type CreateAdPlacementRequest, type UpdateAdPlacementRequest, adminPortalApi, type AdCreative, type CreateAdCreativeRequest, type UpdateAdCreativeRequest} from '@/lib/api/portal';
 import {adminCreativesApi, adminPlacementCreativesApi} from '@/lib/api/ads';
+import {mediaApi} from '@/lib/api/media';
+import type {Media} from '@/lib/api/media';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 
 export default function PortalConfigPage() {
@@ -348,7 +351,7 @@ type BannerFormData = {
     is_active: boolean;
     start_at: string;
     end_at: string;
-    type: 'custom' | 'hot_videos' | 'new_videos';
+    type: 'custom' | 'video' | 'hot_videos' | 'new_videos';
     count: number;
     never_expires: boolean;
 };
@@ -391,6 +394,12 @@ const BannersTab: React.FC = () => {
     const [advancedOpen, setAdvancedOpen] = useState(false);
     const [createForm, setCreateForm] = useState<BannerFormData>(emptyBannerForm);
     const [editForm, setEditForm] = useState<BannerFormData>(emptyBannerForm);
+    // 视频选择器（方案 A：一条 banner 绑定一个视频）
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const [pickerKeyword, setPickerKeyword] = useState('');
+    const [pickerResults, setPickerResults] = useState<Media[]>([]);
+    const [pickerLoading, setPickerLoading] = useState(false);
+    const pickerTargetRef = useRef<React.Dispatch<React.SetStateAction<BannerFormData>> | null>(null);
 
     const banners = bannerData?.items || [];
 
@@ -446,9 +455,9 @@ const BannersTab: React.FC = () => {
             is_active: f.is_active,
             sequence: f.sequence,
         };
-        if (f.type === 'custom') {
+        if (f.type === 'custom' || f.type === 'video') {
             if (f.image_url) payload.image_url = f.image_url;
-            if (f.video_url) payload.video_url = f.video_url;
+            if (f.type === 'custom' && f.video_url) payload.video_url = f.video_url;
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
             if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
         }
@@ -473,9 +482,9 @@ const BannersTab: React.FC = () => {
             is_active: f.is_active,
             sequence: f.sequence,
         };
-        if (f.type === 'custom') {
+        if (f.type === 'custom' || f.type === 'video') {
             payload.image_url = f.image_url || '';
-            payload.video_url = f.video_url || '';
+            if (f.type === 'custom') payload.video_url = f.video_url || '';
             if (f.primary_btn_text) payload.primary_btn_text = f.primary_btn_text;
             if (f.primary_btn_url) payload.primary_btn_url = f.primary_btn_url;
         }
@@ -607,6 +616,57 @@ const BannersTab: React.FC = () => {
 
     const aspectClass = globalSettings.display_mode === 'narrow' ? 'h-40' : 'h-48';
 
+    // 方案 A 视频选择器：按关键字搜索媒体，选中即把该视频绑定到当前 banner 表单
+    // （海报→image_url，跳转→primary_btn_url=/watch?v=<token>）。
+    const loadPicker = async (keyword: string) => {
+        setPickerLoading(true);
+        try {
+            const res = await mediaApi.list({page: 1, page_size: 10, keyword: keyword || undefined, state: 'active'}) as unknown as {items?: Media[]};
+            setPickerResults(res?.items || []);
+        } catch {
+            setPickerResults([]);
+        } finally {
+            setPickerLoading(false);
+        }
+    };
+
+    const applyPickedVideo = (m: Media) => {
+        const setForm = pickerTargetRef.current;
+        if (!setForm) return;
+        const thumb = m.thumbnail || m.poster || '';
+        setForm(prev => ({
+            ...prev,
+            title: prev.title || m.title || '',
+            image_url: thumb,
+            primary_btn_url: m.short_token ? `/watch?v=${m.short_token}` : prev.primary_btn_url,
+        }));
+        setPickerOpen(false);
+    };
+
+    // 复制配置：把某条 banner 的配置复制成新 banner（sequence 自动 +1），便于批量平铺同类型视频。
+    const handleDuplicate = (banner: Banner) => {
+        const bType = (banner.type as BannerFormData['type']) || 'custom';
+        const maxSeq = banners.length > 0 ? Math.max(...banners.map(b => b.sequence ?? 0)) : 0;
+        setCreateForm({
+            title: banner.title || '',
+            subtitle: banner.subtitle || '',
+            badge_text: banner.badge_text || '',
+            image_url: banner.image_url || '',
+            video_url: banner.video_url || '',
+            primary_btn_text: banner.primary_btn_text || '',
+            primary_btn_url: banner.primary_btn_url || '',
+            sequence: maxSeq + 1,
+            is_active: banner.is_active,
+            start_at: fromISO(banner.start_at),
+            end_at: fromISO(banner.end_at),
+            type: bType,
+            count: banner.count || 5,
+            never_expires: !banner.end_at || new Date(banner.end_at).getFullYear() < 2000,
+        });
+        setAdvancedOpen(false);
+        setCreateDialogOpen(true);
+    };
+
     const formatExpiry = (iso?: string): string => {
         if (!iso) return t('admin.noExpiry', '永不过期');
         const d = new Date(iso);
@@ -637,6 +697,8 @@ const BannersTab: React.FC = () => {
 
     const getTypeMeta = (type?: string): { label: string; cls: string } => {
         switch (type) {
+            case 'video':
+                return {label: t('admin.bannerTypeVideo', '视频（单条）'), cls: 'bg-emerald-50 text-emerald-600 border-emerald-200'};
             case 'hot_videos':
                 return {label: t('admin.bannerTypeHot', '最火视频'), cls: 'bg-red-50 text-red-600 border-red-200'};
             case 'new_videos':
@@ -659,6 +721,7 @@ const BannersTab: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义Banner')}</SelectItem>
+                        <SelectItem value="video">{t('admin.bannerTypeVideo', '视频（单条）')}</SelectItem>
                         <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频（自动聚合）')}</SelectItem>
                         <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新上线（自动聚合）')}</SelectItem>
                     </SelectContent>
@@ -677,6 +740,40 @@ const BannersTab: React.FC = () => {
                     />
                     <p className="text-xs text-muted-foreground">{t('admin.bannerDynamicHint', '动态Banner将自动从视频库中取最火/最新视频作为轮播内容，图片取首个视频的封面')}</p>
                 </div>
+            )}
+            {(form.type === 'video') && (
+                <>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-title-vid">{t('admin.bannerTitle', '标题（可选，默认取视频标题）')}</Label>
+                        <Input
+                            id="banner-title-vid"
+                            value={form.title}
+                            onChange={e => setForm({...form, title: e.target.value})}
+                            placeholder={t('admin.bannerTitle', '标题')}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>{t('admin.bannerBindVideo', '绑定视频（一条对应一个视频）')}</Label>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1 justify-start"
+                                onClick={() => { pickerTargetRef.current = setForm; setPickerKeyword(''); setPickerOpen(true); loadPicker(''); }}
+                            >
+                                <Video className="w-4 h-4 mr-2"/>
+                                {form.primary_btn_url ? t('admin.bannerChangeVideo', '更换视频') : t('admin.bannerSelectVideo', '选择视频')}
+                            </Button>
+                        </div>
+                        {form.primary_btn_url && (
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Link2 className="w-3 h-3 shrink-0"/>
+                                <span className="truncate">{form.primary_btn_url}</span>
+                            </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">{t('admin.bannerVideoHint', '选中的视频海报自动作为 Banner 图片，点击跳转视频播放页；用「复制配置」可快速平铺多个视频')}</p>
+                    </div>
+                </>
             )}
             {(form.type === 'custom') && (
                 <>
@@ -1097,6 +1194,15 @@ const BannersTab: React.FC = () => {
                                         <Button
                                             variant="secondary"
                                             size="icon"
+                                            className="h-11 w-11 rounded-full bg-sky-500 text-white shadow-lg shadow-sky-500/30 hover:bg-sky-600 scale-90 group-hover:scale-100 transition-transform"
+                                            onClick={(e) => { e.stopPropagation(); handleDuplicate(banner); }}
+                                            title={t('admin.bannerDuplicate', '复制配置')}
+                                        >
+                                            <Copy className="h-5 w-5"/>
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="icon"
                                             className="h-11 w-11 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 scale-90 group-hover:scale-100 transition-transform"
                                             onClick={(e) => { e.stopPropagation(); setEditingBanner(banner); setDeleteDialogOpen(true); }}
                                         >
@@ -1223,6 +1329,57 @@ const BannersTab: React.FC = () => {
                         <Button variant="outline" onClick={() => setEditDialogOpen(false)} className="rounded-full px-5">{t('common.cancel', '取消')}</Button>
                         <Button onClick={handleUpdate} className="rounded-full px-6 shadow-sm">{t('common.save', '保存')}</Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+                <DialogContent className="max-w-xl p-0 gap-0 grid grid-rows-[auto_auto_1fr] overflow-hidden max-h-[calc(100vh-4rem)] rounded-2xl">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border/50">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                <Video className="w-4 h-4 text-emerald-500"/>
+                            </div>
+                            {t('admin.selectVideo', '选择视频')}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="px-6 pt-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+                            <Input
+                                className="pl-9"
+                                placeholder={t('admin.searchVideoPlaceholder', '搜索视频标题...')}
+                                value={pickerKeyword}
+                                onChange={e => { setPickerKeyword(e.target.value); }}
+                                onKeyDown={e => { if (e.key === 'Enter') loadPicker(pickerKeyword); }}
+                            />
+                        </div>
+                    </div>
+                    <div className="px-6 py-4 overflow-y-auto min-h-0 space-y-2">
+                        {pickerLoading ? (
+                            <div className="flex justify-center py-8"><Spinner size="sm"/></div>
+                        ) : pickerResults.length === 0 ? (
+                            <p className="text-center text-sm text-muted-foreground py-8">{t('common.noData', '暂无数据')}</p>
+                        ) : pickerResults.map(m => (
+                            <button
+                                key={m.id}
+                                type="button"
+                                className="w-full flex items-center gap-3 p-2 rounded-xl border border-border/60 hover:bg-muted/60 hover:border-primary/40 transition-colors text-left"
+                                onClick={() => applyPickedVideo(m)}
+                            >
+                                <div className="w-24 aspect-video rounded-lg overflow-hidden bg-muted shrink-0">
+                                    {m.thumbnail || m.poster ? (
+                                        <img src={getFullUrl(m.thumbnail || m.poster || '')} alt="" className="w-full h-full object-cover"/>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/40"><Video className="w-5 h-5"/></div>
+                                    )}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-foreground truncate">{m.title}</p>
+                                    {m.short_token && <p className="text-[11px] text-muted-foreground truncate mt-0.5">{m.short_token}</p>}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 </DialogContent>
             </Dialog>
 
