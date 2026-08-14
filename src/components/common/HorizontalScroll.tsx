@@ -131,9 +131,14 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             'hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:scale-110',
                             'active:scale-95',
                             'transition-all duration-200 ease-out',
-                            'opacity-0 group-hover/scroll:opacity-100',
+                            // BUG-226(点击穿透修复)：非悬停时按钮透明且不拦截点击（pointer-events-none），
+                            // 只在悬停时可见可点（group-hover:opacity-100 + pointer-events-auto），
+                            // 避免透明热区吞掉卡片点击、或悬停时点击穿透到卡片。
+                            'opacity-0 pointer-events-none group-hover/scroll:opacity-100 group-hover/scroll:pointer-events-auto',
                             'left-0 -translate-x-1/2',
-                            !canScrollLeft && 'pointer-events-none opacity-0 !scale-90',
+                            // 边界态（已到第 1 页）：!important 压过悬停变体，彻底隐藏且不拦截，
+                            // 用户不会看到"能点却穿透"的箭头导致误触下方卡片。
+                            !canScrollLeft && '!opacity-0 !pointer-events-none !scale-90',
                         )}
                         style={{top: buttonTop}}
                         aria-label="Previous"
@@ -150,9 +155,9 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                             'hover:bg-neutral-50 dark:hover:bg-neutral-700 hover:scale-110',
                             'active:scale-95',
                             'transition-all duration-200 ease-out',
-                            'opacity-0 group-hover/scroll:opacity-100',
+                            'opacity-0 pointer-events-none group-hover/scroll:opacity-100 group-hover/scroll:pointer-events-auto',
                             'right-0 translate-x-1/2',
-                            !canScrollRight && 'pointer-events-none opacity-0 !scale-90',
+                            !canScrollRight && '!opacity-0 !pointer-events-none !scale-90',
                         )}
                         style={{top: buttonTop}}
                         aria-label="Next"
