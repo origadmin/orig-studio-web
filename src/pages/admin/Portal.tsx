@@ -623,6 +623,18 @@ const BannersTab: React.FC = () => {
         return d < new Date();
     };
 
+    // 与后端 ListActiveBanners 保持一致：仅统计/展示「当前真实可见」的 Banner
+    // （is_active 且未到未来开始时间且未过期），从而与主页实际显示数目一致。
+    const isBannerLive = (b: Banner): boolean => {
+        if (!b.is_active) return false;
+        if (isExpired(b.end_at)) return false;
+        if (b.start_at) {
+            const s = new Date(b.start_at).getTime();
+            if (!isNaN(s) && s > Date.now()) return false;
+        }
+        return true;
+    };
+
     const getTypeMeta = (type?: string): { label: string; cls: string } => {
         switch (type) {
             case 'hot_videos':
@@ -815,7 +827,7 @@ const BannersTab: React.FC = () => {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </span>
-                        {t('admin.activeTotal', 'Active: {{active}} / Total: {{total}}', {active: banners.filter(b => b.is_active).length, total: banners.length})}
+                        {t('admin.activeTotal', 'Active: {{active}} / Total: {{total}}', {active: banners.filter(isBannerLive).length, total: banners.length})}
                     </Badge>
                 </div>
             </div>
@@ -948,7 +960,7 @@ const BannersTab: React.FC = () => {
                                     </span>
                                     <div>
                                         <span className="text-base font-bold">
-                                            {banners.filter(b => b.is_active).length}
+                                            {banners.filter(isBannerLive).length}
                                         </span>
                                         <span className="text-sm text-muted-foreground ml-1">
                                             {t('admin.activeBanners', '张启用')}
@@ -1005,7 +1017,7 @@ const BannersTab: React.FC = () => {
                         return (
                             <Card
                                 key={banner.id}
-                                className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${(!banner.is_active || expired) ? 'opacity-60' : ''}`}
+                                className={`group overflow-hidden rounded-xl border border-border/60 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer ${!isBannerLive(banner) ? 'opacity-60' : ''}`}
                                 onClick={() => openEditDialog(banner)}
                             >
                                 <div className={`relative ${aspectClass} bg-muted overflow-hidden`}>
