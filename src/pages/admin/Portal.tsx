@@ -722,25 +722,9 @@ const BannersTab: React.FC = () => {
                     <SelectContent>
                         <SelectItem value="custom">{t('admin.bannerTypeCustom', '自定义Banner')}</SelectItem>
                         <SelectItem value="video">{t('admin.bannerTypeVideo', '视频（单条）')}</SelectItem>
-                        <SelectItem value="hot_videos">{t('admin.bannerTypeHot', '最火视频（自动聚合）')}</SelectItem>
-                        <SelectItem value="new_videos">{t('admin.bannerTypeNew', '最新上线（自动聚合）')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
-            {(form.type === 'hot_videos' || form.type === 'new_videos') && (
-                <div className="grid gap-2">
-                    <Label htmlFor="banner-count">{t('admin.bannerVideoCount', '展示视频数量')}</Label>
-                    <Input
-                        id="banner-count"
-                        type="number"
-                        min={1}
-                        max={20}
-                        value={form.count}
-                        onChange={e => setForm({...form, count: Number(e.target.value)})}
-                    />
-                    <p className="text-xs text-muted-foreground">{t('admin.bannerDynamicHint', '动态Banner将自动从视频库中取最火/最新视频作为轮播内容，图片取首个视频的封面')}</p>
-                </div>
-            )}
             {(form.type === 'video') && (
                 <>
                     <div className="grid gap-2">
