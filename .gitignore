@@ -22,6 +22,10 @@ playwright/.cache/
 # intentionally checked in (small PNGs); only the throwaway debug-* files
 # under it should be ignored.
 tests/e2e-evidence/
+# HTML reports (A-mode real-backend + B-mode mock) and mock test-results
+tests/test-report/
+tests/test-report-mock/
+tests/test-results-mock/
 
 # ============================================================
 # AI TOOL POLLUTION - ABSOLUTELY FORBIDDEN IN REPOSITORY

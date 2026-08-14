@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
  * against the deployed app, not just in jsdom.
  *
  * Run through node (bunx playwright segfaults on this machine):
- *   node node_modules/@playwright/test/cli.js test -c playwright.deployed.config.ts
+ *   node node_modules/@playwright/test/cli.js test -c playwright.config.ts
  */
 
 const APP = 'http://localhost:8080';
