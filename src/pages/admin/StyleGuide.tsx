@@ -29,6 +29,7 @@ import {
   MonitorPlay,
   Flame,
 } from 'lucide-react';
+import { Navigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -151,6 +152,8 @@ const DoDont: React.FC<{ do: React.ReactNode; dont: React.ReactNode }> = ({ do: 
 );
 
 export default function StyleGuidePage() {
+  // R-S3: internal style-guide is dev/staging only — never exposed in production builds.
+  if (import.meta.env.PROD) return <Navigate to="/admin" />;
   const { t } = useTranslation();
   const { colorMode, setColorMode } = useTheme();
   const [inputValue, setInputValue] = useState('');

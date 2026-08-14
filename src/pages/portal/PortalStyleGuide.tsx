@@ -34,6 +34,7 @@ import {
     Monitor,
     Activity,
 } from 'lucide-react';
+import { Navigate } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -169,6 +170,8 @@ const HISTORY_DEMO = [
 ];
 
 export default function PortalStyleGuide() {
+    // R-S3: internal style-guide is dev/staging only — never exposed in production builds.
+    if (import.meta.env.PROD) return <Navigate to="/" />;
     const { t } = useTranslation();
     const { colorMode, setColorMode } = useTheme();
     const [activeTab, setActiveTab] = useState('all');
