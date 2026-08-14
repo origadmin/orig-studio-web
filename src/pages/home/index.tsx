@@ -124,7 +124,7 @@ const adaptiveCols = (count: number, natural: number) => {
  * BUG-191(v2)：顶部横向滑动行改为"按视口铺满"的自适应布局。
  * - 测量容器宽度，按 cols = clamp(floor((w+gap)/(TARGET+gap)), 1, MAX_ROW_COLS) 推算自然列数；
  * - count 可整除时列数在自然列数基础上最多 -1 适配（每页整行、无半页、不丢卡片）；
- * - pageSize=cols 传给 HorizontalScroll，页数按「卡片数÷列数」精确计算（与 scrollWidth 无关）。
+ * - 翻页指示器已按设计重审移除（响应式下列数/页数无法稳定统计），仅保留整屏翻页按钮。
  */
 const AutoFitRow: React.FC<{
     children: (cardWidth: number, cols: number) => React.ReactNode;
@@ -150,7 +150,7 @@ const AutoFitRow: React.FC<{
     const offset = buttonOffset === 'thumb' ? (cardWidth * 9 / 16) / 2 : buttonOffset;
     return (
         <div ref={ref} className="w-full" data-autofit-row="true" data-autofit-cols={cols}>
-            <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP} pageMode pageSize={cols}>
+            <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP} pageMode>
                 {children(cardWidth, cols)}
             </HorizontalScroll>
         </div>
