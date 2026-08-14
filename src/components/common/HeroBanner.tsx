@@ -217,8 +217,9 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
     const touchEndX = useRef<number | null>(null);
 
     const total = items.length;
-    const canGoPrev = current > 0;
-    const canGoNext = current < total - 1;
+    // 手动翻页与自动播放一致：始终可循环（goPrev/goNext 已用取模实现无限循环）
+    const canGoPrev = total > 1;
+    const canGoNext = total > 1;
 
     useEffect(() => { injectCss(); }, []);
 
