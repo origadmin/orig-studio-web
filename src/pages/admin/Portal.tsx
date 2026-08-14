@@ -757,6 +757,15 @@ const BannersTab: React.FC = () => {
                         )}
                         <p className="text-xs text-muted-foreground">{t('admin.bannerVideoHint', '选择一个视频作为本 Banner 的内容，封面与点击跳转自动生效')}</p>
                     </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="banner-badge-vid">{t('admin.bannerBadgeText', '角标文字')}</Label>
+                        <Input
+                            id="banner-badge-vid"
+                            value={form.badge_text}
+                            onChange={e => setForm({...form, badge_text: e.target.value})}
+                            placeholder="HOT, NEW"
+                        />
+                    </div>
                 </>
             )}
             {(form.type === 'custom') && (

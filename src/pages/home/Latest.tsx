@@ -16,21 +16,31 @@ import ErrorPage from '@/components/common/ErrorPage';
 
 const PAGE_SIZE = 12;
 
+const SORT_TABS = [
+    {key: 'new', label: '最新', orderBy: 'create_time'},
+    {key: 'hot', label: '最热', orderBy: 'view_count'},
+] as const;
+
+type SortKey = typeof SORT_TABS[number]['key'];
+
 const LatestPage = () => {
     const {t} = useTranslation();
     const search = useSearch({strict: false}) as {category_id?: number};
     const activeCategoryId = search.category_id;
+    const [sortKey, setSortKey] = useState<SortKey>('new');
     const [page, setPage] = useState(1);
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
+    const activeSort = SORT_TABS.find(s => s.key === sortKey) ?? SORT_TABS[0];
+
     const {data, isLoading, error} = useMediaList({
         page,
         page_size: PAGE_SIZE,
         status: 'active',
-        order_by: 'create_time',
+        order_by: activeSort.orderBy,
         descending: true,
         category_id: activeCategoryId || undefined
     });
@@ -39,7 +49,7 @@ const LatestPage = () => {
         setPage(1);
         setItems([]);
         setHasMore(true);
-    }, [activeCategoryId]);
+    }, [activeCategoryId, sortKey]);
 
     useEffect(() => {
         if (data?.items && data.items.length > 0) {
@@ -79,9 +89,28 @@ const LatestPage = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3">
-                <Clock size={24} className="text-primary"/>
-                <h1 className="text-2xl font-bold text-foreground">{t('latest.title')}</h1>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Clock size={24} className="text-primary"/>
+                    <h1 className="text-2xl font-bold text-foreground">{t('latest.title')}</h1>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+                {SORT_TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setSortKey(tab.key)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                            sortKey === tab.key
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                        }`}
+                    >
+                        {t(`latest.sort.${tab.key}`, tab.label)}
+                    </button>
+                ))}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-5">

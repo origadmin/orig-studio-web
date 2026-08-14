@@ -3,27 +3,36 @@ import {Link} from '@tanstack/react-router';
 import {TrendingUp, Play, Eye, Heart} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {Spinner} from '@/components/ui/spinner';
-import {exploreApi} from '@/lib/api/explore';
-import type {TrendingItem} from '@/lib/api/explore';
+import {useMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {formatViews, formatDuration} from '@/lib/format';
 
+const PAGE_SIZE = 50;
+
+const SORT_TABS = [
+    {key: 'hot', label: '最热', orderBy: 'view_count'},
+    {key: 'new', label: '最新', orderBy: 'create_time'},
+] as const;
+
+type SortKey = typeof SORT_TABS[number]['key'];
+
 export default function Trending() {
     const {t} = useTranslation();
-    const [items, setItems] = useState<TrendingItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [sortKey, setSortKey] = useState<SortKey>('hot');
 
-    useEffect(() => {
-        exploreApi.getTrending({limit: 50})
-            .then((res) => {
-                setItems(res.items || []);
-            })
-            .catch((err: Error) => setError(err.message || 'Failed to load trending'))
-            .finally(() => setLoading(false));
-    }, []);
+    const activeSort = SORT_TABS.find(s => s.key === sortKey) ?? SORT_TABS[0];
 
-    if (loading) {
+    const {data, isLoading, error} = useMediaList({
+        page: 1,
+        page_size: PAGE_SIZE,
+        status: 'active',
+        order_by: activeSort.orderBy,
+        descending: true,
+    });
+
+    const items: any[] = data?.items || [];
+
+    if (isLoading && items.length === 0) {
         return (
             <div className="space-y-6">
                 <div className="flex items-center gap-3">
@@ -43,10 +52,10 @@ export default function Trending() {
         );
     }
 
-    if (error) {
+    if (error && items.length === 0) {
         return (
             <div className="text-center py-16 text-destructive">
-                <p>{error}</p>
+                <p>{error.message || t('common.error')}</p>
             </div>
         );
     }
@@ -59,6 +68,23 @@ export default function Trending() {
                     <h1 className="text-2xl font-bold text-foreground">{t('trending.title', 'Trending')}</h1>
                 </div>
                 <span className="text-sm text-muted-foreground">{t('trending.resultCount', {count: items.length})}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+                {SORT_TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setSortKey(tab.key)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                            sortKey === tab.key
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
+                        }`}
+                    >
+                        {t(`trending.sort.${tab.key}`, tab.label)}
+                    </button>
+                ))}
             </div>
 
             {items.length === 0 ? (
