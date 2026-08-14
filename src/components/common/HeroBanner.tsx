@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Link, useNavigate} from '@tanstack/react-router';
+import {Link} from '@tanstack/react-router';
 import {ChevronLeft, ChevronRight, Eye, Clock, ExternalLink, Megaphone} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Skeleton} from '@/components/ui/skeleton';
@@ -26,17 +26,6 @@ export interface HeroBannerItem {
         name: string;
         avatar?: string;
     };
-    /**
-     * BUG-228(v3)：聚合型 banner（hot_videos/new_videos）配置显示 count 个视频。
-     * 传入后幻灯片渲染为缩略图宫格（2×3 等），点某张缩略图进对应视频播放页，
-     * 点卡片空白/标题进 /videos 列表；不再只显示第 1 个视频的单张海报。
-     */
-    videos?: {
-        id: string;
-        title?: string;
-        thumbnail: string;
-        shortToken?: string;
-    }[];
 }
 
 export interface HeroBannerProps {
@@ -569,11 +558,9 @@ interface HeroCardProps {
 }
 
 const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, mobile, onItemClick, onSwitch, buildUrl}) => {
-    const navigate = useNavigate();
     const videoRef = useRef<HTMLVideoElement>(null);
     const hasThumb = !!item.thumbnail;
     const hasVideo = !!item.videoUrl;
-    const hasCollage = !!item.videos && item.videos.length > 0;
     const thumbUrl = hasThumb ? getImageUrl(item.thumbnail, 'cover') : '';
     const userAvatar = item.user?.avatar ? getImageUrl(item.user.avatar, 'avatar') : undefined;
     const hasLink = !!(item.shortToken || item.url);
@@ -599,50 +586,6 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
     }, [isActive, standalone, hasVideo, item.videoUrl]);
 
     const renderMedia = () => {
-        if (hasCollage) {
-            const vids = item.videos || [];
-            const cols = vids.length === 6 ? 3 : vids.length >= 4 ? 2 : vids.length;
-            return (
-                <div className="absolute inset-0">
-                    <div
-                        className="absolute inset-0 grid gap-1 md:gap-1.5 p-2 md:p-3"
-                        style={{gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))`}}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {vids.map((v) => (
-                            <button
-                                key={v.id}
-                                type="button"
-                                className="relative block w-full h-full overflow-hidden rounded-md bg-black/40 focus:outline-none focus:ring-2 focus:ring-white/60"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    // 非激活幻灯片：先把该卡切到前台（与点卡片本身一致）；
-                                    // 激活/独立卡：点缩略图进对应视频播放页。
-                                    if (!isActive && onSwitch && index != null) {
-                                        onSwitch(index);
-                                        return;
-                                    }
-                                    if (v.shortToken) {
-                                        navigate({to: '/watch', search: {v: v.shortToken, autoplay: undefined}});
-                                    }
-                                }}
-                            >
-                                <img
-                                    src={getImageUrl(v.thumbnail, 'cover')}
-                                    alt={v.title || item.title}
-                                    onError={(e) => handleImageError(e, 'thumbnail')}
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                    draggable={false}
-                                    loading="lazy"
-                                />
-                            </button>
-                        ))}
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-black/25 pointer-events-none"/>
-                </div>
-            );
-        }
         if (hasVideo) {
             const videoSrc = getFullUrl(item.videoUrl) || item.videoUrl;
             return (

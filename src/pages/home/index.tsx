@@ -209,11 +209,6 @@ const HomePage = () => {
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
 
-    // BUG-228(v3)：聚合型 banner（hot_videos/new_videos）配置显示 count 个视频。
-    // 按规则拉取数据池，供 Hero 幻灯片内宫格展示（缩略图各自可点进视频播放页）。
-    const {data: hotPoolData} = useMediaList({page: 1, page_size: 30, order_by: 'view_count', descending: true});
-    const {data: newPoolData} = useMediaList({page: 1, page_size: 30, order_by: 'create_time', descending: true});
-
     // 所有活跃 banner（custom / ad / hot_videos / new_videos）统一进 Hero 轮播。
     // hot_videos / new_videos 由后端 enrichDynamicBanner 补出封面图（image_url），
     // 直接作为轮播卡片；不再像 BUG-004 那样把它们拆成下方独立视频轨道。
@@ -227,17 +222,6 @@ const HomePage = () => {
             const bgGradient = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
             const isVideoBanner = b.type === 'hot_videos' || b.type === 'new_videos';
             const thumb = b.image_mobile_url || b.image_url || '';
-            // 聚合视频：按 banner 类型取对应规则池（最热/最新），截取 count 个，
-            // 供幻灯片内宫格展示（每张缩略图可点进对应视频播放页）。
-            const pool = b.type === 'hot_videos' ? (hotPoolData?.items || []) : (newPoolData?.items || []);
-            const vids = isVideoBanner
-                ? pool.slice(0, Math.max(1, b.count || 5)).map((m: Media) => ({
-                    id: m.id,
-                    title: m.title,
-                    thumbnail: m.thumbnail || m.poster || '',
-                    shortToken: m.short_token,
-                }))
-                : undefined;
             items.push({
                 id: String(b.id),
                 title: getLocalizedText(b.title, b.title_i18n, lang),
@@ -249,7 +233,6 @@ const HomePage = () => {
                 // 视频类型 banner 只作静态海报（点击跳 /videos），剥离自动补的 videoUrl；
                 // 自定义 banner 的 video_url 仍保留（后台有意配置的视频才播放）。
                 videoUrl: isVideoBanner ? undefined : (b.video_url || undefined),
-                videos: vids,
                 bgGradient,
                 url: b.primary_btn_url && b.primary_btn_url.startsWith('/')
                     ? b.primary_btn_url
@@ -267,7 +250,7 @@ const HomePage = () => {
             });
         }
         return items;
-    }, [activeBanners, i18n.language, hotPoolData?.items, newPoolData?.items]);
+    }, [activeBanners, i18n.language]);
 
     const heroMode = useMemo<'card' | 'wide'>(() => {
         const firstActive = activeBanners.find(b => b.display_mode);
