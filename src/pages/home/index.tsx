@@ -222,7 +222,12 @@ const HomePage = () => {
                 title: getLocalizedText(b.title, b.title_i18n, lang),
                 subtitle: getLocalizedText(b.subtitle, b.subtitle_i18n, lang) || undefined,
                 thumbnail: thumb,
-                videoUrl: b.video_url || undefined,
+                // BUG-228(v2)：hot_videos/new_videos 的 video_url 是后端 enrichDynamicBanner 自动补的
+                // （最新视频的 HlsFile），若透传给 HeroBanner 会在激活时自动播放真实视频——
+                // 播放画面与海报完全不同（"切换时变成两个完全不同的视频海报"）。
+                // 视频类型 banner 只作静态海报（点击跳 /videos），剥离自动补的 videoUrl；
+                // 自定义 banner 的 video_url 仍保留（后台有意配置的视频才播放）。
+                videoUrl: isVideoBanner ? undefined : (b.video_url || undefined),
                 bgGradient,
                 url: b.primary_btn_url && b.primary_btn_url.startsWith('/')
                     ? b.primary_btn_url
