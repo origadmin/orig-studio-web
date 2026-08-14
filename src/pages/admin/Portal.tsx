@@ -636,7 +636,9 @@ const BannersTab: React.FC = () => {
         const thumb = m.thumbnail || m.poster || '';
         setForm(prev => ({
             ...prev,
-            title: prev.title || m.title || '',
+            // 视频 banner 展示的就是这个视频：标题始终取视频标题（复制配置后选新视频也必须更新，
+            // 否则海报/跳转是新视频、标题还是旧视频 → "海报错乱"）。选完视频后仍可手动改标题。
+            title: m.title || prev.title,
             image_url: thumb,
             primary_btn_url: m.short_token ? `/watch?v=${m.short_token}` : prev.primary_btn_url,
         }));
