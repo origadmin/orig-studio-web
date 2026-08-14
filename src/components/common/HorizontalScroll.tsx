@@ -101,7 +101,12 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
             <div
                 ref={containerRef}
                 data-hscroll="true"
-                className="flex gap-4 overflow-x-auto pb-2 scroll-smooth"
+                className={cn(
+                    'flex gap-4 pb-2 scroll-smooth',
+                    // BUG-226：pageMode 下禁用自由横滑（overflow-x-hidden），彻底杜绝
+                    // 触控板/滚轮/拖拽「一张张滑」；只能靠按钮/圆点整屏翻页。
+                    pageMode ? 'overflow-x-hidden' : 'overflow-x-auto',
+                )}
                 style={{
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
