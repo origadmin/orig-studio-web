@@ -25,6 +25,7 @@ const TagsPage = () => {
     const [filter, setFilter] = useState('');
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const [sortBy, setSortBy] = useState<'heat' | 'name' | 'newest'>('heat');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -52,6 +53,11 @@ const TagsPage = () => {
         tag.title.toLowerCase().includes(filter.toLowerCase())
     );
 
+    // BUG-155 (lightweight): hot tags = Top-N by media_count (heat proxy; no backend change).
+    const hotTags = [...tags]
+        .sort((a, b) => tagMediaCount(b) - tagMediaCount(a))
+        .slice(0, 8);
+
     // BUG-154: 联想候选（前缀优先 + 子串），供搜索框下拉使用
     const suggestions = getTagSuggestions(tags, filter);
 
@@ -62,9 +68,22 @@ const TagsPage = () => {
     const sortedTags = filter
         ? [...filteredTags].sort((a, b) => a.title.localeCompare(b.title))
         : [...filteredTags].sort((a, b) => {
+            if (sortBy === 'name') return a.title.localeCompare(b.title);
+            if (sortBy === 'newest') {
+                return (
+                    new Date(b.create_time).getTime() - new Date(a.create_time).getTime() ||
+                    a.title.localeCompare(b.title)
+                );
+            }
             const diff = tagMediaCount(b) - tagMediaCount(a);
             return diff !== 0 ? diff : a.title.localeCompare(b.title);
         });
+
+    const sortLabels: Record<'heat' | 'name' | 'newest', string> = {
+        heat: t('tags.sortHeat'),
+        name: t('tags.sortName'),
+        newest: t('tags.sortNewest'),
+    };
 
     // A ?tag={slug} filter turns this collection page into the tag detail view.
     if (urlTagSlug) {
@@ -177,6 +196,53 @@ const TagsPage = () => {
                     </ul>
                 )}
             </div>
+
+            {/* BUG-155 (lightweight): Hot Tags Top-N section by media_count (heat proxy; no backend change) */}
+            {!filter && hotTags.length > 0 && (
+                <div className="space-y-3">
+                    <h2 className="text-sm font-semibold text-foreground">{t('tags.hotTags')}</h2>
+                    <div className="flex flex-wrap gap-2">
+                        {hotTags.map((tag) => {
+                            const tagColor = getTagColor(tag);
+                            const tagSlug = tag.slug || generateSlug(tag.title);
+                            return (
+                                <Link
+                                    key={tag.id}
+                                    to="/tags"
+                                    search={{v: tagSlug}}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-full text-sm hover:border-primary hover:text-primary transition-colors"
+                                    style={{color: tagColor}}
+                                >
+                                    <Hash size={13} className="shrink-0" style={{color: tagColor}}/>
+                                    <span className="truncate max-w-[120px]">{tag.title}</span>
+                                    <span className="text-xs text-muted-foreground">{tagMediaCount(tag)}</span>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* BUG-155: sort controls (heat / name / newest) */}
+            {!filter && (
+                <div className="flex items-center justify-end gap-2 text-sm">
+                    <span className="text-muted-foreground">{t('tags.sortBy')}</span>
+                    {(['heat', 'name', 'newest'] as const).map((key) => (
+                        <button
+                            key={key}
+                            type="button"
+                            onClick={() => setSortBy(key)}
+                            className={`px-3 py-1 rounded-full border transition-colors ${
+                                sortBy === key
+                                    ? 'border-primary text-primary bg-primary/10'
+                                    : 'border-border text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            {sortLabels[key]}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {sortedTags.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">
