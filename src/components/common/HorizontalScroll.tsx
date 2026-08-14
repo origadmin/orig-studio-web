@@ -13,6 +13,13 @@ interface HorizontalScrollProps {
      * 不设置时回退到 scrollAmount 比例模式。
      */
     scrollStep?: number;
+    /**
+     * BUG-226：整页翻页模式。开启后：
+     * - 左右按钮（及圆点）按「一整屏可见宽度」步进，而非单张卡片；
+     * - 底部展示页码圆点（或 当前/总数 文本），点击圆点跳到对应整页；
+     * - 不开启时维持原「单卡自由滑动」行为，兼容 StyleGuide 等其它调用方。
+     */
+    pageMode?: boolean;
 }
 
 const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
@@ -21,12 +28,15 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
     buttonOffset = 0,
     scrollAmount = 0.85,
     scrollStep,
+    pageMode = false,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [canScrollLeft, setCanScrollLeft] = useState(false);
     const [canScrollRight, setCanScrollRight] = useState(false);
     const [showButtons, setShowButtons] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     const updateScrollState = useCallback(() => {
         const el = containerRef.current;
@@ -36,7 +46,14 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         setCanScrollLeft(left);
         setCanScrollRight(right);
         setShowButtons(left || right);
-    }, []);
+
+        if (pageMode && el.clientWidth > 0) {
+            const tp = Math.max(1, Math.ceil(el.scrollWidth / el.clientWidth));
+            const pg = Math.min(tp, Math.max(1, Math.floor(el.scrollLeft / el.clientWidth) + 1));
+            setTotalPages((prev) => (prev === tp ? prev : tp));
+            setPage((prev) => (prev === pg ? prev : pg));
+        }
+    }, [pageMode]);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -54,15 +71,28 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
         };
     }, [updateScrollState, children]);
 
+    // 单步像素：pageMode 下一整屏（一次跳满当前可见列），否则原逻辑（单卡或比例）。
+    const stepPixels = useCallback((el: HTMLDivElement) => {
+        if (pageMode) return el.clientWidth;
+        return scrollStep ?? el.clientWidth * scrollAmount;
+    }, [pageMode, scrollAmount, scrollStep]);
+
     const scrollByAmount = useCallback((direction: 'left' | 'right') => {
         const el = containerRef.current;
         if (!el) return;
-        const amount = scrollStep ?? el.clientWidth * scrollAmount;
+        const amount = stepPixels(el);
         el.scrollBy({
             left: direction === 'left' ? -amount : amount,
             behavior: 'smooth',
         });
-    }, [scrollAmount, scrollStep]);
+    }, [stepPixels]);
+
+    const scrollToPage = useCallback((target: number) => {
+        const el = containerRef.current;
+        if (!el) return;
+        const idx = Math.min(Math.max(1, target), totalPages);
+        el.scrollTo({left: (idx - 1) * el.clientWidth, behavior: 'smooth'});
+    }, [totalPages]);
 
     const buttonTop = buttonOffset > 0 ? buttonOffset : '38%';
 
@@ -141,6 +171,50 @@ const HorizontalScroll: React.FC<HorizontalScrollProps> = ({
                         )}
                     />
                 </>
+            )}
+            {pageMode && totalPages > 1 && (
+                <div className="flex items-center justify-center pt-3">
+                    {totalPages <= 12 ? (
+                        <div className="flex items-center gap-1.5">
+                            {Array.from({length: totalPages}).map((_, i) => (
+                                <button
+                                    key={i}
+                                    type="button"
+                                    onClick={() => scrollToPage(i + 1)}
+                                    aria-label={`Page ${i + 1}`}
+                                    className={cn(
+                                        'h-2 rounded-full transition-all duration-200',
+                                        page === i + 1
+                                            ? 'w-5 bg-primary'
+                                            : 'w-2 bg-muted-foreground/30 hover:bg-muted-foreground/50',
+                                    )}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <button
+                                type="button"
+                                onClick={() => scrollByAmount('left')}
+                                disabled={page <= 1}
+                                className="disabled:opacity-40 hover:text-foreground transition-colors"
+                                aria-label="Previous page"
+                            >
+                                <ChevronLeft className="h-4 w-4"/>
+                            </button>
+                            <span className="tabular-nums">{page} / {totalPages}</span>
+                            <button
+                                type="button"
+                                onClick={() => scrollByAmount('right')}
+                                disabled={page >= totalPages}
+                                className="disabled:opacity-40 hover:text-foreground transition-colors"
+                                aria-label="Next page"
+                            >
+                                <ChevronRight className="h-4 w-4"/>
+                            </button>
+                        </div>
+                    )}
+                </div>
             )}
         </div>
     );
