@@ -36,11 +36,13 @@ export interface HeroBannerProps {
     onItemClick?: (item: HeroBannerItem) => void;
 }
 
+// BUG-229(v3): 保留原 768 阈值；carousel 在窄视口下由 layout() 收口 cardW + step 保证标题不切、邻居不重叠
 const MOBILE_BP = 768;
 
 const CSS = `
 .hero-banner-root {
-  --hero-card-w: 533px;
+  /* BUG-229: 卡片宽收口到容器（不再固定 533px 溢出窄容器），活动卡文字/角标完整显示 */
+  --hero-card-w: min(533px, 100%);
   --hero-ratio: 16/9;
   --hero-card-h: 300px;
   --hero-pad-y: 0px;
@@ -364,12 +366,20 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
         let opacityStep: number;
         let blurStep: number;
 
+        // BUG-229: 容器窄于此宽时隐藏非活动 slide（消除窄屏左侧 peek / 邻居标题探出），
+        // 但 cardW/step 保持原始（活动卡居中、左右分页按钮定位完全不变），不破坏 carousel 样式。
+        // 阈值 900 覆盖 800px 两种模式（wide 触发后内容 ~637 / 侧栏折叠 ~800 / 侧栏展开 ~536）；
+        // 容器 ≥ 900 仍走原始 step 公式，宽屏廊道完整保留。
+        const HIDE_NEIGHBOR_W = 900;
+        const useSingleCard = containerW < HIDE_NEIGHBOR_W;
+        const designCardW = getPixelValue('--hero-card-w', isWideMode ? 720 : 533);
+
         if (isWideMode) {
             const wideVisible = 2;
-            cardW = getPixelValue('--hero-card-w', 720);
             scaleStep = 0.1;
             opacityStep = 0.1;
             blurStep = 0.5;
+            cardW = Math.min(designCardW, containerW);
             const sOuter = 1 - wideVisible * scaleStep;
             const overflow = cardW * 0.1;
             step = (containerW / 2 - (cardW * sOuter) / 2 + overflow) / wideVisible;
@@ -383,8 +393,9 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             scaleStep = num(styles.getPropertyValue('--hero-scale-step'), 0.14);
             opacityStep = num(styles.getPropertyValue('--hero-opacity-step'), 0.3);
             blurStep = num(styles.getPropertyValue('--hero-blur-step'), 1.5);
-            cardW = getPixelValue('--hero-card-w', 560);
+            cardW = Math.min(designCardW, containerW);
             step = getPixelValue('--hero-step', cardW * 0.72);
+            el.style.setProperty('--hero-card-w', `${cardW}px`);
         }
 
         const ratioParts = (styles.getPropertyValue('--hero-ratio') || '16/9').trim().split('/').map(s => parseFloat(s.trim()));
@@ -398,7 +409,8 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
             if (d > total / 2) d -= total;
             const abs = Math.abs(d);
             const isActive = d === 0;
-            const hidden = abs > visible;
+            // BUG-229: 窄容器下隐藏所有非活动 slide（不再 peek / 不再遮挡活动卡标题），活动卡与分页按钮不变
+            const hidden = useSingleCard ? abs > 0 : abs > visible;
             slide.classList.toggle('is-active', isActive);
             slide.style.visibility = hidden ? 'hidden' : 'visible';
             if (hidden) return;
@@ -461,26 +473,24 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
     if (isMobile) {
         return (
             <section className={cn('relative w-full', className)}>
-                <div
-                    className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 gap-3 pb-2"
-                    style={{scrollbarWidth: 'none'}}
-                >
-                    <style>{`
-                        .hero-mobile-scroll::-webkit-scrollbar{display:none}
-                    `}</style>
-                    {items.map((item) => (
-                        <div key={item.id} className="snap-center flex-shrink-0 w-[85vw] max-w-[420px] first:pl-4 last:pr-4">
-                            <HeroCard
-                                item={item}
-                                isActive
-                                standalone
-                                mobile
-                                onItemClick={onItemClick}
-                                buildUrl={buildItemUrl}
-                            />
-                        </div>
-                    ))}
-                </div>
+                <HeroCard
+                    item={items[current]}
+                    isActive
+                    standalone
+                    mobile={isMobile}
+                    onItemClick={onItemClick}
+                    buildUrl={buildItemUrl}
+                />
+                {showControls && (
+                    <>
+                        <button type="button" className="hero-banner-nav prev" disabled={!canGoPrev} onClick={() => { if (canGoPrev) { goPrev(); clearTimers(); } }} aria-label={t('common.previous', 'Previous')}>
+                            <ChevronLeft size={22}/>
+                        </button>
+                        <button type="button" className="hero-banner-nav next" disabled={!canGoNext} onClick={() => { if (canGoNext) { goNext(); clearTimers(); } }} aria-label={t('common.next', 'Next')}>
+                            <ChevronRight size={22}/>
+                        </button>
+                    </>
+                )}
             </section>
         );
     }
@@ -653,11 +663,11 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                             {item.badge}
                         </Badge>
                     )}
-                    <h2 className="text-white text-xl md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 max-w-2xl">
+                    <h2 className="text-white text-xl md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 w-full overflow-hidden break-words">
                         {item.title}
                     </h2>
                     {item.subtitle && (
-                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 max-w-2xl drop-shadow">
+                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 w-full overflow-hidden break-words drop-shadow">
                             {item.subtitle}
                         </p>
                     )}
@@ -690,11 +700,11 @@ const HeroCard: React.FC<HeroCardProps> = ({item, isActive, index, standalone, m
                         {item.badge}
                     </Badge>
                 )}
-                    <h2 className="text-white text-lg md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 max-w-2xl">
+                    <h2 className="text-white text-lg md:text-2xl xl:text-3xl font-bold line-clamp-2 leading-tight drop-shadow-lg mb-2 md:mb-3 w-full overflow-hidden break-words">
                         {item.title}
                     </h2>
                     {item.subtitle && (
-                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 max-w-2xl drop-shadow">
+                        <p className="text-white/85 text-sm md:text-base line-clamp-1 mb-2 md:mb-3 w-full overflow-hidden break-words drop-shadow">
                             {item.subtitle}
                         </p>
                     )}

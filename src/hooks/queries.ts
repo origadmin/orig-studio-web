@@ -55,9 +55,10 @@ export const mediaKeys = {
         params.type ?? null,
         params.keyword ?? params.search ?? null,
         params.featured ?? null,
-        params.order_by ?? params.sort ?? 'create_time',
-        params.descending != null ? params.descending : (params.order === 'asc' ? false : true),
-    ] as const,
+		params.order_by ?? params.sort ?? 'create_time',
+		params.descending != null ? params.descending : (params.order === 'asc' ? false : true),
+		params.seed ?? null,
+	] as const,
     adminLists: () => [...mediaKeys.all, 'adminList'] as const,
     adminList: (params: Record<string, any>) => [
         ...mediaKeys.adminLists(),
@@ -96,6 +97,8 @@ export function useMediaList(params: {
     featured?: boolean | string;
     order_by?: string;
     descending?: boolean;
+    /** BUG-226: deterministic seed for order_by='random' (为您推荐 换一批) */
+    seed?: number;
     /** @deprecated Use order_by instead */
     sort?: string;
     /** @deprecated Use descending instead */
@@ -123,10 +126,11 @@ export function useMediaList(params: {
                 state: params.status,
                 featured: params.featured != null ? String(params.featured) : undefined,
                 order_by: params.order_by || params.sort,
-                descending: params.descending != null
-                    ? params.descending
-                    : params.order === 'desc' ? true : params.order === 'asc' ? false : undefined,
-            };
+			descending: params.descending != null
+				? params.descending
+				: params.order === 'desc' ? true : params.order === 'asc' ? false : undefined,
+			seed: params.seed != null ? params.seed : undefined,
+		};
             // Remove undefined values to keep URL clean
             Object.keys(apiParams).forEach(key => {
                 if (apiParams[key] === undefined || apiParams[key] === null) {

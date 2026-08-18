@@ -76,6 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
     const [hoverPos, setHoverPos] = useState({top: 0});
     const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [subsExpanded, setSubsExpanded] = useState(false);
+    const [subsFeedExpanded, setSubsFeedExpanded] = useState(true); // 侧栏"订阅内容"(subs-feed)项折叠展开频道列表(YouTube: Subscriptions 项带折叠箭头)
     const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set());
 
     const safeChannelDetails = Array.isArray(channelDetails) ? channelDetails : [];
@@ -273,6 +274,7 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
         const linkParams = channel.short_token ? {id: channel.short_token} : channel.username ? {handle: `@${channel.username}`} : {id: channel.id};
         const active = channel.short_token ? isActive(`/c/${channel.short_token}`) : channel.username ? isActive(`/@${channel.username}`) : isActive(`/u/${channel.id}`);
         const displayName = channel.name || channel.username;
+        // YouTube 风格：订阅频道本身就是直接链接到频道页（频道页即其主页），不需要 > 展开子菜单
         return (
             <Link
                 to={linkTo}
@@ -400,6 +402,33 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
         );
     };
 
+    // 侧栏「订阅内容」项(subs-feed)：整行即 > 折叠/展开控件(标准 accordion)，标题与 > 同为展开动作，
+    // 不再单独跳转；进入订阅页改由下方「查看全部订阅」链接(方案B)。避免"标题跳转 + >折叠"动作不一致。
+    const SubsFeedToggle = ({item}: { item: RenderNavItem }) => {
+        const active = isItemActive(item);
+        return (
+            <button
+                onClick={() => setSubsFeedExpanded(!subsFeedExpanded)}
+                className={`flex items-center gap-3 w-full py-2.5 px-3 rounded-lg transition-colors ${
+                    active
+                        ? 'bg-accent font-medium text-foreground'
+                        : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                }`}
+                aria-label={t('nav.toggleSubsFeed', '折叠/展开订阅频道')}
+            >
+                <span className={`flex-shrink-0 ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {item.icon}
+                </span>
+                <span className="text-[14px] flex-1 text-left truncate">{t(item.label)}</span>
+                {subsFeedExpanded ? (
+                    <ChevronDown className="w-4 h-4 flex-shrink-0 opacity-60"/>
+                ) : (
+                    <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-60"/>
+                )}
+            </button>
+        );
+    };
+
     const FullNavSection = ({items, title, sectionId}: { items: RenderNavItem[]; title?: string; sectionId?: string }) => {
         const isSubscriptions = sectionId === 'subscriptions';
         const hasChannels = isSubscriptions && safeChannelDetails.length > 0;
@@ -410,36 +439,47 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
 
         return (
             <div className="py-0.5">
-                {title && (
-                    <h3 className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        {title}
-                    </h3>
-                )}
                 <div className="space-y-0.5 px-2">
                     {items.map((item) => (
-                        item.children && item.children.length > 0 ? (
+                        isSubscriptions && item.id === 'subs-feed' ? (
+                            <SubsFeedToggle key={item.id} item={item}/>
+                        ) : item.children && item.children.length > 0 ? (
                             <ExpandableNavItem key={item.id} item={item}/>
                         ) : (
                             <FullNavLink key={item.id} item={item}/>
                         )
                     ))}
-                    {displayedChannels.map((channel) => (
-                        <SubsChannelLink key={`ch-${channel.id}`} channel={channel}/>
-                    ))}
-                    {canExpand && (
-                        <button
-                            onClick={() => setSubsExpanded(!subsExpanded)}
-                            className="flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-accent w-full text-left"
-                        >
-                            {subsExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0"/>
-                            ) : (
-                                <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0"/>
+                    {subsFeedExpanded && (
+                        <>
+                            {displayedChannels.map((channel) => (
+                                <SubsChannelLink key={`ch-${channel.id}`} channel={channel}/>
+                            ))}
+                            {canExpand && (
+                                <>
+                                    <button
+                                        onClick={() => setSubsExpanded(!subsExpanded)}
+                                        className="flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-accent w-full text-left"
+                                    >
+                                        {subsExpanded ? (
+                                            <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0"/>
+                                        ) : (
+                                            <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0"/>
+                                        )}
+                                        <span className="text-[14px] text-muted-foreground">
+                                            {subsExpanded ? t('nav.showLess') : t('nav.showMore')}
+                                        </span>
+                                    </button>
+                                    <Link
+                                        to="/subscriptions"
+                                        className="flex items-center gap-3 py-2 px-3 rounded-lg transition-colors hover:bg-accent w-full text-left"
+                                    >
+                                        <span className="text-[14px] text-muted-foreground">
+                                            {t('nav.viewAllSubscriptions', '查看全部订阅')}
+                                        </span>
+                                    </Link>
+                                </>
                             )}
-                            <span className="text-[14px] text-muted-foreground">
-                                {subsExpanded ? t('nav.showLess') : t('nav.showMore')}
-                            </span>
-                        </button>
+                        </>
                     )}
                 </div>
             </div>

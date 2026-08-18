@@ -23,18 +23,22 @@ export interface ReviewListResponse {
 }
 
 export const reviewApi = {
-    getPending: (params?: { page?: number; page_size?: number; type?: string }) =>
+    getPending: (params?: { page?: number; page_size?: number; keyword?: string; type?: string }) =>
         api.get<ReviewListResponse>('/admin/medias/review/pending', params),
 
-    getHistory: (params?: { page?: number; page_size?: number; type?: string; status?: string }) =>
+    getHistory: (params?: { page?: number; page_size?: number; keyword?: string; type?: string; status?: string }) =>
         api.get<ReviewListResponse>('/admin/medias/review/history', params),
 
     review: (mediaId: string, data: { action: 'approve' | 'reject'; comment?: string }) =>
-        api.put<{ id: string; review_status: string; listable: boolean; update_time: string }>(`/admin/medias/${mediaId}/review`, data),
+        // BUG-138: proto ReviewMediaRequest uses {status, reason}; map from the
+        // UI's {action, comment} vocabulary here so the component stays clean.
+        api.put<{ id: string; review_status: string; listable: boolean; update_time: string }>(
+            `/admin/medias/${mediaId}/review`,
+            {status: data.action === 'approve' ? 'approved' : 'rejected', reason: data.comment || ''}
+        ),
 
     getDetail: (mediaId: string) =>
         api.get<{ items: ReviewItem[] }>(`/admin/medias/${mediaId}/review-logs`),
-
-    batchReview: (data: { media_ids: string[]; action: 'approve' | 'reject'; comment?: string }) =>
-        api.post<{ succeeded: string[]; failed: { media_id: string; error: string }[] }>('/admin/medias/review/batch', data),
+    // NOTE: no backend batch RPC exists (proto frozen, buf unavailable in sandbox).
+    // ReviewFlow performs bulk review by looping review() per selected media.
 };

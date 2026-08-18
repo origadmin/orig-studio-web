@@ -42,6 +42,7 @@ const ROUTE_PATH_MAP: Record<string, string> = {
   '/admin/portal': '/admin/portal',
   '/admin/pages': '/admin/pages',
   '/admin/analytics': '/admin/analytics',
+  '/admin/review': '/admin/review',
   '/admin/content-structure': '/admin/content-structure',
 };
 

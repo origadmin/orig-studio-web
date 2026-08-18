@@ -31,6 +31,7 @@ import {
     PanelLeft,
     Search,
     BadgeDollarSign,
+    ClipboardCheck,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
@@ -71,6 +72,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             items: [
                 {id: "dashboard", icon: LayoutDashboard, label: t('admin.dashboard'), path: "/admin"},
                 {id: "media", icon: Film, label: t('admin.media'), path: "/admin/media"},
+                {id: "review", icon: ClipboardCheck, label: t('admin.review', '内容审核'), path: "/admin/review"},
                 {id: "transcoding-profiles", icon: Cpu, label: t('admin.transcodingProfiles', '转码预设'), path: "/admin/transcoding/profiles"},
                 {id: "transcoding-status", icon: Activity, label: t('admin.transcodingStatus', '转码状态'), path: "/admin/transcoding/status"},
             ],
@@ -254,6 +256,7 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
         if (pathname.startsWith('/admin/comments')) return t('admin.comments');
         if (pathname.startsWith('/admin/transcoding')) return t('admin.transcodingProfiles', '转码预设');
         if (pathname.startsWith('/admin/notifications')) return t('admin.notifications', '通知管理');
+        if (pathname.startsWith('/admin/review')) return t('admin.review', '内容审核');
         if (pathname.startsWith('/admin/settings')) return t('admin.settings');
         return t('admin.dashboard');
     }, [pathname, t]);

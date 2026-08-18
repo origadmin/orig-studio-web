@@ -503,6 +503,8 @@ export const mediaApi = {
         featured?: string;
         order_by?: string;
         descending?: boolean;
+        /** BUG-226: deterministic seed for order_by='random' */
+        seed?: number;
     }) => {
         const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);

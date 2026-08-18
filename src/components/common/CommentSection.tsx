@@ -35,6 +35,7 @@ interface Comment {
     is_reply?: boolean;
     reply_to_username?: string | null;
     replies?: Comment[];
+    repliesLoaded?: boolean;
 }
 
 const PAGE_SIZE = 50;
@@ -56,24 +57,16 @@ function maxDepthOf(node: Comment, nodeDepth: number): number {
     return max;
 }
 
-/**
- * BUG-223: 从任意评论 id 沿 parent 链向上找到线程根 id，并返回该评论距根的深度。
- * @returns { rootId, depth } — rootId 为线程根评论 id；depth 为传入评论的深度（根=0）
- */
-function resolveThread(commentId: string, flatList: Comment[]): {rootId: string; depth: number} {
-    let current = commentId;
-    let depth = 0;
-    const seen = new Set<string>();
-    while (current && !seen.has(current)) {
-        seen.add(current);
-        const c = flatList.find(x => x.id === current);
-        if (!c) break;
-        const parentId = c.reply_to_comment_id || c.parent_id;
-        if (!parentId) break;
-        current = parentId;
-        depth += 1;
+/** 在嵌套评论树中按 id 递归查找节点 */
+function findNode(tree: Comment[], id: string): Comment | undefined {
+    for (const n of tree) {
+        if (n.id === id) return n;
+        if (n.replies && n.replies.length > 0) {
+            const f = findNode(n.replies, id);
+            if (f) return f;
+        }
     }
-    return {rootId: current, depth};
+    return undefined;
 }
 
 const CommentItem: React.FC<{
@@ -81,8 +74,7 @@ const CommentItem: React.FC<{
     depth: number;
     inheritedMaxDepth: number;
     expandedNodes: Map<string, number>;
-    toggleRoot: (id: string, targetDepth: number) => void;
-    loadNodeDeeper: (id: string, targetDepth: number) => void;
+    onToggleReplies: (id: string, targetDepth: number) => void;
     commentLikes: Map<string, CommentLikeResponse>;
     likingComments: Set<string>;
     replyingTo: {id: string; username: string} | null;
@@ -109,20 +101,22 @@ const CommentItem: React.FC<{
     userAvatar: string;
     userInitial: string;
 }> = ({
-    comment, depth, inheritedMaxDepth, expandedNodes, toggleRoot, loadNodeDeeper, commentLikes, likingComments,
+    comment, depth, inheritedMaxDepth, expandedNodes, onToggleReplies, commentLikes, likingComments,
     replyingTo, replyText, showReplyEmojiPicker, isAuthenticated, user, isSubmittingReply,
     deletingCommentId, t, navigate, onLike, onDislike, onReply, onDelete, onReport,
     onReplyTextChange, onSubmitReply, onCancelReply, onToggleEmoji, onAddEmoji,
     replyEmojiPickerRef, formatDate, userAvatar, userInitial
 }) => {
-    const hasReplies = comment.replies && comment.replies.length > 0;
+    // 回复未加载(!repliesLoaded)时也显示展开入口(点击后按 parent_id 拉取)；已加载且有回复则可收起
+    const hasReplies = (comment.replies && comment.replies.length > 0) || !comment.repliesLoaded;
+    const repliesLoaded = !!comment.repliesLoaded;
     const isRoot = depth === 0;
     // BUG-223 最终：per-node 展开深度 —— ownMaxDepth = 继承深度 或 该节点被展开的深度（0 = 未展开/收起）
     const extraDepth = expandedNodes.get(comment.id) ?? 0;
     // ROOT 收起时 inheritedMaxDepth=0（不渲染 children）；展开后继承 + extra
     const ownMaxDepth = Math.max(inheritedMaxDepth, extraDepth);
-    // children 渲染：children 深度 depth+1 ≤ ownMaxDepth
-    const childrenVisible = hasReplies && ownMaxDepth > 0 && depth + 1 <= ownMaxDepth;
+    // children 仅在该节点回复已加载且非空时渲染
+    const childrenVisible = repliesLoaded && !!comment.replies && comment.replies.length > 0 && ownMaxDepth > 0 && depth + 1 <= ownMaxDepth;
     // 该节点 children 被截断（有更深未显示）→ per-node 显示「Show more replies」
     const canLoadDeeper = hasReplies && depth + 1 > ownMaxDepth;
     // ROOT 全部展开（ownMaxDepth ≥ 线程最大深度）→ 按钮变「Hide replies」
@@ -237,7 +231,7 @@ const CommentItem: React.FC<{
                 {isRoot && hasReplies && (
                     // BUG-223 最终：ROOT 按钮 —— 收起态「Show more replies」（展开 3 层）/ 展开态「Hide replies」（收起整线程，隐藏要求不变）
                     <button
-                        onClick={() => toggleRoot(comment.id, ownMaxDepth > 0 ? 0 : MAX_VISIBLE_DEPTH)}
+                        onClick={() => onToggleReplies(comment.id, ownMaxDepth > 0 ? 0 : MAX_VISIBLE_DEPTH)}
                         className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-info font-medium transition-colors"
                     >
                         <ChevronDown className={`w-3 h-3 ${ownMaxDepth > 0 ? '' : '-rotate-90'}`}/>
@@ -251,7 +245,7 @@ const CommentItem: React.FC<{
                 {!isRoot && canLoadDeeper && (
                     // BUG-223 最终：per-node —— 该节点 children 被截断（有更深未显示），独立「Show more replies」，点击只展开该节点子树 3 层
                     <button
-                        onClick={() => loadNodeDeeper(comment.id, ownMaxDepth + DEPTH_STEP)}
+                        onClick={() => onToggleReplies(comment.id, ownMaxDepth + DEPTH_STEP)}
                         className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-info font-medium transition-colors"
                     >
                         <ChevronDown className="w-3 h-3 -rotate-90"/>
@@ -333,8 +327,7 @@ const CommentItem: React.FC<{
                             depth={depth + 1}
                             inheritedMaxDepth={ownMaxDepth}
                             expandedNodes={expandedNodes}
-                            toggleRoot={toggleRoot}
-                            loadNodeDeeper={loadNodeDeeper}
+                            onToggleReplies={onToggleReplies}
                             commentLikes={commentLikes}
                             likingComments={likingComments}
                             replyingTo={replyingTo}
@@ -424,11 +417,44 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
         return roots;
     }, []);
 
-    const fetchComments = useCallback(async (pageNum: number = 1, append: boolean = false) => {
+    const formatComment = useCallback((comment: any): Comment => ({
+        id: comment.id || '',
+        content: comment.content || comment.text || '',
+        text: comment.content || comment.text || '',
+        media_id: comment.media_id || '',
+        user_id: comment.user_id || '',
+        username: comment.username || 'Anonymous',
+        avatar: comment.avatar || '',
+        parent_id: comment.parent_id || null,
+        reply_to_comment_id: comment.reply_to_comment_id || null,
+        status: comment.status || '',
+        create_time: comment.create_time || '',
+        update_time: comment.update_time || '',
+        like_count: comment.like_count || 0,
+        is_liked: comment.is_liked || false,
+        is_reply: comment.is_reply || !!comment.reply_to_comment_id,
+        replies: [],
+        repliesLoaded: false,
+    }), []);
+
+    // 将直接回复递归插入树中对应父节点下
+    const insertReplies = useCallback((tree: Comment[], parentId: string, replies: Comment[]): Comment[] => {
+        return tree.map(node => {
+            if (node.id === parentId) {
+                return {...node, replies: [...replies], repliesLoaded: true};
+            }
+            if (node.replies && node.replies.length > 0) {
+                return {...node, replies: insertReplies(node.replies, parentId, replies)};
+            }
+            return node;
+        });
+    }, []);
+
+    // 首屏：仅加载根评论(root_only)，支持无限滚动
+    const fetchRoots = useCallback(async (pageNum: number = 1, append: boolean = false) => {
         try {
             if (!append) {
                 setLoading(true);
-                setAllFlatComments([]);
             } else {
                 setLoadingMore(true);
             }
@@ -440,61 +466,36 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
                 case 'popular': sortParams.sort_by = 'like_count'; sortParams.order = 'desc'; break;
             }
             const response = await commentApi.getAll({
-                // 四参数同传：老内容 media_id(content_id)=int64 合法；新内容 mediaId(contentId)=UUID 走 UUID 解析器
-                media_id: mediaId,
+                // 单媒体 ID：UUID 走 camelCase(mediaId)；content_id 冗余别名已移除
                 mediaId: mediaId,
-                content_id: mediaId,
-                contentId: mediaId,
+                root_only: true,
                 page: pageNum,
                 page_size: PAGE_SIZE,
                 ...sortParams,
             });
             // 返回字段兼容：老后端 {items} / 新后端 {comments}
             const commentsList = response?.items || (response as any)?.comments || [];
-            const formattedComments: Comment[] = commentsList.map((comment: any) => ({
-                id: comment.id || '',
-                content: comment.content || comment.text || '',
-                text: comment.content || comment.text || '',
-                media_id: comment.media_id || '',
-                user_id: comment.user_id || '',
-                username: comment.username || 'Anonymous',
-                avatar: comment.avatar || '',
-                parent_id: comment.parent_id || null,
-                reply_to_comment_id: comment.reply_to_comment_id || null,
-                status: comment.status || '',
-                create_time: comment.create_time || '',
-                update_time: comment.update_time || '',
-                like_count: comment.like_count || 0,
-                is_liked: comment.is_liked || false,
-                is_reply: comment.is_reply || !!comment.reply_to_comment_id,
-            }));
+            const formatted = commentsList.map(formatComment);
 
-            let accumulated: Comment[];
             if (append) {
                 const existingIds = new Set(allFlatComments.map(c => c.id));
-                accumulated = [...allFlatComments];
-                formattedComments.forEach(c => {
-                    if (!existingIds.has(c.id)) accumulated.push(c);
-                });
+                const merged = [...allFlatComments];
+                formatted.forEach(c => { if (!existingIds.has(c.id)) merged.push(c); });
+                setAllFlatComments(merged);
+                setComments(prev => [...prev, ...formatted]);
             } else {
-                accumulated = formattedComments;
+                setAllFlatComments(formatted);
+                // 后端若未部署 root_only，会返回全部(含回复)平铺列表 → 建树兜底，避免回复误渲染为根评论
+                setComments(buildTree(formatted));
             }
-            setAllFlatComments(accumulated);
-
-            const roots = buildTree(accumulated);
-            setComments(roots);
             setPage(pageNum);
             const totalCount = response?.total || 0;
             setTotal(totalCount);
-            setHasMore(accumulated.length < totalCount);
+            setHasMore((append ? comments.length : 0) + formatted.length < totalCount);
 
             const likeMap = new Map<string, CommentLikeResponse>();
-            formattedComments.forEach(c => {
-                likeMap.set(c.id, {
-                    like_count: c.like_count || 0,
-                    is_liked: c.is_liked || false,
-                    is_disliked: false,
-                });
+            formatted.forEach(c => {
+                likeMap.set(c.id, {like_count: c.like_count || 0, is_liked: c.is_liked || false, is_disliked: false});
             });
             setCommentLikes(prev => {
                 const next = new Map(prev);
@@ -508,10 +509,40 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
             if (!append) setLoading(false);
             else setLoadingMore(false);
         }
-    }, [mediaId, sortBy, allFlatComments, buildTree]);
+    }, [mediaId, sortBy, allFlatComments, comments, formatComment]);
+
+    // 懒加载：按 parent_id 拉某节点的直接回复并回填
+    const fetchReplies = useCallback(async (parentId: string) => {
+        try {
+            const sortParams: Record<string, string> = {};
+            switch (sortBy) {
+                case 'newest': sortParams.sort_by = 'create_time'; sortParams.order = 'desc'; break;
+                case 'oldest': sortParams.sort_by = 'create_time'; sortParams.order = 'asc'; break;
+                case 'popular': sortParams.sort_by = 'like_count'; sortParams.order = 'desc'; break;
+            }
+            const response = await commentApi.getAll({
+                mediaId: mediaId,
+                parent_id: parentId,
+                page: 1,
+                page_size: PAGE_SIZE,
+                ...sortParams,
+            });
+            const commentsList = response?.items || (response as any)?.comments || [];
+            const formatted = commentsList.map(formatComment);
+            setAllFlatComments(prev => {
+                const existing = new Set(prev.map(c => c.id));
+                const merged = [...prev];
+                formatted.forEach(c => { if (!existing.has(c.id)) merged.push(c); });
+                return merged;
+            });
+            setComments(prev => insertReplies(prev, parentId, formatted));
+        } catch (err) {
+            console.error('Failed to fetch replies:', err);
+        }
+    }, [mediaId, sortBy, formatComment, insertReplies]);
 
     useEffect(() => {
-        fetchComments(1, false);
+        fetchRoots(1, false);
     }, [mediaId, sortBy]);
 
     useEffect(() => {
@@ -538,7 +569,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
 
     const loadMore = () => {
         if (!hasMore || loadingMore) return;
-        fetchComments(page + 1, true);
+        fetchRoots(page + 1, true);
     };
 
     const handleSubmitComment = async () => {
@@ -551,16 +582,13 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
             setIsSubmitting(true);
             setError(null);
             await commentApi.create({
-                media_id: mediaId,
                 mediaId: mediaId,
-                content_id: mediaId,
-                contentId: mediaId,
                 content: commentText,
             });
             setCommentText('');
             setIsFocused(false);
             setShowEmojiPicker(false);
-            await fetchComments(1, false);
+            await fetchRoots(1, false);
         } catch (err: any) {
             console.error('Failed to submit comment:', err);
             setError(err.message || 'Failed to submit comment');
@@ -579,25 +607,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
             setIsSubmittingReply(true);
             setError(null);
             await commentApi.create({
-                media_id: mediaId,
                 mediaId: mediaId,
-                content_id: mediaId,
-                contentId: mediaId,
                 parent_id: replyingTo.id,
                 content: replyText
             });
             setReplyText('');
             setShowReplyEmojiPicker(false);
             setReplyingTo(null);
-            // BUG-223: 回复后展开所属线程，确保新回复可见（展开到 MAX_VISIBLE_DEPTH 或该节点自身深度+1 的较大值）
-            const {rootId, depth: replyingToDepth} = resolveThread(replyingTo.id, allFlatComments);
+            // 拉取该父评论的直接回复并展开，确保新回复可见
+            await fetchReplies(replyingTo.id);
             setExpandedNodes(prev => {
                 const next = new Map(prev);
-                const current = next.get(rootId) ?? 0;
-                next.set(rootId, Math.max(current, replyingToDepth + 1, MAX_VISIBLE_DEPTH));
+                next.set(replyingTo.id, Math.max(next.get(replyingTo.id) ?? 0, MAX_VISIBLE_DEPTH));
                 return next;
             });
-            await fetchComments(1, false);
         } catch (err: any) {
             console.error('Failed to submit reply:', err);
             setError(err.message || 'Failed to submit reply');
@@ -702,24 +725,26 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
         setShowReplyEmojiPicker(false);
     };
 
-    // BUG-223 最终：ROOT 按钮 —— targetDepth>0（Show more replies 展开/继续展开）或 =0（Hide replies 收起）
-    const toggleRoot = (rootId: string, targetDepth: number) => {
-        setExpandedNodes(prev => {
-            const next = new Map(prev);
-            if (targetDepth <= 0) next.delete(rootId);
-            else next.set(rootId, targetDepth);
-            return next;
-        });
-    };
-
-    // per-node：展开该节点子树 DEPTH_STEP 层
-    const loadNodeDeeper = (nodeId: string, targetDepth: number) => {
+    // 展开/收起某节点的回复：未加载则先按 parent_id 拉取回填（懒加载）
+    const onToggleReplies = useCallback(async (nodeId: string, targetDepth: number) => {
+        if (targetDepth <= 0) {
+            setExpandedNodes(prev => {
+                const next = new Map(prev);
+                next.delete(nodeId);
+                return next;
+            });
+            return;
+        }
+        const node = findNode(comments, nodeId);
+        if (!node || !node.repliesLoaded) {
+            await fetchReplies(nodeId);
+        }
         setExpandedNodes(prev => {
             const next = new Map(prev);
             next.set(nodeId, targetDepth);
             return next;
         });
-    };
+    }, [comments, fetchReplies]);
 
     const handleReply = (id: string, username: string) => {
         setReplyingTo(prev => prev?.id === id ? null : {id, username});
@@ -744,7 +769,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
         return (
             <div className="py-8 text-center text-destructive">
                 <p>{error}</p>
-                <Button variant="ghost" size="sm" onClick={() => fetchComments(1, false)} className="mt-2">
+                <Button variant="ghost" size="sm" onClick={() => fetchRoots(1, false)} className="mt-2">
                     {t('common.retry', 'Retry')}
                 </Button>
             </div>
@@ -881,8 +906,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({mediaId, onCommentCountC
                             depth={0}
                             inheritedMaxDepth={0}
                             expandedNodes={expandedNodes}
-                            toggleRoot={toggleRoot}
-                            loadNodeDeeper={loadNodeDeeper}
+                            onToggleReplies={onToggleReplies}
                             commentLikes={commentLikes}
                             likingComments={likingComments}
                             replyingTo={replyingTo}

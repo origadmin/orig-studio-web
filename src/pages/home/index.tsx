@@ -124,6 +124,27 @@ const adaptiveCols = (count: number, natural: number) => {
     return natural;
 };
 
+// BUG-226: 首页"一行几列"的全局唯一真相源。只在页面容器上挂一个 ResizeObserver，
+// 所有横向行共用同一 cols，消除各 AutoFitRow 各自测宽导致列不一致（半行/翻页错位/按钮穿透根因）。
+const useAutoFitCols = (ref: React.RefObject<HTMLElement | null>): number => {
+    const [cols, setCols] = React.useState(MAX_ROW_COLS);
+    React.useLayoutEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const update = () => {
+            const w = el.clientWidth;
+            setCols(w > 0
+                ? Math.min(MAX_ROW_COLS, Math.max(1, Math.floor((w + HSCROLL_GAP) / (TARGET_CARD + HSCROLL_GAP))))
+                : MAX_ROW_COLS);
+        };
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [ref]);
+    return cols;
+};
+
 /**
  * BUG-191(v2)：顶部横向滑动行改为"按视口铺满"的自适应布局。
  * - 测量容器宽度，按 cols = clamp(floor((w+gap)/(TARGET+gap)), 1, MAX_ROW_COLS) 推算自然列数；
@@ -134,7 +155,9 @@ const AutoFitRow: React.FC<{
     children: (cardWidth: number, cols: number) => React.ReactNode;
     buttonOffset?: number | 'thumb';
     count?: number;
-}> = ({children, buttonOffset = 'thumb', count}) => {
+    cols?: number; // BUG-226: 全局列真相源（由 HomePage 传入），缺省时自行测宽
+    pageMode?: boolean; // BUG-226: 整屏翻页箭头；为您推荐用「换一批」故传 false
+}> = ({children, buttonOffset = 'thumb', count, cols: forcedCols, pageMode = true}) => {
     const ref = useRef<HTMLDivElement>(null);
     const [w, setW] = React.useState(0);
     React.useLayoutEffect(() => {
@@ -149,19 +172,23 @@ const AutoFitRow: React.FC<{
     const naturalCols = w > 0
         ? Math.min(MAX_ROW_COLS, Math.max(1, Math.floor((w + HSCROLL_GAP) / (TARGET_CARD + HSCROLL_GAP))))
         : MAX_ROW_COLS;
-    const cols = count != null ? adaptiveCols(count, naturalCols) : naturalCols;
-    const cardWidth = w > 0 ? (w - (cols - 1) * HSCROLL_GAP) / cols : TARGET_CARD;
+    const cols = forcedCols != null ? forcedCols : (count != null ? adaptiveCols(count, naturalCols) : naturalCols);
+    // BUG-229(G3.2): 卡片宽收口到可见轨宽，杜绝 cols(页面级 globalCols) 与 w(自身测宽)
+    // 两个 ResizeObserver resize 不同步时算出 cardWidth > 轨宽、被 overflow-x-hidden 裁（瞬态截断）。
+    const cardWidth = w > 0
+        ? Math.min((w - (cols - 1) * HSCROLL_GAP) / cols, w)
+        : TARGET_CARD;
     const offset = buttonOffset === 'thumb' ? (cardWidth * 9 / 16) / 2 : buttonOffset;
     return (
         <div ref={ref} className="w-full" data-autofit-row="true" data-autofit-cols={cols}>
-            <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP} pageMode>
+            <HorizontalScroll buttonOffset={offset} scrollStep={cardWidth + HSCROLL_GAP} pageMode={pageMode}>
                 {children(cardWidth, cols)}
             </HorizontalScroll>
         </div>
     );
 };
 
-const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}}> = ({placement}) => {
+const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[]}; cols: number}> = ({placement, cols}) => {
     const {t} = useTranslation();
     const hasAds = placement.ads && placement.ads.length > 0;
     if (!hasAds) return null;
@@ -173,7 +200,7 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
                     {t('ad.sponsoredContent', '赞助推荐')}
                 </h2>
             </div>
-            <AutoFitRow count={placement.ads.length}>{(cw, cols) => placement.ads.map((ad) => (
+            <AutoFitRow count={placement.ads.length} cols={cols}>{(cw, c) => placement.ads.map((ad) => (
                 <div key={ad.id} style={{width: cw}}>
                     <AdDisplay ad={ad} variant="card"/>
                 </div>
@@ -184,6 +211,9 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
 
 const HomePage = () => {
     const {t, i18n} = useTranslation();
+    const containerRef = useRef<HTMLDivElement>(null);
+    // BUG-226: 全局列真相源——整页只测一次宽，所有横向行共用。
+    const globalCols = useAutoFitCols(containerRef);
 
     // BUG-226(翻页修正)：拉满 30 条，保证最大宽度 6 列下也能整屏翻 5 页。
     const {data: featuredData} = useMediaList({
@@ -193,18 +223,14 @@ const HomePage = () => {
     });
     const featuredVideos = featuredData?.items || [];
 
-    // BUG-226(翻页修正)：拉满 30 条并取消切片到 12 的限制，让整屏翻页有足够内容。
-    const {data: recommendData} = useMediaList({page: 1, page_size: 30});
-    const [recoSeed, setRecoSeed] = useState(0);
-    const recommendVideos = useMemo<Media[]>(() => {
-        const pool = recommendData?.items || [];
-        const arr = pool.slice();
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr.slice(0, 30);
-    }, [recommendData?.items, recoSeed]);
+    // BUG-226(换一批=后端 seed 随机)：传 order_by=random&seed，后端按种子做确定性洗牌；
+    // 点「换一批」换新 seed → 全新一批；复用 seed → 同批（同行集下一致、跨连接成立）。
+    // 模块内无翻页 UI（翻页只服务 featured/latest/trending 固定有序列表）。
+    const [recoSeed, setRecoSeed] = useState<number>(() => Math.floor(Math.random() * 2147483647) + 1);
+    // BUG-226/228: 为您推荐 = 顶部单行横向轨道（与精选推荐/热门/最新同族），用「换一批」(seed 随机)
+    // 替换翻页；不挂 pageMode 左右箭头，加载一整行（globalCols 列，贴合「显示一行」规范）。
+    const {data: recommendData} = useMediaList({page: 1, page_size: globalCols, order_by: 'random', seed: recoSeed});
+    const recommendVideos = recommendData?.items || [];
 
     const {data: portalConfig} = usePortalConfig();
     const activeBanners = (portalConfig?.banners || []).filter((b) => b.is_active);
@@ -348,7 +374,7 @@ const HomePage = () => {
                 </section>
             )}
 
-            <div className="w-full space-y-8">
+            <div ref={containerRef} className="w-full space-y-8">
                 {featuredVideos.length > 0 && (
                     <section>
                         <div className="flex items-center justify-between mb-3">
@@ -357,7 +383,7 @@ const HomePage = () => {
                                 {t('home.featuredVideos', '精选推荐')}
                             </h2>
                         </div>
-                        <AutoFitRow count={featuredVideos.length}>{(cw, cols) => featuredVideos.map((media: Media) => (
+                        <AutoFitRow count={featuredVideos.length} cols={globalCols}>{(cw, cols) => featuredVideos.map((media: Media) => (
                             <div key={media.id} style={{width: cw}}>
                                 <VideoCard media={media} size="md"/>
                             </div>
@@ -381,11 +407,14 @@ const HomePage = () => {
                                 {t('home.refresh', '换一批')}
                             </button>
                         </div>
-                        <AutoFitRow count={recommendVideos.length}>{(cw, cols) => recommendVideos.map((media: Media) => (
-                            <div key={media.id} style={{width: cw}}>
-                                <VideoCard media={media} size="md"/>
-                            </div>
-                        ))}</AutoFitRow>
+                        {/* BUG-226/228: 为您推荐 = 单行横向轨道，换一批随机整批替换，不挂左右翻页箭头 */}
+                        <AutoFitRow count={recommendVideos.length} cols={globalCols} pageMode={false}>
+                            {(cw, cols) => recommendVideos.map((media: Media) => (
+                                <div key={media.id} style={{width: cw}}>
+                                    <VideoCard media={media} size="md"/>
+                                </div>
+                            ))}
+                        </AutoFitRow>
                     </section>
                 )}
 
@@ -393,6 +422,7 @@ const HomePage = () => {
                     <AdCardSection
                         key={section.name}
                         placement={{name: section.name, ads: section.ads}}
+                        cols={globalCols}
                     />
                 ))}
 

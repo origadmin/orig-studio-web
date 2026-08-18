@@ -11,12 +11,13 @@ import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
-import {AlertTriangle, ArrowLeft, Play, Pencil} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, Play, Pencil, Upload} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl} from '@/lib/utils';
 import {buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {useQueryClient} from '@tanstack/react-query';
+import {settingsApi} from '@/lib/api/system';
 
 /**
  * Normalize privacy value from backend to a numeric enum value.
@@ -47,6 +48,7 @@ function normalizePrivacy(value: unknown): number {
 
 const STATE_BADGE_MAP: Record<string, { variant: HeaderBadgeConfig['variant'] }> = {
     active: {variant: 'default'},
+    pending_review: {variant: 'secondary'},
     draft: {variant: 'secondary'},
     deleted: {variant: 'destructive'},
 };
@@ -62,6 +64,7 @@ function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): Hea
     });
 
     const stateLabel = media.state === 'active' ? t('admin.publishedStatus', 'Published')
+        : media.state === 'pending_review' ? t('mediaEdit.pendingReview', 'Pending Review')
         : media.state === 'draft' ? t('admin.draftStatus', 'Draft')
         : media.state === 'deleted' ? t('admin.deletedStatus', 'Deleted')
         : media.state;
@@ -124,6 +127,21 @@ export default function MediaEditPage() {
     const [isDeleting, setIsDeleting] = useState(false);
     const {saveState, isSaving, setSaving, setSuccess, setError} = useSaveState();
     const queryClient = useQueryClient();
+
+    // BUG-139: platform feature modes (comments/downloads) control per-media toggle
+    // visibility. `disabled` → MediaEditForm disables the toggle (override 强制关停).
+    const [featureModes, setFeatureModes] = useState<{comments_mode?: string; downloads_mode?: string}>({});
+    useEffect(() => {
+        let cancelled = false;
+        settingsApi.get()
+            .then((res) => {
+                if (cancelled) return;
+                const s = (res as any)?.settings || {};
+                setFeatureModes({comments_mode: s.comments_mode, downloads_mode: s.downloads_mode});
+            })
+            .catch(() => {/* settings unavailable — toggles stay enabled */});
+        return () => { cancelled = true; };
+    }, []);
 
     useEffect(() => {
         if (media) {
@@ -193,6 +211,42 @@ export default function MediaEditPage() {
             toast.error(`${t('mediaEdit.saveFailed', 'Save failed')}: ${err?.message || t('common.unknownError', 'Unknown error')}`);
         }
     }, [shortToken, isSaving, form, isAdmin, updateMutation, setSaving, setSuccess, setError, resetDirty, syncFromData, categoriesData]);
+
+    // BUG-138: dedicated publish action for normal users. Submits the draft for
+    // review (draft -> pending_review). The backend enforces the encoding guard and
+    // review flow in MediaService.UpdateMedia -> PublishMedia.
+    const handlePublish = useCallback(async () => {
+        if (!shortToken || isSaving) return;
+        setSaving();
+        try {
+            const categoriesList = (categoriesData as any)?.items ?? [];
+            const videoRootId = buildCategoryTree(categoriesList).find(n => n.slug === VIDEO_ROOT_SLUG)?.id;
+            const resolvedCategoryId = form.category_id !== '' && form.category_id !== undefined
+                ? Number(form.category_id)
+                : (videoRootId ?? undefined);
+            await updateMutation.mutateAsync({
+                shortToken,
+                data: {
+                    title: form.title,
+                    description: form.description,
+                    category_id: resolvedCategoryId,
+                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : '',
+                    tags: parseTagsInput(form.tags),
+                    privacy: form.privacy,
+                    state: 'pending_review',
+                    enable_comments: form.enable_comments,
+                    allow_download: form.allow_download,
+                },
+                // AIP-134 mask: include 'state' so the backend treats this as a publish transition.
+                update_mask: ['title', 'description', 'categoryId', 'channelId', 'tags', 'privacy', 'state', 'enableComments', 'allowDownload'],
+            });
+            setSuccess();
+            toast.success(t('mediaEdit.submittedForReview', 'Submitted for review'));
+        } catch (err: any) {
+            setError();
+            toast.error(`${t('mediaEdit.publishFailed', 'Publish failed')}: ${err?.message || t('common.unknownError', 'Unknown error')}`);
+        }
+    }, [shortToken, isSaving, form, updateMutation, setSaving, setSuccess, setError, categoriesData]);
 
     const handleDelete = useCallback(async () => {
         if (!media?.id) return;
@@ -299,11 +353,30 @@ export default function MediaEditPage() {
                                 channels={channels}
                                 isAdmin={isAdmin}
                                 showAdminOnlyFields={false}
+                                featureModes={featureModes}
                             />
                         </div>
                     </div>
 
                     <div className="space-y-6">
+                        {!isAdmin && isOwner && media.state === 'draft' && (
+                            <div className="bg-card rounded-lg border p-4 space-y-3">
+                                <h3 className="font-medium">{t('mediaEdit.publish', 'Publish')}</h3>
+                                <p className="text-xs text-muted-foreground">
+                                    {media.encoding_status === 'success'
+                                        ? t('mediaEdit.publishHint', 'Submit this video for review. It goes live after admin approval.')
+                                        : t('mediaEdit.publishEncoding', 'Publishing is available once transcoding finishes.')}
+                                </p>
+                                <Button
+                                    className="w-full"
+                                    disabled={media.encoding_status !== 'success' || isSaving}
+                                    onClick={handlePublish}
+                                >
+                                    <Upload className="w-4 h-4 mr-2"/>
+                                    {t('mediaEdit.submitForReview', 'Submit for Review')}
+                                </Button>
+                            </div>
+                        )}
                         <div className="bg-card rounded-lg border p-4">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="font-medium">{t('mediaEdit.preview', 'Preview')}</h3>

@@ -34,9 +34,12 @@ interface MediaEditFormProps {
     isAdmin: boolean;
     /** Whether to show admin-only fields (featured, listable). Portal should pass false even for admin users. */
     showAdminOnlyFields?: boolean;
+    /** BUG-139: platform feature modes (disabled | opt_in | opt_out) from settings —
+     *  `disabled` disables the corresponding per-media toggle (override 强制关停). */
+    featureModes?: {comments_mode?: string; downloads_mode?: string};
 }
 
-export function MediaEditForm({form, setForm, media, categories, channels = [], isAdmin, showAdminOnlyFields = true}: MediaEditFormProps) {
+export function MediaEditForm({form, setForm, media, categories, channels = [], isAdmin, showAdminOnlyFields = true, featureModes = {}}: MediaEditFormProps) {
     const {t} = useTranslation();
     const categoriesList = (categories as any)?.items
         ? (categories as any).items
@@ -207,12 +210,19 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
                         type="checkbox"
                         id="enable_comments"
                         checked={form.enable_comments}
+                        disabled={featureModes.comments_mode === 'disabled'}
                         onChange={e => setForm({...form, enable_comments: e.target.checked})}
-                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <div>
-                        <Label htmlFor="enable_comments" className="cursor-pointer">{t('media.editForm.allowComments', 'Allow Comments')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('media.editForm.allowCommentsDesc', 'Users can leave comments')}</p>
+                        <Label htmlFor="enable_comments" className={featureModes.comments_mode === 'disabled' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}>
+                            {t('media.editForm.allowComments', 'Allow Comments')}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            {featureModes.comments_mode === 'disabled'
+                                ? t('media.editForm.commentsDisabledByPlatform', 'Comments are disabled platform-wide')
+                                : t('media.editForm.allowCommentsDesc', 'Users can leave comments')}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -220,12 +230,19 @@ export function MediaEditForm({form, setForm, media, categories, channels = [], 
                         type="checkbox"
                         id="allow_download"
                         checked={form.allow_download}
+                        disabled={featureModes.downloads_mode === 'disabled'}
                         onChange={e => setForm({...form, allow_download: e.target.checked})}
-                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                     />
                     <div>
-                        <Label htmlFor="allow_download" className="cursor-pointer">{t('media.editForm.allowDownload', 'Allow Download')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('media.editForm.allowDownloadDesc', 'Users can download the original file')}</p>
+                        <Label htmlFor="allow_download" className={featureModes.downloads_mode === 'disabled' ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}>
+                            {t('media.editForm.allowDownload', 'Allow Download')}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                            {featureModes.downloads_mode === 'disabled'
+                                ? t('media.editForm.downloadsDisabledByPlatform', 'Downloads are disabled platform-wide')
+                                : t('media.editForm.allowDownloadDesc', 'Users can download the original file')}
+                        </p>
                     </div>
                 </div>
             </div>

@@ -100,6 +100,10 @@ interface FormData {
     thumbnail_position: string;
     auto_approve: string;
     require_review: string;
+    review_mode: string;
+    // BUG-139: platform feature modes (enum: disabled | opt_in | opt_out)
+    comments_mode: string;
+    downloads_mode: string;
     smtp_host: string;
     smtp_port: string;
     smtp_user: string;
@@ -185,6 +189,10 @@ const defaultFormData: FormData = {
     thumbnail_position: '00:00:01',
     auto_approve: 'true',
     require_review: 'false',
+    review_mode: 'manual',
+    // BUG-139 defaults: comments opt_out (on by default), downloads opt_in (off by default)
+    comments_mode: 'opt_out',
+    downloads_mode: 'opt_in',
     smtp_host: '',
     smtp_port: '587',
     smtp_user: '',
@@ -318,6 +326,9 @@ const Settings: React.FC = () => {
                 thumbnail_position: getVal('thumbnail_position') || prev.thumbnail_position,
                 auto_approve: getVal('auto_approve') || prev.auto_approve,
                 require_review: getVal('require_review') || prev.require_review,
+                review_mode: getVal('review_mode') || prev.review_mode,
+                comments_mode: getVal('comments_mode') || prev.comments_mode,
+                downloads_mode: getVal('downloads_mode') || prev.downloads_mode,
                 smtp_host: getVal('smtp_host') || prev.smtp_host,
                 smtp_port: getVal('smtp_port') || prev.smtp_port,
                 smtp_user: getVal('smtp_user') || prev.smtp_user,
@@ -470,6 +481,9 @@ const Settings: React.FC = () => {
                 thumbnail_position: formData.thumbnail_position,
                 auto_approve: formData.auto_approve,
                 require_review: formData.require_review,
+                review_mode: formData.review_mode,
+                comments_mode: formData.comments_mode,
+                downloads_mode: formData.downloads_mode,
                 smtp_host: formData.smtp_host,
                 smtp_port: formData.smtp_port,
                 smtp_user: formData.smtp_user,
@@ -1098,6 +1112,81 @@ const Settings: React.FC = () => {
                                                 onChange={(e) => handleInputChange('sprite_columns', e.target.value)}
                                             />
                                         </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Content Review Mode (BUG-138 G5 clause 1) */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Content Review Mode</CardTitle>
+                                    <CardDescription>
+                                        Default <code className="font-mono">manual</code> — every publish enters pending review and requires admin approval before it goes live.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Review Strategy</Label>
+                                        <Select
+                                            value={formData.review_mode}
+                                            onValueChange={(value) => handleInputChange('review_mode', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select review mode"/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="manual">Manual — require admin review</SelectItem>
+                                                <SelectItem value="auto_approve">Auto Approve — publish immediately</SelectItem>
+                                                <SelectItem value="skip">Skip Review — publish directly</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            N-day timeout strategies (auto-approve / auto-reject after N days) are defined in the spec but not enabled in this release.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Content Feature Modes (BUG-139 G5) — platform comments/download switches */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Content Feature Modes</CardTitle>
+                                    <CardDescription>
+                                        Platform-level switches for comments &amp; download on every media. <code className="font-mono">disabled</code> = force off for ALL media (incl. published); <code className="font-mono">opt_in</code> = off by default; <code className="font-mono">opt_out</code> = on by default.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Comments Mode</Label>
+                                        <Select
+                                            value={formData.comments_mode}
+                                            onValueChange={(value) => handleInputChange('comments_mode', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select comments mode"/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="opt_out">Opt-out — enabled by default</SelectItem>
+                                                <SelectItem value="opt_in">Opt-in — disabled by default</SelectItem>
+                                                <SelectItem value="disabled">Disabled — force off for all media</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Downloads Mode</Label>
+                                        <Select
+                                            value={formData.downloads_mode}
+                                            onValueChange={(value) => handleInputChange('downloads_mode', value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select downloads mode"/>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="opt_out">Opt-out — enabled by default</SelectItem>
+                                                <SelectItem value="opt_in">Opt-in — disabled by default</SelectItem>
+                                                <SelectItem value="disabled">Disabled — force off for all media</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </CardContent>
                             </Card>
