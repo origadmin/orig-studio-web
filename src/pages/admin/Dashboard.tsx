@@ -55,7 +55,7 @@ const Dashboard = () => {
     }
 
     const stats: DashboardStats = data || {
-        total_media: 0,
+        total_medias: 0,
         total_users: 0,
         total_views: 0,
         total_comments: 0,
@@ -86,7 +86,7 @@ const Dashboard = () => {
         return num.toString();
     };
 
-    const mediaTypeTotal = stats.media_by_type?.video + stats.media_by_type?.image + stats.media_by_type?.audio + stats.media_by_type?.other || 1;
+    const mediaTypeTotal = (stats.media_by_type?.video || 0) + (stats.media_by_type?.image || 0) + (stats.media_by_type?.audio || 0) + (stats.media_by_type?.other || 0) || 1;
     const usersTotal = stats.total_users || 1;
 
     const pageActions = (
@@ -122,7 +122,7 @@ const Dashboard = () => {
                                         {t('admin.totalMedia', '媒体总数')}
                                     </p>
                                     <h3 className="text-2xl font-semibold tabular-nums text-foreground mt-1">
-                                        {formatNumber(stats.total_media)}
+                                        {formatNumber(stats.total_medias)}
                                     </h3>
                                 </div>
                                 <span className="text-xs font-mono text-success flex items-center gap-1">
@@ -216,7 +216,7 @@ const Dashboard = () => {
                                 </svg>
                                 <div className="absolute flex flex-col items-center">
                                     <span className="text-2xl font-bold text-foreground">
-                                        {formatNumber(stats.total_media)}
+                                        {formatNumber(stats.total_medias)}
                                     </span>
                                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                                         {t('admin.items', '项')}
