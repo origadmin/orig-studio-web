@@ -573,6 +573,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/live-rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LiveService_ListLiveRooms"];
+        put?: never;
+        post: operations["LiveService_CreateLiveRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/live-rooms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LiveService_GetLiveRoom"];
+        put: operations["LiveService_UpdateLiveRoom"];
+        post?: never;
+        delete: operations["LiveService_DeleteLiveRoom"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/live-rooms/{id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LiveService_EndLiveRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/live-rooms/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["LiveService_StartLiveRoom"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/medias": {
         parameters: {
             query?: never;
@@ -705,6 +769,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/medias/{id}/regen-thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminMediaService_RegenerateThumbnail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/medias/{id}/regenerate-sprite": {
         parameters: {
             query?: never;
@@ -715,22 +795,6 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdminMediaService_RegenerateSprite"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/medias/{id}/regenerate-thumbnail": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AdminMediaService_RegenerateThumbnail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -763,6 +827,23 @@ export interface paths {
         get: operations["AdminMediaService_GetMediaReviewLogs"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/set-thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Admin cover selection from sprite sheet (uuid; admin scope). */
+        post: operations["AdminMediaService_SetThumbnail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -827,6 +908,23 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdminMediaService_RetryAdminMediaTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/medias/{id}/thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Admin get thumbnail URL (uuid; admin scope). */
+        get: operations["AdminMediaService_GetAdminThumbnail"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1300,6 +1398,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/stats/promotion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminService_GetPromotionStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/stats/revenue": {
         parameters: {
             query?: never;
@@ -1441,7 +1555,8 @@ export interface paths {
         delete: operations["AdminTagService_DeleteAdminTag"];
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description PatchAdminTag partially updates a tag (admin). */
+        patch: operations["AdminTagService_PatchAdminTag"];
         trace?: never;
     };
     "/api/v1/admin/tenants": {
@@ -2498,6 +2613,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live-rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LiveService_ListPublicLiveRooms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/live-rooms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LiveService_GetPublicLiveRoom"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me": {
         parameters: {
             query?: never;
@@ -2648,6 +2795,40 @@ export interface paths {
         get: operations["UserService_GetMyLikes"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/medias/{token}/regen-thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner/portal cover regeneration (short_token; uuid never exposed to client). */
+        post: operations["MediaService_OwnerRegenerateThumbnail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/medias/{token}/set-thumbnail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Owner/portal cover selection from sprite sheet (short_token). */
+        post: operations["MediaService_OwnerSetThumbnail"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3741,54 +3922,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/stats/dashboard": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["SystemStatsService_GetPublicDashboardStats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/stats/media": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["SystemStatsService_GetPublicMediaStats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/stats/user": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["SystemStatsService_GetPublicUserStats"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/subscriptions/videos": {
         parameters: {
             query?: never;
@@ -3978,6 +4111,26 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["TagService_DeleteTag"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tags/{slug}/medias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description ListTagMedias returns the medias linked to a tag through the
+         *      content_media_tags M2M pivot (tag-first browsing, powers /tag/{slug}).
+         */
+        get: operations["TagService_ListTagMedias"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4338,6 +4491,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/usernames/{username}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GetUserByUsername returns a user by username. */
+        get: operations["UserService_GetUserByUsername"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -4345,8 +4515,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description GetUserByUsername returns a user by username (query parameter). */
-        get: operations["UserService_GetUserByUsername"];
+        /** @description ListUsers returns a list of users. */
+        get: operations["UserService_ListUsers"];
         put?: never;
         /** @description CreateUser creates a new user. */
         post: operations["UserService_CreateUser"];
@@ -5037,11 +5207,6 @@ export interface components {
             end_at?: string;
             /** Format: int32 */
             auto_slide_interval?: number;
-            type?: string;
-            /** Format: int32 */
-            count?: number;
-            category_id?: string;
-            display_mode?: string;
             link_url?: string;
             link_target?: string;
             /** Format: int32 */
@@ -5227,6 +5392,120 @@ export interface components {
         "api.v1.services.content.UpdateNavItemResponse": {
             item?: components["schemas"]["api.v1.services.content.PortalNavItem"];
         };
+        "api.v1.services.live.CreateLiveRoomRequest": {
+            title?: string;
+            description?: string;
+            rtmp_url?: string;
+            hls_url?: string;
+            /** Format: int32 */
+            max_viewers?: number;
+            thumbnail?: string;
+            category?: string;
+            tags?: string[];
+            user_id?: string;
+            /** Format: date-time */
+            scheduled_at?: string;
+        };
+        "api.v1.services.live.CreateLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.LiveRoom"];
+        };
+        "api.v1.services.live.EndLiveRoomRequest": {
+            id?: string;
+        };
+        "api.v1.services.live.EndLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.LiveRoom"];
+        };
+        "api.v1.services.live.GetLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.LiveRoom"];
+        };
+        "api.v1.services.live.GetPublicLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.PublicLiveRoom"];
+        };
+        "api.v1.services.live.ListLiveRoomsResponse": {
+            items?: components["schemas"]["api.v1.services.live.LiveRoom"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.live.ListPublicLiveRoomsResponse": {
+            items?: components["schemas"]["api.v1.services.live.PublicLiveRoom"][];
+            /** Format: int32 */
+            total?: number;
+        };
+        "api.v1.services.live.LiveRoom": {
+            id?: string;
+            title?: string;
+            description?: string;
+            stream_key?: string;
+            rtmp_url?: string;
+            hls_url?: string;
+            /** Format: enum */
+            status?: number;
+            /** Format: date-time */
+            scheduled_at?: string;
+            /** Format: date-time */
+            started_at?: string;
+            /** Format: date-time */
+            ended_at?: string;
+            /** Format: int32 */
+            max_viewers?: number;
+            /** Format: int32 */
+            current_viewers?: number;
+            /** Format: int32 */
+            peak_viewers?: number;
+            thumbnail?: string;
+            category?: string;
+            tags?: string[];
+            user_id?: string;
+            /** Format: date-time */
+            create_time?: string;
+            /** Format: date-time */
+            update_time?: string;
+        };
+        "api.v1.services.live.PublicLiveRoom": {
+            id?: string;
+            title?: string;
+            description?: string;
+            hls_url?: string;
+            /** Format: enum */
+            status?: number;
+            /** Format: date-time */
+            scheduled_at?: string;
+            /** Format: date-time */
+            started_at?: string;
+            /** Format: int32 */
+            current_viewers?: number;
+            /** Format: int32 */
+            peak_viewers?: number;
+            thumbnail?: string;
+            category?: string;
+            tags?: string[];
+            user_id?: string;
+            /** Format: date-time */
+            create_time?: string;
+        };
+        "api.v1.services.live.StartLiveRoomRequest": {
+            id?: string;
+        };
+        "api.v1.services.live.StartLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.LiveRoom"];
+        };
+        "api.v1.services.live.UpdateLiveRoomRequest": {
+            id?: string;
+            title?: string;
+            description?: string;
+            rtmp_url?: string;
+            hls_url?: string;
+            /** Format: int32 */
+            max_viewers?: number;
+            thumbnail?: string;
+            category?: string;
+            tags?: string[];
+            /** Format: date-time */
+            scheduled_at?: string;
+        };
+        "api.v1.services.live.UpdateLiveRoomResponse": {
+            room?: components["schemas"]["api.v1.services.live.LiveRoom"];
+        };
         "api.v1.services.media.AbortMultipartUploadRequest": {
             upload_id?: string;
             key?: string;
@@ -5383,6 +5662,8 @@ export interface components {
             category_id?: string;
             tags?: string[];
             sha256?: string;
+            channel_id?: string;
+            thumbnail?: string;
         };
         "api.v1.services.media.CompleteMultipartUploadResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
@@ -5429,6 +5710,11 @@ export interface components {
             slug?: string;
             description?: string;
             parent_id?: string;
+            thumbnail?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            order?: number;
         };
         "api.v1.services.media.CreateAdminCategoryResponse": {
             category?: components["schemas"]["api.v1.services.types.Category"];
@@ -5456,6 +5742,7 @@ export interface components {
             slug?: string;
             description?: string;
             color?: string;
+            status?: string;
         };
         "api.v1.services.media.CreateAdminTagResponse": {
             tag?: components["schemas"]["api.v1.services.types.Tag"];
@@ -5672,6 +5959,9 @@ export interface components {
         "api.v1.services.media.GetAdminTagResponse": {
             tag?: components["schemas"]["api.v1.services.types.Tag"];
         };
+        "api.v1.services.media.GetAdminThumbnailResponse": {
+            thumbnail_url?: string;
+        };
         "api.v1.services.media.GetAdminUserPermissionsResponse": {
             permissions?: string[];
             roles?: string[];
@@ -5724,6 +6014,8 @@ export interface components {
         };
         "api.v1.services.media.GetChannelSubscriptionResponse": {
             is_subscribed?: boolean;
+            /** @description BUG-198: 订阅者通知偏好 all/personalized/none，由 UpdateChannelNotification 落库。 */
+            notification_preference?: string;
         };
         "api.v1.services.media.GetChannelVideosResponse": {
             /** Format: int32 */
@@ -5920,8 +6212,7 @@ export interface components {
             /** Format: int32 */
             total_views?: number;
             daily_stats?: components["schemas"]["api.v1.services.types.StatPoint"][];
-            /** Format: int64 */
-            storage_used?: number;
+            storage_used?: string;
         };
         "api.v1.services.media.GetMediaStreamResponse": {
             stream_url?: string;
@@ -5989,33 +6280,29 @@ export interface components {
             logo_url?: string;
             favicon_url?: string;
         };
+        "api.v1.services.media.GetPromotionStatsResponse": {
+            /** Format: int32 */
+            total_channels?: number;
+            /** Format: int32 */
+            active_channels?: number;
+            /** Format: int32 */
+            total_subscriptions?: number;
+            /** Format: int32 */
+            active_subscriptions?: number;
+            /** Format: int32 */
+            sent_today?: number;
+            /** Format: int32 */
+            total_logs?: number;
+            /** Format: int32 */
+            total_tasks?: number;
+            /** Format: int32 */
+            total_templates?: number;
+        };
         "api.v1.services.media.GetPublicConfigResponse": {
             site_name?: string;
             site_description?: string;
             allow_registration?: boolean;
             allow_upload?: boolean;
-        };
-        "api.v1.services.media.GetPublicDashboardStatsResponse": {
-            /** Format: int32 */
-            total_users?: number;
-            /** Format: int32 */
-            total_media?: number;
-            /** Format: int32 */
-            total_views?: number;
-            /** Format: int32 */
-            total_comments?: number;
-        };
-        "api.v1.services.media.GetPublicMediaStatsResponse": {
-            /** Format: int32 */
-            total_uploads?: number;
-            /** Format: int32 */
-            total_views?: number;
-        };
-        "api.v1.services.media.GetPublicUserStatsResponse": {
-            /** Format: int32 */
-            total_users?: number;
-            /** Format: int32 */
-            active_users?: number;
         };
         "api.v1.services.media.GetRevenueStatsResponse": {
             total_revenue?: string;
@@ -6167,6 +6454,8 @@ export interface components {
             description?: string;
             category_id?: string;
             tags?: string[];
+            channel_id?: string;
+            thumbnail?: string;
         };
         "api.v1.services.media.InitiateMultipartUploadResponse": {
             upload_id?: string;
@@ -6418,6 +6707,22 @@ export interface components {
         "api.v1.services.media.ListSubtitleLanguagesResponse": {
             languages?: string[];
         };
+        "api.v1.services.media.ListTagMediasResponse": {
+            /** Format: int32 */
+            total?: number;
+            items?: components["schemas"]["api.v1.services.types.Media"][];
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            page_size?: number;
+            /** Format: int32 */
+            total_pages?: number;
+            /**
+             * @description tag echoes the resolved tag so the page header can render without a
+             *      second round-trip to GET /api/v1/tags/{slug}.
+             */
+            tag?: components["schemas"]["api.v1.services.types.Tag"];
+        };
         "api.v1.services.media.ListTagsResponse": {
             /** Format: int32 */
             total?: number;
@@ -6454,6 +6759,22 @@ export interface components {
             is_active?: boolean;
             parent_id?: string;
         };
+        "api.v1.services.media.OwnerRegenerateThumbnailRequest": {
+            token?: string;
+            /** Format: double */
+            thumbnail_time?: number;
+        };
+        "api.v1.services.media.OwnerRegenerateThumbnailResponse": {
+            success?: boolean;
+            thumbnail_url?: string;
+        };
+        "api.v1.services.media.OwnerSetThumbnailRequest": {
+            token?: string;
+            use_sprite_sheet?: boolean;
+        };
+        "api.v1.services.media.OwnerSetThumbnailResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.PageInfo": {
             id?: string;
             title?: string;
@@ -6475,9 +6796,25 @@ export interface components {
             parent_id?: string;
             /** Format: int32 */
             status?: number;
+            thumbnail?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            order?: number;
         };
         "api.v1.services.media.PatchAdminCategoryResponse": {
             category?: components["schemas"]["api.v1.services.types.Category"];
+        };
+        "api.v1.services.media.PatchAdminTagRequest": {
+            id?: string;
+            name?: string;
+            slug?: string;
+            description?: string;
+            color?: string;
+            status?: string;
+        };
+        "api.v1.services.media.PatchAdminTagResponse": {
+            tag?: components["schemas"]["api.v1.services.types.Tag"];
         };
         "api.v1.services.media.PermissionGroupInfo": {
             id?: string;
@@ -6504,6 +6841,10 @@ export interface components {
             command_template?: string;
             input_path?: string;
             output_path?: string;
+            codec?: string;
+            resolution?: string;
+            extension?: string;
+            audio_codec?: string;
         };
         "api.v1.services.media.PreviewEncodeCommandResponse": {
             full_command?: string;
@@ -6533,6 +6874,7 @@ export interface components {
         };
         "api.v1.services.media.RegenerateThumbnailResponse": {
             success?: boolean;
+            thumbnail_url?: string;
         };
         "api.v1.services.media.RejectChannelInvitationRequest": {
             id?: string;
@@ -6653,6 +6995,13 @@ export interface components {
             /** Format: int32 */
             page_size?: number;
         };
+        "api.v1.services.media.SetThumbnailRequest": {
+            id?: string;
+            use_sprite_sheet?: boolean;
+        };
+        "api.v1.services.media.SetThumbnailResponse": {
+            success?: boolean;
+        };
         "api.v1.services.media.SimpleUploadRequest": {
             filename?: string;
             /** Format: bytes */
@@ -6662,6 +7011,8 @@ export interface components {
             description?: string;
             category_id?: string;
             tags?: string[];
+            channel_id?: string;
+            thumbnail?: string;
         };
         "api.v1.services.media.SimpleUploadResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
@@ -6841,6 +7192,11 @@ export interface components {
             parent_id?: string;
             /** Format: int32 */
             status?: number;
+            thumbnail?: string;
+            icon?: string;
+            color?: string;
+            /** Format: int32 */
+            order?: number;
         };
         "api.v1.services.media.UpdateAdminCategoryResponse": {
             category?: components["schemas"]["api.v1.services.types.Category"];
@@ -6861,6 +7217,23 @@ export interface components {
             description?: string;
             category_id?: string;
             tags?: string[];
+            /**
+             * @description Editable fields persisted by the admin edit page. Previously the request
+             *      proto omitted these, so state/privacy/featured/comments/download/listable
+             *      submitted from the UI were silently dropped on save (see UpdateAdminMedia).
+             */
+            state?: string;
+            /** Format: enum */
+            privacy?: number;
+            featured?: boolean;
+            enable_comments?: boolean;
+            allow_download?: boolean;
+            listable?: boolean;
+            /**
+             * @description BUG-105: channel assignment for admin edits. "" clears the assignment
+             *      (move to unassigned); non-empty sets it (assign / move A->B).
+             */
+            channel_id?: string;
         };
         "api.v1.services.media.UpdateAdminMediaResponse": {
             media?: components["schemas"]["api.v1.services.types.Media"];
@@ -6953,7 +7326,8 @@ export interface components {
         };
         "api.v1.services.media.UpdateChannelNotificationRequest": {
             token?: string;
-            enabled?: boolean;
+            /** @description BUG-198: 订阅者通知偏好 all/personalized/none（替换原 bool enabled 假控件）。 */
+            notification_preference?: string;
         };
         "api.v1.services.media.UpdateChannelNotificationResponse": {
             success?: boolean;
@@ -7353,7 +7727,6 @@ export interface components {
             tags?: string[];
             hls_file?: string;
             encoding_status?: string;
-            uuid?: string;
             preview_file_path?: string;
             short_token?: string;
             /** Format: date-time */
@@ -7639,6 +8012,10 @@ export interface components {
             description?: string;
             /** @description Category ID (optional) */
             category_id?: string;
+            /** @description Channel ID (optional) */
+            channel_id?: string;
+            /** @description Thumbnail URL (optional) */
+            thumbnail?: string;
             /** @description Tags (optional) */
             tags?: string[];
         };
@@ -7712,6 +8089,10 @@ export interface components {
             description?: string;
             /** @description Category ID (optional) */
             category_id?: string;
+            /** @description Channel ID (optional) */
+            channel_id?: string;
+            /** @description Thumbnail URL (optional) */
+            thumbnail?: string;
             /** @description Tags (optional) */
             tags?: string[];
         };
@@ -7732,6 +8113,10 @@ export interface components {
             description?: string;
             /** @description Category ID (optional) */
             category_id?: string;
+            /** @description Channel ID (optional) */
+            channel_id?: string;
+            /** @description Thumbnail URL (optional) */
+            thumbnail?: string;
             /** @description Tags (optional) */
             tags?: string[];
         };
@@ -10131,6 +10516,238 @@ export interface operations {
             };
         };
     };
+    LiveService_ListLiveRooms: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                status?: string;
+                keyword?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.ListLiveRoomsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_CreateLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.live.CreateLiveRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.CreateLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_GetLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.GetLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_UpdateLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.live.UpdateLiveRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.UpdateLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_DeleteLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_EndLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.live.EndLiveRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.EndLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_StartLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.live.StartLiveRoomRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.StartLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     AdminMediaService_ListAdminMedias: {
         parameters: {
             query?: {
@@ -10139,6 +10756,7 @@ export interface operations {
                 keyword?: string;
                 state?: string;
                 review_status?: string;
+                type?: string;
             };
             header?: never;
             path?: never;
@@ -10455,41 +11073,6 @@ export interface operations {
             };
         };
     };
-    AdminMediaService_RegenerateSprite: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
     AdminMediaService_RegenerateThumbnail: {
         parameters: {
             query?: never;
@@ -10512,6 +11095,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.RegenerateThumbnailResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_RegenerateSprite: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.RegenerateSpriteResponse"];
                 };
             };
             /** @description Default error response */
@@ -10578,6 +11196,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.GetMediaReviewLogsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_SetThumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.SetThumbnailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.SetThumbnailResponse"];
                 };
             };
             /** @description Default error response */
@@ -10713,6 +11366,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.RetryAdminMediaTaskResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminMediaService_GetAdminThumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetAdminThumbnailResponse"];
                 };
             };
             /** @description Default error response */
@@ -12431,6 +13115,35 @@ export interface operations {
             };
         };
     };
+    AdminService_GetPromotionStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.GetPromotionStatsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     AdminService_GetRevenueStats: {
         parameters: {
             query?: {
@@ -12901,6 +13614,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.DeleteAdminTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    AdminTagService_PatchAdminTag: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.PatchAdminTagRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.PatchAdminTagResponse"];
                 };
             };
             /** @description Default error response */
@@ -15828,6 +16576,70 @@ export interface operations {
             };
         };
     };
+    LiveService_ListPublicLiveRooms: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                category?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.ListPublicLiveRoomsResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    LiveService_GetPublicLiveRoom: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.live.GetPublicLiveRoomResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
     UserService_GetMe: {
         parameters: {
             query?: never;
@@ -16197,6 +17009,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.user.GetMyLikesResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_OwnerRegenerateThumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.OwnerRegenerateThumbnailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.OwnerRegenerateThumbnailResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    MediaService_OwnerSetThumbnail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["api.v1.services.media.OwnerSetThumbnailRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.OwnerSetThumbnailResponse"];
                 };
             };
             /** @description Default error response */
@@ -16616,6 +17498,39 @@ export interface operations {
                 user_id?: string;
                 order_by?: string;
                 descending?: boolean;
+                /**
+                 * @description tags filters medias that carry ALL of the given tag slugs (AND semantics).
+                 *      Resolved through the content_media_tags M2M pivot, not the jsonb projection.
+                 */
+                tags?: string[];
+                /**
+                 * @description category_ids filters medias belonging to ANY of the given category ids (OR semantics).
+                 *      Mirrors the frontend filter (parent category expands to itself + its children).
+                 *      The live gRPC path previously only exposed singular `category_id`, so the
+                 *      frontend's `category_ids` query param was silently dropped — this field fixes that.
+                 */
+                category_ids?: string[];
+                /**
+                 * @description created_after filters medias created at or after this RFC3339 timestamp
+                 *      (time-range filter: today / this week / this month / this year).
+                 */
+                created_after?: string;
+                /**
+                 * @description state filters by media lifecycle state (e.g. "active", "draft", "deleted").
+                 *      Was previously dropped by the proto layer (BUG-131); now exposed so the
+                 *      gateway transcoding forwards the `state` query param to the backend.
+                 */
+                state?: string;
+                /** @description featured filters medias flagged as featured (homepage hero / spotlight). */
+                featured?: boolean;
+                /**
+                 * @description seed provides a deterministic shuffle seed for `order_by=random` (portal
+                 *      "为您推荐" 换一批). Required (positive uint32) when order_by=random; the
+                 *      backend rejects invalid/missing seed with HTTP 400. The seed is used ONLY
+                 *      as a bound parameter inside the ORDER BY expression and is never
+                 *      interpolated into WHERE / table / column names (BUG-226 SQL-injection guard).
+                 */
+                seed?: number;
             };
             header?: never;
             path?: never;
@@ -18779,93 +19694,6 @@ export interface operations {
             };
         };
     };
-    SystemStatsService_GetPublicDashboardStats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetPublicDashboardStatsResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    SystemStatsService_GetPublicMediaStats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetPublicMediaStatsResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
-    SystemStatsService_GetPublicUserStats: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["api.v1.services.media.GetPublicUserStatsResponse"];
-                };
-            };
-            /** @description Default error response */
-            default: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["google.rpc.Status"];
-                };
-            };
-        };
-    };
     ChannelService_GetSubscriptionVideos: {
         parameters: {
             query?: {
@@ -19323,6 +20151,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["api.v1.services.media.DeleteTagResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    TagService_ListTagMedias: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                order_by?: string;
+                descending?: boolean;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.media.ListTagMediasResponse"];
                 };
             };
             /** @description Default error response */
@@ -20013,8 +20877,50 @@ export interface operations {
     };
     UserService_GetUserByUsername: {
         parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                username: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["api.v1.services.user.GetUserByUsernameResponse"];
+                };
+            };
+            /** @description Default error response */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["google.rpc.Status"];
+                };
+            };
+        };
+    };
+    UserService_ListUsers: {
+        parameters: {
             query?: {
-                username?: string;
+                /** @description The page number. */
+                page?: number;
+                /** @description The maximum number of items to return. */
+                page_size?: number;
+                /** @description The next_page_token value returned from a previous List request, if any. */
+                page_token?: string;
+                /** @description Filter by keyword (username, email, phone, nickname) */
+                keyword?: string;
+                /** @description Filter by status */
+                status?: number;
+                /** @description Whether to include roles in the response. */
+                with_roles?: boolean;
             };
             header?: never;
             path?: never;
@@ -20028,7 +20934,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["api.v1.services.user.GetUserByUsernameResponse"];
+                    "application/json": components["schemas"]["api.v1.services.user.ListUsersResponse"];
                 };
             };
             /** @description Default error response */

@@ -47,7 +47,6 @@ import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_aut
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
 import { Route as AuthenticatedAdminStyleGuideRouteImport } from "./routes/_authenticated/admin/style-guide";
 import { Route as AuthenticatedAdminSettingsRouteImport } from "./routes/_authenticated/admin/settings";
-import { Route as AuthenticatedAdminReviewRouteImport } from "./routes/_authenticated/admin/review";
 import { Route as AuthenticatedAdminPromotionRouteImport } from "./routes/_authenticated/admin/promotion";
 import { Route as AuthenticatedAdminPortalRouteImport } from "./routes/_authenticated/admin/portal";
 import { Route as AuthenticatedAdminPlaylistsRouteImport } from "./routes/_authenticated/admin/playlists";
@@ -284,12 +283,6 @@ const AuthenticatedAdminSettingsRoute =
   AuthenticatedAdminSettingsRouteImport.update({
     id: "/settings",
     path: "/settings",
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any);
-const AuthenticatedAdminReviewRoute =
-  AuthenticatedAdminReviewRouteImport.update({
-    id: "/review",
-    path: "/review",
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any);
 const AuthenticatedAdminPromotionRoute =
@@ -588,7 +581,6 @@ export interface FileRoutesByFullPath {
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
-  "/admin/review": typeof AuthenticatedAdminReviewRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
@@ -663,7 +655,6 @@ export interface FileRoutesByTo {
   "/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
-  "/admin/review": typeof AuthenticatedAdminReviewRoute;
   "/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
@@ -747,7 +738,6 @@ export interface FileRoutesById {
   "/_authenticated/admin/playlists": typeof AuthenticatedAdminPlaylistsRoute;
   "/_authenticated/admin/portal": typeof AuthenticatedAdminPortalRoute;
   "/_authenticated/admin/promotion": typeof AuthenticatedAdminPromotionRoute;
-  "/_authenticated/admin/review": typeof AuthenticatedAdminReviewRoute;
   "/_authenticated/admin/settings": typeof AuthenticatedAdminSettingsRoute;
   "/_authenticated/admin/style-guide": typeof AuthenticatedAdminStyleGuideRoute;
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
@@ -830,7 +820,6 @@ export interface FileRouteTypes {
     | "/admin/playlists"
     | "/admin/portal"
     | "/admin/promotion"
-    | "/admin/review"
     | "/admin/settings"
     | "/admin/style-guide"
     | "/admin/tags"
@@ -905,7 +894,6 @@ export interface FileRouteTypes {
     | "/admin/playlists"
     | "/admin/portal"
     | "/admin/promotion"
-    | "/admin/review"
     | "/admin/settings"
     | "/admin/style-guide"
     | "/admin/tags"
@@ -988,7 +976,6 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/playlists"
     | "/_authenticated/admin/portal"
     | "/_authenticated/admin/promotion"
-    | "/_authenticated/admin/review"
     | "/_authenticated/admin/settings"
     | "/_authenticated/admin/style-guide"
     | "/_authenticated/admin/tags"
@@ -1304,13 +1291,6 @@ declare module "@tanstack/react-router" {
       path: "/settings";
       fullPath: "/admin/settings";
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport;
-      parentRoute: typeof AuthenticatedAdminRoute;
-    };
-    "/_authenticated/admin/review": {
-      id: "/_authenticated/admin/review";
-      path: "/review";
-      fullPath: "/admin/review";
-      preLoaderRoute: typeof AuthenticatedAdminReviewRouteImport;
       parentRoute: typeof AuthenticatedAdminRoute;
     };
     "/_authenticated/admin/promotion": {
@@ -1843,7 +1823,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminPlaylistsRoute: typeof AuthenticatedAdminPlaylistsRoute;
   AuthenticatedAdminPortalRoute: typeof AuthenticatedAdminPortalRoute;
   AuthenticatedAdminPromotionRoute: typeof AuthenticatedAdminPromotionRoute;
-  AuthenticatedAdminReviewRoute: typeof AuthenticatedAdminReviewRoute;
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute;
   AuthenticatedAdminStyleGuideRoute: typeof AuthenticatedAdminStyleGuideRoute;
   AuthenticatedAdminTagsRoute: typeof AuthenticatedAdminTagsRoute;
@@ -1871,7 +1850,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPlaylistsRoute: AuthenticatedAdminPlaylistsRoute,
   AuthenticatedAdminPortalRoute: AuthenticatedAdminPortalRoute,
   AuthenticatedAdminPromotionRoute: AuthenticatedAdminPromotionRoute,
-  AuthenticatedAdminReviewRoute: AuthenticatedAdminReviewRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminStyleGuideRoute: AuthenticatedAdminStyleGuideRoute,
   AuthenticatedAdminTagsRoute: AuthenticatedAdminTagsRoute,

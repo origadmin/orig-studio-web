@@ -1,35 +1,50 @@
-// Subtitle API
+// Subtitle API — BUG-186: field names aligned to backend SubtitleItem
+// (label / file_url / status / error_message), responses unwrap {data}.
 import {api} from "../request";
 
 export interface Subtitle {
     id: string;
     media_id: string;
-    language: string;
-    language_name: string;
-    file_path: string;
-    status: string;
-    create_time: string;
-    update_time: string;
+    language: string;   // ISO 639-1: zh/en/ja/ko...
+    label: string;      // 展示名: 中文 / English
+    file_url: string;   // relative path -> getFullUrl(file_url) for playback
+    status: string;     // active / processing / failed
+    error_message?: string; // line-level failure reason (failed only)
 }
 
-export const subtitleApi = {
-    // 获取媒体的字幕列表（使用 short_token）
-    getByMediaId: (token: string) =>
-        api.get<Subtitle[]>(`/medias/${token}/subtitles`),
+export interface SubtitleLanguage {
+    code: string;
+    label: string;
+}
 
-    // 上传字幕（使用 short_token）
-    upload: (token: string, file: File, language: string) => {
+const unwrap = <T,>(p: Promise<unknown>): Promise<T> =>
+    p.then((r) => (r as any)?.data ?? (r as T));
+
+export const subtitleApi = {
+    // 获取媒体的字幕列表（short_token；仅 active 轨供播放，failed 由管理页展示）
+    getByMediaId: (token: string): Promise<Subtitle[]> =>
+        unwrap<Subtitle[]>(api.get(`/medias/${token}/subtitles`)),
+
+    // 上传字幕（short_token；multipart file + language）
+    upload: (token: string, file: File, language: string): Promise<Subtitle> => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('language', language);
-        return api.post<Subtitle>(`/medias/${token}/subtitles`, formData);
+        return unwrap<Subtitle>(api.post(`/medias/${token}/subtitles`, formData));
     },
 
-    // 删除字幕
-    delete: (id: string) =>
+    // 删除字幕（属主/admin）
+    delete: (id: string): Promise<void> =>
         api.del<void>(`/subtitles/${id}`),
 
-    // 获取支持的语言列表
-    getLanguages: () =>
-        api.get<{ code: string; name: string }[]>('/subtitles/languages'),
+    // 支持的语言列表（可配置，驱动播放/管理下拉）
+    getLanguages: (): Promise<SubtitleLanguage[]> =>
+        unwrap<SubtitleLanguage[]>(api.get('/subtitles/languages')),
+
+    // Admin: 语言清单管理（G5 可配置）——GET 读当前清单 / POST 全量保存
+    getAdminLanguages: (): Promise<SubtitleLanguage[]> =>
+        unwrap<SubtitleLanguage[]>(api.get('/admin/subtitle-languages')),
+
+    saveAdminLanguages: (languages: SubtitleLanguage[]): Promise<SubtitleLanguage[]> =>
+        unwrap<SubtitleLanguage[]>(api.post('/admin/subtitle-languages', {languages})),
 };

@@ -19,6 +19,7 @@ import {useTranslation} from 'react-i18next';
 import {publicMediaApi, adminMediaApi, encodingApi, type Media} from '@/lib/api/media';
 import {commentApi} from '@/lib/api/comment';
 import {channelApi} from '@/lib/api/channel';
+import {subtitleApi} from '@/lib/api/subtitle';
 import {usePublicMediaDetail, useMediaList, useDeleteMedia} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 import {usePlayerSettings} from '@/hooks/usePlayerSettings';
@@ -148,6 +149,27 @@ const WatchPage = () => {
     // （GET /channels/{token}/subscribers?count=true）；media.edges.user[0].subscriber_count
     // 是未维护的陈旧快照（恒 0）。null = 尚未取到，回退到快照值。
     const [liveSubscriberCount, setLiveSubscriberCount] = useState<number | null>(null);
+
+    // BUG-186: 字幕轨（active 才进播放器选择；failed 由管理页展示）
+    const [subtitleTracks, setSubtitleTracks] = useState<Array<{label: string; src: string; language: string}>>([]);
+    useEffect(() => {
+        if (!media?.short_token) return;
+        let cancelled = false;
+        subtitleApi.getByMediaId(media.short_token)
+            .then((list) => {
+                if (cancelled) return;
+                const tracks = (list || [])
+                    .filter((s) => s.status === 'active' && s.file_url)
+                    .map((s) => ({
+                        label: s.label || s.language,
+                        src: s.file_url,
+                        language: s.language,
+                    }));
+                setSubtitleTracks(tracks);
+            })
+            .catch(() => { /* 无字幕属正常 */ });
+        return () => { cancelled = true; };
+    }, [media?.short_token]);
 
     // Sync commentCount when media loads
     useEffect(() => {
@@ -361,6 +383,7 @@ const WatchPage = () => {
                         poster={media.poster || media.thumbnail}
                         spriteVttUrl={media.type === 'video' && media.sprite_status === 'success' && media.vtt_path ? getFullUrl(media.vtt_path) : undefined}
                         enableSpritePreview={true}
+                        subtitles={subtitleTracks}
                         onTimeUpdate={handleProgressTimeUpdate}
                         onPause={handleProgressPause}
                         onEnded={handleProgressEnded}
