@@ -29,6 +29,7 @@ import UploadCenter from '@/components/common/UploadCenter';
 import {useUploadState} from '@/contexts/UploadContext';
 import {useModuleConfig} from '@/hooks/useModuleConfig';
 import {getLocalizedText} from '@/lib/i18n-utils';
+import {getFullUrl} from '@/lib/utils';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {usePortalConfig} from '@/hooks/queries';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
@@ -178,7 +179,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                 </button>
 
                 <Link to="/" className="flex items-center gap-2 shrink-0">
-                    <img src="/logo.svg" alt={site?.site_name || 'OrigStudio'} className="h-8 w-8" />
+                    <img src={getFullUrl(site?.site_logo_url) || '/logo.svg'} alt={site?.site_name || 'OrigStudio'} className="h-9 w-9 object-contain" />
                     <span className="text-lg font-bold text-foreground hidden sm:inline">
                         {site?.site_name || 'OrigStudio'}
                     </span>

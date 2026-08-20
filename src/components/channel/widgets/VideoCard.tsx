@@ -194,7 +194,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
                             <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
                                 <Play className="w-7 h-7 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
                             </div>
-                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{t('common.video')}</span>
                         </div>
                     </div>
                 )}

@@ -1571,19 +1571,19 @@ export default function MediaEditPage() {
                                         <Table>
                                             <TableHeader className="text-muted-foreground border-b border-border uppercase tracking-tighter">
                                                 <TableRow>
-                                                    <TableHead className="pb-2 font-bold">变体</TableHead>
-                                                    <TableHead className="pb-2 font-bold">分辨率</TableHead>
-                                                    <TableHead className="pb-2 font-bold">编码</TableHead>
-                                                    <TableHead className="pb-2 font-bold">大小</TableHead>
-                                                    <TableHead className="pb-2 font-bold">操作</TableHead>
-                                                    <TableHead className="pb-2 font-bold">状态</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.variant')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.resolution')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.codec')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.size')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.actions')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.status')}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody className="divide-y divide-border/10">
                                                 {tasks.length === 0 ? (
                                                     <TableRow>
                                                         <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                                                            暂无转码变体
+                                                            {t('mediaEdit.noVariants')}
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (

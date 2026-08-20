@@ -538,7 +538,7 @@ export default function MediaPage() {
                                             >
                                                 {media.thumbnail && !failedThumbnails.has(String(media.id)) ? (
                                                     <img
-                                                        alt="预览"
+                                                        alt={t('media.preview')}
                                                         className={`w-full h-full object-cover ${isFailed ? 'grayscale opacity-50' : ''}`}
                                                         src={getFullUrl(media.thumbnail)}
                                                         onError={() => { setFailedThumbnails(prev => new Set(prev).add(String(media.id))); }}
@@ -888,10 +888,10 @@ export default function MediaPage() {
                                         )}
                                         {variantData.preview_file && (
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-medium text-muted-foreground">预览:</span>
+                                                <span className="font-medium text-muted-foreground">{t('media.preview')}:</span>
                                                 <img
                                                     src={resolvePreview(variantData.preview_file)}
-                                                    alt="预览"
+                                                    alt={t('media.preview')}
                                                     className="h-12 rounded border"
                                                 />
                                             </div>

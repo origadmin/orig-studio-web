@@ -218,7 +218,9 @@ export function ImageUploadField({
                                 : t('admin.clickOrDragImage', '点击或拖拽图片到此处上传')}
                         </p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                            {isVideo ? 'MP4, WEBM, MOV · 最大 100MB' : 'PNG, JPG, WEBP · 最大 10MB'}
+                            {isVideo
+                                ? t('admin.uploadSizeVideo', 'MP4, WEBM, MOV · 最大 100MB')
+                                : t('admin.uploadSizeImage', 'PNG, JPG, WEBP · 最大 10MB')}
                         </p>
                     </div>
                 )}

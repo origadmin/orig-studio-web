@@ -129,7 +129,7 @@ const NavigationTab: React.FC = () => {
             setCreateDialogOpen(false);
             setCreateForm({type: 'internal_link', label: '', url: '', sequence: 0, open_new_tab: false});
             queryClient.invalidateQueries({queryKey: ['adminNavItems']});
-            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            queryClient.invalidateQueries({queryKey: ['portal-config']});
             toast.success(t('admin.navItemCreated', '导航项创建成功'));
         } catch (err) {
             console.error('Failed to create nav item:', err);
@@ -143,7 +143,7 @@ const NavigationTab: React.FC = () => {
             await updateMutation.mutateAsync({id: editingItem.id, data: editForm});
             setEditDialogOpen(false);
             queryClient.invalidateQueries({queryKey: ['adminNavItems']});
-            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            queryClient.invalidateQueries({queryKey: ['portal-config']});
             toast.success(t('admin.navItemUpdated', '导航项更新成功'));
         } catch (err) {
             console.error('Failed to update nav item:', err);
@@ -158,7 +158,7 @@ const NavigationTab: React.FC = () => {
             setDeleteDialogOpen(false);
             setEditingItem(null);
             queryClient.invalidateQueries({queryKey: ['adminNavItems']});
-            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            queryClient.invalidateQueries({queryKey: ['portal-config']});
             toast.success(t('admin.navItemDeleted', '导航项删除成功'));
         } catch (err) {
             console.error('Failed to delete nav item:', err);
@@ -174,7 +174,7 @@ const NavigationTab: React.FC = () => {
         try {
             await adminPortalApi.reorderNavItems({ids: newItems.map(i => i.id)});
             queryClient.invalidateQueries({queryKey: ['adminNavItems']});
-            queryClient.invalidateQueries({queryKey: ['portalConfig']});
+            queryClient.invalidateQueries({queryKey: ['portal-config']});
         } catch (err) {
             console.error('Failed to reorder:', err);
         }
@@ -445,8 +445,8 @@ const BannersTab: React.FC = () => {
     const buildCreatePayload = (f: BannerFormData): CreateBannerRequest => {
         let title = f.title;
         if (!title) {
-            if (f.type === 'hot_videos') title = '最火视频';
-            else if (f.type === 'new_videos') title = '最新上线';
+            if (f.type === 'hot_videos') title = t('admin.bannerTypeHot');
+            else if (f.type === 'new_videos') title = t('admin.bannerTypeNew');
             else title = 'Banner';
         }
         const payload: CreateBannerRequest = {
@@ -839,7 +839,7 @@ const BannersTab: React.FC = () => {
                         id="banner-title-dyn"
                         value={form.title}
                         onChange={e => setForm({...form, title: e.target.value})}
-                        placeholder={form.type === 'hot_videos' ? '最火视频' : '最新上线'}
+                        placeholder={form.type === 'hot_videos' ? t('admin.bannerTypeHot') : t('admin.bannerTypeNew')}
                     />
                 </div>
             )}
@@ -972,7 +972,7 @@ const BannersTab: React.FC = () => {
                                     <div className="flex flex-col items-center gap-1.5">
                                         <span className="w-10 h-3.5 rounded-md bg-gradient-to-r from-primary/40 to-primary/20 inline-block"/>
                                         <span className="font-semibold">{t('admin.bannerDisplayModeWide', '宽屏')}</span>
-                                        <span className="text-[10px] opacity-70">21:9 电影感</span>
+                                        <span className="text-[10px] opacity-70">{t('admin.bannerDisplayModeWideHint', '21:9 电影感')}</span>
                                     </div>
                                 </button>
                                 <button
@@ -987,7 +987,7 @@ const BannersTab: React.FC = () => {
                                     <div className="flex flex-col items-center gap-1.5">
                                         <span className="w-8 h-[18px] rounded-md bg-gradient-to-r from-primary/40 to-primary/20 inline-block"/>
                                         <span className="font-semibold">{t('admin.bannerDisplayModeNarrow', '标准')}</span>
-                                        <span className="text-[10px] opacity-70">16:9 通用</span>
+                                        <span className="text-[10px] opacity-70">{t('admin.bannerDisplayModeNarrowHint', '16:9 通用')}</span>
                                     </div>
                                 </button>
                             </div>
@@ -1033,9 +1033,9 @@ const BannersTab: React.FC = () => {
                                 </Button>
                             </div>
                             <div className="flex justify-between text-[10px] text-muted-foreground/60 px-1 tabular-nums pt-1">
-                                <span>1s 快速</span>
-                                <span>15s 适中</span>
-                                <span>30s 缓慢</span>
+                                <span>{t('admin.autoPlayFast', '1s 快速')}</span>
+                                <span>{t('admin.autoPlayNormal', '15s 适中')}</span>
+                                <span>{t('admin.autoPlaySlow', '30s 缓慢')}</span>
                             </div>
                         </div>
 
@@ -1058,7 +1058,7 @@ const BannersTab: React.FC = () => {
                                             {t('admin.activeBanners', '张启用')}
                                         </span>
                                         <span className="text-xs text-muted-foreground/60 ml-2">
-                                            / 共 {banners.length} 张
+                                            {t('admin.activeBannersTotal', {count: banners.length})}
                                         </span>
                                     </div>
                                 </div>
@@ -1067,18 +1067,18 @@ const BannersTab: React.FC = () => {
                                         {globalSettings.display_mode === 'wide' ? (
                                             <>
                                                 <span className="w-4 h-1.5 rounded-sm bg-current opacity-50"/>
-                                                21:9 宽屏
+                                                21:9 {t('admin.bannerDisplayModeWide')}
                                             </>
                                         ) : (
                                             <>
                                                 <span className="w-3.5 h-2 rounded-sm bg-current opacity-50"/>
-                                                16:9 标准
+                                                16:9 {t('admin.bannerDisplayModeNarrow')}
                                             </>
                                         )}
                                     </span>
                                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full font-medium text-xs bg-blue-50 text-blue-600">
                                         <ClockIcon className="w-3 h-3"/>
-                                        {globalSettings.auto_slide_interval}s/张
+                                        {globalSettings.auto_slide_interval}{t('admin.secondsPerSlide')}
                                     </span>
                                 </div>
                                 {globalDirty ? (
@@ -1569,7 +1569,7 @@ const AdManagerTab: React.FC = () => {
                 return (
                     <div className="w-full h-full flex gap-1 p-1.5">
                         <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
-                            <span className="text-[7px] text-muted-foreground">播放器</span>
+                            <span className="text-[7px] text-muted-foreground">{t('admin.layoutPlayer')}</span>
                         </div>
                         <div className="w-1/3 flex flex-col gap-0.5">
                             <div className="h-1/4 bg-blue-500/30 rounded-sm border border-blue-500/50 flex items-center justify-center">
@@ -1656,7 +1656,7 @@ const AdManagerTab: React.FC = () => {
                 return (
                     <div className="w-full h-full flex items-stretch gap-1 p-1.5">
                         <div className="flex-1 bg-gray-200/50 rounded-sm flex items-center justify-center">
-                            <span className="text-[7px] text-muted-foreground">主内容</span>
+                            <span className="text-[7px] text-muted-foreground">{t('admin.layoutMainContent')}</span>
                         </div>
                         <div className="w-2/5 bg-rose-500/30 rounded-sm border border-rose-500/50 flex items-center justify-center">
                             <span className="text-[7px] text-rose-600 font-medium">AD</span>

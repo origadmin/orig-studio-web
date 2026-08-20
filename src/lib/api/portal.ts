@@ -358,6 +358,9 @@ export interface ModulePortalConfig {
     site: {
         site_name: string;
         site_description: string;
+        primary_url?: string;
+        allowed_urls?: string[];
+        site_logo_url?: string;
         allow_registration: boolean;
         allow_upload: boolean;
     };

@@ -1,4 +1,5 @@
 import React, {useState, useRef, useCallback, useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
     Dialog,
     DialogContent,
@@ -97,6 +98,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
     const [customPreview, setCustomPreview] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const {t} = useTranslation();
 
     const vttUrl = media.type === 'video' && media.sprite_status === 'success' && media.vtt_path
         ? getFullUrl(media.vtt_path)
@@ -129,19 +131,19 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            toast.error('请选择图片文件');
+            toast.error(t('thumbnailDialog.selectImageFile'));
             return;
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            toast.error('图片大小不能超过10MB');
+            toast.error(t('thumbnailDialog.imageTooLarge'));
             return;
         }
 
         setCustomFile(file);
         const url = URL.createObjectURL(file);
         setCustomPreview(url);
-    }, []);
+    }, [t]);
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -149,19 +151,19 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            toast.error('请选择图片文件');
+            toast.error(t('thumbnailDialog.selectImageFile'));
             return;
         }
 
         if (file.size > 10 * 1024 * 1024) {
-            toast.error('图片大小不能超过10MB');
+            toast.error(t('thumbnailDialog.imageTooLarge'));
             return;
         }
 
         setCustomFile(file);
         const url = URL.createObjectURL(file);
         setCustomPreview(url);
-    }, []);
+    }, [t]);
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -195,12 +197,12 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
 
     const handleSubmit = useCallback(async () => {
         if (mode === 'owner' && !media.short_token) {
-            toast.error('无法获取视频标识');
+            toast.error(t('thumbnailDialog.noMediaId'));
             return;
         }
         if (activeTab === 'frames') {
             if (!selectedCue) {
-                toast.error('请先选择一个视频帧');
+                toast.error(t('thumbnailDialog.selectFrameFirst'));
                 return;
             }
             setIsSubmitting(true);
@@ -228,23 +230,23 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 // usable path (stale binary / regeneration race), and we must not
                 // lie to the user that the cover was updated.
                 if (!newThumb) {
-                    toast.error('封面更新失败：未获取到新封面地址，请重试');
+                    toast.error(t('thumbnailDialog.coverUpdateFailed'));
                     return;
                 }
-                toast.success('封面已更新');
+                toast.success(t('thumbnailDialog.coverUpdated'));
                 if (onSuccess) {
                     onSuccess(newThumb);
                 }
                 onOpenChange(false);
             } catch (err: any) {
-                const msg = err?.response?.data?.message || err?.message || '更新失败';
+                const msg = err?.response?.data?.message || err?.message || t('thumbnailDialog.updateFailed');
                 toast.error(msg);
             } finally {
                 setIsSubmitting(false);
             }
         } else {
             if (!customFile) {
-                toast.error('请先选择一张图片');
+                toast.error(t('thumbnailDialog.selectImageFirst'));
                 return;
             }
             setIsSubmitting(true);
@@ -255,22 +257,22 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 const rawThumb = pickThumbnail(res);
                 const newThumb = rawThumb ? getFullUrl(rawThumb) : undefined;
                 if (!newThumb) {
-                    toast.error('封面更新失败：未获取到新封面地址，请重试');
+                    toast.error(t('thumbnailDialog.coverUpdateFailed'));
                     return;
                 }
-                toast.success('封面已更新');
+                toast.success(t('thumbnailDialog.coverUpdated'));
                 if (onSuccess) {
                     onSuccess(newThumb);
                 }
                 onOpenChange(false);
             } catch (err: any) {
-                const msg = err?.response?.data?.message || err?.message || '上传失败';
+                const msg = err?.response?.data?.message || err?.message || t('thumbnailDialog.uploadFailed');
                 toast.error(msg);
             } finally {
                 setIsSubmitting(false);
             }
         }
-    }, [mode, activeTab, selectedCue, customFile, media.id, media.short_token, onSuccess, onOpenChange]);
+    }, [mode, activeTab, selectedCue, customFile, media.id, media.short_token, onSuccess, onOpenChange, t]);
 
     const canSubmit = activeTab === 'frames' ? selectedIdx >= 0 && displayCues.length > 0 : !!customFile;
     const hasFrames = !vttLoading && displayCues.length > 0;
@@ -288,7 +290,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                 <div className="px-6 py-4 border-b flex-shrink-0">
                     <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
                         <ImageIcon className="w-5 h-5"/>
-                        选择视频封面
+                        {t('thumbnailDialog.title')}
                     </h2>
                 </div>
 
@@ -298,11 +300,11 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                             <TabsList className="grid w-full grid-cols-2 h-10">
                                 <TabsTrigger value="frames" className="flex items-center gap-2">
                                     <Camera className="w-4 h-4"/>
-                                    从视频帧选择
+                                    {t('thumbnailDialog.tabFrames')}
                                 </TabsTrigger>
                                 <TabsTrigger value="upload" className="flex items-center gap-2">
                                     <Upload className="w-4 h-4"/>
-                                    上传自定义图片
+                                    {t('thumbnailDialog.tabUpload')}
                                 </TabsTrigger>
                             </TabsList>
                         </div>
@@ -317,8 +319,8 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                             {vttError && !vttLoading && displayCues.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                                     <ImageIcon className="w-12 h-12 mb-3 opacity-40"/>
-                                    <p className="font-medium">无法加载视频帧预览</p>
-                                    <p className="text-sm mt-1">视频可能尚未生成帧预览，请稍后再试</p>
+                                    <p className="font-medium">{t('thumbnailDialog.framesLoadError')}</p>
+                                    <p className="text-sm mt-1">{t('thumbnailDialog.framesLoadErrorDesc')}</p>
                                 </div>
                             )}
 
@@ -346,13 +348,13 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                             )
                                         ) : (
                                             <div className="absolute inset-0 flex items-center justify-center text-white/60">
-                                                <p>请在下方选择一个视频帧</p>
+                                                <p>{t('thumbnailDialog.selectFramePrompt')}</p>
                                             </div>
                                         )}
                                     </div>
                                     {selectedCue && (
                                         <p className="text-center text-sm text-muted-foreground">
-                                            {selectedCue.imageUrl ? '整体雪碧图' : `时间戳: ${formatDuration(Math.floor(selectedCue.startTime))}`}
+                                            {selectedCue.imageUrl ? t('thumbnailDialog.wholeSprite') : t('thumbnailDialog.timestamp', {time: formatDuration(Math.floor(selectedCue.startTime))})}
                                         </p>
                                     )}
 
@@ -375,7 +377,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                             {!vttLoading && !hasFrames && (
                                 <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                                     <ImageIcon className="w-12 h-12 mb-3 opacity-40"/>
-                                    <p>该视频暂无帧预览</p>
+                                    <p>{t('thumbnailDialog.noFrames')}</p>
                                 </div>
                             )}
                         </TabsContent>
@@ -387,7 +389,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                         <div className="relative w-full max-w-xl aspect-video bg-black rounded-lg overflow-hidden border">
                                             <img
                                                 src={customPreview}
-                                                alt="预览"
+                                                alt={t('thumbnailDialog.previewAlt')}
                                                 className="w-full h-full object-contain"
                                             />
                                         </div>
@@ -411,9 +413,9 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                                     className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-12 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
                                 >
                                     <Upload className="w-10 h-10 text-muted-foreground mb-4"/>
-                                    <p className="font-medium">拖拽图片到此处，或点击选择文件</p>
+                                    <p className="font-medium">{t('thumbnailDialog.dragDrop')}</p>
                                     <p className="text-sm text-muted-foreground mt-2">
-                                        支持 PNG、JPG、WEBP 格式，建议 1280×720 (16:9)，最大 10MB
+                                        {t('thumbnailDialog.formatHint')}
                                     </p>
                                     <input
                                         ref={fileInputRef}
@@ -430,15 +432,15 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
 
                 <div className="px-6 py-4 border-t flex-shrink-0 flex items-center justify-between bg-muted/50">
                     <p className="text-xs text-muted-foreground">
-                        提示：点击"使用此封面"后将从原视频截取高清封面图
+                        {t('thumbnailDialog.footerHint')}
                     </p>
                     <div className="flex gap-2">
                         <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                            取消
+                            {t('thumbnailDialog.cancel')}
                         </Button>
                         <Button onClick={handleSubmit} disabled={!canSubmit || isSubmitting}>
                             {isSubmitting && <Spinner className="w-4 h-4 mr-2"/>}
-                            使用此封面
+                            {t('thumbnailDialog.useCover')}
                         </Button>
                     </div>
                 </div>

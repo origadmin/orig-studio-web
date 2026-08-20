@@ -7,6 +7,7 @@ import {
   AlertDialogDescription,
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
+import {useTranslation} from 'react-i18next';
 import {Button} from '@/components/ui/button';
 
 export interface DeleteConfirmDialogProps {
@@ -36,23 +37,24 @@ export function DeleteConfirmDialog({
   confirmVariant,
   loadingLabel,
 }: DeleteConfirmDialogProps) {
+  const {t} = useTranslation();
   const isCustomDialog = !!(description || confirmLabel);
   const variant = confirmVariant || (isCustomDialog ? 'default' : 'destructive');
-  const confirmText = confirmLabel || '确认删除';
-  const loadingText = loadingLabel || (isCustomDialog ? '处理中...' : '删除中...');
-  const descText = description || `确定要删除 "${title}" 吗？此操作不可撤销。`;
+  const confirmText = confirmLabel || t('deleteConfirm.title');
+  const loadingText = loadingLabel || (isCustomDialog ? t('deleteConfirm.processing') : t('deleteConfirm.deleting'));
+  const descText = description || t('deleteConfirm.deleteDesc', {title});
 
   return (
     <AlertDialog open={open} onOpenChange={isDeleting ? undefined : onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{isCustomDialog ? title : '确认删除'}</AlertDialogTitle>
+          <AlertDialogTitle>{isCustomDialog ? title : t('deleteConfirm.title')}</AlertDialogTitle>
           <AlertDialogDescription>
             {descText}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>{t('common.cancel')}</AlertDialogCancel>
           <Button
             variant={variant}
             onClick={onConfirm}

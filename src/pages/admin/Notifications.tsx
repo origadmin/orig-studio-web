@@ -24,7 +24,7 @@ import {
     Group,
     Edit,
 } from 'lucide-react';
-import {useTranslation} from 'react-i18next';
+import {useTranslation, Trans} from 'react-i18next';
 import {notificationApi, type Notification} from '@/lib/api/notification';
 import {adminUserApi, type User} from '@/lib/api/user';
 import {settingsApi} from '@/lib/api/system';
@@ -48,12 +48,12 @@ type TabKey = 'send' | 'history' | 'config';
 type ChannelKey = 'in_app' | 'email' | 'push' | 'webhook';
 type AudienceMode = 'all' | 'role' | 'group' | 'users';
 
-type RoleOption = { value: string; label: string; icon: React.ReactNode };
+type RoleOption = { value: string; labelKey: string; icon: React.ReactNode };
 
 const ROLE_OPTIONS: RoleOption[] = [
-    {value: 'admin', label: '管理员', icon: <Shield className="w-4 h-4"/>},
-    {value: 'user', label: '普通用户', icon: <UserRound className="w-4 h-4"/>},
-    {value: 'editor', label: '编辑', icon: <Edit className="w-4 h-4"/>},
+    {value: 'admin', labelKey: 'admin.notificationsRoleAdmin', icon: <Shield className="w-4 h-4"/>},
+    {value: 'user', labelKey: 'admin.notificationsRoleUser', icon: <UserRound className="w-4 h-4"/>},
+    {value: 'editor', labelKey: 'admin.notificationsRoleEditor', icon: <Edit className="w-4 h-4"/>},
 ];
 
 const AdminNotifications: React.FC = () => {
@@ -139,11 +139,10 @@ const AdminNotifications: React.FC = () => {
     const fetchConfig = async () => {
         try {
             const settings = await settingsApi.get();
-            const moduleSettings = settings.module || [];
+            const m = settings.settings || {};
             const getBool = (key: string, fallback: boolean) => {
-                const item = moduleSettings.find((s: any) => s.key === key);
-                if (!item) return fallback;
-                return item.value === 'true' || item.value === '1';
+                if (!(key in m)) return fallback;
+                return m[key] === 'true' || m[key] === '1';
             };
             setConfig({
                 emailEnabled: getBool('notification.email_enabled', true),
@@ -160,12 +159,12 @@ const AdminNotifications: React.FC = () => {
         try {
             setSavingConfig(true);
             await settingsApi.update({
-                settings: [
-                    {key: 'notification.email_enabled', value: String(config.emailEnabled)},
-                    {key: 'notification.push_enabled', value: String(config.pushEnabled)},
-                    {key: 'notification.webhook_enabled', value: String(config.webhookEnabled)},
-                    {key: 'notification.sms_enabled', value: String(config.smsEnabled)},
-                ],
+                settings: {
+                    'notification.email_enabled': String(config.emailEnabled),
+                    'notification.push_enabled': String(config.pushEnabled),
+                    'notification.webhook_enabled': String(config.webhookEnabled),
+                    'notification.sms_enabled': String(config.smsEnabled),
+                },
             });
         } catch (err) {
             console.error('Failed to save notification config:', err);
@@ -416,10 +415,10 @@ const AdminNotifications: React.FC = () => {
                                                     {/* Audience mode tabs */}
                                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                                                         {([
-                                                            {mode: 'all', label: '所有用户', icon: <Users className="w-4 h-4"/>},
-                                                            {mode: 'role', label: '按角色', icon: <Shield className="w-4 h-4"/>},
-                                                            {mode: 'group', label: '按权限组', icon: <Group className="w-4 h-4"/>},
-                                                            {mode: 'users', label: '指定用户', icon: <UserRound className="w-4 h-4"/>},
+                                                            {mode: 'all', label: t('admin.notificationsAllUsers'), icon: <Users className="w-4 h-4"/>},
+                                                            {mode: 'role', label: t('admin.notificationsAudienceRole'), icon: <Shield className="w-4 h-4"/>},
+                                                            {mode: 'group', label: t('admin.notificationsAudienceGroup'), icon: <Group className="w-4 h-4"/>},
+                                                            {mode: 'users', label: t('admin.notificationsAudienceUsers'), icon: <UserRound className="w-4 h-4"/>},
                                                         ] as const).map(opt => {
                                                             const selected = form.audienceMode === opt.mode;
                                                             return (
@@ -444,7 +443,7 @@ const AdminNotifications: React.FC = () => {
                                                     {/* All users */}
                                                     {form.audienceMode === 'all' && (
                                                         <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
-                                                            将发送通知给所有<strong className="text-foreground">活跃用户</strong>。
+                                                            <Trans i18nKey="admin.notificationsAllUsersHint" components={{strong: <strong className="text-foreground"/>}}/>
                                                         </div>
                                                     )}
 
@@ -452,7 +451,7 @@ const AdminNotifications: React.FC = () => {
                                                     {form.audienceMode === 'role' && (
                                                         <div className="space-y-2">
                                                             <p className="text-xs text-muted-foreground">
-                                                                选择一个或多个角色作为接收者
+                                                                {t('admin.notificationsRoleHint')}
                                                             </p>
                                                             <div className="flex flex-wrap gap-2">
                                                                 {ROLE_OPTIONS.map(role => {
@@ -477,7 +476,7 @@ const AdminNotifications: React.FC = () => {
                                                                             }
                                                                         >
                                                                             {role.icon}
-                                                                            {role.label}
+                                                                            {t(role.labelKey)}
                                                                         </button>
                                                                     );
                                                                 })}
@@ -489,15 +488,15 @@ const AdminNotifications: React.FC = () => {
                                                     {form.audienceMode === 'group' && (
                                                         <div className="space-y-2">
                                                             <p className="text-xs text-muted-foreground">
-                                                                选择一个或多个权限组，通知将发送给组成员
+                                                                {t('admin.notificationsGroupHint')}
                                                             </p>
                                                             {loadingGroups ? (
                                                                 <div className="flex items-center gap-2 text-sm text-muted-foreground py-1">
-                                                                    <Loader2 className="w-4 h-4 animate-spin"/> 加载权限组...
+                                                                    <Loader2 className="w-4 h-4 animate-spin"/> {t('admin.notificationsLoadingGroups')}
                                                                 </div>
                                                             ) : groups.length === 0 ? (
                                                                 <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
-                                                                    暂无可用权限组。请先在权限管理中创建权限组。
+                                                                    {t('admin.notificationsNoGroups')}
                                                                 </div>
                                                             ) : (
                                                                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -527,7 +526,7 @@ const AdminNotifications: React.FC = () => {
                                                                                     <span className="truncate">{g.name}</span>
                                                                                 </span>
                                                                                 {typeof g.member_count === 'number' && (
-                                                                                    <span className="text-xs text-muted-foreground shrink-0">{g.member_count} 成员</span>
+                                                                                    <span className="text-xs text-muted-foreground shrink-0">{t('admin.notificationsMemberCount', {count: g.member_count})}</span>
                                                                                 )}
                                                                             </button>
                                                                         );
@@ -558,7 +557,7 @@ const AdminNotifications: React.FC = () => {
                                                                     className="rounded-full"
                                                                     onClick={handleOpenUserPicker}
                                                                 >
-                                                                    <Plus className="w-3 h-3"/> 添加用户
+                                                                    <Plus className="w-3 h-3"/> {t('admin.notificationsAddUser')}
                                                                 </Button>
                                                             </div>
                                                             {/* User picker */}
@@ -572,7 +571,7 @@ const AdminNotifications: React.FC = () => {
                                                                                 setUserSearch(e.target.value);
                                                                                 fetchUsers(e.target.value);
                                                                             }}
-                                                                            placeholder="搜索用户..."
+                                                                            placeholder={t('admin.notificationsSearchUsers')}
                                                                         />
                                                                         {loadingUsers ? (
                                                                             <div className="text-center py-2 text-sm text-muted-foreground">
@@ -603,7 +602,7 @@ const AdminNotifications: React.FC = () => {
                                                                             className="w-full"
                                                                             onClick={() => setShowUserPicker(false)}
                                                                         >
-                                                                            关闭
+                                                                            {t('admin.notificationsClose')}
                                                                         </Button>
                                                                     </CardContent>
                                                                 </Card>
@@ -936,8 +935,8 @@ const AdminNotifications: React.FC = () => {
                         <TabsContent value="config" className="space-y-6">
                             <Card>
                                 <CardContent className="p-6">
-                                    <h3 className="text-base font-semibold text-foreground mb-1">通知渠道</h3>
-                                    <p className="text-sm text-muted-foreground mb-5">管理系统通知的发送渠道。站内通知始终启用，其他渠道将在后续版本中开放。</p>
+                                    <h3 className="text-base font-semibold text-foreground mb-1">{t('admin.notificationsConfigTitle')}</h3>
+                                    <p className="text-sm text-muted-foreground mb-5">{t('admin.notificationsConfigDesc')}</p>
                                     <div className="divide-y divide-border">
                                         <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                                             <div className="flex items-center gap-3">
@@ -946,10 +945,10 @@ const AdminNotifications: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-foreground">站内通知</span>
-                                                        <Badge variant="soft-success" className="text-[10px]">已启用</Badge>
+                                                        <span className="text-sm font-medium text-foreground">{t('admin.notificationsChannelInAppLabel')}</span>
+                                                        <Badge variant="soft-success" className="text-[10px]">{t('admin.notificationsEnabled')}</Badge>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground mt-0.5">网页右上角铃铛图标实时推送</p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">{t('admin.notificationsChannelInAppDesc')}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -963,10 +962,10 @@ const AdminNotifications: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-muted-foreground">邮件通知</span>
-                                                        <Badge variant="secondary" className="text-[10px]">即将推出</Badge>
+                                                        <span className="text-sm font-medium text-muted-foreground">{t('admin.notificationsChannelEmailLabel')}</span>
+                                                        <Badge variant="secondary" className="text-[10px]">{t('admin.notificationsComingSoon')}</Badge>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">通过SMTP发送事务邮件和广播邮件</p>
+                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">{t('admin.notificationsChannelEmailDesc')}</p>
                                                 </div>
                                             </div>
                                             <Switch checked={false} disabled/>
@@ -978,10 +977,10 @@ const AdminNotifications: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-muted-foreground">移动推送</span>
-                                                        <Badge variant="secondary" className="text-[10px]">即将推出</Badge>
+                                                        <span className="text-sm font-medium text-muted-foreground">{t('admin.notificationsChannelPushLabel')}</span>
+                                                        <Badge variant="secondary" className="text-[10px]">{t('admin.notificationsComingSoon')}</Badge>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">FCM/APNs 推送到 iOS/Android 应用</p>
+                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">{t('admin.notificationsChannelPushDesc')}</p>
                                                 </div>
                                             </div>
                                             <Switch checked={false} disabled/>
@@ -993,10 +992,10 @@ const AdminNotifications: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-medium text-muted-foreground">Webhook回调</span>
-                                                        <Badge variant="secondary" className="text-[10px]">即将推出</Badge>
+                                                        <span className="text-sm font-medium text-muted-foreground">{t('admin.notificationsChannelWebhookLabel')}</span>
+                                                        <Badge variant="secondary" className="text-[10px]">{t('admin.notificationsComingSoon')}</Badge>
                                                     </div>
-                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">推送HTTP回调到Slack、Teams或自定义端点</p>
+                                                    <p className="text-xs text-muted-foreground/70 mt-0.5">{t('admin.notificationsChannelWebhookDesc')}</p>
                                                 </div>
                                             </div>
                                             <Switch checked={false} disabled/>
@@ -1006,11 +1005,11 @@ const AdminNotifications: React.FC = () => {
                             </Card>
                             <Card>
                                 <CardContent className="p-6">
-                                    <h3 className="text-base font-semibold text-foreground mb-1">测试通知</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">向当前登录用户发送一条测试通知，验证通知功能是否正常工作。</p>
+                                    <h3 className="text-base font-semibold text-foreground mb-1">{t('admin.notificationsTestTitle')}</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">{t('admin.notificationsTestDesc')}</p>
                                     <Button variant="outline" onClick={handleSendTest} disabled={sendingTest}>
                                         {sendingTest ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <BellRing className="w-4 h-4 mr-2"/>}
-                                        发送测试通知
+                                        {t('admin.notificationsTestSend')}
                                     </Button>
                                 </CardContent>
                             </Card>

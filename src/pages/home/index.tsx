@@ -18,6 +18,7 @@ import HorizontalScroll from '@/components/common/HorizontalScroll';
 import AdDisplay from '@/components/portal/AdDisplay';
 
 const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, size = 'md'}) => {
+    const {t} = useTranslation();
     const user = media?.edges?.user?.[0];
     const [imgError, setImgError] = React.useState(false);
     const [avatarError, setAvatarError] = React.useState(false);
@@ -57,7 +58,7 @@ const VideoCard: React.FC<{media: Media; size?: 'sm' | 'md' | 'lg'}> = ({media, 
                             <div className="w-12 h-12 mx-auto mb-1.5 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
                                 <Play className="w-6 h-6 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
                             </div>
-                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{t('common.video')}</span>
                         </div>
                     </div>
                 )}

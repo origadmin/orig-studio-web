@@ -4,7 +4,7 @@
  */
 
 /** Theme category types */
-export type ThemeCategory = 'professional' | 'social' | 'creative' | 'minimal' | 'custom';
+export type ThemeCategory = 'professional' | 'social' | 'creative' | 'productivity' | 'minimal' | 'custom';
 
 /** Color mode strategy */
 export type ColorMode = 'light' | 'dark' | 'system';

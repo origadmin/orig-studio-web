@@ -211,14 +211,14 @@ const NotificationBadge: React.FC = () => {
                                     className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors px-2 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 disabled:opacity-50"
                                     onClick={() => setConfirmClearOpen(true)}
                                     disabled={clearing}
-                                    title="清空全部通知"
+                                    title={t('notifications.clearAllTitle')}
                                 >
                                     {clearing ? (
                                         <Loader2 className="w-3 h-3 animate-spin"/>
                                     ) : (
                                         <Trash2 className="w-3.5 h-3.5"/>
                                     )}
-                                    <span>清空</span>
+                                    <span>{t('notifications.clearAll')}</span>
                                 </button>
                             )}
                         </div>
@@ -314,11 +314,11 @@ const NotificationBadge: React.FC = () => {
             <Dialog open={confirmClearOpen} onOpenChange={setConfirmClearOpen}>
                 <DialogContent className="max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>清空全部通知</DialogTitle>
+                        <DialogTitle>{t('notifications.clearAllTitle')}</DialogTitle>
                     </DialogHeader>
                     <DialogBody>
                         <p className="text-sm text-muted-foreground">
-                            此操作将删除所有通知，且不可恢复。确定要继续吗？
+                            {t('notifications.clearAllDesc')}
                         </p>
                     </DialogBody>
                     <DialogFooter>
@@ -332,7 +332,7 @@ const NotificationBadge: React.FC = () => {
                             disabled={clearing}
                         >
                             {clearing ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <Trash2 className="w-4 h-4 mr-2"/>}
-                            确认清空
+                            {t('notifications.clearConfirm')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

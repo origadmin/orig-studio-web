@@ -14,6 +14,7 @@ const CATEGORY_LABEL_KEYS: Record<ThemeCategory, string> = {
   professional: 'theme.categoryProfessional',
   social: 'theme.categorySocial',
   creative: 'theme.categoryCreative',
+  productivity: 'theme.categoryProductivity',
   minimal: 'theme.categoryMinimal',
   custom: 'theme.categoryCustom',
 };

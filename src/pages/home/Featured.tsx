@@ -80,7 +80,7 @@ const FeaturedHero: React.FC<{item: FeaturedItem}> = ({item}) => {
                             <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-white/20 dark:bg-white/10 flex items-center justify-center">
                                 <Play className="w-10 h-10 text-white/80 ml-1" fill="currentColor"/>
                             </div>
-                            <span className="text-sm text-white/70 font-medium">精选视频</span>
+                            <span className="text-sm text-white/70 font-medium">{t('featured.featuredVideo')}</span>
                         </div>
                     </div>
                 )}
@@ -167,7 +167,7 @@ const VideoCard: React.FC<{item: FeaturedItem}> = ({item}) => {
                             <div className="w-12 h-12 mx-auto mb-1.5 rounded-full bg-slate-500/10 dark:bg-slate-400/10 flex items-center justify-center">
                                 <Play className="w-6 h-6 text-slate-400 dark:text-slate-500 ml-0.5" fill="currentColor"/>
                             </div>
-                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">视频</span>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">{t('common.video')}</span>
                         </div>
                     </div>
                 )}

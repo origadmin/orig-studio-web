@@ -92,10 +92,6 @@ export type {
 // ==================== System ====================
 export {systemApi, settingsApi, emailSettingsApi} from "./system";
 export type {
-    GroupedSettings,
-    SettingItem,
-    UpdateSettingsRequest,
-    UpdateSettingItem,
     EmailStatus,
 } from "./system";
 

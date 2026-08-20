@@ -8,6 +8,7 @@ import {
     Shield,
     Save,
     Loader2,
+    Check,
     CheckCircle,
     AlertCircle,
     Blocks,
@@ -52,6 +53,8 @@ import {
 } from 'lucide-react';
 import {settingsApi, type SettingsMap} from '@/lib/api/system';
 import {api} from '@/lib/request';
+import {useQueryClient} from '@tanstack/react-query';
+import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {ThemeSwitcher} from '@/themes';
 import {Button} from '@/components/ui/button';
 import {Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter} from '@/components/ui/card';
@@ -71,6 +74,7 @@ import {Link} from '@tanstack/react-router';
 interface FormData {
     site_name: string;
     site_description: string;
+    site_logo_url: string;
     base_urls: string[];
     primary_url: string;
     allow_registration: string;
@@ -160,6 +164,7 @@ interface EmailStatus {
 const defaultFormData: FormData = {
     site_name: '',
     site_description: '',
+    site_logo_url: '',
     base_urls: [],
     primary_url: '',
     allow_registration: 'true',
@@ -221,18 +226,19 @@ const defaultFormData: FormData = {
 };
 
 const tabs = [
-    {id: 'general', label: 'General'},
-    {id: 'storage', label: 'Storage'},
-    {id: 'media', label: 'Media'},
-    {id: 'email', label: 'Email'},
-    {id: 'security', label: 'Security'},
-    {id: 'modules', label: 'Modules'},
-    {id: 'features', label: 'Features'},
-    {id: 'system', label: 'System'},
+    {id: 'general', labelKey: 'settings.tabs.general'},
+    {id: 'storage', labelKey: 'settings.tabs.storage'},
+    {id: 'media', labelKey: 'settings.tabs.media'},
+    {id: 'email', labelKey: 'settings.tabs.email'},
+    {id: 'security', labelKey: 'settings.tabs.security'},
+    {id: 'modules', labelKey: 'settings.tabs.modules'},
+    {id: 'features', labelKey: 'settings.tabs.features'},
+    {id: 'system', labelKey: 'settings.tabs.system'},
 ];
 
 const Settings: React.FC = () => {
     const {t} = useTranslation();
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState('general');
     const [formData, setFormData] = useState<FormData>(defaultFormData);
     const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
@@ -262,16 +268,17 @@ const Settings: React.FC = () => {
         try {
             const raw = await settingsApi.get();
             let settings: SettingsMap = {};
+            const rawRecord = raw as unknown as Record<string, unknown>;
             if (raw && typeof raw === 'object') {
-                if ('code' in raw && 'data' in raw && typeof (raw as Record<string, unknown>).data === 'object') {
-                    const data = (raw as Record<string, unknown>).data as Record<string, unknown>;
+                if ('code' in raw && 'data' in raw && typeof rawRecord.data === 'object') {
+                    const data = rawRecord.data as Record<string, unknown>;
                     if (data.settings && typeof data.settings === 'object') {
                         settings = data.settings as SettingsMap;
                     }
-                } else if ('settings' in raw && typeof (raw as Record<string, unknown>).settings === 'object') {
+                } else if ('settings' in raw && typeof rawRecord.settings === 'object') {
                     settings = (raw as {settings: SettingsMap}).settings;
                 } else {
-                    settings = raw as SettingsMap;
+                    settings = raw as unknown as SettingsMap;
                 }
             }
 
@@ -297,6 +304,7 @@ const Settings: React.FC = () => {
                 ...prev,
                 site_name: getVal('site_name') || prev.site_name,
                 site_description: getVal('site_description') || prev.site_description,
+                site_logo_url: getVal('site_logo_url') || prev.site_logo_url,
                 base_urls: parseBaseUrls(getVal('base_urls')),
                 primary_url: getVal('primary_url') || prev.primary_url,
                 allow_registration: getVal('allow_registration') || prev.allow_registration,
@@ -420,7 +428,38 @@ const Settings: React.FC = () => {
             const url = prev.base_urls[index];
             const newUrls = prev.base_urls.filter((_, i) => i !== index);
             newUrls.unshift(url);
-            return {...prev, base_urls: newUrls};
+            return {...prev, base_urls: newUrls, primary_url: url};
+        });
+    };
+
+    const [newVideoFormat, setNewVideoFormat] = useState('');
+    const [showVideoFormatInput, setShowVideoFormatInput] = useState(false);
+
+    const addVideoFormat = () => {
+        const fmt = newVideoFormat.trim().replace(/^\./, '').toLowerCase();
+        if (!fmt) return;
+        setFormData(prev => {
+            const current = prev.allowed_video_formats
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean);
+            if (!current.includes(fmt)) {
+                current.push(fmt);
+            }
+            return {...prev, allowed_video_formats: current.join(', ')};
+        });
+        setNewVideoFormat('');
+        setShowVideoFormatInput(false);
+    };
+
+    const removeVideoFormat = (fmt: string) => {
+        setFormData(prev => {
+            const current = prev.allowed_video_formats
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean)
+                .filter(s => s !== fmt);
+            return {...prev, allowed_video_formats: current.join(', ')};
         });
     };
 
@@ -452,6 +491,7 @@ const Settings: React.FC = () => {
             const settings: SettingsMap = {
                 site_name: formData.site_name,
                 site_description: formData.site_description,
+                site_logo_url: formData.site_logo_url,
                 base_urls: JSON.stringify(formData.base_urls.filter(u => u.trim())),
                 primary_url: formData.primary_url,
                 allow_registration: formData.allow_registration,
@@ -499,6 +539,9 @@ const Settings: React.FC = () => {
                 homepage_layout: formData.homepage_layout,
             };
             await settingsApi.update({settings});
+            // BUG-232: portal-config is read with a 5min staleTime; invalidate so
+            // the top-left site name / logo refresh immediately after save.
+            queryClient.invalidateQueries({queryKey: ['portal-config']});
             setMessage({type: 'success', text: t('settings.saveSuccess')});
             setTimeout(() => setMessage(null), 3000);
         } catch (error) {
@@ -585,15 +628,15 @@ const Settings: React.FC = () => {
             {/* Page Title & Actions */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">System Settings</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Configure core system parameters and integrations.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('settings.title', 'System Settings')}</h1>
+                    <p className="text-sm text-muted-foreground mt-1">{t('settings.desc', 'Configure core system parameters and integrations.')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
                         variant="outline"
                         onClick={fetchSettings}
                     >
-                        Discard
+                        {t('settings.discard', 'Discard')}
                     </Button>
                     <Button
                         onClick={handleSave}
@@ -604,7 +647,7 @@ const Settings: React.FC = () => {
                         ) : (
                             <Save className="w-4 h-4"/>
                         )}
-                        Save Changes
+                        {t('settings.saveChanges', 'Save Changes')}
                     </Button>
                 </div>
             </div>
@@ -618,7 +661,7 @@ const Settings: React.FC = () => {
                             value={tab.id}
                             className="px-6 py-3.5 text-sm data-[state=active]:font-semibold data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none rounded-none font-medium text-muted-foreground border-b-2 border-transparent hover:text-card-foreground hover:border-border transition-colors"
                         >
-                            {tab.label}
+                            {tab.labelKey && t(tab.labelKey)}
                         </TabsTrigger>
                     ))}
                 </TabsList>
@@ -636,26 +679,40 @@ const Settings: React.FC = () => {
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <SettingsIcon className="w-5 h-5 text-primary"/>
-                                            Application Identity
+                                            {t('settings.identity.title', 'Application Identity')}
                                         </CardTitle>
                                     </CardHeader>
+                                    {/* BUG-232: 左右排版 —— ICON 在左(3/10)，名称/描述在右(7/10) */}
                                     <CardContent className="space-y-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Application Name</Label>
-                                            <Input
-                                                value={formData.site_name}
-                                                onChange={(e) => handleInputChange('site_name', e.target.value)}
-                                                placeholder="Enter application name"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">System Description</Label>
-                                            <Textarea
-                                                value={formData.site_description}
-                                                onChange={(e) => handleInputChange('site_description', e.target.value)}
-                                                placeholder="Enter system description"
-                                                rows={3}
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-10 gap-6">
+                                            <div className="md:col-span-3">
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider mb-1.5 block">{t('settings.siteLogo', 'Site Logo (Top-Left ICON)')}</Label>
+                                                <ImageUploadField
+                                                    value={formData.site_logo_url}
+                                                    onChange={(url) => handleInputChange('site_logo_url', url)}
+                                                    kind="image"
+                                                    aspect="square"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-7 space-y-4 min-w-0">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.identity.appName', 'Application Name')}</Label>
+                                                    <Input
+                                                        value={formData.site_name}
+                                                        onChange={(e) => handleInputChange('site_name', e.target.value)}
+                                                        placeholder={t('settings.identity.appNamePlaceholder', 'Enter application name')}
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col gap-1.5">
+                                                    <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.identity.sysDesc', 'System Description')}</Label>
+                                                    <Textarea
+                                                        value={formData.site_description}
+                                                        onChange={(e) => handleInputChange('site_description', e.target.value)}
+                                                        placeholder={t('settings.identity.sysDescPlaceholder', 'Enter system description')}
+                                                        rows={3}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -665,25 +722,28 @@ const Settings: React.FC = () => {
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <Link2 className="w-5 h-5 text-primary"/>
-                                            Base URLs
+                                            {t('settings.baseUrls.title', 'Base URLs')}
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         {formData.base_urls.map((url, index) => (
-                                            <div key={index} className={`flex items-center justify-between p-3 rounded-lg border ${
+                                            <div key={index} className={`flex items-center justify-between gap-2 p-3 rounded-lg border ${
                                                 index === 0
                                                     ? 'bg-muted border-border'
                                                     : 'bg-card border-border'
                                             }`}>
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-2 min-w-0 flex-1">
                                                     {index === 0 ? (
-                                                        <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Primary</Badge>
+                                                        <Badge className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider shrink-0">{t('settings.baseUrls.primary', 'Primary')}</Badge>
                                                     ) : null}
-                                                    <span className={`font-mono text-sm ${index === 0 ? 'text-foreground' : 'text-foreground opacity-60'}`}>
-                                                        {url || 'https://...'}
-                                                    </span>
+                                                    <Input
+                                                        value={url}
+                                                        onChange={(e) => handleBaseUrlChange(index, e.target.value)}
+                                                        placeholder="https://example.com"
+                                                        className={`font-mono text-sm h-8 ${index === 0 ? 'font-semibold' : ''}`}
+                                                    />
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     {index !== 0 && (
                                                         <Button
                                                             variant="ghost"
@@ -691,7 +751,7 @@ const Settings: React.FC = () => {
                                                             className="text-[11px] font-bold text-primary hover:text-primary/80 hover:underline px-2 h-auto py-1"
                                                             onClick={() => handleSetPrimaryUrl(index)}
                                                         >
-                                                            Set as Primary
+                                                            {t('settings.baseUrls.setAsPrimary', 'Set as Primary')}
                                                         </Button>
                                                     )}
                                                     <Button
@@ -712,7 +772,7 @@ const Settings: React.FC = () => {
                                             onClick={handleAddBaseUrl}
                                         >
                                             <Plus className="w-4 h-4"/>
-                                            Add New URL
+                                            {t('settings.baseUrls.addNew', 'Add New URL')}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -726,8 +786,8 @@ const Settings: React.FC = () => {
                                                     <AlertTriangle className="w-5 h-5 text-destructive"/>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-semibold text-foreground">Maintenance Mode</p>
-                                                    <p className="text-xs text-muted-foreground">Disable public access for all system portals and APIs.</p>
+                                                    <p className="text-sm font-semibold text-foreground">{t('settings.maintenance.title', 'Maintenance Mode')}</p>
+                                                    <p className="text-xs text-muted-foreground">{t('settings.maintenance.desc', 'Disable public access for all system portals and APIs.')}</p>
                                                 </div>
                                             </div>
                                             <Switch
@@ -740,7 +800,7 @@ const Settings: React.FC = () => {
 
                                 {/* System Appearance (NOT a card) */}
                                 <div className="space-y-6">
-                                    <h3 className="text-lg font-semibold text-foreground">System Appearance</h3>
+                                    <h3 className="text-lg font-semibold text-foreground">{t('settings.appearance.title', 'System Appearance')}</h3>
                                     <ThemeSwitcher/>
                                 </div>
                             </div>
@@ -751,7 +811,7 @@ const Settings: React.FC = () => {
                                 <Card>
                                     <CardHeader className="pb-2">
                                         <CardTitle className="flex items-center justify-between text-base">
-                                            API Consumption
+                                            {t('settings.apiConsumption.title', 'API Consumption')}
                                             <span className="font-mono text-primary text-sm">75.2%</span>
                                         </CardTitle>
                                     </CardHeader>
@@ -759,16 +819,16 @@ const Settings: React.FC = () => {
                                         <Progress value={75.2} className="h-3"/>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Current Cycle</p>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('settings.apiConsumption.currentCycle', 'Current Cycle')}</p>
                                                 <p className="font-mono text-sm text-foreground">3.8M / 5M</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Resets In</p>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t('settings.apiConsumption.resetsIn', 'Resets In')}</p>
                                                 <p className="font-mono text-sm text-foreground">12d 4h</p>
                                             </div>
                                         </div>
                                         <Button variant="outline" className="w-full text-[13px]">
-                                            Upgrade Quota
+                                            {t('settings.apiConsumption.upgradeQuota', 'Upgrade Quota')}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -776,28 +836,28 @@ const Settings: React.FC = () => {
                                 {/* System Snapshot */}
                                 <Card>
                                     <CardHeader className="pb-2">
-                                        <CardTitle className="text-base">System Snapshot</CardTitle>
+                                        <CardTitle className="text-base">{t('settings.systemSnapshot.title', 'System Snapshot')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-3">
                                         <div className="flex justify-between items-center py-2 border-b border-border">
-                                            <span className="text-xs text-muted-foreground">Runtime</span>
+                                            <span className="text-xs text-muted-foreground">{t('settings.systemSnapshot.runtime', 'Runtime')}</span>
                                             <span className="font-mono text-xs text-success">{systemInfo?.goVersion || 'Go 1.22.3'}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border">
-                                            <span className="text-xs text-muted-foreground">Database</span>
+                                            <span className="text-xs text-muted-foreground">{t('settings.systemSnapshot.database', 'Database')}</span>
                                             <span className="font-mono text-xs text-card-foreground">{systemInfo?.database || 'PostgreSQL 16.2'}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2 border-b border-border">
-                                            <span className="text-xs text-muted-foreground">Cache</span>
+                                            <span className="text-xs text-muted-foreground">{t('settings.systemSnapshot.cache', 'Cache')}</span>
                                             <span className="font-mono text-xs text-card-foreground">Redis 7.2 Cloud</span>
                                         </div>
                                         <div className="flex justify-between items-center py-2">
-                                            <span className="text-xs text-muted-foreground">Build Date</span>
+                                            <span className="text-xs text-muted-foreground">{t('settings.systemSnapshot.buildDate', 'Build Date')}</span>
                                             <span className="font-mono text-xs text-card-foreground">2024-05-18.02a</span>
                                         </div>
                                         <Button className="w-full text-[13px] mt-2">
                                             <Download className="w-4 h-4"/>
-                                            Export Config JSON
+                                            {t('settings.systemSnapshot.exportJson', 'Export Config JSON')}
                                         </Button>
                                     </CardContent>
                                 </Card>
@@ -806,10 +866,10 @@ const Settings: React.FC = () => {
                                 <div className="bg-destructive/8 border border-destructive/20 rounded-lg p-4 flex items-start gap-4">
                                     <ShieldAlert className="w-5 h-5 text-destructive/70 mt-0.5 flex-shrink-0"/>
                                     <div>
-                                        <p className="text-sm font-semibold text-destructive/80">Unprotected API Endpoint</p>
-                                        <p className="text-xs text-destructive/70 mt-1 leading-relaxed">External webhook receiver <code className="font-mono bg-destructive/15 px-1 rounded">/v1/hooks/stripe</code> has no signature verification enabled.</p>
+                                        <p className="text-sm font-semibold text-destructive/80">{t('settings.securityAlert.title', 'Unprotected API Endpoint')}</p>
+                                        <p className="text-xs text-destructive/70 mt-1 leading-relaxed">{t('settings.securityAlert.desc', 'External webhook receiver')} <code className="font-mono bg-destructive/15 px-1 rounded">/v1/hooks/stripe</code> {t('settings.securityAlert.desc2', 'has no signature verification enabled.')}</p>
                                         <Button variant="link" className="mt-2 p-0 h-auto text-xs font-bold text-foreground hover:underline">
-                                            Fix Vulnerability
+                                            {t('settings.securityAlert.fix', 'Fix Vulnerability')}
                                         </Button>
                                     </div>
                                 </div>
@@ -824,22 +884,22 @@ const Settings: React.FC = () => {
                             <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Primary Storage Engine</CardTitle>
+                                        <CardTitle>{t('settings.storage.primaryEngine', 'Primary Storage Engine')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Storage Type</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.storageType', 'Storage Type')}</Label>
                                             <Select
                                                 value={formData.storage_type}
                                                 onValueChange={(value) => handleInputChange('storage_type', value)}
                                             >
                                                 <SelectTrigger className="font-mono">
-                                                    <SelectValue placeholder="Select storage type"/>
+                                                    <SelectValue placeholder={t('settings.storage.selectType', 'Select storage type')}/>
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="local">Local File System</SelectItem>
-                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>Amazon S3{!storageCaps.s3_available ? ' (Not Available)' : ''}</SelectItem>
-                                                    <SelectItem value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ' (Not Available)' : ''}</SelectItem>
+                                                    <SelectItem value="local">{t('settings.storage.localFs', 'Local File System')}</SelectItem>
+                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>Amazon S3{!storageCaps.s3_available ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
+                                                    <SelectItem value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -847,10 +907,10 @@ const Settings: React.FC = () => {
                                         {/* S3 Configuration (conditional) */}
                                         {showS3Config && (
                                             <div className="p-6 border border-border rounded-lg bg-muted">
-                                                <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-4">S3 Configuration</h4>
+                                                <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-4">{t('settings.storage.s3Config', 'S3 Configuration')}</h4>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Endpoint</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.endpoint', 'Endpoint')}</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_endpoint}
@@ -859,7 +919,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Region</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.region', 'Region')}</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_region}
@@ -868,7 +928,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5 col-span-2">
-                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Bucket Name</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.bucket', 'Bucket Name')}</Label>
                                                         <Input
                                                             className="font-mono"
                                                             value={formData.s3_bucket}
@@ -877,7 +937,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Access Key</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.accessKey', 'Access Key')}</Label>
                                                         <Input
                                                             className="font-mono"
                                                             type="password"
@@ -887,7 +947,7 @@ const Settings: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Secret Key</Label>
+                                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.secretKey', 'Secret Key')}</Label>
                                                         <Input
                                                             className="font-mono"
                                                             type="password"
@@ -902,7 +962,7 @@ const Settings: React.FC = () => {
 
                                         {/* Local Storage Path */}
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Storage Base Path</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.basePath', 'Storage Base Path')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 value={formData.storage_base_path}
@@ -925,19 +985,19 @@ const Settings: React.FC = () => {
                             <div className="col-span-12 lg:col-span-4">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-base">Usage Breakdown</CardTitle>
+                                        <CardTitle className="text-base">{t('settings.storage.usageBreakdown', 'Usage Breakdown')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div>
                                             <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-muted-foreground">Hot Storage</span>
+                                                <span className="text-xs text-muted-foreground">{t('settings.storage.hotStorage', 'Hot Storage')}</span>
                                                 <span className="text-xs font-mono text-card-foreground">8.4 TB</span>
                                             </div>
                                             <Progress value={82} className="h-2"/>
                                         </div>
                                         <div>
                                             <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-muted-foreground">Archival</span>
+                                                <span className="text-xs text-muted-foreground">{t('settings.storage.archival', 'Archival')}</span>
                                                 <span className="text-xs font-mono text-card-foreground">112 TB</span>
                                             </div>
                                             <Progress value={45} className="h-2"/>
@@ -956,8 +1016,8 @@ const Settings: React.FC = () => {
                                 <CardContent className="py-6">
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-semibold text-foreground">Auto-Transcode on Upload</p>
-                                            <p className="text-xs text-muted-foreground mt-0.5">Automatically process all video assets to multi-bitrate HLS.</p>
+                                            <p className="text-sm font-semibold text-foreground">{t('settings.media.autoTranscode', 'Auto-Transcode on Upload')}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">{t('settings.media.autoTranscodeDesc', 'Automatically process all video assets to multi-bitrate HLS.')}</p>
                                         </div>
                                         <Switch
                                             checked={formData.auto_transcode === 'true'}
@@ -970,55 +1030,80 @@ const Settings: React.FC = () => {
                             {/* Transcoding Engine */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Transcoding Engine</CardTitle>
+                                    <CardTitle>{t('settings.media.transcodeEngine', 'Transcoding Engine')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 gap-8">
                                         <div className="space-y-4">
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Method</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.method', 'Method')}</Label>
                                                 <Select
                                                     value={formData.transcode_method}
                                                     onValueChange={(value) => handleInputChange('transcode_method', value)}
                                                 >
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select method"/>
+                                                        <SelectValue placeholder={t('settings.media.selectMethod', 'Select method')}/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="ffmpeg">Software (FFmpeg x264)</SelectItem>
-                                                        <SelectItem value="nvenc">Nvidia NVENC (GPU Accelerated)</SelectItem>
-                                                        <SelectItem value="quicksync">Intel QuickSync</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Output Format</Label>
-                                                <Select
-                                                    value={formData.homepage_layout}
-                                                    onValueChange={(value) => handleInputChange('homepage_layout', value)}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select format"/>
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="hls">HLS (.m3u8)</SelectItem>
-                                                        <SelectItem value="dash">DASH (.mpd)</SelectItem>
-                                                        <SelectItem value="mp4">MP4 Progressive</SelectItem>
+                                                        <SelectItem value="ffmpeg">{t('settings.media.ffmpeg', 'Software (FFmpeg x264)')}</SelectItem>
+                                                        <SelectItem value="nvenc">{t('settings.media.nvenc', 'Nvidia NVENC (GPU Accelerated)')}</SelectItem>
+                                                        <SelectItem value="quicksync">{t('settings.media.quicksync', 'Intel QuickSync')}</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                         </div>
                                         <div className="bg-muted p-4 rounded-lg border border-border">
-                                            <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-3">Allowed Formats</h4>
+                                            <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-3">{t('settings.media.allowedFormats', 'Allowed Formats')}</h4>
                                             <div className="flex flex-wrap gap-2">
-                                                {formData.allowed_video_formats.split(',').map(fmt => (
-                                                    <span key={fmt} className="px-2 py-1 bg-card border border-border text-card-foreground text-[11px] rounded font-mono">
-                                                        .{fmt.trim()}
+                                                {formData.allowed_video_formats.split(',').map(fmt => {
+                                                    const f = fmt.trim();
+                                                    if (!f) return null;
+                                                    return (
+                                                        <span key={f} className="inline-flex items-center gap-1 px-2 py-1 bg-card border border-border text-card-foreground text-[11px] rounded font-mono">
+                                                            .{f}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeVideoFormat(f)}
+                                                                className="text-muted-foreground hover:text-red-500 transition-colors"
+                                                                aria-label={t('common.remove', '移除')}
+                                                            >
+                                                                <X className="w-3 h-3"/>
+                                                            </button>
+                                                        </span>
+                                                    );
+                                                })}
+                                                {showVideoFormatInput ? (
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <Input
+                                                            autoFocus
+                                                            value={newVideoFormat}
+                                                            onChange={(e) => setNewVideoFormat(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') addVideoFormat();
+                                                                if (e.key === 'Escape') setShowVideoFormatInput(false);
+                                                            }}
+                                                            placeholder="mp4"
+                                                            className="h-7 w-20 font-mono text-[11px] px-2"
+                                                        />
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="h-7 w-7"
+                                                            onClick={addVideoFormat}
+                                                            aria-label={t('common.confirm', '确定')}
+                                                        >
+                                                            <Check className="w-3.5 h-3.5"/>
+                                                        </Button>
                                                     </span>
-                                                ))}
-                                                <Button variant="outline" className="px-2 py-1 h-auto border-dashed text-[11px] font-mono text-primary">
-                                                    + Add
-                                                </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="outline"
+                                                        className="px-2 py-1 h-auto border-dashed text-[11px] font-mono text-primary"
+                                                        onClick={() => setShowVideoFormatInput(true)}
+                                                    >
+                                                        + {t('settings.media.add', 'Add')}
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -1028,12 +1113,12 @@ const Settings: React.FC = () => {
                             {/* Upload Limits */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Upload Limits</CardTitle>
+                                    <CardTitle>{t('settings.media.uploadLimits', 'Upload Limits')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Upload Size Video (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.maxUploadVideo', 'Max Upload Size Video (MB)')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1042,7 +1127,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Upload Size Image (MB)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.maxUploadImage', 'Max Upload Size Image (MB)')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1051,14 +1136,14 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Allowed Image Formats</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.allowedImageFormats', 'Allowed Image Formats')}</Label>
                                             <Input
                                                 value={formData.allowed_image_formats}
                                                 onChange={(e) => handleInputChange('allowed_image_formats', e.target.value)}
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Max Video Duration (min)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.maxDuration', 'Max Video Duration (min)')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1073,12 +1158,12 @@ const Settings: React.FC = () => {
                             {/* Thumbnail & Sprite */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Thumbnail & Sprite Settings</CardTitle>
+                                    <CardTitle>{t('settings.media.thumbSprite', 'Thumbnail & Sprite Settings')}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Thumbnail Quality</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.thumbQuality', 'Thumbnail Quality')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1087,7 +1172,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Thumbnail Resolution</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.thumbResolution', 'Thumbnail Resolution')}</Label>
                                             <Input
                                                 value={formData.thumbnail_resolution}
                                                 onChange={(e) => handleInputChange('thumbnail_resolution', e.target.value)}
@@ -1095,7 +1180,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sprite Frame Interval</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.spriteInterval', 'Sprite Frame Interval')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1104,7 +1189,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sprite Columns</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.media.spriteColumns', 'Sprite Columns')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1119,29 +1204,29 @@ const Settings: React.FC = () => {
                             {/* Content Review Mode (BUG-138 G5 clause 1) */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Content Review Mode</CardTitle>
+                                    <CardTitle>{t('settings.reviewMode.title', 'Content Review Mode')}</CardTitle>
                                     <CardDescription>
-                                        Default <code className="font-mono">manual</code> — every publish enters pending review and requires admin approval before it goes live.
+                                        {t('settings.reviewMode.descPrefix', 'Default')} <code className="font-mono">manual</code> {t('settings.reviewMode.descSuffix', '— every publish enters pending review and requires admin approval before it goes live.')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Review Strategy</Label>
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.reviewMode.strategy', 'Review Strategy')}</Label>
                                         <Select
                                             value={formData.review_mode}
                                             onValueChange={(value) => handleInputChange('review_mode', value)}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select review mode"/>
+                                                <SelectValue placeholder={t('settings.reviewMode.select', 'Select review mode')}/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="manual">Manual — require admin review</SelectItem>
-                                                <SelectItem value="auto_approve">Auto Approve — publish immediately</SelectItem>
-                                                <SelectItem value="skip">Skip Review — publish directly</SelectItem>
+                                                <SelectItem value="manual">{t('settings.reviewMode.manual', 'Manual — require admin review')}</SelectItem>
+                                                <SelectItem value="auto_approve">{t('settings.reviewMode.autoApprove', 'Auto Approve — publish immediately')}</SelectItem>
+                                                <SelectItem value="skip">{t('settings.reviewMode.skip', 'Skip Review — publish directly')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            N-day timeout strategies (auto-approve / auto-reject after N days) are defined in the spec but not enabled in this release.
+                                            {t('settings.reviewMode.timeoutNote', 'N-day timeout strategies (auto-approve / auto-reject after N days) are defined in the spec but not enabled in this release.')}
                                         </p>
                                     </div>
                                 </CardContent>
@@ -1150,41 +1235,41 @@ const Settings: React.FC = () => {
                             {/* Content Feature Modes (BUG-139 G5) — platform comments/download switches */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Content Feature Modes</CardTitle>
+                                    <CardTitle>{t('settings.featureModes.title', 'Content Feature Modes')}</CardTitle>
                                     <CardDescription>
-                                        Platform-level switches for comments &amp; download on every media. <code className="font-mono">disabled</code> = force off for ALL media (incl. published); <code className="font-mono">opt_in</code> = off by default; <code className="font-mono">opt_out</code> = on by default.
+                                        {t('settings.featureModes.descPrefix', 'Platform-level switches for comments & download on every media.')} <code className="font-mono">disabled</code> {t('settings.featureModes.descDisabled', '= force off for ALL media (incl. published);')} <code className="font-mono">opt_in</code> {t('settings.featureModes.descOptIn', '= off by default;')} <code className="font-mono">opt_out</code> {t('settings.featureModes.descOptOut', '= on by default.')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Comments Mode</Label>
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.featureModes.commentsMode', 'Comments Mode')}</Label>
                                         <Select
                                             value={formData.comments_mode}
                                             onValueChange={(value) => handleInputChange('comments_mode', value)}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select comments mode"/>
+                                                <SelectValue placeholder={t('settings.featureModes.selectComments', 'Select comments mode')}/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="opt_out">Opt-out — enabled by default</SelectItem>
-                                                <SelectItem value="opt_in">Opt-in — disabled by default</SelectItem>
-                                                <SelectItem value="disabled">Disabled — force off for all media</SelectItem>
+                                                <SelectItem value="opt_out">{t('settings.featureModes.optOut', 'Opt-out — enabled by default')}</SelectItem>
+                                                <SelectItem value="opt_in">{t('settings.featureModes.optIn', 'Opt-in — disabled by default')}</SelectItem>
+                                                <SelectItem value="disabled">{t('settings.featureModes.disabled', 'Disabled — force off for all media')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="flex flex-col gap-1.5">
-                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Downloads Mode</Label>
+                                        <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.featureModes.downloadsMode', 'Downloads Mode')}</Label>
                                         <Select
                                             value={formData.downloads_mode}
                                             onValueChange={(value) => handleInputChange('downloads_mode', value)}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select downloads mode"/>
+                                                <SelectValue placeholder={t('settings.featureModes.selectDownloads', 'Select downloads mode')}/>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="opt_out">Opt-out — enabled by default</SelectItem>
-                                                <SelectItem value="opt_in">Opt-in — disabled by default</SelectItem>
-                                                <SelectItem value="disabled">Disabled — force off for all media</SelectItem>
+                                                <SelectItem value="opt_out">{t('settings.featureModes.optOut', 'Opt-out — enabled by default')}</SelectItem>
+                                                <SelectItem value="opt_in">{t('settings.featureModes.optIn', 'Opt-in — disabled by default')}</SelectItem>
+                                                <SelectItem value="disabled">{t('settings.featureModes.disabled', 'Disabled — force off for all media')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -1201,11 +1286,11 @@ const Settings: React.FC = () => {
                                 <Card>
                                     <CardHeader>
                                         <div className="flex items-center justify-between">
-                                            <CardTitle>SMTP Configuration</CardTitle>
+                                            <CardTitle>{t('settings.email.smtpConfig', 'SMTP Configuration')}</CardTitle>
                                             {emailStatus.configured && (
                                                 <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 flex items-center gap-1.5">
                                                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
-                                                    Connected
+                                                    {t('settings.email.connected', 'Connected')}
                                                 </Badge>
                                             )}
                                         </div>
@@ -1213,7 +1298,7 @@ const Settings: React.FC = () => {
                                     <CardContent className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Host</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.email.host', 'Host')}</Label>
                                                 <Input
                                                     className="font-mono"
                                                     type="text"
@@ -1223,7 +1308,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Port</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.email.port', 'Port')}</Label>
                                                 <Input
                                                     className="font-mono"
                                                     type="text"
@@ -1233,7 +1318,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5 col-span-2">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Username</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.email.username', 'Username')}</Label>
                                                 <Input
                                                     value={formData.smtp_user}
                                                     onChange={(e) => handleInputChange('smtp_user', e.target.value)}
@@ -1241,7 +1326,7 @@ const Settings: React.FC = () => {
                                                 />
                                             </div>
                                             <div className="flex flex-col gap-1.5 col-span-2">
-                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Password</Label>
+                                                <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.email.password', 'Password')}</Label>
                                                 <Input
                                                     type="password"
                                                     value={formData.smtp_password}
@@ -1251,7 +1336,7 @@ const Settings: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Sender Name</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.email.senderName', 'Sender Name')}</Label>
                                             <Input
                                                 value={formData.smtp_sender_name}
                                                 onChange={(e) => handleInputChange('smtp_sender_name', e.target.value)}
@@ -1262,7 +1347,7 @@ const Settings: React.FC = () => {
                                                 checked={formData.smtp_use_tls === 'true'}
                                                 onCheckedChange={(checked) => handleInputChange('smtp_use_tls', String(checked))}
                                             />
-                                            <Label className="text-sm text-card-foreground font-medium">Use TLS</Label>
+                                            <Label className="text-sm text-card-foreground font-medium">{t('settings.email.useTls', 'Use TLS')}</Label>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -1272,11 +1357,11 @@ const Settings: React.FC = () => {
                             <div className="col-span-12 lg:col-span-4">
                                 <Card className="border-2 border-dashed border-border">
                                     <CardHeader>
-                                        <CardTitle className="text-base">Send Test Email</CardTitle>
+                                        <CardTitle className="text-base">{t('settings.email.sendTest', 'Send Test Email')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <Input
-                                            placeholder="Recipient Address"
+                                            placeholder={t('settings.email.recipient', 'Recipient Address')}
                                             type="email"
                                             value={emailTestTo}
                                             onChange={(e) => setEmailTestTo(e.target.value)}
@@ -1291,12 +1376,12 @@ const Settings: React.FC = () => {
                                             ) : (
                                                 <Send className="w-4 h-4"/>
                                             )}
-                                            Send Test
+                                            {t('settings.email.sendTestBtn', 'Send Test')}
                                         </Button>
                                         {emailStatus.configured && (
                                             <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center gap-2">
                                                 <CheckCircle className="w-4 h-4 text-emerald-500"/>
-                                                <span className="text-xs font-medium text-emerald-700">Email is configured and ready</span>
+                                                <span className="text-xs font-medium text-emerald-700">{t('settings.email.configuredReady', 'Email is configured and ready')}</span>
                                             </div>
                                         )}
                                     </CardContent>
@@ -1315,8 +1400,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Allow Public Registration</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Allow new users to sign up without invitation.</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.security.allowRegistration', 'Allow Public Registration')}</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.security.allowRegistrationDesc', 'Allow new users to sign up without invitation.')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.allow_registration === 'true'}
@@ -1331,8 +1416,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Enforce 2FA</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Mandatory two-factor auth for all administrators.</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.security.enforce2fa', 'Enforce 2FA')}</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.security.enforce2faDesc', 'Mandatory two-factor auth for all administrators.')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.require_email_verification === 'true'}
@@ -1347,8 +1432,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">API Rate Limiting</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Limit requests to {formData.api_rate_limit}/min per IP address.</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.security.rateLimiting', 'API Rate Limiting')}</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.security.rateLimitingDesc', 'Limit requests to')} {formData.api_rate_limit}/min {t('settings.security.perIp', 'per IP address.')}</p>
                                             </div>
                                             <Switch
                                                 checked={parseInt(formData.api_rate_limit) > 0}
@@ -1363,8 +1448,8 @@ const Settings: React.FC = () => {
                                     <CardContent className="py-5">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Session Expiry</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Auto-logout after 24 hours of inactivity.</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.security.sessionExpiry', 'Session Expiry')}</p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">{t('settings.security.sessionExpiryDesc', 'Auto-logout after 24 hours of inactivity.')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.auto_approve === 'true'}
@@ -1381,13 +1466,13 @@ const Settings: React.FC = () => {
                             {/* Auth Settings */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Authentication</CardTitle>
+                                    <CardTitle>{t('settings.security.authentication', 'Authentication')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
                                     <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                         <div>
-                                            <p className="text-sm font-semibold text-foreground">Require Email Verification</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono uppercase">Verify email before access</p>
+                                            <p className="text-sm font-semibold text-foreground">{t('settings.security.requireEmailVerify', 'Require Email Verification')}</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono uppercase">{t('settings.security.verifyEmailBeforeAccess', 'Verify email before access')}</p>
                                         </div>
                                         <Switch
                                             checked={formData.require_email_verification === 'true'}
@@ -1396,7 +1481,7 @@ const Settings: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">Min Password Length</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.security.minPasswordLen', 'Min Password Length')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1405,7 +1490,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">API Rate Limit (req/min)</Label>
+                                            <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.security.apiRateLimit', 'API Rate Limit (req/min)')}</Label>
                                             <Input
                                                 className="font-mono"
                                                 type="number"
@@ -1416,7 +1501,7 @@ const Settings: React.FC = () => {
                                     </div>
                                     <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 flex gap-4">
                                         <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0"/>
-                                        <p className="text-xs text-destructive/80 leading-relaxed font-medium">Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.</p>
+                                        <p className="text-xs text-destructive/80 leading-relaxed font-medium">{t('settings.security.stabilityWarning', 'Changing these values may affect system stability under high load. Ensure your infrastructure scale policy is aligned before applying higher limits.')}</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -1428,16 +1513,16 @@ const Settings: React.FC = () => {
                         <div className="grid grid-cols-12 gap-8">
                             {/* Left Column (4/12) */}
                             <div className="col-span-12 lg:col-span-4 space-y-4">
-                                <h3 className="text-sm font-semibold text-foreground mb-2">Core Modules</h3>
+                                <h3 className="text-sm font-semibold text-foreground mb-2">{t('settings.modules.coreModules', 'Core Modules')}</h3>
                                 <div className={`p-4 border-2 rounded-lg flex justify-between items-center ${
                                     formData.module_articles ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'
                                 }`}>
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-5 h-5 text-primary"/>
-                                        <span className="text-sm font-semibold text-foreground">Articles</span>
+                                        <span className="text-sm font-semibold text-foreground">{t('settings.modules.articles', 'Articles')}</span>
                                     </div>
                                     <Badge variant={formData.module_articles ? 'soft-success' : 'soft-neutral'}>
-                                        {formData.module_articles ? 'Active' : 'Disabled'}
+                                        {formData.module_articles ? t('settings.modules.active', 'Active') : t('settings.modules.disabled', 'Disabled')}
                                     </Badge>
                                 </div>
                                 <div className={`p-4 border-2 rounded-lg flex justify-between items-center ${
@@ -1445,10 +1530,10 @@ const Settings: React.FC = () => {
                                 }`}>
                                     <div className="flex items-center gap-3">
                                         <Video className="w-5 h-5 text-primary"/>
-                                        <span className="text-sm font-semibold text-foreground">Video Management</span>
+                                        <span className="text-sm font-semibold text-foreground">{t('settings.modules.videoMgmt', 'Video Management')}</span>
                                     </div>
                                     <Badge variant={formData.module_videos ? 'soft-success' : 'soft-neutral'}>
-                                        {formData.module_videos ? 'Active' : 'Disabled'}
+                                        {formData.module_videos ? t('settings.modules.active', 'Active') : t('settings.modules.disabled', 'Disabled')}
                                     </Badge>
                                 </div>
                                 <div className={`p-4 border rounded-lg flex justify-between items-center ${
@@ -1456,17 +1541,17 @@ const Settings: React.FC = () => {
                                 } ${!formData.module_music ? 'opacity-50 grayscale' : ''}`}>
                                     <div className="flex items-center gap-3">
                                         <Music2 className="w-5 h-5 text-primary"/>
-                                        <span className="text-sm font-semibold text-foreground">Audio Streaming</span>
+                                        <span className="text-sm font-semibold text-foreground">{t('settings.modules.audioStreaming', 'Audio Streaming')}</span>
                                     </div>
                                     <Badge variant={formData.module_music ? 'soft-success' : 'soft-neutral'}>
-                                        {formData.module_music ? 'Active' : 'Disabled'}
+                                        {formData.module_music ? t('settings.modules.active', 'Active') : t('settings.modules.disabled', 'Disabled')}
                                     </Badge>
                                 </div>
                             </div>
 
                             {/* Right Column (8/12) */}
                             <div className="col-span-12 lg:col-span-8">
-                                <h3 className="text-sm font-semibold text-foreground mb-6">Homepage Layout Selection</h3>
+                                <h3 className="text-sm font-semibold text-foreground mb-6">{t('settings.modules.homepageLayout', 'Homepage Layout Selection')}</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     <div
                                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -1477,8 +1562,8 @@ const Settings: React.FC = () => {
                                         onClick={() => handleInputChange('homepage_layout', 'auto')}
                                     >
                                         <LayoutGrid className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'auto' ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                        <p className="text-sm font-semibold text-foreground">Mixed Mode</p>
-                                        <p className="text-[11px] text-muted-foreground mt-1">Recommended for general content delivery.</p>
+                                        <p className="text-sm font-semibold text-foreground">{t('settings.modules.mixedMode', 'Mixed Mode')}</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">{t('settings.modules.mixedModeDesc', 'Recommended for general content delivery.')}</p>
                                     </div>
                                     <div
                                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -1489,8 +1574,8 @@ const Settings: React.FC = () => {
                                         onClick={() => handleInputChange('homepage_layout', 'video')}
                                     >
                                         <Film className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'video' ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                        <p className="text-sm font-semibold text-foreground">Video Focus</p>
-                                        <p className="text-[11px] text-muted-foreground mt-1">Cinema-style portal with hero slider.</p>
+                                        <p className="text-sm font-semibold text-foreground">{t('settings.modules.videoFocus', 'Video Focus')}</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">{t('settings.modules.videoFocusDesc', 'Cinema-style portal with hero slider.')}</p>
                                     </div>
                                     <div
                                         className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -1501,21 +1586,21 @@ const Settings: React.FC = () => {
                                         onClick={() => handleInputChange('homepage_layout', 'editorial')}
                                     >
                                         <BookOpen className={`w-5 h-5 mb-2 ${formData.homepage_layout === 'editorial' ? 'text-primary' : 'text-muted-foreground'}`}/>
-                                        <p className="text-sm font-semibold text-foreground">Editorial</p>
-                                        <p className="text-[11px] text-muted-foreground mt-1">Clean typography for long-form reading.</p>
+                                        <p className="text-sm font-semibold text-foreground">{t('settings.modules.editorial', 'Editorial')}</p>
+                                        <p className="text-[11px] text-muted-foreground mt-1">{t('settings.modules.editorialDesc', 'Clean typography for long-form reading.')}</p>
                                     </div>
                                 </div>
 
                                 {/* Content Modules Toggle */}
                                 <Card className="mt-8">
                                     <CardHeader>
-                                        <CardTitle>Content Modules</CardTitle>
+                                        <CardTitle>{t('settings.modules.contentModules', 'Content Modules')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Articles Module</p>
-                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Blog & article system</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.modules.articlesModule', 'Articles Module')}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">{t('settings.modules.articlesModuleDesc', 'Blog & article system')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_articles}
@@ -1524,8 +1609,8 @@ const Settings: React.FC = () => {
                                         </div>
                                         <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Videos Module</p>
-                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Video streaming system</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.modules.videosModule', 'Videos Module')}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">{t('settings.modules.videosModuleDesc', 'Video streaming system')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_videos}
@@ -1534,8 +1619,8 @@ const Settings: React.FC = () => {
                                         </div>
                                         <div className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">Music Module</p>
-                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">Audio streaming system</p>
+                                                <p className="text-sm font-semibold text-foreground">{t('settings.modules.musicModule', 'Music Module')}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono uppercase">{t('settings.modules.musicModuleDesc', 'Audio streaming system')}</p>
                                             </div>
                                             <Switch
                                                 checked={formData.module_music}
@@ -1556,21 +1641,21 @@ const Settings: React.FC = () => {
                                 <CardHeader>
                                     <CardTitle className="flex items-center gap-2">
                                         <ShieldCheck className="w-5 h-5 text-primary"/>
-                                        Core Features (Always Enabled)
+                                        {t('settings.features.coreAlwaysEnabled', 'Core Features (Always Enabled)')}
                                     </CardTitle>
                                     <CardDescription>
-                                        These features represent the primary video business focus and cannot be disabled.
+                                        {t('settings.features.coreDesc', 'These features represent the primary video business focus and cannot be disabled.')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                         {[
-                                            {name: 'Upload', icon: Upload, desc: 'Multipart upload'},
-                                            {name: 'Transcoding', icon: Cpu, desc: 'Video encoding'},
-                                            {name: 'Media Browse', icon: Film, desc: 'Media library'},
-                                            {name: 'Channels', icon: Radio, desc: 'Channel management'},
-                                            {name: 'Categories', icon: FolderTree, desc: 'Content categories'},
-                                            {name: 'Tags', icon: Tags, desc: 'Content tagging'},
+                                            {name: t('settings.features.upload', 'Upload'), icon: Upload, desc: t('settings.features.uploadDesc', 'Multipart upload')},
+                                            {name: t('settings.features.transcoding', 'Transcoding'), icon: Cpu, desc: t('settings.features.transcodingDesc', 'Video encoding')},
+                                            {name: t('settings.features.mediaBrowse', 'Media Browse'), icon: Film, desc: t('settings.features.mediaBrowseDesc', 'Media library')},
+                                            {name: t('settings.features.channels', 'Channels'), icon: Radio, desc: t('settings.features.channelsDesc', 'Channel management')},
+                                            {name: t('settings.features.categories', 'Categories'), icon: FolderTree, desc: t('settings.features.categoriesDesc', 'Content categories')},
+                                            {name: t('settings.features.tags', 'Tags'), icon: Tags, desc: t('settings.features.tagsDesc', 'Content tagging')},
                                         ].map((feature) => (
                                             <div key={feature.name} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
                                                 <feature.icon className="w-4 h-4 text-primary flex-shrink-0"/>
@@ -1578,7 +1663,7 @@ const Settings: React.FC = () => {
                                                     <p className="text-sm font-semibold text-foreground">{feature.name}</p>
                                                     <p className="text-[10px] text-muted-foreground truncate">{feature.desc}</p>
                                                 </div>
-                                                <Badge variant="soft-success" className="ml-auto">Active</Badge>
+                                                <Badge variant="soft-success" className="ml-auto">{t('settings.features.active', 'Active')}</Badge>
                                             </div>
                                         ))}
                                     </div>
@@ -1588,19 +1673,19 @@ const Settings: React.FC = () => {
                             {/* Secondary Features Toggle */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Secondary Features</CardTitle>
+                                    <CardTitle>{t('settings.features.secondaryFeatures', 'Secondary Features')}</CardTitle>
                                     <CardDescription>
-                                        Toggle to show or hide admin menu items. Disabled features remain accessible via direct URL but are hidden from navigation.
+                                        {t('settings.features.secondaryDesc', 'Toggle to show or hide admin menu items. Disabled features remain accessible via direct URL but are hidden from navigation.')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {[
-                                        {key: 'feature_articles' as const, name: 'Articles', desc: 'Blog & article system', icon: FileText},
-                                        {key: 'feature_comments' as const, name: 'Comments', desc: 'Comment moderation', icon: MessageSquare},
-                                        {key: 'feature_playlists' as const, name: 'Playlists', desc: 'Playlist management', icon: PlayCircle},
-                                        {key: 'feature_users' as const, name: 'Users', desc: 'User management', icon: Users},
-                                        {key: 'feature_permissions' as const, name: 'Permissions', desc: 'Role & permission management', icon: Key},
-                                        {key: 'feature_notifications' as const, name: 'Notifications', desc: 'System notifications', icon: Bell},
+                                        {key: 'feature_articles' as const, name: t('settings.features.articles', 'Articles'), desc: t('settings.features.articlesDesc', 'Blog & article system'), icon: FileText},
+                                        {key: 'feature_comments' as const, name: t('settings.features.comments', 'Comments'), desc: t('settings.features.commentsDesc', 'Comment moderation'), icon: MessageSquare},
+                                        {key: 'feature_playlists' as const, name: t('settings.features.playlists', 'Playlists'), desc: t('settings.features.playlistsDesc', 'Playlist management'), icon: PlayCircle},
+                                        {key: 'feature_users' as const, name: t('settings.features.users', 'Users'), desc: t('settings.features.usersDesc', 'User management'), icon: Users},
+                                        {key: 'feature_permissions' as const, name: t('settings.features.permissions', 'Permissions'), desc: t('settings.features.permissionsDesc', 'Role & permission management'), icon: Key},
+                                        {key: 'feature_notifications' as const, name: t('settings.features.notifications', 'Notifications'), desc: t('settings.features.notificationsDesc', 'System notifications'), icon: Bell},
                                     ].map((feature) => (
                                         <div key={feature.key} className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div className="flex items-center gap-3">
@@ -1622,18 +1707,18 @@ const Settings: React.FC = () => {
                             {/* Enterprise Features Toggle */}
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Enterprise Features</CardTitle>
+                                    <CardTitle>{t('settings.features.enterpriseFeatures', 'Enterprise Features')}</CardTitle>
                                     <CardDescription>
-                                        EE-only features. Disable to simplify the admin interface for CE-only deployments.
+                                        {t('settings.features.enterpriseDesc', 'EE-only features. Disable to simplify the admin interface for CE-only deployments.')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     {[
-                                        {key: 'feature_drm' as const, name: 'DRM Management', desc: 'Digital rights management', icon: Shield},
-                                        {key: 'feature_live_rooms' as const, name: 'Live Rooms', desc: 'Live streaming rooms', icon: Tv2},
-                                        {key: 'feature_payment' as const, name: 'Payment', desc: 'Payment & subscription', icon: CreditCard},
-                                        {key: 'feature_promotion' as const, name: 'Promotion', desc: 'Promotion campaigns', icon: Megaphone},
-                                        {key: 'feature_ads' as const, name: 'Ads', desc: 'Advertisement management', icon: Target},
+                                        {key: 'feature_drm' as const, name: t('settings.features.drm', 'DRM Management'), desc: t('settings.features.drmDesc', 'Digital rights management'), icon: Shield},
+                                        {key: 'feature_live_rooms' as const, name: t('settings.features.liveRooms', 'Live Rooms'), desc: t('settings.features.liveRoomsDesc', 'Live streaming rooms'), icon: Tv2},
+                                        {key: 'feature_payment' as const, name: t('settings.features.payment', 'Payment'), desc: t('settings.features.paymentDesc', 'Payment & subscription'), icon: CreditCard},
+                                        {key: 'feature_promotion' as const, name: t('settings.features.promotion', 'Promotion'), desc: t('settings.features.promotionDesc', 'Promotion campaigns'), icon: Megaphone},
+                                        {key: 'feature_ads' as const, name: t('settings.features.ads', 'Ads'), desc: t('settings.features.adsDesc', 'Advertisement management'), icon: Target},
                                     ].map((feature) => (
                                         <div key={feature.key} className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border">
                                             <div className="flex items-center gap-3">

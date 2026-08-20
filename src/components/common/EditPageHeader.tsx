@@ -1,4 +1,5 @@
 import {memo, useMemo} from 'react';
+import {useTranslation} from 'react-i18next';
 import {ArrowLeft, Save, Play, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -64,16 +65,17 @@ const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
 };
 
 const BackNavigation = memo(function BackNavigation({onBack}: { onBack: () => void }) {
+  const {t} = useTranslation();
   return (
     <>
       <Button
         variant="ghost"
         size="sm"
         onClick={onBack}
-        aria-label="返回媒体列表"
+        aria-label={t('mediaEdit.backAria')}
       >
         <ArrowLeft className="w-4 h-4"/>
-        <span className="hidden sm:inline">返回</span>
+        <span className="hidden sm:inline">{t('mediaEdit.back')}</span>
       </Button>
       <Separator orientation="vertical" className="h-6"/>
     </>
@@ -81,12 +83,14 @@ const BackNavigation = memo(function BackNavigation({onBack}: { onBack: () => vo
 });
 
 function DirtyIndicator() {
+  const {t} = useTranslation();
   return (
-    <span className="text-primary" aria-label="有未保存的更改">*</span>
+    <span className="text-primary" aria-label={t('mediaEdit.dirtyAria')}>*</span>
   );
 }
 
 function BadgeOverflow({count, items}: { count: number; items: HeaderBadgeConfig[] }) {
+  const {t} = useTranslation();
   return (
     <TooltipProvider delayDuration={200}>
       <Tooltip>
@@ -94,7 +98,7 @@ function BadgeOverflow({count, items}: { count: number; items: HeaderBadgeConfig
           <Badge
             variant="outline"
             className="text-xs cursor-default"
-            aria-label={`${count} more badges`}
+            aria-label={t('mediaEdit.moreBadges', {count})}
           >
             +{count}
           </Badge>
@@ -132,6 +136,7 @@ const TitleWithBadges = memo(function TitleWithBadges({
   editableTitle?: string;
   onTitleChange?: (value: string) => void;
 }) {
+  const {t} = useTranslation();
   const sortedBadges = useMemo(() =>
     badges
       .filter(b => b.visible !== false)
@@ -153,13 +158,13 @@ const TitleWithBadges = memo(function TitleWithBadges({
         <Input
           value={editableTitle}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="未命名媒体"
-          aria-label="标题"
+          placeholder={t('mediaEdit.unnamedMedia')}
+          aria-label={t('mediaEdit.titleAria')}
           className="text-base font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
         />
       ) : (
         <h1 className="text-base font-semibold truncate">
-          {title || '未命名媒体'}
+          {title || t('mediaEdit.unnamedMedia')}
           {isDirty && <DirtyIndicator/>}
         </h1>
       )}
@@ -224,16 +229,16 @@ function SaveButtonIcon({saveState}: { saveState: SaveState }) {
   }
 }
 
-function getSaveButtonText(saveState: SaveState): string {
+function getSaveButtonText(saveState: SaveState, t: (key: string) => string): string {
   switch (saveState) {
     case 'saving':
-      return '保存中...';
+      return t('mediaEdit.saving');
     case 'success':
-      return '已保存';
+      return t('mediaEdit.saved');
     case 'error':
-      return '保存失败';
+      return t('mediaEdit.saveFailed');
     default:
-      return '保存';
+      return t('common.save');
   }
 }
 
@@ -252,6 +257,7 @@ const HeaderActions = memo(function HeaderActions({
   onDelete: () => void;
   hasPreview: boolean;
 }) {
+  const {t} = useTranslation();
   const isSaving = saveState === 'saving';
   const saveDisabled = isSaving;
 
@@ -266,10 +272,10 @@ const HeaderActions = memo(function HeaderActions({
               onClick={onSave}
               disabled={saveDisabled}
               className={cn(isDirty && saveState === 'idle' && 'ring-2 ring-primary/30')}
-              aria-label="保存 (Ctrl+S)"
+              aria-label={t('mediaEdit.saveAria')}
             >
               <SaveButtonIcon saveState={saveState}/>
-              <span className="hidden md:inline">{getSaveButtonText(saveState)}</span>
+              <span className="hidden md:inline">{getSaveButtonText(saveState, t)}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -284,16 +290,16 @@ const HeaderActions = memo(function HeaderActions({
           size="sm"
           onClick={onPreview}
           className="hidden sm:inline-flex"
-          aria-label="预览 (新窗口)"
+          aria-label={t('mediaEdit.previewAria')}
         >
           <Play className="w-4 h-4"/>
-          <span className="hidden md:inline">预览</span>
+          <span className="hidden md:inline">{t('mediaEdit.preview')}</span>
         </Button>
       )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label="更多操作">
+          <Button variant="ghost" size="sm" aria-label={t('mediaEdit.moreActionsAria')}>
             <MoreHorizontal className="w-4 h-4"/>
           </Button>
         </DropdownMenuTrigger>
@@ -302,7 +308,7 @@ const HeaderActions = memo(function HeaderActions({
             <>
               <DropdownMenuItem onClick={onPreview} className="sm:hidden">
                 <Play className="w-4 h-4 mr-2"/>
-                预览
+                {t('mediaEdit.preview')}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="sm:hidden"/>
             </>
@@ -310,10 +316,10 @@ const HeaderActions = memo(function HeaderActions({
           <DropdownMenuItem
             onClick={onDelete}
             className="text-destructive focus:text-destructive"
-            aria-label="删除媒体"
+            aria-label={t('mediaEdit.deleteAria')}
           >
             <Trash2 className="w-4 h-4 mr-2"/>
-            删除
+            {t('common.delete')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

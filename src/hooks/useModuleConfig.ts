@@ -7,6 +7,7 @@ const FALLBACK_CONFIG: ModulePortalConfig = {
     site: {
         site_name: 'OrigStudio',
         site_description: '',
+        site_logo_url: '',
         allow_registration: true,
         allow_upload: true,
     },

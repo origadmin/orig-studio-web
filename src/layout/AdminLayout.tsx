@@ -33,7 +33,9 @@ import {
     BadgeDollarSign,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
+import {getFullUrl} from '@/lib/utils';
 import {useFeatureFlags} from '@/contexts/FeatureFlagsContext';
+import {useModuleConfig} from '@/hooks/useModuleConfig';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import NotificationBadge from '@/components/common/NotificationBadge';
 import UploadCenter from '@/components/common/UploadCenter';
@@ -61,6 +63,9 @@ interface SidebarProps {
 
 const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: SidebarProps) {
     const {t} = useTranslation();
+    const {data: moduleConfig} = useModuleConfig();
+    const siteName = moduleConfig?.site?.site_name || 'OrigStudio';
+    const siteLogo = getFullUrl(moduleConfig?.site?.site_logo_url) || '/logo.svg';
     const pathname = useRouterState({select: (s) => s.location.pathname});
     const featureFlags = useFeatureFlags();
 
@@ -139,14 +144,14 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
             <div className={`flex items-center border-b border-sidebar-border flex-shrink-0 ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
                     <img
-                        src="/logo.svg"
-                        alt="OrigStudio"
+                        src={siteLogo}
+                        alt={siteName}
                         className="h-10 w-10 flex-shrink-0"
                     />
                     {!collapsed && (
                         <div>
-                            <div className="font-black text-[20px] leading-tight text-sidebar-foreground">OrigStudio</div>
-                            <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">企业版</div>
+                            <div className="font-black text-[20px] leading-tight text-sidebar-foreground">{siteName}</div>
+                            <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/50">{t('admin.enterpriseEdition')}</div>
                         </div>
                     )}
                 </Link>

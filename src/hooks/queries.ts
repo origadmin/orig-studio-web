@@ -7,7 +7,6 @@ import {userApi, type PublicProfile, type UserStats} from '@/lib/api/user';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
 import {adminCommentApi} from '@/lib/api/comment';
-import {configApi, type SettingCategory} from '@/lib/api/config';
 import {adminPermissionApi} from '@/lib/api/permission';
 import {adminDrmApi} from '@/lib/api/drm';
 import {adminPaymentApi, paymentApi} from '@/lib/api/payment';
@@ -985,33 +984,9 @@ export function useDeleteComment() {
 }
 
 // ==================== Config Hooks ====================
-
-/**
- * useSettingCategories: Fetch all setting categories
- */
-export function useSettingCategories() {
-    return useQuery({
-        queryKey: ['settings', 'categories'],
-        queryFn: async () => {
-            const res = await configApi.getAll();
-            return res;
-        },
-    });
-}
-
-/**
- * useUpdateSetting: Update a single setting by key
- */
-export function useUpdateSetting() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({key, value}: {key: string; value: string}) =>
-            configApi.updateOne(key, {value}),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['settings']});
-        },
-    });
-}
+// BUG-232: removed dead config.ts (categories/array contract) hooks
+// (useSettingCategories / useUpdateSetting). The authoritative settings API is
+// web/src/lib/api/system.ts (flat map<string,string>), consumed by Settings.tsx.
 
 // ==================== Permission Hooks ====================
 
