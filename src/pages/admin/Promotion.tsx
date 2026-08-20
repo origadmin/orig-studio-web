@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Megaphone, Plus, Edit, Trash2, Tag, ChevronLeft, ChevronRight, Calendar,
     Search, Filter, Download, MoreVertical, ArrowRight, CheckCircle, X,
     Send, MessageCircle, TrendingUp, Smartphone, Sparkles,
     LayoutTemplate, CheckSquare, History, Globe, HelpCircle, Settings,
 } from 'lucide-react';
+import {statsApi} from '@/lib/api/stats';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
@@ -171,15 +172,28 @@ const ChannelsTab: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const {data: channelsData, isLoading} = useAdminPromotionChannels({page, page_size: 20});
 
+    const [promoStats, setPromoStats] = useState({active_channels: 0, total_subscriptions: 0, sent_today: 0, total_tasks: 0});
+    useEffect(() => {
+        statsApi.getPromotion().then((s) => {
+            if (!s) return;
+            setPromoStats({
+                active_channels: s.active_channels ?? 0,
+                total_subscriptions: s.total_subscriptions ?? 0,
+                sent_today: s.sent_today ?? 0,
+                total_tasks: s.total_tasks ?? 0,
+            });
+        }).catch(() => { /* keep zeros on failure */ });
+    }, []);
+
     const channels = channelsData?.items || [];
     const total = channelsData?.total || 0;
     const totalPages = Math.ceil(total / 20);
 
     const statsCards = [
-        {icon: Send, color: 'text-[#0088cc]', bgColor: 'bg-[#0088cc]/10', label: t('admin.telegramActive', 'Telegram Active'), value: '14.2k'},
-        {icon: MessageCircle, color: 'text-[#5865F2]', bgColor: 'bg-[#5865F2]/10', label: t('admin.discordReach', 'Discord Reach'), value: '8.9k'},
-        {icon: XIcon, color: 'text-[#1DA1F2]', bgColor: 'bg-[#1DA1F2]/10', label: t('admin.twitterImp', 'X / Twitter Imp.'), value: '124.5k'},
-        {icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', label: t('admin.avgConvRate', 'Avg. Conv. Rate'), value: '3.8%'},
+        {icon: Send, color: 'text-[#0088cc]', bgColor: 'bg-[#0088cc]/10', label: t('admin.activeChannels', '活跃渠道'), value: String(promoStats.active_channels)},
+        {icon: MessageCircle, color: 'text-[#5865F2]', bgColor: 'bg-[#5865F2]/10', label: t('admin.subscriptions', '总订阅'), value: String(promoStats.total_subscriptions)},
+        {icon: XIcon, color: 'text-[#1DA1F2]', bgColor: 'bg-[#1DA1F2]/10', label: t('admin.sentToday', '今日发送'), value: String(promoStats.sent_today)},
+        {icon: TrendingUp, color: 'text-success', bgColor: 'bg-success/10', label: t('admin.promoTasks', '任务总数'), value: String(promoStats.total_tasks)},
     ];
 
     const statusStyle = (ch: PromotionChannel): 'emerald' | 'slate' | 'amber' | 'red' => {

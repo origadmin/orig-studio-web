@@ -131,6 +131,7 @@ export function useCommentTree(): UseCommentTreeReturn {
       status?: string;
       report_status?: string;
       tree?: boolean;
+      keyword?: string;
     }) => {
       setLoading(true);
       try {
@@ -143,6 +144,7 @@ export function useCommentTree(): UseCommentTreeReturn {
           status: params?.status,
           report_status: params?.report_status,
           tree: useTree,
+          keyword: params?.keyword,
         });
         const list = Array.isArray(response?.items) ? response.items : [];
         setComments(list);

@@ -11,6 +11,7 @@ import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
 import {AlertTriangle, ArrowLeft, Play, Pencil, Upload} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl} from '@/lib/utils';
@@ -48,7 +49,6 @@ function normalizePrivacy(value: unknown): number {
 
 const STATE_BADGE_MAP: Record<string, { variant: HeaderBadgeConfig['variant'] }> = {
     active: {variant: 'default'},
-    pending_review: {variant: 'secondary'},
     draft: {variant: 'secondary'},
     deleted: {variant: 'destructive'},
 };
@@ -63,12 +63,16 @@ function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): Hea
         ariaLabel: `${t('mediaEdit.mediaTypeAria', 'Media type')}: ${media.type}`,
     });
 
-    const stateLabel = media.state === 'active' ? t('admin.publishedStatus', 'Published')
-        : media.state === 'pending_review' ? t('mediaEdit.pendingReview', 'Pending Review')
+    // BUG-233: review status is carried by `review_status` (not `state`, which
+    // only holds the lifecycle). A media pending review shows "Pending Review"
+    // regardless of its lifecycle draft state.
+    const reviewPending = media.review_status === 'pending_review';
+    const stateLabel = reviewPending ? t('mediaEdit.pendingReview', 'Pending Review')
+        : media.state === 'active' ? t('admin.publishedStatus', 'Published')
         : media.state === 'draft' ? t('admin.draftStatus', 'Draft')
         : media.state === 'deleted' ? t('admin.deletedStatus', 'Deleted')
         : media.state;
-    const stateConfig = STATE_BADGE_MAP[media.state] || {variant: 'outline' as const};
+    const stateConfig = reviewPending ? {variant: 'secondary' as const} : (STATE_BADGE_MAP[media.state] || {variant: 'outline' as const});
     badges.push({
         type: 'state',
         variant: stateConfig.variant,
@@ -359,12 +363,25 @@ export default function MediaEditPage() {
                     </div>
 
                     <div className="space-y-6">
-                        {!isAdmin && isOwner && media.state === 'draft' && (
+                        {!isAdmin && isOwner && media.review_status === 'pending_review' && (
+                            // BUG-233: pending 媒体 state 仍为 draft，须按 review_status 判断——
+                            // 待审核时不再显示「Submit for Review」提交按钮，避免重复提交。
+                            <div className="bg-card rounded-lg border p-4 space-y-2">
+                                <h3 className="font-medium">{t('mediaEdit.pendingReview', 'Pending Review')}</h3>
+                                <p className="text-xs text-muted-foreground">
+                                    {t('mediaEdit.pendingReviewHint', 'Your submission is awaiting admin approval. It goes live once approved.')}
+                                </p>
+                                <Badge variant="soft-warning">{t('mediaEdit.pendingReview', 'Pending Review')}</Badge>
+                            </div>
+                        )}
+                        {!isAdmin && isOwner && media.state === 'draft' && media.review_status !== 'pending_review' && (
                             <div className="bg-card rounded-lg border p-4 space-y-3">
                                 <h3 className="font-medium">{t('mediaEdit.publish', 'Publish')}</h3>
                                 <p className="text-xs text-muted-foreground">
                                     {media.encoding_status === 'success'
-                                        ? t('mediaEdit.publishHint', 'Submit this video for review. It goes live after admin approval.')
+                                        ? (media.review_status === 'rejected'
+                                            ? t('mediaEdit.rejectedHint', 'Your submission was rejected. Review the feedback and resubmit.')
+                                            : t('mediaEdit.publishHint', 'Submit this video for review. It goes live after admin approval.'))
                                         : t('mediaEdit.publishEncoding', 'Publishing is available once transcoding finishes.')}
                                 </p>
                                 <Button
@@ -417,24 +434,36 @@ export default function MediaEditPage() {
                             </div>
                         </div>
 
+                        {/* BUG-137 方案 A + BUG-233：右侧 Info → Status 卡片。
+                            Duration/Resolution 移入左侧 Technical Info（唯一展示），
+                            此处保留 Encoding 速览并新增审核状态 + 生命周期。 */}
                         <div className="bg-card rounded-lg border p-4 space-y-3">
-                            <h3 className="font-medium">{t('mediaEdit.info', 'Info')}</h3>
+                            <h3 className="font-medium">{t('mediaEdit.status', 'Status')}</h3>
                             <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{t('mediaEdit.duration', 'Duration')}</span>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-muted-foreground">{t('mediaEdit.review', 'Review')}</span>
+                                    {media.review_status === 'pending_review' ? (
+                                        <Badge variant="soft-warning">{t('mediaEdit.pendingReview', 'Pending Review')}</Badge>
+                                    ) : media.review_status === 'reviewed' ? (
+                                        <Badge variant="soft-success">{t('mediaEdit.approved', 'Approved')}</Badge>
+                                    ) : media.review_status === 'rejected' ? (
+                                        <Badge variant="soft-danger">{t('mediaEdit.rejected', 'Rejected')}</Badge>
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground">{t('mediaEdit.notSubmitted', 'Not submitted')}</span>
+                                    )}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">{t('mediaEdit.state', 'State')}</span>
                                     <span className="text-xs">
-                                        {media.duration ? `${Math.floor(media.duration / 60)}:${String(Math.floor(media.duration % 60)).padStart(2, '0')}` : 'N/A'}
+                                        {media.state === 'active' ? t('admin.publishedStatus', 'Published')
+                                            : media.state === 'draft' ? t('admin.draftStatus', 'Draft')
+                                            : media.state === 'deleted' ? t('admin.deletedStatus', 'Deleted')
+                                            : media.state || 'N/A'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">{t('mediaEdit.resolution', 'Resolution')}</span>
-                                    <span className="text-xs">
-                                        {media.width && media.height ? `${media.width}x${media.height}` : 'N/A'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
+                                <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">{t('mediaEdit.encoding', 'Encoding')}</span>
-                                    <span className="text-xs">{media.encoding_status}</span>
+                                    <span className="text-xs">{media.encoding_status || 'N/A'}</span>
                                 </div>
                             </div>
                         </div>

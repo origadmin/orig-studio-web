@@ -7,7 +7,6 @@ import {useState, useEffect} from 'react';
 import {Link} from '@tanstack/react-router';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
-  Search,
   UserPlus,
   Users,
   UserCheck,
@@ -17,10 +16,10 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  Filter,
   Download,
 } from 'lucide-react';
 import {adminUserApi, User, AdminCreateUserRequest, UpdateUserRequest, getUserStatusLabel} from '@/lib/api/user';
+import {toast} from 'sonner';
 import {formatDateTime} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
 import {getFullUrl} from '@/lib/utils';
@@ -28,6 +27,7 @@ import {PAGINATION_CONFIG} from '@/config/pagination';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
+import {FilterBar} from '@/components/admin/FilterBar';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
 import {Badge} from '@/components/ui/badge';
 import {Input} from '@/components/ui/input';
@@ -57,8 +57,10 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    loadUsers();
-  }, [searchParams.page]);
+    loadUsers(searchParams);
+    // BUG-241: keyword/role/page 任一变化都自动重新加载（显式传参，绕开
+    // onClick/onKeyDown 闭包捕获旧 searchParams 导致筛选失效的问题）。
+  }, [searchParams.keyword, searchParams.role, searchParams.page]);
 
   const loadUsers = async (params = searchParams) => {
     try {
@@ -162,13 +164,45 @@ export default function UsersPage() {
     if (!currentUser) return;
 
     try {
-      await adminUserApi.update(currentUser.id, formData as UpdateUserRequest);
+      // Contract-aligned dispatch (BUG-230):
+      // - role -> PATCH /admin/users/{id}/role (role_ids[], NOT bare role)
+      // - status -> PATCH /admin/users/{id}/status (numeric code)
+      // - nickname/email -> PUT /admin/users/{id} FLAT body {nickname,email}
+      //   (backend UpdateAdminUserRequest is flat; user wrapper + update_mask are ignored)
+      const changes: string[] = [];
+      if (formData.role && formData.role !== currentUser.role) {
+        await adminUserApi.updateRole(currentUser.id, formData.role);
+        changes.push('role');
+      }
+      if (formData.status && formData.status !== getUserStatusLabel(currentUser.status)) {
+        await adminUserApi.updateStatus(currentUser.id, formData.status);
+        changes.push('status');
+      }
+      const profileChanged =
+        (formData.nickname !== undefined && formData.nickname !== (currentUser.nickname || '')) ||
+        (formData.email !== undefined && formData.email !== currentUser.email);
+      if (profileChanged) {
+        const flat: Record<string, string> = {};
+        if (formData.nickname !== undefined && formData.nickname !== (currentUser.nickname || '')) {
+          flat.nickname = formData.nickname;
+          changes.push('nickname');
+        }
+        if (formData.email !== undefined && formData.email !== currentUser.email) {
+          flat.email = formData.email;
+          changes.push('email');
+        }
+        await adminUserApi.update(currentUser.id, flat as unknown as UpdateUserRequest);
+      }
       await loadUsers();
       setShowEditDialog(false);
       resetForm();
       setCurrentUser(null);
+      if (changes.length > 0) {
+        toast.success(t('admin.userUpdated') || 'User updated successfully');
+      }
     } catch (err) {
       console.error('Failed to update user:', err);
+      toast.error(t('admin.userUpdateFailed') || 'Failed to update user');
     }
   };
 
@@ -322,40 +356,29 @@ export default function UsersPage() {
         </Card>
       </div>
 
-      {/* Table Filters */}
+      {/* Table Filters — BUG-200: unified FilterBar (search-as-you-type + role select + reset) */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex flex-wrap items-center gap-3 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
-            <Input
-              className="pl-9"
-              placeholder={t('admin.search') || 'Search by name, email or ID...'}
-              type="text"
-              value={searchParams.keyword}
-              onChange={(e) => setSearchParams({...searchParams, keyword: e.target.value})}
-              onKeyDown={(e) => e.key === 'Enter' && loadUsers()}
-            />
-          </div>
-          <Select
-            value={searchParams.role}
-            onValueChange={(value) => { const next = {...searchParams, role: value, page: 1}; setSearchParams(next); loadUsers(next); }}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={t('admin.allRoles') || 'All Roles'}/>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('admin.allRoles') || 'All Roles'}</SelectItem>
-              <SelectItem value="admin">{t('admin.admin') || 'Admin'}</SelectItem>
-              <SelectItem value="editor">{t('admin.editor') || 'Editor'}</SelectItem>
-              <SelectItem value="user">{t('admin.user') || 'User'}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <FilterBar
+          searchValue={searchParams.keyword}
+          onSearchChange={(v) => setSearchParams((prev) => ({...prev, keyword: v, page: 1}))}
+          searchPlaceholder={t('admin.search') || '搜索用户名/邮箱/ID'}
+          filters={[{
+            key: 'role',
+            placeholder: t('admin.allRoles') || '全部角色',
+            value: searchParams.role,
+            options: [
+              {value: 'all', label: t('admin.allRoles') || '全部角色'},
+              {value: 'admin', label: t('admin.admin') || '管理员'},
+              {value: 'editor', label: t('admin.editor') || '编辑者'},
+              {value: 'user', label: t('admin.user') || '用户'},
+            ],
+            onChange: (value) => setSearchParams((prev) => ({...prev, role: value, page: 1})),
+          }]}
+          onReset={() => setSearchParams((prev) => ({...prev, keyword: '', role: 'all', page: 1}))}
+          resetDisabled={!searchParams.keyword && searchParams.role === 'all'}
+          className="flex-1"
+        />
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => loadUsers()}>
-            <Filter className="w-4 h-4"/>
-            {t('admin.filters') || 'Filters'}
-          </Button>
           <Button variant="outline" onClick={() => exportUsers(users)} disabled={users.length === 0}>
             <Download className="w-4 h-4"/>
             {t('admin.export') || 'Export'}
@@ -693,3 +716,4 @@ export default function UsersPage() {
     </div>
   );
 }
+

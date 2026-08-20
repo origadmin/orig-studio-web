@@ -876,6 +876,8 @@
     "newRole": "新しいロール",
     "changeRoleDesc": "ユーザーのロールと権限を変更",
     "deleteUser": "ユーザーを削除",
+    "userUpdated": "ユーザーを更新しました",
+    "userUpdateFailed": "ユーザーの更新に失敗しました",
     "deleteUserConfirm": "このユーザーを削除してもよろしいですか？この操作は取り消せません。",
     "admins": "管理者",
     "editors": "編集者",
@@ -1136,7 +1138,22 @@
         "seoDescription": "SEO説明"
       }
     },
-    "deleteCategory": "カテゴリを削除"
+    "deleteCategory": "カテゴリを削除",
+    "addUserDesc": "指定されたロールと権限を持つ新しいユーザーアカウントを作成します。",
+    "allRoles": "すべてのロール",
+    "breadcrumb.dashboard": "ダッシュボード",
+    "breadcrumb.users": "ユーザー",
+    "createUser": "ユーザーを作成",
+    "export": "エクスポート",
+    "filters": "フィルター",
+    "nickname": "ニックネーム",
+    "nicknamePlaceholder": "例：山田太郎",
+    "of": "件中",
+    "optional": "任意",
+    "passwordPlaceholder": "6 文字以上、空欄の場合は自動生成",
+    "role": "ロール",
+    "showing": "表示中",
+    "usernamePlaceholder": "例：taro"
   },
   "settings": {
     "title": "システム設定",
@@ -1613,7 +1630,7 @@
     "permissionDenied": "このメディアを編集する権限がありません",
     "backToVideo": "動画に戻る",
     "changeThumbnail": "サムネイルを変更",
-    "clickToChangeThumbnail": "クリックしてサムネイルを変更"
+    "clickToChangeThumbnail": "クリックしてサムネイルを変更",
     "state": "ライフサイクル",
     "lifecycle": "Lifecycle",
     "review": "Review",

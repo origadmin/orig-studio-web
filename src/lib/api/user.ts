@@ -383,8 +383,10 @@ export const adminUserApi = {
         api.patch<void>(`/admin/users/${id}/status`, {status: typeof status === 'number' ? status : getUserStatusCode(status)}),
 
     // Update user role (Admin)
+    // BUG-230: backend UpdateAdminUserRoleRequest expects role_ids[] (repeated string),
+    // NOT a bare {role} string — sending {role} returns 400 "role ids are required".
     updateRole: (id: string, role: string) =>
-        api.patch<void>(`/admin/users/${id}/role`, {role}),
+        api.patch<void>(`/admin/users/${id}/role`, {role_ids: [role]}),
 };
 
 export interface UserProfile {

@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo, useRef} from 'react';
 import {Link, useSearch, useNavigate} from '@tanstack/react-router';
-import {Play, Eye, Folder, Search} from 'lucide-react';
+import {Play, Eye, Folder, Search, ChevronRight} from 'lucide-react';
 import {Spinner} from '@/components/ui/spinner';
 import {formatDuration, formatViews} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -123,6 +123,13 @@ const CategoriesPage = () => {
     // Local draft state per row; 「查询分类」commits all rows to the URL.
     const [draftModule, setDraftModule] = useState('video');
     const [draftCats, setDraftCats] = useState<Set<string>>(new Set());
+    // 3 层中间层组展开状态（方案 A）
+    const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+    const toggleGroup = (slug: string) => setOpenGroups(prev => {
+        const next = new Set(prev);
+        next.has(slug) ? next.delete(slug) : next.add(slug);
+        return next;
+    });
     const [draftSort, setDraftSort] = useState('latest');
     const [draftDir, setDraftDir] = useState('desc');
     const [draftTime, setDraftTime] = useState('all');
@@ -209,6 +216,7 @@ const CategoriesPage = () => {
     const dirDesc = (dirQ || 'desc') === 'desc';
     const time = TIME_OPTIONS.find(o => o.slug === (timeQ || 'all')) ?? TIME_OPTIONS[0];
     const appliedModule = vQ && ['video', 'music', 'article'].includes(vQ) ? vQ : 'video';
+    const appliedModuleRoot = useMemo(() => fullTree.find(n => n.slug === appliedModule), [fullTree, appliedModule]);
 
     // Applied categories → ids (server-side tree expansion tracked in BUG-164).
     const categoryIdsForFilter = useMemo((): number[] | undefined => {
@@ -222,8 +230,10 @@ const CategoriesPage = () => {
             const node = findNodeBySlug(fullTree, slug);
             if (node) ids.add(node.id);
         }
-        const root = fullTree.find(n => n.slug === appliedModule);
-        if (root) ids.add(root.id);
+        // BUG-237/2026-08-20: 不要额外加 module root.id。2 层时代这个 root.id
+        // 是「精确匹配」兼容残留（root 无直属媒体，加上不影响结果）；3 层化后
+        // BUG-164 子树展开会把整个 root 子树（全部视频）拉出来 → 过滤失效
+        // （category_ids=[2,14] 实测 total=52 全量）。只传叶子 id 即可。
         return [...ids];
     }, [fullTree, appliedCats, appliedModule]);
 
@@ -264,12 +274,18 @@ const CategoriesPage = () => {
     }, [hasNextPage, isFetchingNextPage, fetchNextPage, items.length]);
 
     const filterSummary = useMemo(() => {
-        const names = displayTree.filter(n => appliedCats.has(n.slug)).map(n => n.name);
+        // 3 层化：appliedCats 是叶子 slug，displayTree 只含中间层 → 需递归找叶子名
+        // （旧 displayTree.filter 只匹配一层，3 层后摘要恒空）。
+        const names: string[] = [];
+        for (const slug of appliedCats) {
+            const node = findNodeBySlug(fullTree, slug);
+            if (node) names.push(node.name);
+        }
         const sortName = SORT_OPTIONS.find(s => s.slug === sortQ)?.name;
         const dirName = DIR_OPTIONS.find(d => d.slug === dirQ)?.name;
         const timeName = TIME_OPTIONS.find(o => o.slug === timeQ)?.name;
         return [...names, sortName && sortName !== '最新' ? sortName : '', dirName && dirName !== '倒序' ? dirName : '', timeName && timeName !== '全部' ? timeName : ''].filter(Boolean);
-    }, [appliedCats, displayTree, sortQ, dirQ, timeQ]);
+    }, [appliedCats, fullTree, sortQ, dirQ, timeQ]);
 
     // Draft vs applied: chips are a local draft until 「查询分类」 commits them.
     const hasDraft = draftCats.size > 0 || draftSort !== 'latest' || draftDir !== 'desc' || draftTime !== 'all' || draftModule !== 'video';
@@ -328,14 +344,24 @@ const CategoriesPage = () => {
                     })}
                 </div>
 
-                {/* Row 2: category multi-select (chips follow the module row) */}
+                {/* Row 2: category multi-select (BUG-237 3-layer, 方案 A 中间层展开) */}
                 {displayTree.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2">
                         <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
-                        {displayTree.map(n => (
-                            <Chip key={n.slug} active={draftCats.has(n.slug)} onClick={() => toggleCat(n.slug)}>
-                                {n.name}
-                            </Chip>
+                        {displayTree.map(group => (
+                            <React.Fragment key={group.slug}>
+                                <Chip active={openGroups.has(group.slug)} onClick={() => toggleGroup(group.slug)}>
+                                    <span className="inline-flex items-center gap-1">
+                                        <ChevronRight size={12} className={`transition-transform ${openGroups.has(group.slug) ? 'rotate-90' : ''}`}/>
+                                        {group.name}
+                                    </span>
+                                </Chip>
+                                {openGroups.has(group.slug) && group.children?.map(child => (
+                                    <Chip key={child.slug} active={draftCats.has(child.slug)} onClick={() => toggleCat(child.slug)}>
+                                        {child.name}
+                                    </Chip>
+                                ))}
+                            </React.Fragment>
                         ))}
                     </div>
                 )}

@@ -524,6 +524,7 @@ export const mediaApi = {
         page_size?: number;
         type?: string;
         state?: string;
+        review_status?: string;
         keyword?: string;
     }) => {
         const response = await api.get<unknown>("/admin/medias", params as Record<string, unknown>);
@@ -890,6 +891,7 @@ export const adminMediaApi = {
         page_size?: number;
         type?: string;
         state?: string;
+        review_status?: string;
         keyword?: string;
         user_id?: number | string;
         category_id?: number;

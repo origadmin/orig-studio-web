@@ -323,13 +323,13 @@ const Playlists: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{t('admin.allVisibility', 'All Visibility')}</SelectItem>
-                        <SelectItem value="public">{t('admin.public', 'Public')}</SelectItem>
-                        <SelectItem value="private">{t('admin.private', 'Private')}</SelectItem>
+                        <SelectItem value="public">{t('admin.public', '公开')}</SelectItem>
+                        <SelectItem value="private">{t('admin.private', '私密')}</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" onClick={handleReset}>
                     <RotateCcw className="w-3.5 h-3.5"/>
-                    {t('admin.reset', 'Reset')}
+                    {t('admin.reset', '重置')}
                 </Button>
             </div>
 
@@ -339,25 +339,25 @@ const Playlists: React.FC = () => {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.titleAndDescription', 'Title & Description')}
+                                {t('admin.titleAndDescription', '标题与描述')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.creator', 'Creator')}
+                                {t('admin.creator', '创建者')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.items', 'Items')}
+                                {t('admin.items', '条目')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.visibility', 'Visibility')}
+                                {t('admin.visibility', '可见性')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.views', 'Views')}
+                                {t('admin.views', '播放量')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px]">
-                                {t('admin.updated', 'Updated')}
+                                {t('admin.updated', '更新时间')}
                             </TableHead>
                             <TableHead className="px-6 py-3 text-[11px] text-right">
-                                {t('admin.actions', 'Actions')}
+                                {t('admin.actions', '操作')}
                             </TableHead>
                         </TableRow>
                     </TableHeader>
@@ -442,12 +442,12 @@ const Playlists: React.FC = () => {
                                             {playlist.is_public ? (
                                                 <Badge variant="soft-success" className="gap-1.5">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
-                                                    {t('admin.public', 'Public')}
+                                                    {t('admin.public', '公开')}
                                                 </Badge>
                                             ) : (
                                                 <Badge variant="soft-neutral" className="gap-1.5">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-slate-400"/>
-                                                    {t('admin.private', 'Private')}
+                                                    {t('admin.private', '私密')}
                                                 </Badge>
                                             )}
                                         </TableCell>
@@ -554,7 +554,7 @@ const Playlists: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label>{t('admin.description', 'Description')}</Label>
+                            <Label>{t('admin.description', '描述')}</Label>
                             <Textarea
                                 rows={3}
                                 value={createDescription}
@@ -564,7 +564,7 @@ const Playlists: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <Label>{t('admin.visibility', 'Visibility')}</Label>
+                                <Label>{t('admin.visibility', '可见性')}</Label>
                                 <Select
                                     value={createIsPublic ? 'public' : 'private'}
                                     onValueChange={(value) => setCreateIsPublic(value === 'public')}
@@ -573,8 +573,8 @@ const Playlists: React.FC = () => {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="public">{t('admin.public', 'Public')}</SelectItem>
-                                        <SelectItem value="private">{t('admin.private', 'Private')}</SelectItem>
+                                        <SelectItem value="public">{t('admin.public', '公开')}</SelectItem>
+                                        <SelectItem value="private">{t('admin.private', '私密')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -591,7 +591,7 @@ const Playlists: React.FC = () => {
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setShowCreateDialog(false)} disabled={isCreating}>
-                            {t('admin.cancel', 'Cancel')}
+                            {t('admin.cancel', '取消')}
                         </Button>
                         <Button
                             className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium"
@@ -599,7 +599,7 @@ const Playlists: React.FC = () => {
                             disabled={!createTitle.trim() || !createUserId.trim() || isCreating}
                         >
                             {isCreating ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
-                            {t('admin.create', 'Create')}
+                            {t('admin.create', '创建')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -627,7 +627,7 @@ const Playlists: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label>{t('admin.description', 'Description')}</Label>
+                            <Label>{t('admin.description', '描述')}</Label>
                             <Textarea
                                 rows={3}
                                 value={editDescription}
@@ -635,7 +635,7 @@ const Playlists: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label>{t('admin.visibility', 'Visibility')}</Label>
+                            <Label>{t('admin.visibility', '可见性')}</Label>
                             <Select
                                 value={editIsPublic ? 'public' : 'private'}
                                 onValueChange={(value) => setEditIsPublic(value === 'public')}
@@ -644,15 +644,15 @@ const Playlists: React.FC = () => {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="public">{t('admin.public', 'Public')}</SelectItem>
-                                    <SelectItem value="private">{t('admin.private', 'Private')}</SelectItem>
+                                    <SelectItem value="public">{t('admin.public', '公开')}</SelectItem>
+                                    <SelectItem value="private">{t('admin.private', '私密')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setEditTarget(null)} disabled={isUpdating}>
-                            {t('admin.cancel', 'Cancel')}
+                            {t('admin.cancel', '取消')}
                         </Button>
                         <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 rounded-lg shadow-lg shadow-primary/20 h-10 px-6 font-medium" onClick={handleSaveEdit} disabled={isUpdating}>
                             {isUpdating ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
@@ -679,11 +679,11 @@ const Playlists: React.FC = () => {
                     </DialogHeader>
                     <DialogFooter className="mx-0 px-6 py-4 bg-muted/50 border-t border-border flex-row justify-end gap-3">
                         <Button variant="outline" className="rounded-lg h-10 px-5 border-border/60" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
-                            {t('admin.cancel', 'Cancel')}
+                            {t('admin.cancel', '取消')}
                         </Button>
                         <Button className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 rounded-lg shadow-lg shadow-red-500/20 h-10 px-6 font-medium" onClick={handleDelete} disabled={isDeleting}>
                             {isDeleting ? <Loader2 className="w-4 h-4 mr-1 animate-spin inline"/> : null}
-                            {t('admin.delete', 'Delete')}
+                            {t('admin.delete', '删除')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

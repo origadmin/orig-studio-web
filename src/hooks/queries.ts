@@ -6,7 +6,6 @@ import {channelApi, type Channel, type ChannelDetail, type ChannelLimits} from '
 import {userApi, type PublicProfile, type UserStats} from '@/lib/api/user';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
-import {reviewApi} from '@/lib/api/review';
 import {adminCommentApi} from '@/lib/api/comment';
 import {configApi, type SettingCategory} from '@/lib/api/config';
 import {adminPermissionApi} from '@/lib/api/permission';
@@ -66,6 +65,7 @@ export const mediaKeys = {
         params.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
         params.keyword ?? params.search ?? null,
         params.state ?? params.status ?? null,
+        params.review_status ?? null,
         params.type ?? null,
     ] as const,
     details: () => [...mediaKeys.all, 'detail'] as const,
@@ -216,6 +216,7 @@ export function useAdminMediaList(params: {
     page_size?: number;
     keyword?: string;
     state?: string;
+    review_status?: string;
     type?: string;
     tags?: string[];
 }) {
@@ -950,55 +951,6 @@ export function useDeleteAd() {
 }
 
 // ==================== Review Hooks ====================
-
-/**
- * useReviewList: Fetch review list (pending or history)
- */
-export function useReviewList(params?: { page?: number; page_size?: number; type?: string; status?: string }) {
-    const page = params?.page ?? 1;
-    const pageSize = params?.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
-    const type = params?.type ?? null;
-    const status = params?.status ?? null;
-    return useQuery({
-        queryKey: ['reviews', page, pageSize, type, status],
-        queryFn: async () => {
-            if (status) {
-                const res = await reviewApi.getHistory(params);
-                return res;
-            }
-            const res = await reviewApi.getPending(params);
-            return res;
-        },
-    });
-}
-
-/**
- * useApproveReview: Approve a review item
- */
-export function useApproveReview() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (id: string) =>
-            reviewApi.review(id, {action: 'approve'}),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['reviews']});
-        },
-    });
-}
-
-/**
- * useRejectReview: Reject a review item
- */
-export function useRejectReview() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: ({id, reason}: {id: string; reason?: string}) =>
-            reviewApi.review(id, {action: 'reject', comment: reason}),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ['reviews']});
-        },
-    });
-}
 
 // ==================== Admin Comment Hooks ====================
 

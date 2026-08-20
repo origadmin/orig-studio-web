@@ -101,4 +101,17 @@ export const statsApi = {
             ad_revenue: number;
             daily_stats: StatPoint[];
         }>('/admin/stats/revenue', params),
+
+    // Get promotion stats (Admin) — BUG-219
+    getPromotion: () =>
+        api.get<{
+            total_channels: number;
+            active_channels: number;
+            total_subscriptions: number;
+            active_subscriptions: number;
+            sent_today: number;
+            total_logs: number;
+            total_tasks: number;
+            total_templates: number;
+        }>('/admin/stats/promotion'),
 };
