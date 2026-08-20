@@ -69,7 +69,7 @@ export default defineConfig({
             // deployed config was merged into this A-mode config.
             name: 'bug-deployed',
             use: {...devices['Desktop Chrome']},
-            testMatch: /(bug-categories|bug-145-genre-select|bug-143-tag-routing|bug-171-tag-detail|bug-172-sidebar-ad|bug-147-like|bug-223-depth-loading|bug-00[147][a-z0-9-]*|bug-15[34][a-z0-9-]*|_probe-[a-z0-9-]+)\.spec\.ts/,
+            testMatch: /(bug-categories|bug-145-genre-select|bug-143-tag-routing|bug-171-tag-detail|bug-172-sidebar-ad|bug-147-like|bug-223-depth-loading|bug-186-subtitle|bug-236-review|bug-00[147][a-z0-9-]*|bug-15[34][a-z0-9-]*|_probe-[a-z0-9-]+)\.spec\.ts/,
         },
     ],
 });
