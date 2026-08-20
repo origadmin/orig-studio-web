@@ -169,7 +169,7 @@ export const commentApi = {
 };
 
 export const adminCommentApi = {
-    list: (params?: { page?: number; page_size?: number; media_id?: string; status?: string; report_status?: string; tree?: boolean }) =>
+    list: (params?: { page?: number; page_size?: number; media_id?: string; status?: string; report_status?: string; tree?: boolean; keyword?: string }) =>
         api.get<AdminCommentListResponse>('/admin/comments', params),
 
     get: (id: string) =>

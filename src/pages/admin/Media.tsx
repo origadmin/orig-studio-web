@@ -9,6 +9,8 @@ import {useLocation, useNavigate} from '@tanstack/react-router';
 import {AdminPageTemplate} from '@/components/AdminPageTemplate';
 import {
     Play,
+    Check,
+    X,
     Trash2,
     Edit3,
     Search,
@@ -55,6 +57,7 @@ import {
 } from "@/components/ui/select";
 import {encodingApi, adminMediaApi, type Media, type MediaVariantSummary} from '@/lib/api/media';
 import {statsApi} from '@/lib/api/stats';
+import {reviewApi} from '@/lib/api/review';
 import {useAdminMediaList, useDeleteMedia} from '@/hooks/queries';
 import {UploadComponent} from '@/components/upload/UploadComponent';
 import {getFullUrl, cn} from '@/lib/utils';
@@ -62,6 +65,10 @@ import {formatFileSize, formatDateTime} from '@/lib/format';
 import {PAGINATION_CONFIG} from '@/config/pagination';
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import {TablePagination} from '@/components/common/TablePagination';
+import {Checkbox} from '@/components/ui/checkbox';
+import {Badge} from '@/components/ui/badge';
+import {toast} from 'sonner';
+import {Textarea} from '@/components/ui/textarea';
 
 export default function MediaPage() {
     const {t} = useTranslation();
@@ -93,7 +100,7 @@ export default function MediaPage() {
     const [variantData, setVariantData] = useState<MediaVariantSummary | null>(null);
     const [retryingAllId, setRetryingAllId] = useState<string | number | null>(null);
 
-    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', type: 'video', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+    const [searchParams, setSearchParams] = useState({keyword: urlSearch || '', state: '', reviewStatus: '', type: 'video', tags: '' as string, page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
 
     const [total, setTotal] = useState(0);
     const [failedThumbnails, setFailedThumbnails] = useState<Set<string>>(new Set());
@@ -104,6 +111,50 @@ export default function MediaPage() {
         tags: searchParams.tags ? searchParams.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
     });
     const deleteMutation = useDeleteMedia();
+
+    // BUG-233: inline + batch review, moved from the retired standalone review console.
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+    const [showBatchReviewDialog, setShowBatchReviewDialog] = useState(false);
+    const [batchReviewStatus, setBatchReviewStatus] = useState<'approve' | 'reject'>('approve');
+    const [batchReviewReason, setBatchReviewReason] = useState('');
+    const [batchReviewSubmitting, setBatchReviewSubmitting] = useState(false);
+
+    const isPendingReview = (m: Media) => m.review_status === 'pending_review';
+    const handleSelectItem = (id: string) => {
+        setSelectedItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+    const handleSelectAll = (checked: boolean) => {
+        setSelectedItems(checked ? mediaList.map((m) => String(m.id)) : []);
+    };
+    const handleReviewMedia = async (id: string, action: 'approve' | 'reject', comment?: string) => {
+        try {
+            await reviewApi.review(id, {action, comment});
+            toast.success(action === 'approve' ? t('review.approveSuccess', '审核已通过') : t('review.rejectSuccess', '已拒绝'));
+            setSelectedItems([]);
+            loadMedia();
+        } catch (err) {
+            console.error('review failed', err);
+            toast.error(t('review.reviewFailed', '审核操作失败'));
+        }
+    };
+    const handleBatchReview = async () => {
+        if (selectedItems.length === 0) return;
+        setBatchReviewSubmitting(true);
+        try {
+            await Promise.all(selectedItems.map((id) => reviewApi.review(id, {action: batchReviewStatus, comment: batchReviewReason})));
+            toast.success(t('review.batchSuccess', '已批量审核 {{count}} 项', {count: selectedItems.length}));
+            setShowBatchReviewDialog(false);
+            setSelectedItems([]);
+            setBatchReviewStatus('approve');
+            setBatchReviewReason('');
+            loadMedia();
+        } catch (err) {
+            console.error('batch review failed', err);
+            toast.error(t('review.batchFailed', '批量审核部分失败，请重试'));
+        } finally {
+            setBatchReviewSubmitting(false);
+        }
+    };
 
     const mediaList = (mediaData?.items || (Array.isArray(mediaData) ? mediaData : [])) as Media[];
 
@@ -277,6 +328,28 @@ export default function MediaPage() {
                 </SelectContent>
             </Select>
             <Select
+                value={searchParams.reviewStatus || 'all'}
+                onValueChange={(value) => {
+                    // BUG-233: 审核筛选须看全部类型的待审项（含 image/file，后端不再默认 video）。
+                    // 选中任一审核状态 → 自动切"全部类型"；清空审核状态 → 恢复视频视角。
+                    const isReviewFilter = value !== 'all';
+                    const nextType = isReviewFilter
+                        ? 'all'
+                        : (searchParams.type === 'all' ? 'video' : searchParams.type);
+                    setSearchParams({...searchParams, reviewStatus: value === 'all' ? '' : value, type: nextType, page: 1});
+                }}
+            >
+                <SelectTrigger className="w-[160px]">
+                    <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t('review.statusAll', '全部审核状态')}</SelectItem>
+                    <SelectItem value="pending_review">{t('review.pending', '待审核')}</SelectItem>
+                    <SelectItem value="reviewed">{t('review.approved', '已通过')}</SelectItem>
+                    <SelectItem value="rejected">{t('review.rejected', '已拒绝')}</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select
                 value={searchParams.type || 'video'}
                 onValueChange={(value) => setSearchParams({...searchParams, type: value, page: 1})}
             >
@@ -299,7 +372,7 @@ export default function MediaPage() {
             <Button
                 variant="outline"
                 onClick={() => {
-                    setSearchParams({keyword: '', state: '', type: 'video', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
+                    setSearchParams({keyword: '', state: '', reviewStatus: '', type: 'video', tags: '', page: 1, page_size: PAGINATION_CONFIG.DEFAULT_PAGE_SIZE});
                     loadMedia();
                 }}
             >
@@ -390,6 +463,13 @@ export default function MediaPage() {
                 <Table className="text-left">
                     <TableHeader>
                         <TableRow className="bg-muted border-b border-border">
+                            <TableHead className="px-6 py-3 w-[40px]">
+                                <Checkbox
+                                    checked={selectedItems.length === mediaList.length && mediaList.length > 0}
+                                    onCheckedChange={(v) => handleSelectAll(!!v)}
+                                    aria-label={t('review.selectAll', '全选')}
+                                />
+                            </TableHead>
                             <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.thumbnail', '缩略图')}</TableHead>
                             <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.assetName', '媒体名称')}</TableHead>
                             <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t('admin.type', '类型')}</TableHead>
@@ -403,13 +483,13 @@ export default function MediaPage() {
                     <TableBody className="divide-y divide-border">
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-6 py-16 text-center">
+                                <TableCell colSpan={9} className="px-6 py-16 text-center">
                                     <Loader2 className="w-6 h-6 text-muted-foreground animate-spin mx-auto"/>
                                 </TableCell>
                             </TableRow>
                         ) : error ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-6 py-16 text-center">
+                                <TableCell colSpan={9} className="px-6 py-16 text-center">
                                     <p className="text-sm text-destructive mb-3">{t('admin.loadFailed', '加载媒体失败')}</p>
                                     <Button variant="outline" onClick={() => loadMedia()}>
                                         <RotateCcw className="w-3.5 h-3.5"/>
@@ -419,7 +499,7 @@ export default function MediaPage() {
                             </TableRow>
                         ) : mediaList.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={8} className="px-6 py-16 text-center">
+                                <TableCell colSpan={9} className="px-6 py-16 text-center">
                                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Film className="w-8 h-8 text-muted-foreground"/>
                                     </div>
@@ -442,6 +522,13 @@ export default function MediaPage() {
                                         key={media.id}
                                         className={`${isFailed ? 'bg-red-50/30' : ''}`}
                                     >
+                                        <TableCell className="px-6 py-3.5">
+                                            <Checkbox
+                                                checked={selectedItems.includes(String(media.id))}
+                                                onCheckedChange={() => handleSelectItem(String(media.id))}
+                                                aria-label={t('review.selectItem', '选择项目')}
+                                            />
+                                        </TableCell>
                                         {/* Thumbnail */}
                                         <TableCell className="px-6 py-3.5">
                                             <div
@@ -494,9 +581,13 @@ export default function MediaPage() {
                                             {formatViews(media.view_count)}
                                         </TableCell>
 
-                                        {/* Status (unified: encoding + state) */}
+                                        {/* Status (unified single badge: pending-review > encoding > lifecycle) */}
                                         <TableCell className="px-6 py-3.5">
-                                            <StatusDot status={getStatusFromMedia(media)}/>
+                                            {isPendingReview(media) ? (
+                                                <Badge variant="soft-warning">{t('review.pending', '待审核')}</Badge>
+                                            ) : (
+                                                <StatusDot status={getStatusFromMedia(media)}/>
+                                            )}
                                         </TableCell>
 
                                         {/* Date */}
@@ -507,6 +598,28 @@ export default function MediaPage() {
                                         {/* Actions: View, Edit, Delete */}
                                         <TableCell className="px-6 py-3.5 text-right">
                                             <div className="flex items-center justify-end gap-1">
+                                                {isPendingReview(media) && (
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                                            onClick={() => handleReviewMedia(String(media.id), 'approve')}
+                                                            title={t('review.actionApprove', '通过')}
+                                                        >
+                                                            <Check className="w-4 h-4"/>
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-sm"
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                            onClick={() => handleReviewMedia(String(media.id), 'reject')}
+                                                            title={t('review.actionReject', '拒绝')}
+                                                        >
+                                                            <X className="w-4 h-4"/>
+                                                        </Button>
+                                                    </>
+                                                )}
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-sm"
@@ -554,6 +667,80 @@ export default function MediaPage() {
                     />
                 )}
             </div>
+
+            {/* BUG-233: batch review bottom-sheet (review logic kept within Media page) */}
+            {selectedItems.length > 0 && (
+                <div className="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-background shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3">
+                    <div className="mx-auto max-w-7xl flex items-center justify-between gap-4">
+                        <p className="text-sm text-muted-foreground">
+                            {t('review.selectedItems', '已选择 {{count}} 项', {count: selectedItems.length})}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={() => setSelectedItems([])}>
+                                <Trash2 className="w-4 h-4 mr-2"/>
+                                {t('common.clear', '清空')}
+                            </Button>
+                            <Button onClick={() => setShowBatchReviewDialog(true)}>
+                                {t('review.batchReview', '批量审核')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Dialog open={showBatchReviewDialog} onOpenChange={setShowBatchReviewDialog}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{t('review.batchReview', '批量审核')}</DialogTitle>
+                        <DialogDescription>
+                            {t('review.batchReviewDescription', '审核 {{count}} 个选定项目', {count: selectedItems.length})}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 px-6 py-4">
+                        <div>
+                            <h4 className="text-sm font-medium text-foreground mb-2">
+                                {t('common.status', '状态')}
+                            </h4>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant={batchReviewStatus === 'approve' ? 'default' : 'outline'}
+                                    onClick={() => setBatchReviewStatus('approve')}
+                                >
+                                    <Check className="w-4 h-4 mr-2"/>
+                                    {t('review.approved', '已通过')}
+                                </Button>
+                                <Button
+                                    variant={batchReviewStatus === 'reject' ? 'destructive' : 'outline'}
+                                    onClick={() => setBatchReviewStatus('reject')}
+                                >
+                                    <X className="w-4 h-4 mr-2"/>
+                                    {t('review.rejected', '已拒绝')}
+                                </Button>
+                            </div>
+                        </div>
+                        {batchReviewStatus === 'reject' && (
+                            <div>
+                                <h4 className="text-sm font-medium text-foreground mb-2">
+                                    {t('review.reason', '原因')}
+                                </h4>
+                                <Textarea
+                                    placeholder={t('review.reasonPlaceholder', '输入拒绝原因')}
+                                    value={batchReviewReason}
+                                    onChange={(e) => setBatchReviewReason(e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowBatchReviewDialog(false)}>
+                            {t('common.cancel', '取消')}
+                        </Button>
+                        <Button onClick={handleBatchReview} disabled={batchReviewSubmitting}>
+                            {t('review.submit', '提交')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
                 setUploadDialogOpen(open);

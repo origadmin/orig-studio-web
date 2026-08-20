@@ -8,6 +8,8 @@ import {cn} from '@/lib/utils';
 import {useAdminMediaDetail, useUpdateMedia, useDeleteMedia, useCategoryList} from '@/hooks/queries';
 import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
 import {adminApi, type Channel as AdminChannel} from '@/lib/api/admin';
+import {reviewApi} from '@/lib/api/review';
+import {subtitleApi} from '@/lib/api/subtitle';
 import {api} from '@/lib/request';
 import {getFullUrl} from '@/lib/utils';
 import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
@@ -20,6 +22,7 @@ import {Badge} from '@/components/ui/badge';
 import {Separator} from '@/components/ui/separator';
 import {Alert, AlertTitle, AlertDescription} from '@/components/ui/alert';
 import {Card, CardHeader, CardTitle, CardContent} from '@/components/ui/card';
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose} from '@/components/ui/dialog';
 import {Tabs, TabsList, TabsTrigger, TabsContent} from '@/components/ui/tabs';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
 import {Switch} from '@/components/ui/switch';
@@ -28,7 +31,7 @@ import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
@@ -146,10 +149,14 @@ function getLifecyclePill(state?: string): StatusPillConfig {
 
 function getReviewPill(status?: string): StatusPillConfig {
     switch (status) {
+        // BUG-236: 后端 ReviewMedia 状态机实际值为 pending_review / reviewed / rejected
+        // （提交 approved 会被后端转存为 reviewed；兼容旧值 approved/pending）。
+        case 'reviewed':
         case 'approved':
             return {bg: 'bg-success/10', text: 'text-success', border: 'border-success/30', labelKey: 'mediaEdit.reviewApproved', fallback: 'APPROVED'};
         case 'rejected':
             return {bg: 'bg-destructive/10', text: 'text-destructive', border: 'border-destructive/30', labelKey: 'mediaEdit.reviewRejected', fallback: 'REJECTED'};
+        case 'pending_review':
         case 'pending':
         default:
             return {bg: 'bg-info/10', text: 'text-info', border: 'border-info/30', labelKey: 'mediaEdit.reviewPending', fallback: 'PENDING'};
@@ -294,6 +301,27 @@ export default function MediaEditPage() {
     const [repairing, setRepairing] = useState(false);
     const [tagInput, setTagInput] = useState('');
 
+    // BUG-236: workflow card — real review actions (approve/reject) + notes.
+    const [reviewNote, setReviewNote] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewError, setReviewError] = useState('');
+
+    // BUG-186: subtitle management state
+    const [subtitleList, setSubtitleList] = useState<any[]>([]);
+    const [subtitleLanguages, setSubtitleLanguages] = useState<Array<{code: string; label: string}>>([]);
+    const [subtitleLang, setSubtitleLang] = useState('');
+    const [subtitleFile, setSubtitleFile] = useState<File | null>(null);
+    const [subtitleUploading, setSubtitleUploading] = useState(false);
+    const [subtitleDeleting, setSubtitleDeleting] = useState<string | null>(null);
+    // BUG-186 G5: language list is configurable (admin). Manage dialog state.
+    const [langDialogOpen, setLangDialogOpen] = useState(false);
+    const [langList, setLangList] = useState<Array<{code: string; label: string}>>([]);
+    const [newLangCode, setNewLangCode] = useState('');
+    const [newLangLabel, setNewLangLabel] = useState('');
+    const [langSaving, setLangSaving] = useState(false);
+    const [langError, setLangError] = useState('');
+    const [subtitleMsg, setSubtitleMsg] = useState<{kind: 'ok' | 'err'; text: string} | null>(null);
+
     // Save state management
     const {saveState, isSaving, setSaving, setSuccess, setError} = useSaveState();
 
@@ -333,6 +361,114 @@ export default function MediaEditPage() {
             setChannels(list);
         }).catch(() => {});
     }, []);
+
+    // BUG-186: load subtitle tracks + language list (short_token based).
+    useEffect(() => {
+        if (!media?.short_token) return;
+        subtitleApi.getByMediaId(media.short_token).then((list) => setSubtitleList(list || [])).catch(() => setSubtitleList([]));
+        subtitleApi.getLanguages().then((langs) => setSubtitleLanguages(langs || [])).catch(() => {});
+    }, [media?.short_token]);
+
+    const handleSubtitleUpload = async () => {
+        if (!media?.short_token || !subtitleFile || !subtitleLang) {
+            setSubtitleMsg({kind: 'err', text: t('mediaEdit.subtitleNeedFileLang', '请选择语言并选择字幕文件')});
+            return;
+        }
+        setSubtitleUploading(true);
+        setSubtitleMsg(null);
+        try {
+            const created = await subtitleApi.upload(media.short_token, subtitleFile, subtitleLang);
+            setSubtitleMsg({kind: created.status === 'failed' ? 'err' : 'ok', text: created.error_message || t('mediaEdit.subtitleUploaded', '字幕已上传')});
+            setSubtitleFile(null);
+            setSubtitleLang('');
+            const list = await subtitleApi.getByMediaId(media.short_token);
+            setSubtitleList(list || []);
+        } catch (e: any) {
+            setSubtitleMsg({kind: 'err', text: e?.message || t('common.unknownError', '未知错误')});
+        } finally {
+            setSubtitleUploading(false);
+        }
+    };
+
+    const handleSubtitleDelete = async (id: string) => {
+        setSubtitleDeleting(id);
+        try {
+            await subtitleApi.delete(id);
+            if (media?.short_token) {
+                const list = await subtitleApi.getByMediaId(media.short_token);
+                setSubtitleList(list || []);
+            }
+        } catch (e: any) {
+            setSubtitleMsg({kind: 'err', text: e?.message || t('mediaEdit.subtitleDeleteFailed', '删除失败')});
+        } finally {
+            setSubtitleDeleting(null);
+        }
+    };
+
+    // BUG-186 G5: admin language management (configurable list).
+    const openLanguageDialog = async () => {
+        setLangError('');
+        setNewLangCode('');
+        setNewLangLabel('');
+        try {
+            const langs = await subtitleApi.getAdminLanguages();
+            setLangList(langs || []);
+            setLangDialogOpen(true);
+        } catch (e: any) {
+            setLangError(e?.message || t('mediaEdit.langLoadFailed', '加载语言列表失败'));
+            setLangDialogOpen(true);
+        }
+    };
+
+    const addLanguageRow = () => {
+        const code = newLangCode.trim().toLowerCase();
+        const label = newLangLabel.trim();
+        if (!code || !label) {
+            setLangError(t('mediaEdit.langNeedBoth', '语言代码和名称都不能为空'));
+            return;
+        }
+        if (langList.some((l) => l.code === code)) {
+            setLangError(t('mediaEdit.langDuplicate', '语言代码已存在'));
+            return;
+        }
+        const next = [...langList, {code, label}];
+        setLangList(next);
+        setNewLangCode('');
+        setNewLangLabel('');
+        setLangError('');
+        void persistLanguages(next);
+    };
+
+    // 增删即持久化（无独立保存按钮——列表操作即时生效）。
+    const persistLanguages = async (list: Array<{code: string; label: string}>) => {
+        if (list.length === 0) {
+            setLangError(t('mediaEdit.langNeedOne', '至少保留一种语言'));
+            return;
+        }
+        setLangSaving(true);
+        setLangError('');
+        try {
+            const saved = await subtitleApi.saveAdminLanguages(list);
+            setSubtitleLanguages(saved || list);
+            toast.success(t('mediaEdit.langSaved', '语言清单已保存'));
+        } catch (e: any) {
+            setLangError(e?.message || t('mediaEdit.langSaveFailed', '保存语言清单失败'));
+            toast.error(t('mediaEdit.langSaveFailed', '保存语言清单失败'));
+        } finally {
+            setLangSaving(false);
+        }
+    };
+
+    const removeLanguageRow = (code: string) => {
+        const next = langList.filter((l) => l.code !== code);
+        if (next.length === 0) {
+            setLangError(t('mediaEdit.langNeedOne', '至少保留一种语言'));
+            return;
+        }
+        setLangList(next);
+        setLangError('');
+        void persistLanguages(next);
+    };
 
     // SSE: 转码事件流实时更新
     useEffect(() => {
@@ -434,6 +570,29 @@ export default function MediaEditPage() {
             console.error('Failed to delete', err);
         }
     }, [id, deleteMutation, navigate]);
+
+    // BUG-236: workflow card — approve/reject review (owner+admin page).
+    // Backend maps status 'approved' -> review_status 'reviewed' (biz/media.go:1005).
+    const handleReview = useCallback(async (action: 'approve' | 'reject') => {
+        if (!media?.id || reviewSubmitting) return;
+        setReviewSubmitting(true);
+        setReviewError('');
+        try {
+            await reviewApi.review(media.id, {action, comment: reviewNote});
+            toast.success(action === 'approve'
+                ? t('review.approveSuccess', '审核已通过')
+                : t('review.rejectSuccess', '已拒绝'));
+            setReviewNote('');
+            await queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', media.id]});
+        } catch (err: any) {
+            const msg = err?.message || t('review.reviewFailed', '审核操作失败');
+            setReviewError(msg);
+            toast.error(msg);
+            console.error('Review failed', err);
+        } finally {
+            setReviewSubmitting(false);
+        }
+    }, [media?.id, reviewNote, reviewSubmitting, queryClient, t]);
 
     // Preview handler
     const handlePreview = useCallback(() => {
@@ -840,28 +999,49 @@ export default function MediaEditPage() {
                 </CardContent>
             </Card>
 
-            <Card>
+            <Card data-testid="workflow-card">
                 <CardHeader className="pb-3">
                     <div className="flex justify-between items-center">
                         <CardTitle className="text-sm font-semibold text-foreground">{t('mediaEdit.workflow', '工作流')}</CardTitle>
-                        <Badge variant="outline" className="border-secondary text-secondary bg-secondary/10 text-xs font-semibold uppercase">
-                            {t('mediaEdit.pendingReview', '待审核')}
-                        </Badge>
+                        {(() => {
+                            const rv = getReviewPill(media?.review_status);
+                            return (
+                                <Badge data-testid="workflow-review-badge" data-review-status={media?.review_status || ''} variant="outline" className={`${rv.bg} ${rv.text} ${rv.border} text-xs font-semibold uppercase`}>
+                                    {t(rv.labelKey, rv.fallback)}
+                                </Badge>
+                            );
+                        })()}
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    <Textarea className="min-h-[50px] resize-none bg-muted" placeholder={t('mediaEdit.reviewNotes', '审核备注...')}/>
-                    <div className="grid grid-cols-2 gap-2">
-                        <Button className="py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700">
-                            {t('mediaEdit.approve', '通过')}
-                        </Button>
-                        <Button className="py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700">
-                            {t('mediaEdit.reject', '拒绝')}
-                        </Button>
-                    </div>
-                    <Button variant="outline" className="w-full py-1.5 font-semibold text-xs">
-                        {t('mediaEdit.requestChanges', '请求修改')}
-                    </Button>
+                    <Textarea
+                        className="min-h-[50px] resize-none bg-muted"
+                        placeholder={t('mediaEdit.reviewNotes', '审核备注...')}
+                        value={reviewNote}
+                        onChange={(e) => setReviewNote(e.target.value)}
+                        disabled={reviewSubmitting || media?.review_status === 'reviewed' || media?.review_status === 'approved'}
+                    />
+                    {reviewError && <p className="text-xs text-destructive">{reviewError}</p>}
+                    {media?.review_status === 'reviewed' || media?.review_status === 'approved' ? (
+                        <p data-testid="review-approved-notice" className="text-xs text-success font-medium">{t('mediaEdit.alreadyReviewed', '该媒体已通过审核，无需重复操作')}</p>
+                    ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button data-testid="review-approve"
+                                className="py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700"
+                                disabled={reviewSubmitting}
+                                onClick={() => handleReview('approve')}
+                            >
+                                {t('mediaEdit.approve', '通过')}
+                            </Button>
+                            <Button data-testid="review-reject"
+                                className="py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700"
+                                disabled={reviewSubmitting}
+                                onClick={() => handleReview('reject')}
+                            >
+                                {t('mediaEdit.reject', '拒绝')}
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -1448,56 +1628,117 @@ export default function MediaEditPage() {
                             <div className="col-span-12 lg:col-span-8 space-y-6">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle className="text-lg font-semibold">{t('mediaEdit.subtitles', '字幕管理')}</CardTitle>
+                                        <div className="flex justify-between items-center">
+                                            <CardTitle className="text-lg font-semibold">{t('mediaEdit.subtitles', '字幕管理')}</CardTitle>
+                                            <Button variant="outline" size="sm" className="h-8"
+                                                    title={t('mediaEdit.manageLanguages', '管理语言清单')}
+                                                    onClick={openLanguageDialog}>
+                                                <Settings2 className="w-4 h-4 mr-1"/>
+                                                {t('mediaEdit.manageLanguages', '管理语言')}
+                                            </Button>
+                                        </div>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
-                                {/* Add Subtitle Form — top section */}
-                                <div>
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">添加字幕</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-bold uppercase tracking-wider">语言</Label>
-                                            <Input placeholder="例如 zh-CN"/>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-bold uppercase tracking-wider">标签</Label>
-                                            <Input placeholder="简体中文"/>
-                                        </div>
-                                        <div className="space-y-1 lg:col-span-2">
-                                            <Label className="text-xs font-bold uppercase tracking-wider">文件 (VTT/SRT)</Label>
-                                            <div className="flex gap-2">
-                                                <Input type="file" className="flex-1 bg-card"/>
-                                                <Button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-semibold shrink-0">
-                                                    上传
-                                                </Button>
+                                        {subtitleMsg && (
+                                            <div className={`text-xs px-3 py-2 rounded-lg ${subtitleMsg.kind === 'ok' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
+                                                {subtitleMsg.text}
+                                            </div>
+                                        )}
+                                        {/* Add Subtitle Form — top section (BUG-186: real upload) */}
+                                        <div>
+                                            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.addSubtitle', '添加字幕')}</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
+                                                <div className="space-y-1">
+                                                    <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.subtitleLanguage', '语言')}</Label>
+                                                    <Select value={subtitleLang} onValueChange={setSubtitleLang}>
+                                                        <SelectTrigger className="h-9 w-full"><SelectValue placeholder={t('mediaEdit.selectLanguage', '选择语言')}/></SelectTrigger>
+                                                        <SelectContent>
+                                                            {subtitleLanguages.map((l) => (
+                                                                <SelectItem key={l.code} value={l.code}>{l.label} ({l.code})</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.subtitleFile', '文件 (SRT/VTT，统一转 VTT)')}</Label>
+                                                    <Input type="file" accept=".srt,.vtt"
+                                                           className="w-full bg-card h-9"
+                                                           onChange={(e) => setSubtitleFile(e.target.files?.[0] || null)}/>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-xs font-bold uppercase tracking-wider invisible">.</Label>
+                                                    <Button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-semibold"
+                                                            disabled={subtitleUploading}
+                                                            onClick={handleSubtitleUpload}>
+                                                        {subtitleUploading ? t('common.loading', '上传中...') : t('mediaEdit.subtitleUpload', '上传')}
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
 
-                                <Separator />
+                                        <Separator/>
 
-                                {/* Current Subtitles Table — bottom section, full width */}
-                                <div>
-                                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">当前字幕</h3>
-                                    <Table>
-                                        <TableHeader className="text-muted-foreground border-b border-border uppercase">
-                                            <TableRow>
-                                                <TableHead className="pb-2 font-bold">语言</TableHead>
-                                                <TableHead className="pb-2 font-bold">标签</TableHead>
-                                                <TableHead className="pb-2 font-bold">链接</TableHead>
-                                                <TableHead className="pb-2 font-bold w-[80px]">操作</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody className="divide-y divide-border/10">
-                                            <TableRow>
-                                                <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
-                                                    暂无字幕
-                                                </TableCell>
-                                            </TableRow>
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                        {/* Current Subtitles Table (BUG-186: live list + failed errors) */}
+                                        <div>
+                                            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.currentSubtitles', '当前字幕')}</h3>
+                                            <Table>
+                                                <TableHeader className="text-muted-foreground border-b border-border uppercase">
+                                                    <TableRow>
+                                                        <TableHead className="pb-2 font-bold">{t('mediaEdit.subtitleLanguage', '语言')}</TableHead>
+                                                        <TableHead className="pb-2 font-bold">{t('mediaEdit.subtitleLabel', '标签')}</TableHead>
+                                                        <TableHead className="pb-2 font-bold">{t('mediaEdit.subtitleStatus', '状态')}</TableHead>
+                                                        <TableHead className="pb-2 font-bold">{t('mediaEdit.subtitleLink', '链接')}</TableHead>
+                                                        <TableHead className="pb-2 font-bold w-[80px]">{t('mediaEdit.subtitleAction', '操作')}</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody className="divide-y divide-border/10">
+                                                    {subtitleList.length === 0 ? (
+                                                        <TableRow>
+                                                            <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                                                                {t('mediaEdit.noSubtitles', '暂无字幕')}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ) : subtitleList.map((s: any) => (
+                                                        <TableRow key={s.id}>
+                                                            <TableCell className="py-2.5">{s.language}</TableCell>
+                                                            <TableCell className="py-2.5">{s.label || '-'}</TableCell>
+                                                            <TableCell className="py-2.5">
+                                                                {s.status === 'active' ? (
+                                                                    <Badge variant="soft-success">{t('mediaEdit.subtitleActive', '已生效')}</Badge>
+                                                                ) : s.status === 'failed' ? (
+                                                                    <span className="text-xs text-destructive flex items-center gap-1">
+                                                                        <AlertCircle className="w-3 h-3"/>
+                                                                        {t('mediaEdit.subtitleFailed', '格式错误')}
+                                                                    </span>
+                                                                ) : (
+                                                                    <Badge variant="soft-neutral">{s.status}</Badge>
+                                                                )}
+                                                                {s.error_message && (
+                                                                    <div className="text-[11px] text-destructive mt-0.5 max-w-[260px] truncate" title={s.error_message}>
+                                                                        {s.error_message}
+                                                                    </div>
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell className="py-2.5">
+                                                                {s.file_url ? (
+                                                                    <a href={getFullUrl(s.file_url)} target="_blank" rel="noreferrer"
+                                                                       className="text-xs text-primary hover:underline inline-flex items-center gap-1">
+                                                                        <ExternalLink className="w-3 h-3"/>{s.file_url.split('/').pop()}
+                                                                    </a>
+                                                                ) : '-'}
+                                                            </TableCell>
+                                                            <TableCell className="py-2.5">
+                                                                <Button variant="ghost" size="sm" className="h-7 px-2 text-destructive"
+                                                                        disabled={subtitleDeleting === s.id}
+                                                                        onClick={() => handleSubtitleDelete(s.id)}>
+                                                                    <Trash2 className="w-3.5 h-3.5"/>
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             </div>
@@ -1678,6 +1919,62 @@ export default function MediaEditPage() {
                 isDeleting={isDeleting}
                 onConfirm={handleDelete}
             />
+
+            {/* BUG-186 G5: 语言清单管理（可配置） */}
+            <Dialog open={langDialogOpen} onOpenChange={setLangDialogOpen}>
+                <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+                    <DialogHeader className="mx-0 px-6 py-5 border-b border-border">
+                        <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                            <Settings2 className="w-5 h-5"/>
+                            {t('mediaEdit.manageLanguages', '管理语言清单')}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="p-6 space-y-4">
+                        {langError && (
+                            <Alert variant="destructive">
+                                <AlertTitle className="text-xs">{langError}</AlertTitle>
+                            </Alert>
+                        )}
+                        {/* 现有语言列表 */}
+                        <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.langCurrent', '当前语言')}</Label>
+                            {langList.length === 0 ? (
+                                <p className="text-xs text-muted-foreground py-2">{t('mediaEdit.langEmpty', '暂无语言，请添加')}</p>
+                            ) : (
+                                langList.map((l) => (
+                                    <div key={l.code} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-muted">
+                                        <span className="text-sm font-medium">{l.label} <span className="text-muted-foreground">({l.code})</span></span>
+                                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive"
+                                                onClick={() => removeLanguageRow(l.code)}
+                                                title={t('mediaEdit.langRemove', '移除')}>
+                                            <Trash2 className="w-4 h-4"/>
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        <Separator/>
+                        {/* 新增语言 */}
+                        <div className="space-y-2">
+                            <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.langAdd', '添加语言')}</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input className="h-9 bg-card" placeholder={t('mediaEdit.langCode', '代码 (zh)')}
+                                       value={newLangCode} onChange={(e) => setNewLangCode(e.target.value)}/>
+                                <Input className="h-9 bg-card" placeholder={t('mediaEdit.langLabel', '名称 (中文)')}
+                                       value={newLangLabel} onChange={(e) => setNewLangLabel(e.target.value)}/>
+                            </div>
+                            <Button variant="outline" size="sm" className="w-full" onClick={addLanguageRow}>
+                                <Plus className="w-4 h-4 mr-1"/>{t('mediaEdit.langAddRow', '添加')}
+                            </Button>
+                        </div>
+                    </div>
+                    <DialogFooter className="mx-0 px-6 py-4 border-t border-border">
+                        <DialogClose asChild>
+                            <Button variant="outline" size="sm">{t('common.cancel', '取消')}</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* BUG-087 后续: 内容修复确认 Dialog */}
             <DeleteConfirmDialog

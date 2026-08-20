@@ -17,11 +17,10 @@ import { ReportDialog } from '@/components/admin/ReportDialog';
 import { useCommentTree } from '@/hooks/useCommentTree';
 import { usePagination } from '@/hooks/usePagination';
 import { Button } from '@/components/ui/button';
+import {FilterBar} from '@/components/admin/FilterBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import {
   MessageSquare,
   Clock,
@@ -29,9 +28,7 @@ import {
   ShieldOff,
   TrendingUp,
   AlertCircle,
-  Search,
   Filter,
-  RotateCcw,
   CheckCircle,
   ChevronDown,
   ChevronLeft,
@@ -82,8 +79,9 @@ const Comments: React.FC = () => {
     };
     if (statusFilter !== 'all') params.status = statusFilter;
     if (reportStatusFilter !== 'all') params.report_status = reportStatusFilter;
+    if (searchTerm.trim()) params.keyword = searchTerm.trim();
     await loadComments(params);
-  }, [page, pageSize, statusFilter, reportStatusFilter, loadComments]);
+  }, [page, pageSize, statusFilter, reportStatusFilter, searchTerm, loadComments]);
 
   useEffect(() => {
     refreshComments();
@@ -98,11 +96,11 @@ const Comments: React.FC = () => {
     try {
       setActionLoading(id);
       await adminCommentApi.approve(id);
-      toast.success(t('admin.approved'));
+      toast.success(t('admin.approved', '已通过'));
       await refreshComments();
       await fetchStats();
     } catch (err: any) {
-      toast.error(t('admin.approve') + ' ' + t('admin.loadFailed'), { description: err.message });
+      toast.error(t('admin.approve', '通过') + ' ' + t('admin.loadFailed'), { description: err.message });
     } finally {
       setActionLoading(null);
     }
@@ -112,11 +110,11 @@ const Comments: React.FC = () => {
     try {
       setActionLoading(id);
       await adminCommentApi.reject(id);
-      toast.success(t('admin.rejected'));
+      toast.success(t('admin.rejected', '已拒绝'));
       await refreshComments();
       await fetchStats();
     } catch (err: any) {
-      toast.error(t('admin.reject') + ' ' + t('admin.loadFailed'), { description: err.message });
+      toast.error(t('admin.reject', '拒绝') + ' ' + t('admin.loadFailed'), { description: err.message });
     } finally {
       setActionLoading(null);
     }
@@ -126,11 +124,11 @@ const Comments: React.FC = () => {
     try {
       setActionLoading(id);
       await adminCommentApi.block(id);
-      toast.success(t('admin.blocked'));
+      toast.success(t('admin.blocked', '已封禁'));
       await refreshComments();
       await fetchStats();
     } catch (err: any) {
-      toast.error(t('admin.blocked') + ' ' + t('admin.loadFailed'), { description: err.message });
+      toast.error(t('admin.blocked', '已封禁') + ' ' + t('admin.loadFailed'), { description: err.message });
     } finally {
       setActionLoading(null);
     }
@@ -140,11 +138,11 @@ const Comments: React.FC = () => {
     try {
       setActionLoading(id);
       await adminCommentApi.unblock(id);
-      toast.success(t('admin.unblocked'));
+      toast.success(t('admin.unblocked', '已解封'));
       await refreshComments();
       await fetchStats();
     } catch (err: any) {
-      toast.error(t('admin.unblocked') + ' ' + t('admin.loadFailed'), { description: err.message });
+      toast.error(t('admin.unblocked', '已解封') + ' ' + t('admin.loadFailed'), { description: err.message });
     } finally {
       setActionLoading(null);
     }
@@ -234,7 +232,7 @@ const Comments: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            {t('admin.comments') || 'Comments Moderation'}
+            {t('admin.comments', '评论管理')}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {t('admin.manageComments') || 'Review, approve, or reject user comments and replies.'}
@@ -247,7 +245,7 @@ const Comments: React.FC = () => {
           </Button>
           <Button variant="default" size="default">
             <CheckCircle className="w-4 h-4" />
-            {t('admin.approve') || 'Batch Approve'}
+            {t('admin.approve', '通过')}
           </Button>
         </div>
       </div>
@@ -267,7 +265,7 @@ const Comments: React.FC = () => {
                 </h3>
                 <p className="text-xs font-semibold text-emerald-600 mt-2 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" />
-                  +{pendingCount} {t('admin.today') || 'today'}
+                  +{pendingCount} {t('admin.today', '今日')}
                 </p>
               </div>
               <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
@@ -306,7 +304,7 @@ const Comments: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.approved') || 'Approved'}
+                  {t('admin.approved', '已通过')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {approvedCount.toLocaleString()}
@@ -328,7 +326,7 @@ const Comments: React.FC = () => {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                  {t('admin.blocked') || 'Blocked'}
+                  {t('admin.blocked', '已封禁')}
                 </p>
                 <h3 className="text-3xl font-extrabold tabular-nums text-foreground mt-1">
                   {blockedCount.toLocaleString()}
@@ -343,40 +341,29 @@ const Comments: React.FC = () => {
         </Card>
       </div>
 
-      {/* 搜索和过滤 (Filter bar) */}
+      {/* 搜索和过滤 (Filter bar) — BUG-200 unified FilterBar; search now feeds keyword filter */}
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                className="w-full pl-9 h-9 bg-muted border-border focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
-                placeholder={t('admin.search') || 'Search comments, users or IDs...'}
-                type="text"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9 w-[160px] bg-card border-border text-muted-foreground cursor-pointer">
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="flagged">Flagged</SelectItem>
-              </SelectContent>
-            </Select>
+            <FilterBar
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder={t('admin.search', '搜索')}
+              filters={[{
+                key: 'status',
+                placeholder: t('admin.allStatus', '全部状态'),
+                value: statusFilter,
+                options: [
+                  {value: 'all', label: t('admin.allStatus', '全部状态')},
+                  {value: 'pending', label: t('admin.pending', '待审核')},
+                  {value: 'approved', label: t('admin.approved', '已通过')},
+                  {value: 'flagged', label: t('admin.flagged', '已举报')},
+                ],
+                onChange: setStatusFilter,
+              }]}
+              onReset={handleReset}
+            />
             <ReportStatusFilter value={reportStatusFilter} onChange={setReportStatusFilter} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              {t('admin.reset') || 'Reset'}
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -387,7 +374,7 @@ const Comments: React.FC = () => {
           <TableHeader>
             <TableRow className="bg-muted border-b border-border">
               <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('admin.user') || 'User'}
+                {t('admin.user', '用户')}
               </TableHead>
               <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {t('admin.commentContent') || 'Comment Content'}
@@ -396,10 +383,10 @@ const Comments: React.FC = () => {
                 Posted
               </TableHead>
               <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('admin.status') || 'Status'}
+                {t('admin.status', '状态')}
               </TableHead>
               <TableHead className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">
-                {t('admin.actions') || 'Actions'}
+                {t('admin.actions', '操作')}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -473,41 +460,60 @@ const Comments: React.FC = () => {
                       </TableCell>
                       <TableCell className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-emerald-500 hover:bg-emerald-50"
-                            title="Approve"
-                            disabled={actionLoading === parent.id}
-                            onClick={() => handleApprove(parent.id)}
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-red-500 hover:bg-red-50"
-                            title="Reject"
-                            disabled={actionLoading === parent.id}
-                            onClick={() => handleReject(parent.id)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
+                          {/* BUG-243: 操作按钮按状态条件渲染（只显示"可执行的下一动作"），
+                              避免所有评论无差别显示 √/×（已通过再点"通过"无意义）。 */}
+                          {parent.status !== 'approved' && (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="text-emerald-500 hover:bg-emerald-50"
+                              title={t('admin.approve', '通过')}
+                              disabled={actionLoading === parent.id}
+                              onClick={() => handleApprove(parent.id)}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {parent.status !== 'rejected' && (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="text-red-500 hover:bg-red-50"
+                              title={t('admin.reject', '拒绝')}
+                              disabled={actionLoading === parent.id}
+                              onClick={() => handleReject(parent.id)}
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </Button>
+                          )}
+                          {parent.status !== 'blocked' ? (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="text-muted-foreground hover:bg-muted"
+                              title={t('admin.block', '封禁')}
+                              disabled={actionLoading === parent.id}
+                              onClick={() => handleBlock(parent.id)}
+                            >
+                              <ShieldOff className="w-4 h-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="text-muted-foreground hover:bg-muted"
+                              title={t('admin.unblock', '解封')}
+                              disabled={actionLoading === parent.id}
+                              onClick={() => handleUnblock(parent.id)}
+                            >
+                              <ShieldOff className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon-sm"
                             className="text-muted-foreground hover:bg-muted"
-                            title="Block"
-                            disabled={actionLoading === parent.id}
-                            onClick={() => handleBlock(parent.id)}
-                          >
-                            <ShieldOff className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-muted-foreground hover:bg-muted"
-                            title="Reports"
+                            title={t('admin.reports', '举报')}
                             onClick={() => handleViewReports(parent.id)}
                           >
                             <Flag className="w-4 h-4" />
@@ -579,13 +585,13 @@ const Comments: React.FC = () => {
                                           variant="ghost"
                                           size="icon-sm"
                                           className="text-muted-foreground hover:text-red-500"
-                                          title="Flag"
+                                          title={t('admin.reports', '举报')}
                                           onClick={() => handleViewReports(reply.id)}
                                         >
                                           <Flag className="w-3.5 h-3.5" />
                                         </Button>
                                         <Badge variant="soft-danger" className="text-[10px] px-1.5 py-0.5 font-bold">
-                                          {reply.report_count} Reports
+                                          {reply.report_count} {t('admin.reports', '举报')}
                                         </Badge>
                                       </>
                                     )}
@@ -760,14 +766,14 @@ const StatusBadge: React.FC<{ status?: string; compact?: boolean }> = ({
       return (
         <Badge variant="soft-success" className={`gap-1.5 ${cls}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          {t('admin.approved') || 'Approved'}
+          {t('admin.approved', '已通过')}
         </Badge>
       );
     case 'pending':
       return (
         <Badge variant="soft-warning" className={`gap-1.5 ${cls}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-          {t('admin.pending') || 'Pending'}
+          {t('admin.pending', '待审核')}
         </Badge>
       );
     case 'rejected':
@@ -777,17 +783,17 @@ const StatusBadge: React.FC<{ status?: string; compact?: boolean }> = ({
         <Badge variant="soft-danger" className={`gap-1.5 ${cls}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
           {status === 'blocked'
-            ? t('admin.blocked') || 'Blocked'
+            ? t('admin.blocked', '已封禁')
             : status === 'flagged'
             ? 'Flagged'
-            : t('admin.rejected') || 'Failed'}
+            : t('admin.rejected', '已拒绝')}
         </Badge>
       );
     default:
       return (
         <Badge variant="soft-neutral" className={`gap-1.5 ${cls}`}>
           <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
-          {t('admin.unspecified') || status || '-'}
+          {t('admin.unspecified', '未指定') || status || '-'}
         </Badge>
       );
   }
