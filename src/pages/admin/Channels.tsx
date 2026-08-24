@@ -18,11 +18,11 @@ import {
     MoreHorizontal,
 } from 'lucide-react';
 import {adminApi, Channel} from '@/lib/api/admin';
+import {statsApi} from '@/lib/api/stats';
 import {usePagination} from '@/hooks/usePagination';
 import {useCategoryList} from '@/hooks/queries';
 import {buildCategoryTree, getTreeSelectOptions} from '@/lib/utils/categoryTree';
 import {formatNumber as fmtNumber} from '@/lib/format';
-import {PAGINATION_CONFIG} from '@/config/pagination';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
@@ -171,21 +171,21 @@ const Channels: React.FC = () => {
         return matchesSearch && matchesVerification;
     });
 
-    // Stats (BUG-210: page-level cards = global base data; unfiltered fetch,
-    // not affected by search/filter or the current page)
+    // Stats (BUG-211: page-level cards come from the independent
+    // /admin/stats/channels endpoint — NOT derived from the list endpoint
+    // with page_size=HARD_LIMIT + frontend reduce. See docs/bugs/BUG-211.md.)
     const [statsChannels, setStatsChannels] = useState<{total: number; subs: number; verified: number; pending: number}>({total: 0, subs: 0, verified: 0, pending: 0});
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await adminApi.getChannels({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                const res = await statsApi.getChannels();
                 if (cancelled) return;
-                const items = Array.isArray(res?.items) ? res.items : [];
                 setStatsChannels({
-                    total: res?.total ?? items.length,
-                    subs: items.reduce((sum, c) => sum + (c.subscriber_count || 0), 0),
-                    verified: items.filter((c) => c.is_verified === true || c.status === 'verified').length,
-                    pending: items.filter((c) => c.status === 'pending').length,
+                    total: res?.total ?? 0,
+                    subs: res?.total_subscribers ?? 0,
+                    verified: res?.verified_count ?? 0,
+                    pending: res?.pending_count ?? 0,
                 });
             } catch {
                 // Best-effort global stats; keep zeros on failure.

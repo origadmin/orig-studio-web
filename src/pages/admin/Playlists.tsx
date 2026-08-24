@@ -19,10 +19,10 @@ import {
     Image as ImageIcon,
 } from 'lucide-react';
 import {adminPlaylistApi, Playlist} from '@/lib/api/playlist';
+import {statsApi} from '@/lib/api/stats';
 import {formatDateTime, formatNumber, formatViews} from '@/lib/format';
 import {extractList} from '@/lib/extract';
 import {usePagination} from '@/hooks/usePagination';
-import {PAGINATION_CONFIG} from '@/config/pagination';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent} from '@/components/ui/card';
 import {Table, TableHeader, TableBody, TableRow, TableHead, TableCell} from '@/components/ui/table';
@@ -95,24 +95,21 @@ const Playlists: React.FC = () => {
         return matchesSearch && matchesVisibility;
     });
 
-    // Stats (BUG-207: page-level cards = global base data; unfiltered fetch,
-    // not affected by search/visibility filter or the current page)
+    // Stats (BUG-211: page-level cards come from the independent
+    // /admin/stats/playlists endpoint — NOT derived from the list endpoint
+    // with page_size=HARD_LIMIT + frontend reduce. See docs/bugs/BUG-211.md.)
     const [statsPlaylists, setStatsPlaylists] = useState<{total: number; public: number; items: number; views: number}>({total: 0, public: 0, items: 0, views: 0});
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await adminPlaylistApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                const res = await statsApi.getPlaylists();
                 if (cancelled) return;
-                const items = Array.isArray(res?.items) ? res.items : [];
                 setStatsPlaylists({
-                    total: res?.total ?? items.length,
-                    public: items.filter((p) => p.is_public).length,
-                    items: items.reduce((sum, p) => sum + (p.media_items?.length || p.media_details?.length || 0), 0),
-                    views: items.reduce(
-                        (sum, p) => sum + (p.media_details?.reduce((s, m) => s + (m.view_count || 0), 0) || 0),
-                        0,
-                    ),
+                    total: res?.total ?? 0,
+                    public: res?.public_count ?? 0,
+                    items: res?.total_items ?? 0,
+                    views: res?.total_views ?? 0,
                 });
             } catch {
                 // Best-effort global stats; keep zeros on failure.

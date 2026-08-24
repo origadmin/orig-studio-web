@@ -19,6 +19,7 @@ import {
   Download,
 } from 'lucide-react';
 import {adminUserApi, User, AdminCreateUserRequest, UpdateUserRequest, getUserStatusLabel} from '@/lib/api/user';
+import {statsApi} from '@/lib/api/stats';
 import {toast} from 'sonner';
 import {formatDateTime} from '@/lib/format';
 import {useTranslation} from 'react-i18next';
@@ -85,21 +86,21 @@ export default function UsersPage() {
     }
   };
 
-  // Stats (BUG-211⑩: page-level cards = global base data; unfiltered fetch,
-  // not affected by keyword/role filter or the current page)
+  // Stats (BUG-211⑩: page-level cards = global base data from independent
+  // /admin/stats/users endpoint, NOT derived from list endpoint with
+  // page_size=HARD_LIMIT + frontend filter. See docs/bugs/BUG-211.md.)
   const [statsUsers, setStatsUsers] = useState<{total: number; active: number; admins: number; editors: number}>({total: 0, active: 0, admins: 0, editors: 0});
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await adminUserApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+        const res = await statsApi.getUsers();
         if (cancelled) return;
-        const items = Array.isArray(res?.items) ? res.items : [];
         setStatsUsers({
-          total: res?.total ?? items.length,
-          active: items.filter((u: User) => getUserStatusLabel(u.status) === 'active').length,
-          admins: items.filter((u: User) => u.role === 'admin').length,
-          editors: items.filter((u: User) => u.role === 'editor').length,
+          total: res?.total_users ?? 0,
+          active: res?.active_total ?? 0,
+          admins: res?.admin_count ?? 0,
+          editors: res?.editor_count ?? 0,
         });
       } catch {
         // Best-effort global stats; keep zeros on failure.

@@ -31,6 +31,7 @@ import {
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {adminTagApi, tagMediaCount, Tag, CreateTagRequest, UpdateTagRequest} from '@/lib/api/admin-tags';
+import {statsApi} from '@/lib/api/stats';
 import {formatDateTime} from '@/lib/format';
 import {generateSlug} from '@/lib/utils/slug';
 import {getTagColor} from '@/lib/utils/tag-color';
@@ -184,23 +185,21 @@ const Tags: React.FC = () => {
         loadTags({...searchParams, page: 1});
     };
 
-    // Stats (BUG-205: page-level cards = global base data; unfiltered fetch,
-    // not affected by search/filter or the current page)
+    // Stats (BUG-211: page-level cards come from the independent
+    // /admin/stats/tags endpoint — NOT derived from the list endpoint
+    // with page_size=HARD_LIMIT + frontend filter. See docs/bugs/BUG-211.md.)
     const [statsTags, setStatsTags] = useState<{total: number; active: number; unused: number; colorAlerts: number}>({total: 0, active: 0, unused: 0, colorAlerts: 0});
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
-                const res = await adminTagApi.list({page: 1, page_size: PAGINATION_CONFIG.HARD_LIMIT});
+                const res = await statsApi.getTags();
                 if (cancelled) return;
-                const items = Array.isArray(res?.items) ? res.items : [];
-                const toCount = (v: number | string | undefined): number =>
-                    typeof v === 'string' ? (parseInt(v, 10) || 0) : (v || 0);
                 setStatsTags({
-                    total: res?.total ?? items.length,
-                    active: items.filter((tag) => tag.status === 'active').length,
-                    unused: items.filter((tag) => toCount(tag.media_count) === 0).length,
-                    colorAlerts: items.filter((tag) => !tag.color).length,
+                    total: res?.total ?? 0,
+                    active: res?.active_count ?? 0,
+                    unused: res?.unused_count ?? 0,
+                    colorAlerts: res?.color_alerts ?? 0,
                 });
             } catch {
                 // Best-effort global stats; keep zeros on failure.

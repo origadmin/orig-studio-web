@@ -73,6 +73,10 @@ export interface UserStats {
     new_users: number;
     active_users: number;
     daily_stats: StatPoint[];
+    // BUG-211: page-level stats card fields (independent /admin/stats/users endpoint).
+    active_total: number;
+    admin_count: number;
+    editor_count: number;
 }
 
 export const statsApi = {
@@ -87,6 +91,36 @@ export const statsApi = {
     // Get user stats (Admin)
     getUsers: () =>
         api.get<UserStats>('/admin/stats/users'),
+
+    // BUG-211: independent /admin/stats/channels endpoint — replaces the
+    // page_size=HARD_LIMIT list + frontend reduce pseudo-stats.
+    getChannels: () =>
+        api.get<{
+            total: number;
+            total_subscribers: number;
+            verified_count: number;
+            pending_count: number;
+        }>('/admin/stats/channels'),
+
+    // BUG-211: independent /admin/stats/tags endpoint — replaces the
+    // page_size=HARD_LIMIT list + frontend filter pseudo-stats.
+    getTags: () =>
+        api.get<{
+            total: number;
+            active_count: number;
+            unused_count: number;
+            color_alerts: number;
+        }>('/admin/stats/tags'),
+
+    // BUG-211: independent /admin/stats/playlists endpoint — replaces the
+    // page_size=HARD_LIMIT list + frontend reduce pseudo-stats.
+    getPlaylists: () =>
+        api.get<{
+            total: number;
+            public_count: number;
+            total_items: number;
+            total_views: number;
+        }>('/admin/stats/playlists'),
 
     // Get traffic stats (Admin)
     getTraffic: (params?: { days?: number }) =>
