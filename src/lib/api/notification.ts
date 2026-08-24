@@ -115,4 +115,15 @@ export const notificationApi = {
         }
         return {items: [], total: 0};
     },
+
+    // BUG-265: 受控通知类型清单（管理端发送下拉 + 类型开关设置页）。
+    adminGetTypes: async () => {
+        const response = await api.get<unknown>('/admin/notifications/types');
+        if (response && typeof response === 'object') {
+            const obj = response as Record<string, unknown>;
+            const items = Array.isArray(obj.items) ? obj.items : [];
+            return items as Array<{action: string; label_key: string; category: string; category_label_key: string; status: string; default_enabled: boolean}>;
+        }
+        return [];
+    },
 };

@@ -882,6 +882,10 @@
     "notificationsTestTitle": "Test Notification",
     "notificationsTestDesc": "Send a test notification to the currently logged-in user to verify that notifications work correctly.",
     "notificationsTestSend": "Send Test Notification",
+    "notificationsFieldType": "Notification Type",
+    "notificationsTypeSwitchesTitle": "Notification Type Switches",
+    "notificationsTypeSwitchesDesc": "Enable or disable the global sending of each notification type (including system auto-notifications)",
+    "notificationsSaveGlobal": "Save Global Settings",
     "content": "Content",
     "articles": "Articles",
     "manageArticles": "Manage Articles",
@@ -2503,5 +2507,32 @@
   },
   "video": {
     "reportVideo": "Report Video"
+  },
+  "notificationType": {
+    "system": "System",
+    "test": "Test",
+    "media_transcode_success": "Transcode Success",
+    "media_transcode_failed": "Transcode Failed",
+    "media_published": "Video Published",
+    "media_deleted": "Video Deleted",
+    "channel_subscribed": "New Subscriber",
+    "channel_new_video": "New Channel Video",
+    "comment_created": "New Comment",
+    "comment_replied": "Reply Received",
+    "comment_mentioned": "Mentioned",
+    "like_created": "Like Received",
+    "follow_created": "New Follower",
+    "media_review_result": "Review Result",
+    "report_resolved": "Report Resolved",
+    "system_announcement": "Announcement",
+    "system_maintenance": "Maintenance"
+  },
+  "notificationCategory": {
+    "media": "Media / Transcode",
+    "subscription": "Subscription / Channel",
+    "interaction": "Interaction / Social",
+    "report": "Report / Feedback",
+    "system": "System / Ops",
+    "test": "Test"
   }
 }

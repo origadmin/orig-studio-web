@@ -128,6 +128,23 @@
         --tw-ring-offset-width: 0px !important;
     }
 
+    /* BUG-266: Radix Select/Popover 打开时对 body 施加滚动锁定(overflow:hidden)会隐藏
+       视口滚动条，隐藏/显示切换导致整页布局抖动。
+       方案1：html 设为滚动容器(overflow-y:auto) + scrollbar-gutter:stable —— 滚动条占位常驻，
+       锁定时不消失（scrollbar-gutter 仅对滚动容器生效）。
+       方案2：react-remove-scroll 仍注入 body{margin-right:<宽>!important} 补偿（它不知道滚动条
+       已被 gutter 保留），造成内容区被挤窄 15px；用更高特异性覆盖该过度补偿（margin-right:0）。
+       滚动锁定本身由 react-remove-scroll 拦截用户滚轮/触控，不受此 CSS 影响。 */
+    html {
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+    }
+
+    /* 特异性高于 react-remove-scroll 的 body[data-scroll-locked]（0-1-2 > 0-1-1），同 !important 时胜出。 */
+    html body[data-scroll-locked] {
+        margin-right: 0 !important;
+    }
+
     body {
         @apply bg-background text-foreground;
     }

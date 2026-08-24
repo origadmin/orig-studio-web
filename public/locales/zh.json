@@ -884,6 +884,10 @@
     "notificationsTestTitle": "测试通知",
     "notificationsTestDesc": "向当前登录用户发送一条测试通知，验证通知功能是否正常工作。",
     "notificationsTestSend": "发送测试通知",
+    "notificationsFieldType": "通知类型",
+    "notificationsTypeSwitchesTitle": "通知类型开关",
+    "notificationsTypeSwitchesDesc": "开启/关闭各通知类型的全局发送（含系统自动通知）",
+    "notificationsSaveGlobal": "保存全局设置",
     "content": "内容",
     "articles": "文章",
     "manageArticles": "管理文章",
@@ -2259,6 +2263,8 @@
     "tabStats": "统计信息",
     "mediaTypeAria": "媒体类型",
     "stateAria": "状态",
+    "state": "生命周期",
+    "pendingReview": "待审核",
     "language": "语言",
     "selectLanguage": "选择语言",
     "contentRating": "内容分级",
@@ -2972,5 +2978,32 @@
   },
   "video": {
     "reportVideo": "举报视频"
+  },
+  "notificationType": {
+    "system": "系统",
+    "test": "测试",
+    "media_transcode_success": "转码成功",
+    "media_transcode_failed": "转码失败",
+    "media_published": "视频发布",
+    "media_deleted": "视频被删除",
+    "channel_subscribed": "新订阅者",
+    "channel_new_video": "频道新视频",
+    "comment_created": "收到评论",
+    "comment_replied": "收到回复",
+    "comment_mentioned": "被提及",
+    "like_created": "收到点赞",
+    "follow_created": "被关注",
+    "media_review_result": "审核结果",
+    "report_resolved": "举报处理",
+    "system_announcement": "公告",
+    "system_maintenance": "维护通知"
+  },
+  "notificationCategory": {
+    "media": "媒体/转码",
+    "subscription": "订阅/频道",
+    "interaction": "互动/社交",
+    "report": "举报/反馈",
+    "system": "系统/运营",
+    "test": "测试"
   }
 }

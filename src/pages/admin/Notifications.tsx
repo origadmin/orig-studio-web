@@ -111,6 +111,25 @@ const AdminNotifications: React.FC = () => {
     const [savingConfig, setSavingConfig] = useState(false);
     const [sendingTest, setSendingTest] = useState(false);
 
+    // BUG-265: 受控通知类型（发送下拉 + 全局类型开关，按分类分组）
+    const [notifTypes, setNotifTypes] = useState<Array<{action: string; label_key: string; category: string; category_label_key: string; status: string; default_enabled: boolean}>>([]);
+    const [typeSwitches, setTypeSwitches] = useState<Record<string, boolean>>({});
+    const [typeAction, setTypeAction] = useState('system');
+
+    // 按分类分组（保持后端顺序），供下拉 optgroup 与开关卡分区。
+    const typeGroups = useMemo(() => {
+        const groups: Array<{category: string; category_label_key: string; items: Array<{action: string; label_key: string; status: string; default_enabled: boolean}>}> = [];
+        for (const nt of notifTypes) {
+            let g = groups.find(x => x.category === nt.category);
+            if (!g) {
+                g = {category: nt.category, category_label_key: nt.category_label_key, items: []};
+                groups.push(g);
+            }
+            g.items.push(nt);
+        }
+        return groups;
+    }, [notifTypes]);
+
     useEffect(() => {
         if (activeTab === 'history') {
             fetchData();
@@ -119,6 +138,7 @@ const AdminNotifications: React.FC = () => {
 
     useEffect(() => {
         fetchConfig();
+        fetchTypes();
     }, []);
 
     const fetchData = async () => {
@@ -155,17 +175,42 @@ const AdminNotifications: React.FC = () => {
         }
     };
 
+    // BUG-265: 加载受控通知类型清单 + 各类型全局开关（settings 缺省回退 taxonomy 默认）。
+    const fetchTypes = async () => {
+        try {
+            const settings = await settingsApi.get();
+            const m = settings.settings || {};
+            const getBool = (key: string, fallback: boolean) => {
+                if (!(key in m)) return fallback;
+                return m[key] === 'true' || m[key] === '1';
+            };
+            const items = await notificationApi.adminGetTypes();
+            setNotifTypes(items);
+            const sw: Record<string, boolean> = {};
+            for (const t of items) {
+                sw[t.action] = getBool(`notification.type.${t.action}.enabled`, t.default_enabled);
+            }
+            setTypeSwitches(sw);
+        } catch (err) {
+            console.error('Failed to fetch notification types:', err);
+        }
+    };
+
     const saveConfig = async () => {
         try {
             setSavingConfig(true);
-            await settingsApi.update({
-                settings: {
-                    'notification.email_enabled': String(config.emailEnabled),
-                    'notification.push_enabled': String(config.pushEnabled),
-                    'notification.webhook_enabled': String(config.webhookEnabled),
-                    'notification.sms_enabled': String(config.smsEnabled),
-                },
-            });
+            const settingsToUpdate: Record<string, string> = {
+                'notification.email_enabled': String(config.emailEnabled),
+                'notification.push_enabled': String(config.pushEnabled),
+                'notification.webhook_enabled': String(config.webhookEnabled),
+                'notification.sms_enabled': String(config.smsEnabled),
+            };
+            // BUG-265: 各类型全局开关一并保存（仅 active 已实现类型，planned 待实现不保存）。
+            for (const t of notifTypes) {
+                if (t.status === 'planned') continue;
+                settingsToUpdate[`notification.type.${t.action}.enabled`] = String(typeSwitches[t.action] ?? t.default_enabled);
+            }
+            await settingsApi.update({settings: settingsToUpdate});
         } catch (err) {
             console.error('Failed to save notification config:', err);
         } finally {
@@ -246,7 +291,7 @@ const AdminNotifications: React.FC = () => {
             setSending(true);
             const primaryChannel = (Object.keys(form.channels) as ChannelKey[]).find(c => form.channels[c]) || 'in_app';
             const baseData = {
-                action: 'system',
+                action: typeAction,
                 title: form.title,
                 body: form.body,
                 method: primaryChannel,
@@ -407,6 +452,27 @@ const AdminNotifications: React.FC = () => {
                                                         value={form.body}
                                                         onChange={e => setForm(f => ({...f, body: e.target.value}))}
                                                     />
+                                                </div>
+                                                {/* BUG-265: 通知类型下拉（受控枚举，替硬编码 system） */}
+                                                <div>
+                                                    <Label className="block text-sm font-medium text-card-foreground mb-2">
+                                                        {t('admin.notificationsFieldType', 'NOTIFICATION TYPE')}
+                                                    </Label>
+                                                    <select
+                                                        value={typeAction}
+                                                        onChange={(e) => setTypeAction(e.target.value)}
+                                                        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-card-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                    >
+                                                        {typeGroups.map((g) => (
+                                                            <optgroup key={g.category} label={t(g.category_label_key, g.category)}>
+                                                                {g.items.map((nt) => (
+                                                                    <option key={nt.action} value={nt.action}>
+                                                                        {t(nt.label_key, nt.action)}
+                                                                    </option>
+                                                                ))}
+                                                            </optgroup>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div>
                                                     <Label className="block text-sm font-medium text-card-foreground mb-2">
@@ -807,7 +873,13 @@ const AdminNotifications: React.FC = () => {
                                                             {/* Type */}
                                                             <TableCell>
                                                                 <Badge variant="soft-neutral" className="uppercase text-[10px] font-bold border border-border">
-                                                                    {typeLabels[notification.action] || (notification.action || 'SYSTEM').toUpperCase()}
+                                                                    {(() => {
+                                                                        const legacy = typeLabels[notification.action];
+                                                                        if (legacy) return legacy;
+                                                                        const nt = notifTypes.find(x => x.action === notification.action);
+                                                                        if (nt) return t(nt.label_key, nt.action);
+                                                                        return (notification.action || 'SYSTEM').toUpperCase();
+                                                                    })()}
                                                                 </Badge>
                                                             </TableCell>
                                                             {/* Channel */}
@@ -1003,6 +1075,43 @@ const AdminNotifications: React.FC = () => {
                                     </div>
                                 </CardContent>
                             </Card>
+                            {/* BUG-265: 通知类型全局开关（按分类分组） */}
+                            <Card>
+                                <CardContent className="p-6">
+                                    <h3 className="text-base font-semibold text-foreground mb-1">{t('admin.notificationsTypeSwitchesTitle', '通知类型开关')}</h3>
+                                    <p className="text-sm text-muted-foreground mb-5">{t('admin.notificationsTypeSwitchesDesc', '开启/关闭各通知类型的全局发送（含系统自动通知）')}</p>
+                                    <div className="space-y-5">
+                                        {typeGroups.map((g) => (
+                                            <div key={g.category}>
+                                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                                                    {t(g.category_label_key, g.category)}
+                                                </h4>
+                                                <div className="divide-y divide-border rounded-lg border border-border">
+                                                    {g.items.map((nt) => (
+                                                        <div key={nt.action} className="flex items-center justify-between py-3 px-3">
+                                                            <div className="flex items-center gap-3 min-w-0">
+                                                                <span className="text-sm font-medium text-foreground truncate">{t(nt.label_key, nt.action)}</span>
+                                                                <span className="text-xs font-mono text-muted-foreground hidden sm:inline">{nt.action}</span>
+                                                            </div>
+                                                            {nt.status === 'planned' ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge variant="secondary" className="text-[10px]">{t('admin.notificationsComingSoon', '即将推出')}</Badge>
+                                                                    <Switch checked={false} disabled/>
+                                                                </div>
+                                                            ) : (
+                                                                <Switch
+                                                                    checked={typeSwitches[nt.action] ?? nt.default_enabled}
+                                                                    onCheckedChange={(v) => setTypeSwitches((prev) => ({...prev, [nt.action]: Boolean(v)}))}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
                             <Card>
                                 <CardContent className="p-6">
                                     <h3 className="text-base font-semibold text-foreground mb-1">{t('admin.notificationsTestTitle')}</h3>
@@ -1013,6 +1122,13 @@ const AdminNotifications: React.FC = () => {
                                     </Button>
                                 </CardContent>
                             </Card>
+                            {/* BUG-265: 保存渠道 + 类型开关全局设置 */}
+                            <div className="flex justify-end">
+                                <Button onClick={saveConfig} disabled={savingConfig}>
+                                    {savingConfig ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : null}
+                                    {t('admin.notificationsSaveGlobal', '保存全局设置')}
+                                </Button>
+                            </div>
                         </TabsContent>
                 </>
             </Tabs>

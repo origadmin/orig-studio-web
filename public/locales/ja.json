@@ -1369,6 +1369,10 @@
     "notificationsTabSend": "通知を送信",
     "notificationsTestDesc": "現在ログイン中のユーザーにテスト通知を送信し、通知機能が正常に動作するか確認します。",
     "notificationsTestSend": "テスト通知を送信",
+    "notificationsFieldType": "通知タイプ",
+    "notificationsTypeSwitchesTitle": "通知タイプの切り替え",
+    "notificationsTypeSwitchesDesc": "各通知タイプのグローバル送信を有効/無効にします（システム自動通知を含む）",
+    "notificationsSaveGlobal": "グローバル設定を保存",
     "notificationsTestTitle": "テスト通知",
     "notificationsTypeComment": "コメント",
     "notificationsTypeMedia": "メディア",
@@ -2361,5 +2365,32 @@
   },
   "video": {
     "reportVideo": "動画を報告"
+  },
+  "notificationType": {
+    "system": "システム",
+    "test": "テスト",
+    "media_transcode_success": "エンコード成功",
+    "media_transcode_failed": "エンコード失敗",
+    "media_published": "動画公開",
+    "media_deleted": "動画削除",
+    "channel_subscribed": "新規チャンネル登録者",
+    "channel_new_video": "チャンネル新着動画",
+    "comment_created": "コメント",
+    "comment_replied": "返信",
+    "comment_mentioned": "メンション",
+    "like_created": "いいね",
+    "follow_created": "新規フォロワー",
+    "media_review_result": "審査結果",
+    "report_resolved": "通報処理",
+    "system_announcement": "お知らせ",
+    "system_maintenance": "メンテナンス"
+  },
+  "notificationCategory": {
+    "media": "メディア/エンコード",
+    "subscription": "チャンネル登録",
+    "interaction": "インタラクション",
+    "report": "通報/フィードバック",
+    "system": "システム/運用",
+    "test": "テスト"
   }
 }
