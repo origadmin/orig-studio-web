@@ -363,10 +363,12 @@ export default function MediaEditPage() {
     }, []);
 
     // BUG-186: load subtitle tracks + language list (short_token based).
+    // Array.isArray guards: if any backend returns an object (e.g. a proto
+    // stub {"subtitles":[]}), never let the page crash with .map on an object.
     useEffect(() => {
         if (!media?.short_token) return;
-        subtitleApi.getByMediaId(media.short_token).then((list) => setSubtitleList(list || [])).catch(() => setSubtitleList([]));
-        subtitleApi.getLanguages().then((langs) => setSubtitleLanguages(langs || [])).catch(() => {});
+        subtitleApi.getByMediaId(media.short_token).then((list) => setSubtitleList(Array.isArray(list) ? list : [])).catch(() => setSubtitleList([]));
+        subtitleApi.getLanguages().then((langs) => setSubtitleLanguages(Array.isArray(langs) ? langs : [])).catch(() => {});
     }, [media?.short_token]);
 
     const handleSubtitleUpload = async () => {
@@ -396,7 +398,7 @@ export default function MediaEditPage() {
             await subtitleApi.delete(id);
             if (media?.short_token) {
                 const list = await subtitleApi.getByMediaId(media.short_token);
-                setSubtitleList(list || []);
+                setSubtitleList(Array.isArray(list) ? list : []);
             }
         } catch (e: any) {
             setSubtitleMsg({kind: 'err', text: e?.message || t('mediaEdit.subtitleDeleteFailed', '删除失败')});
@@ -449,7 +451,7 @@ export default function MediaEditPage() {
         setLangError('');
         try {
             const saved = await subtitleApi.saveAdminLanguages(list);
-            setSubtitleLanguages(saved || list);
+            setSubtitleLanguages(Array.isArray(saved) ? saved : list);
             toast.success(t('mediaEdit.langSaved', '语言清单已保存'));
         } catch (e: any) {
             setLangError(e?.message || t('mediaEdit.langSaveFailed', '保存语言清单失败'));

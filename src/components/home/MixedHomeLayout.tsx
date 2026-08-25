@@ -11,13 +11,22 @@ import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {formatDuration, formatViews, formatDate} from '@/lib/format';
 import {useQuery} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
+import {useModuleState} from '@/contexts/ModuleConfigContext';
 
 const MixedHomeLayout: React.FC = () => {
     const {t} = useTranslation();
+    // BUG-186 regression: the article module is NOT implemented yet, so the
+    // "文章" tab must never appear unless the portal explicitly enables it.
+    // Defense-in-depth: even if the backend wrongly resolves layout=mixed, we
+    // still gate every article-related UI on the module switch below.
+    const {modules} = useModuleState();
+    const showArticles = modules?.articles === true;
+
     const articlesQuery = useQuery({
         queryKey: ['articles', 'latest'],
         queryFn: () => articleApi.list({page: 1, page_size: 10, state: 'published'}),
         staleTime: 30_000,
+        enabled: showArticles,
     });
 
     // Use useMediaList hook which applies normalizeMedia for edge fields
@@ -36,7 +45,7 @@ const MixedHomeLayout: React.FC = () => {
         );
     }
 
-    const articles = articlesQuery.data?.items ?? [];
+    const articles = showArticles ? (articlesQuery.data?.items ?? []) : [];
     const videos = videosQuery.data?.items ?? [];
 
     return (
@@ -104,7 +113,7 @@ const MixedHomeLayout: React.FC = () => {
                         </section>
                     )}
 
-                    {articles.length > 0 && (
+                    {showArticles && articles.length > 0 && (
                         <section>
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -145,6 +154,7 @@ const MixedHomeLayout: React.FC = () => {
                     )}
                 </TabsContent>
 
+                {showArticles && (
                 <TabsContent value="articles">
                     <div className="divide-y divide-border">
                         {articles.map((article) => (
@@ -189,6 +199,7 @@ const MixedHomeLayout: React.FC = () => {
                         ))}
                     </div>
                 </TabsContent>
+                )}
 
                 <TabsContent value="videos">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
