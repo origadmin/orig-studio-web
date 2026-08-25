@@ -1,11 +1,10 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {Link, useLocation, useSearch} from '@tanstack/react-router';
 import {useCategoryList} from '@/hooks/queries';
 import {useTranslation} from 'react-i18next';
 import type {Category} from '@/lib/api/category';
-import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree';
+import {buildCategoryTree} from '@/lib/utils/categoryTree';
 import {kindOf} from '@/lib/utils/categoryKind';
-import {ChevronRight} from 'lucide-react';
 
 interface CategoryChipsProps {
     embedded?: boolean;
@@ -16,12 +15,12 @@ interface CategoryChipsProps {
  *
  * 根级模块导航（视频/文章/音乐）在 Sidebar/Header（NAV_CONFIG），此处只放分类：
  *  - 「全部」回主页
- *  - 视频根下节点递归渲染：叶子 → 跳 /browse 的 chip；有子节点 → 可展开组。
- *  - 叶子 URL 契约（BUG-162）：按 kind 拆到 ?form=|genre=slug。
+ *  - 视频根下叶子按 kind 拆双区平铺：
+ *    · 「形式」(form)：连续剧/电影/综艺/动漫/MV → ?form=slug
+ *    · 「题材」(genre)：教程/宣传片/UGC/.../其他 → ?genre=slug
  *
- * 当前 taxonomy 为 2 层（video → form/genre 叶子同层兄弟，见
- * portal-filter-url-seed-redesign.md §4.1），故全部渲染为叶子 chip；
- * 将来若引入中间层组（3 层），自动变为可展开组，无需改代码。
+ * 权威设计 = BUG-162「2 层 + kind 标记」（用户 2026-08-25 拍板）。
+ * 叶子 URL 契约：form → ?form=slug，genre → ?genre=slug（方案 B 双键）。
  */
 const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
     const {t} = useTranslation();
@@ -34,15 +33,16 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
         ...(search.genre ?? '').split(',').filter(Boolean),
     ]), [search.form, search.genre]);
 
-    // 中间层组展开状态（默认展开，主页一眼可见分类全貌）
-    const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set());
-
     const flat: Category[] = data?.items ?? [];
     const tree = useMemo(() => buildCategoryTree(flat), [flat]);
 
     if (tree.length === 0) return null;
 
     const videoRoot = tree.find(n => n.slug === 'video');
+
+    // 2 层：video 根下叶子按 kind 分双区（BUG-162 §8.5）
+    const formCats = videoRoot?.children?.filter(c => kindOf(c.slug) === 'form') ?? [];
+    const genreCats = videoRoot?.children?.filter(c => kindOf(c.slug) === 'genre') ?? [];
 
     const chipCls = (active: boolean) =>
         `flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
@@ -61,37 +61,9 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
         </Link>
     );
 
-    // 数据驱动递归渲染：有子节点 → 可展开组按钮 + 递归子节点；叶子 → 链接 chip。
-    const renderNode = (node: CategoryTreeNode) => {
-        if (node.hasChildren) {
-            return (
-                <React.Fragment key={node.id}>
-                    <button
-                        type="button"
-                        className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-1 ${
-                            activeSlugs.has(node.slug)
-                                ? 'bg-foreground text-background'
-                                : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-                        }`}
-                        onClick={() => setOpenGroups(prev => {
-                            const next = new Set(prev);
-                            if (next.has(node.slug)) {
-                                next.delete(node.slug);
-                            } else {
-                                next.add(node.slug);
-                            }
-                            return next;
-                        })}
-                    >
-                        <ChevronRight size={12} className={`transition-transform ${openGroups.has(node.slug) ? 'rotate-90' : ''}`}/>
-                        {node.name}
-                    </button>
-                    {openGroups.has(node.slug) && node.children.map(renderNode)}
-                </React.Fragment>
-            );
-        }
-        return leafLink(node);
-    };
+    const sectionLabel = (text: string) => (
+        <span className="flex-shrink-0 text-xs font-medium text-muted-foreground whitespace-nowrap">{text}</span>
+    );
 
     const content = (
         <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto yt-scrollbar">
@@ -102,8 +74,19 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
                 {t('home.all', '全部')}
             </Link>
 
-            {/* 视频根下节点数据驱动渲染：有子节点 → 可展开组；叶子 → 跳 /browse 的 chip */}
-            {videoRoot?.children?.map(renderNode)}
+            {formCats.length > 0 && (
+                <>
+                    {sectionLabel(t('categories.form', '形式'))}
+                    {formCats.map(leafLink)}
+                </>
+            )}
+
+            {genreCats.length > 0 && (
+                <>
+                    {sectionLabel(t('categories.genre', '题材'))}
+                    {genreCats.map(leafLink)}
+                </>
+            )}
         </div>
     );
 
