@@ -126,6 +126,14 @@ const CategoriesPage = () => {
     const [draftSort, setDraftSort] = useState('latest');
     const [draftDir, setDraftDir] = useState('desc');
     const [draftTime, setDraftTime] = useState('all');
+    // 行内展开（L2 轴 → L3 叶子），仅 UI 态，不影响提交。
+    const [expandedAxes, setExpandedAxes] = useState<Set<string>>(new Set());
+    const toggleAxis = (slug: string) =>
+        setExpandedAxes(prev => {
+            const n = new Set(prev);
+            n.has(slug) ? n.delete(slug) : n.add(slug);
+            return n;
+        });
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -305,6 +313,22 @@ const CategoriesPage = () => {
         if (hasApplied) navigate({to: '/browse', search: {v: 'video'}});
     };
 
+    // L2 轴渲染（与主横条 CategoryChips 同款 chip 视觉）：点轴就地展开 L3 叶子。
+    const renderAxis = (axis: CategoryTreeNode) => {
+        const kids = axis.children ?? [];
+        const expandedNow = expandedAxes.has(axis.slug) || kids.some(k => draftCats.has(k.slug));
+        return (
+            <span key={axis.slug} className="flex items-center gap-1.5 flex-shrink-0">
+                <Chip active={expandedNow} onClick={() => toggleAxis(axis.slug)}>{axis.name}</Chip>
+                {expandedNow && kids.map(leaf => (
+                    <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
+                        {leaf.name}
+                    </Chip>
+                ))}
+            </span>
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -347,39 +371,15 @@ const CategoriesPage = () => {
                     })}
                 </div>
 
-                {/* Row 2: category multi-select (BUG-162 §六 3 级分层：root → L2轴 → L3展开 "2 展开 3") */}
+                {/* Row 2: 分类 3 级（视觉与主横条 CategoryChips 完全一致：rounded-full chip +
+                    弱化轴标签 + 行内 L2 轴→L3 展开；不另起分组盒/粗体轴标题，BUG-162 §六） */}
                 {displayTree.length > 0 && (
-                    <div className="space-y-3">
-                        {/* 形式轴 (form)：每个 L2 轴展开为一组 L3 叶子 chips */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
-                            <span className="text-xs font-medium text-muted-foreground">{t('categories.form', '形式')}</span>
-                            {displayTree.filter(c => kindOf(c.slug) === 'form').map(axis => (
-                                <span key={axis.slug} className="flex flex-wrap items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1">
-                                    <span className="text-xs font-semibold text-foreground">{axis.name}</span>
-                                    {(axis.children?.length ? axis.children : [axis]).map(leaf => (
-                                        <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
-                                            {leaf.name}
-                                        </Chip>
-                                    ))}
-                                </span>
-                            ))}
-                        </div>
-                        {/* 题材轴 (genre) */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground" />
-                            <span className="text-xs font-medium text-muted-foreground">{t('categories.genre', '题材')}</span>
-                            {displayTree.filter(c => kindOf(c.slug) === 'genre').map(axis => (
-                                <span key={axis.slug} className="flex flex-wrap items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1">
-                                    <span className="text-xs font-semibold text-foreground">{axis.name}</span>
-                                    {(axis.children?.length ? axis.children : [axis]).map(leaf => (
-                                        <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
-                                            {leaf.name}
-                                        </Chip>
-                                    ))}
-                                </span>
-                            ))}
-                        </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{t('categories.form', '形式')}</span>
+                        {displayTree.filter(c => kindOf(c.slug) === 'form').map(axis => renderAxis(axis))}
+                        <span className="text-xs font-medium text-muted-foreground">{t('categories.genre', '题材')}</span>
+                        {displayTree.filter(c => kindOf(c.slug) === 'genre').map(axis => renderAxis(axis))}
                     </div>
                 )}
 
