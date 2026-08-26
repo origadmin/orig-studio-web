@@ -70,81 +70,53 @@ function genCategory(i: number) {
     return {id: uid(), name: cats[i % cats.length], slug: cats[i % cats.length].toLowerCase().replace(/ /g, '-'), media_count: randInt(5, 500), created_at: randDate(180)};
 }
 
-// 3-level category taxonomy tree (BUG-162 §六), returned flat with parent_id so
-// buildCategoryTree reconstructs root → L2轴 → L3叶. Enables a real Stage-1
-// screenshot of the category filter in dev:mock without a backend.
+// 3-level category taxonomy tree (BUG-162 2026-08-26 final: root → L2 分类 →
+// L3 子分类, no form/genre axis, no 影视 umbrella), returned flat with parent_id
+// so buildCategoryTree reconstructs the tree. Enables a real dev:mock screenshot
+// of the category filter without a backend.
 function genCategoryTree(): any[] {
     const n = (id: number, name: string, slug: string, parent_id: number) => ({id, name, slug, parent_id: parent_id || undefined, description: '', status: 1, media_count: randInt(3, 320), order: 0, create_time: randDate(180), update_time: randDate(7)});
     const out: any[] = [];
     out.push(n(1, '视频', 'video', 0));
     out.push(n(2, '音乐', 'music', 0));
     out.push(n(3, '文章', 'article', 0));
-    // form 轴 (L2)
-    out.push(n(11, '连续剧', 'drama', 1));
-    out.push(n(12, '电影', 'movie', 1));
-    out.push(n(13, '综艺', 'variety', 1));
-    out.push(n(14, '动漫', 'anime', 1));
-    out.push(n(15, 'MV', 'mv', 1));
-    // genre 轴 (L2)
-    out.push(n(21, '教程', 'tutorial', 1));
-    out.push(n(22, '宣传片', 'promo', 1));
-    out.push(n(23, '用户UGC', 'ugc', 1));
-    out.push(n(24, '影视', 'film_tv', 1));
-    out.push(n(25, '纪录片', 'documentary', 1));
-    out.push(n(26, '游戏', 'gaming', 1));
-    out.push(n(27, '体育', 'sports', 1));
-    out.push(n(28, '娱乐', 'entertainment', 1));
-    out.push(n(29, '科技', 'tech', 1));
-    out.push(n(30, '生活', 'lifestyle', 1));
-    out.push(n(31, '其他', 'other', 1));
-    // L3 leaves (inherit parent axis kind)
-    out.push(n(111, '国产剧', 'drama-cn', 11));
-    out.push(n(112, '美剧', 'drama-us', 11));
-    out.push(n(113, '韩剧', 'drama-kr', 11));
-    out.push(n(114, '日剧', 'drama-jp', 11));
-    out.push(n(121, '动作片', 'movie-action', 12));
-    out.push(n(122, '喜剧片', 'movie-comedy', 12));
-    out.push(n(123, '科幻片', 'movie-scifi', 12));
-    out.push(n(131, '真人秀', 'variety-show', 13));
-    out.push(n(132, '访谈', 'variety-talk', 13));
-    out.push(n(141, '国产动画', 'anime-cn', 14));
-    out.push(n(142, '日番', 'anime-jp', 14));
-    out.push(n(151, '现场版', 'mv-live', 15));
-    out.push(n(211, '编程', 'tutorial-code', 21));
-    out.push(n(212, '设计', 'tutorial-design', 21));
-    out.push(n(221, '品牌宣传', 'promo-brand', 22));
-    out.push(n(222, '活动宣传', 'promo-event', 22));
-    out.push(n(231, '原创短视频', 'ugc-short', 23));
-    out.push(n(232, '直播', 'ugc-live', 23));
-    out.push(n(241, '剧集', 'film_tv-series', 24));
-    out.push(n(242, '电影', 'film_tv-movie', 24));
-    out.push(n(243, '综艺', 'film_tv-variety', 24));
-    out.push(n(244, '短片', 'film_tv-short', 24));
-    out.push(n(251, '自然', 'documentary-nature', 25));
-    out.push(n(252, '历史', 'documentary-history', 25));
-    out.push(n(253, '社会', 'documentary-society', 25));
-    out.push(n(261, '主机游戏', 'gaming-console', 26));
-    out.push(n(262, 'PC游戏', 'gaming-pc', 26));
-    out.push(n(263, '手游', 'gaming-mobile', 26));
-    out.push(n(264, '实况', 'gaming-live', 26));
-    out.push(n(271, '足球', 'sports-soccer', 27));
-    out.push(n(272, '篮球', 'sports-basketball', 27));
-    out.push(n(273, '电竞', 'sports-ese', 27));
-    out.push(n(274, '综合', 'sports-general', 27));
-    out.push(n(281, '明星', 'ent-celeb', 28));
-    out.push(n(282, '搞笑', 'ent-funny', 28));
-    out.push(n(283, '音乐', 'ent-music', 28));
-    out.push(n(284, '综艺', 'ent-variety', 28));
-    out.push(n(291, '数码', 'tech-digital', 29));
-    out.push(n(292, '编程', 'tech-code', 29));
-    out.push(n(293, '评测', 'tech-review', 29));
-    out.push(n(294, 'AI', 'tech-ai', 29));
-    out.push(n(301, '美食', 'life-food', 30));
-    out.push(n(302, '旅行', 'life-travel', 30));
-    out.push(n(303, '家居', 'life-home', 30));
-    out.push(n(304, '时尚', 'life-fashion', 30));
-    out.push(n(311, '未分类', 'other-uncat', 31));
+    // L2 分类 (真实内容类别)
+    const L2 = [
+        [11, '连续剧', 'drama'], [12, '电影', 'movie'], [13, '综艺', 'variety'],
+        [14, '动漫', 'anime'], [15, 'MV', 'mv'], [16, '纪录片', 'documentary'],
+        [17, '游戏', 'gaming'], [18, '体育', 'sports'], [19, '娱乐', 'entertainment'],
+        [20, '科技', 'tech'], [21, '教程', 'tutorial'], [22, '生活', 'lifestyle'],
+        [23, '宣传片', 'promo'], [24, '用户UGC', 'ugc'], [25, '其他', 'other'],
+    ] as const;
+    for (const [, name, slug] of L2) out.push(n(L2id(slug), name, slug, 1));
+    // L3 叶子
+    const L3: [string, string, string][] = [
+        ['drama', '国产剧', 'drama-cn'], ['drama', '美剧', 'drama-us'], ['drama', '韩剧', 'drama-kr'], ['drama', '日剧', 'drama-jp'],
+        ['movie', '动作片', 'movie-action'], ['movie', '喜剧片', 'movie-comedy'], ['movie', '科幻片', 'movie-scifi'], ['movie', '剧情片', 'movie-drama'], ['movie', '短片', 'movie-short'],
+        ['variety', '真人秀', 'variety-reality'], ['variety', '访谈', 'variety-talk'], ['variety', '选秀', 'variety-talent'], ['variety', '音乐综艺', 'variety-music'],
+        ['anime', '国产动画', 'anime-cn'], ['anime', '日番', 'anime-jp'], ['anime', '剧场版', 'anime-movie'],
+        ['mv', '官方MV', 'mv-official'], ['mv', '现场版', 'mv-live'], ['mv', '翻唱', 'mv-cover'],
+        ['documentary', '自然', 'doc-nature'], ['documentary', '历史', 'doc-history'], ['documentary', '社会', 'doc-society'], ['documentary', '人文', 'doc-culture'],
+        ['gaming', '主机游戏', 'gaming-console'], ['gaming', 'PC游戏', 'gaming-pc'], ['gaming', '手游', 'gaming-mobile'], ['gaming', '游戏实况', 'gaming-live'],
+        ['sports', '足球', 'sports-soccer'], ['sports', '篮球', 'sports-basketball'], ['sports', '电竞', 'sports-ese'], ['sports', '综合体育', 'sports-general'],
+        ['entertainment', '明星', 'ent-celeb'], ['entertainment', '搞笑', 'ent-funny'], ['entertainment', '音乐', 'ent-music'],
+        ['tech', '数码', 'tech-digital'], ['tech', '评测', 'tech-review'], ['tech', 'AI', 'tech-ai'], ['tech', '互联网', 'tech-internet'],
+        ['tutorial', '编程', 'tutorial-code'], ['tutorial', '设计', 'tutorial-design'], ['tutorial', '生活技能', 'tutorial-skill'],
+        ['lifestyle', '美食', 'life-food'], ['lifestyle', '旅行', 'life-travel'], ['lifestyle', '家居', 'life-home'], ['lifestyle', '时尚', 'life-fashion'],
+        ['promo', '品牌宣传', 'promo-brand'], ['promo', '活动宣传', 'promo-event'],
+        ['ugc', '原创短视频', 'ugc-short'], ['ugc', '直播回放', 'ugc-live'],
+        ['other', '未分类', 'other-uncat'],
+    ];
+    const l2id: Record<string, number> = {};
+    for (const [id, , slug] of L2) l2id[slug] = id;
+    let leafId = 100;
+    for (const [parent, name, slug] of L3) out.push(n(leafId++, name, slug, l2id[parent]));
     return out;
+
+    function L2id(slug: string): number {
+        for (const [id, , s] of L2) if (s === slug) return id;
+        return 0;
+    }
 }
 
 function genChannel(i: number) {

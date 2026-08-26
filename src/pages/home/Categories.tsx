@@ -8,7 +8,6 @@ import {categoryApi, type Category} from '@/lib/api/category';
 import {useInfiniteMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree';
-import {kindOf} from '@/lib/utils/categoryKind';
 
 const VideoCard: React.FC<{media: any}> = ({media}) => (
     <Link to="/watch" search={{v: media.short_token}} className="group w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-11px)] lg:w-[calc(25%-12px)] xl:w-[calc(20%-13px)] 3xl:w-[calc(16.666%-14px)]">
@@ -112,6 +111,7 @@ const CategoriesPage = () => {
     const search = useSearch({strict: false}) as Record<string, unknown>;
     const formQ = (search.form as string | undefined) ?? '';
     const genreQ = (search.genre as string | undefined) ?? '';
+    const catsQ = (search.cats as string | undefined) ?? '';
     const vQ = (search.v as string | undefined) ?? '';
     const sortQ = (search.sort as string | undefined) ?? 'latest';
     const dirQ = (search.dir as string | undefined) ?? 'desc';
@@ -163,7 +163,7 @@ const CategoriesPage = () => {
         // 3 级分层（BUG-162 §六）：可选单元是 L3 叶子。若旧 URL 选的是 L2 轴 slug，
         // 展开为其全部 L3 叶子，避免静默空结果（轴→叶子映射由 taxonomy 树决定，可追溯）。
         const catSet = new Set<string>();
-        for (const raw of [...parseCSV(formQ), ...parseCSV(genreQ)]) {
+        for (const raw of [...parseCSV(catsQ), ...parseCSV(formQ), ...parseCSV(genreQ)]) {
             if (!raw) continue;
             const node = findNodeBySlug(fullTree, raw);
             if (node && node.children.length > 0) {
@@ -199,11 +199,7 @@ const CategoriesPage = () => {
     const commitQuery = () => {
         const searchOut: Record<string, unknown> = {v: draftModule};
         if (draftCats.size > 0) {
-            const form: string[] = [];
-            const genre: string[] = [];
-            for (const slug of draftCats) (kindOf(slug) === 'form' ? form : genre).push(slug);
-            if (form.length > 0) searchOut.form = form.join(',');
-            if (genre.length > 0) searchOut.genre = genre.join(',');
+            searchOut.cats = [...draftCats].join(',');
         }
         if (draftSort !== 'latest') searchOut.sort = draftSort;
         if (draftDir !== 'desc') searchOut.dir = draftDir;
@@ -223,7 +219,7 @@ const CategoriesPage = () => {
     };
 
     // Applied state derived from the URL (used by the query).
-    const appliedCats = useMemo(() => new Set([...formQ.split(',').filter(Boolean), ...genreQ.split(',').filter(Boolean)]), [formQ, genreQ]);
+    const appliedCats = useMemo(() => new Set([...catsQ.split(',').filter(Boolean), ...formQ.split(',').filter(Boolean), ...genreQ.split(',').filter(Boolean)]), [catsQ, formQ, genreQ]);
     const sort = SORT_OPTIONS.find(s => s.slug === (sortQ || 'latest')) ?? SORT_OPTIONS[0];
     const dirDesc = (dirQ || 'desc') === 'desc';
     const time = TIME_OPTIONS.find(o => o.slug === (timeQ || 'all')) ?? TIME_OPTIONS[0];
@@ -371,15 +367,12 @@ const CategoriesPage = () => {
                     })}
                 </div>
 
-                {/* Row 2: 分类 3 级（视觉与主横条 CategoryChips 完全一致：rounded-full chip +
-                    弱化轴标签 + 行内 L2 轴→L3 展开；不另起分组盒/粗体轴标题，BUG-162 §六） */}
+                {/* Row 2: 分类 3 级（root → L2 分类 → L3 子分类）。每个 L2 分类为可点 chip，
+                    点一下就地展开其 L3 叶子。无 形式/题材 轴标签（BUG-162 2026-08-26 定稿）。 */}
                 {displayTree.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2">
                         <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
-                        <span className="text-xs font-medium text-muted-foreground">{t('categories.form', '形式')}</span>
-                        {displayTree.filter(c => kindOf(c.slug) === 'form').map(axis => renderAxis(axis))}
-                        <span className="text-xs font-medium text-muted-foreground">{t('categories.genre', '题材')}</span>
-                        {displayTree.filter(c => kindOf(c.slug) === 'genre').map(axis => renderAxis(axis))}
+                        {displayTree.map(axis => renderAxis(axis))}
                     </div>
                 )}
 
