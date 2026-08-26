@@ -70,6 +70,61 @@ function genCategory(i: number) {
     return {id: uid(), name: cats[i % cats.length], slug: cats[i % cats.length].toLowerCase().replace(/ /g, '-'), media_count: randInt(5, 500), created_at: randDate(180)};
 }
 
+// 3-level category taxonomy tree (BUG-162 §六), returned flat with parent_id so
+// buildCategoryTree reconstructs root → L2轴 → L3叶. Enables a real Stage-1
+// screenshot of the category filter in dev:mock without a backend.
+function genCategoryTree(): any[] {
+    const n = (id: number, name: string, slug: string, parent_id: number) => ({id, name, slug, parent_id: parent_id || undefined, description: '', status: 1, media_count: randInt(3, 320), order: 0, create_time: randDate(180), update_time: randDate(7)});
+    const out: any[] = [];
+    out.push(n(1, '视频', 'video', 0));
+    out.push(n(2, '音乐', 'music', 0));
+    out.push(n(3, '文章', 'article', 0));
+    // form 轴 (L2)
+    out.push(n(11, '连续剧', 'drama', 1));
+    out.push(n(12, '电影', 'movie', 1));
+    out.push(n(13, '综艺', 'variety', 1));
+    out.push(n(14, '动漫', 'anime', 1));
+    out.push(n(15, 'MV', 'mv', 1));
+    // genre 轴 (L2)
+    out.push(n(21, '教程', 'tutorial', 1));
+    out.push(n(22, '宣传片', 'promo', 1));
+    out.push(n(23, '用户UGC', 'ugc', 1));
+    out.push(n(24, '影视', 'film_tv', 1));
+    out.push(n(25, '纪录片', 'documentary', 1));
+    out.push(n(26, '游戏', 'gaming', 1));
+    out.push(n(27, '体育', 'sports', 1));
+    out.push(n(28, '娱乐', 'entertainment', 1));
+    out.push(n(29, '科技', 'tech', 1));
+    out.push(n(30, '生活', 'lifestyle', 1));
+    out.push(n(31, '其他', 'other', 1));
+    // L3 leaves (inherit parent axis kind)
+    out.push(n(111, '国产剧', 'drama-cn', 11));
+    out.push(n(112, '美剧', 'drama-us', 11));
+    out.push(n(113, '韩剧', 'drama-kr', 11));
+    out.push(n(114, '日剧', 'drama-jp', 11));
+    out.push(n(121, '动作片', 'movie-action', 12));
+    out.push(n(122, '喜剧片', 'movie-comedy', 12));
+    out.push(n(123, '科幻片', 'movie-scifi', 12));
+    out.push(n(131, '真人秀', 'variety-show', 13));
+    out.push(n(132, '访谈', 'variety-talk', 13));
+    out.push(n(141, '国产动画', 'anime-cn', 14));
+    out.push(n(142, '日番', 'anime-jp', 14));
+    out.push(n(151, '现场版', 'mv-live', 15));
+    out.push(n(211, '编程', 'tutorial-code', 21));
+    out.push(n(212, '设计', 'tutorial-design', 21));
+    out.push(n(221, '品牌宣传', 'promo-brand', 22));
+    out.push(n(231, '原创短视频', 'ugc-short', 23));
+    out.push(n(241, '剧集', 'film_tv-series', 24));
+    out.push(n(251, '自然', 'documentary-nature', 25));
+    out.push(n(261, '实况', 'gaming-live', 26));
+    out.push(n(271, '足球', 'sports-soccer', 27));
+    out.push(n(281, '明星', 'ent-celeb', 28));
+    out.push(n(291, '数码', 'tech-digital', 29));
+    out.push(n(301, '美食', 'life-food', 30));
+    out.push(n(311, '未分类', 'other-uncat', 31));
+    return out;
+}
+
 function genChannel(i: number) {
     const chs = ['Main Channel', 'Premium Hub', 'Free Zone', 'Kids Corner', 'Music Stage', 'Sports Arena', 'News Desk', 'Doc Zone'];
     return {id: uid(), name: chs[i % chs.length], slug: chs[i % chs.length].toLowerCase().replace(/ /g, '-'), description: `Description for ${chs[i % chs.length]}`, media_count: randInt(10, 1000), is_active: Math.random() > 0.2, created_at: randDate(180)};
@@ -317,7 +372,10 @@ const mockRoutes: [RegExp, MockHandler][] = [
         return paginate(Array.from({length: 35}, (_, i) => genUser(i)), Number(params.get('page') || 1), Number(params.get('page_size') || 20));
     }],
 
-    // Categories
+    // Categories (public portal filter — 3-level taxonomy, BUG-162 §六)
+    [/\/categories(\?|$)/, () => genCategoryTree()],
+
+    // Categories (admin)
     [/\/admin\/categories(\?|$)/, () => Array.from({length: 12}, (_, i) => genCategory(i))],
 
     // Channels

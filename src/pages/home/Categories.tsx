@@ -152,7 +152,18 @@ const CategoriesPage = () => {
     useEffect(() => {
         if (!categories.length) return;
         const parseCSV = (raw: string): string[] => raw.split(',').map(s => s.trim()).filter(Boolean);
-        const catSet = new Set<string>([...parseCSV(formQ), ...parseCSV(genreQ)]);
+        // 3 级分层（BUG-162 §六）：可选单元是 L3 叶子。若旧 URL 选的是 L2 轴 slug，
+        // 展开为其全部 L3 叶子，避免静默空结果（轴→叶子映射由 taxonomy 树决定，可追溯）。
+        const catSet = new Set<string>();
+        for (const raw of [...parseCSV(formQ), ...parseCSV(genreQ)]) {
+            if (!raw) continue;
+            const node = findNodeBySlug(fullTree, raw);
+            if (node && node.children.length > 0) {
+                for (const leaf of expandToLeaves(node)) catSet.add(leaf);
+            } else {
+                catSet.add(raw);
+            }
+        }
 
         let module = vQ && ['video', 'music', 'article'].includes(vQ) ? vQ : 'video';
         if (!module && vQ) {
@@ -336,24 +347,39 @@ const CategoriesPage = () => {
                     })}
                 </div>
 
-                {/* Row 2: category multi-select (BUG-162 2 层 + kind 双区平铺直显) */}
+                {/* Row 2: category multi-select (BUG-162 §六 3 级分层：root → L2轴 → L3展开 "2 展开 3") */}
                 {displayTree.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
-                        {/* 形式轴 (form) */}
-                        <span className="text-xs font-medium text-muted-foreground">{t('categories.form', '形式')}</span>
-                        {displayTree.filter(c => kindOf(c.slug) === 'form').map(cat => (
-                            <Chip key={cat.slug} active={draftCats.has(cat.slug)} onClick={() => toggleCat(cat.slug)}>
-                                {cat.name}
-                            </Chip>
-                        ))}
+                    <div className="space-y-3">
+                        {/* 形式轴 (form)：每个 L2 轴展开为一组 L3 叶子 chips */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
+                            <span className="text-xs font-medium text-muted-foreground">{t('categories.form', '形式')}</span>
+                            {displayTree.filter(c => kindOf(c.slug) === 'form').map(axis => (
+                                <span key={axis.slug} className="flex flex-wrap items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1">
+                                    <span className="text-xs font-semibold text-foreground">{axis.name}</span>
+                                    {(axis.children?.length ? axis.children : [axis]).map(leaf => (
+                                        <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
+                                            {leaf.name}
+                                        </Chip>
+                                    ))}
+                                </span>
+                            ))}
+                        </div>
                         {/* 题材轴 (genre) */}
-                        <span className="text-xs font-medium text-muted-foreground">{t('categories.genre', '题材')}</span>
-                        {displayTree.filter(c => kindOf(c.slug) === 'genre').map(cat => (
-                            <Chip key={cat.slug} active={draftCats.has(cat.slug)} onClick={() => toggleCat(cat.slug)}>
-                                {cat.name}
-                            </Chip>
-                        ))}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">{t('categories.genre', '题材')}</span>
+                            {displayTree.filter(c => kindOf(c.slug) === 'genre').map(axis => (
+                                <span key={axis.slug} className="flex flex-wrap items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1">
+                                    <span className="text-xs font-semibold text-foreground">{axis.name}</span>
+                                    {(axis.children?.length ? axis.children : [axis]).map(leaf => (
+                                        <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
+                                            {leaf.name}
+                                        </Chip>
+                                    ))}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -464,6 +490,18 @@ function rootSlugOf(nodes: CategoryTreeNode[], node: CategoryTreeNode): string |
     const parent = findNodeById(nodes, node.parent_id);
     if (!parent) return node.slug;
     return rootSlugOf(nodes, parent);
+}
+
+/**
+ * 3 级分层（BUG-162 §六）：收集一个节点下的全部叶子 slug。若节点本身无子节点，
+ * 返回自身 slug（兼容 L2 轴同时也是可选单元的边缘情况）。用于把旧 URL 的 L2 轴
+ * 选择展开为 L3 叶子，避免静默空结果。
+ */
+function expandToLeaves(node: CategoryTreeNode): string[] {
+    if (!node.children || node.children.length === 0) return [node.slug];
+    const out: string[] = [];
+    for (const child of node.children) out.push(...expandToLeaves(child));
+    return out;
 }
 
 export default CategoriesPage;
