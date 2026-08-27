@@ -28,6 +28,7 @@ import {
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import SubscribeButton from '@/components/common/SubscribeButton';
 import ShareDialog from '@/components/common/ShareDialog';
+import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
 
@@ -59,7 +60,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
 
     // Build the canonical channel share URL using /c/{short_token}
     // (the /channel/{id} route was removed — /c/{id} is the single canonical path)
-    const channelShareUrl = `${window.location.origin}/c/${channel.short_token || channel.id}`;
+    const channelShareUrl = `${useShareBaseUrl()}/c/${channel.short_token || channel.id}`;
 
     const handleShareClick = useCallback(() => {
         setShowShareDialog(true);

@@ -30,6 +30,7 @@ import EmptyState from '@/components/channel/widgets/EmptyState';
 import VideoCard from '@/components/channel/widgets/VideoCard';
 import PlaylistCard from '@/components/channel/widgets/PlaylistCard';
 import ShareDialog from '@/components/common/ShareDialog';
+import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import {
     Pencil,
     Film,
@@ -265,8 +266,8 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     // only when the channel token is unavailable (BUG-194 fills it server-side).
     const channelToken = profile?.default_channel_token || null;
     const channelShareUrl = channelToken
-        ? `${window.location.origin}/c/${channelToken}`
-        : `${window.location.origin}/@${username}`;
+        ? `${useShareBaseUrl()}/c/${channelToken}`
+        : `${useShareBaseUrl()}/@${username}`;
 
     const handleShareClick = useCallback(() => {
         setShowShareDialog(true);

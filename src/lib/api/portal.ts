@@ -344,7 +344,11 @@ export interface PortalConfig {
     site: {
         name: string;
         default_lang: string;
+        // 后台"主Web地址" (primary_url) — 分享链接绝对基址的唯一来源
+        primary_url?: string;
     };
+    // 防御性：部分响应也可能把 primary_url 放在顶层
+    primary_url?: string;
     features: Record<string, boolean>;
     // 后台"分享平台"开关: platform key -> enabled。缺省视为全部启用。
     share?: Record<string, boolean>;

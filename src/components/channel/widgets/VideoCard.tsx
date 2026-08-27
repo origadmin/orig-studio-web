@@ -14,6 +14,7 @@ import {useAuth} from '@/hooks/useAuth';
 import {mediaApi} from '@/lib/api/media';
 import {toast} from 'sonner';
 import ReportDialog from '@/components/common/ReportDialog';
+import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 
 interface Video {
     id: string;
@@ -76,7 +77,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
             onShare(video.id);
             return;
         }
-        const videoUrl = `${window.location.origin}/watch?v=${video.short_token || video.id}`;
+        const videoUrl = `${useShareBaseUrl()}/watch?v=${video.short_token || video.id}`;
         if (navigator.share) {
             try {
                 await navigator.share({
