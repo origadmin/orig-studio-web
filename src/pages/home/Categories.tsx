@@ -56,18 +56,28 @@ const VideoCard: React.FC<{media: any}> = ({media}) => (
     </Link>
 );
 
-const Chip: React.FC<{active: boolean; onClick: () => void; children: React.ReactNode}> = ({active, onClick, children}) => (
-    <button
-        onClick={onClick}
-        className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-            active
-                ? 'bg-foreground text-background'
-                : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'
-        }`}
-    >
-        {children}
-    </button>
-);
+const Chip: React.FC<{active: boolean; onClick: () => void; children: React.ReactNode; variant?: 'leaf' | 'group'}> = ({active, onClick, children, variant = 'leaf'}) => {
+    const base = 'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors';
+    // L2 父分类：用底色(非边框)区分——未激活=淡底色 bg-foreground/10，激活=实底。
+    if (variant === 'group') {
+        return (
+            <button
+                onClick={onClick}
+                className={`${base} font-semibold ${active ? 'bg-foreground text-background' : 'bg-foreground/10 text-foreground hover:bg-foreground/15'}`}
+            >
+                {children}
+            </button>
+        );
+    }
+    return (
+        <button
+            onClick={onClick}
+            className={`${base} border border-border ${active ? 'bg-foreground text-background' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'}`}
+        >
+            {children}
+        </button>
+    );
+};
 
 // ── Dynamic filter rows (BUG-162 final): every row is a plain filter row —
 //    no special "row 0" treatment, no dividers. Rows are data-driven so the
@@ -105,6 +115,14 @@ function dayStart(daysAgoOffsetDays: number): string {
     return d.toISOString();
 }
 
+// Root (L1) 中文名映射 — 分类 API 的 root 节点 name 对 music/article 返回英文 slug，
+// 这里强制覆盖，保证模块行显示 视频/音乐/文章（BUG-162 2026-08-26 i18n 修复）。
+const ROOT_NAMES: Record<string, string> = {
+    video: '视频',
+    music: '音乐',
+    article: '文章',
+};
+
 const CategoriesPage = () => {
     const {t} = useTranslation();
     const navigate = useNavigate();
@@ -116,6 +134,9 @@ const CategoriesPage = () => {
     const sortQ = (search.sort as string | undefined) ?? 'latest';
     const dirQ = (search.dir as string | undefined) ?? 'desc';
     const timeQ = (search.time as string | undefined) ?? 'all';
+    // 视图布局参数（仅影响分类行的渲染方式，不参与筛选提交）。默认 opt2（用户 2026-08-26：opt2 方向贴合，单行嵌合）。
+    const layoutQ = (search.layout as string | undefined) ?? 'opt2';
+    const layout = layoutQ === 'opt1' || layoutQ === 'opt3' ? layoutQ : 'opt2';
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -126,14 +147,6 @@ const CategoriesPage = () => {
     const [draftSort, setDraftSort] = useState('latest');
     const [draftDir, setDraftDir] = useState('desc');
     const [draftTime, setDraftTime] = useState('all');
-    // 行内展开（L2 轴 → L3 叶子），仅 UI 态，不影响提交。
-    const [expandedAxes, setExpandedAxes] = useState<Set<string>>(new Set());
-    const toggleAxis = (slug: string) =>
-        setExpandedAxes(prev => {
-            const n = new Set(prev);
-            n.has(slug) ? n.delete(slug) : n.add(slug);
-            return n;
-        });
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -204,6 +217,7 @@ const CategoriesPage = () => {
         if (draftSort !== 'latest') searchOut.sort = draftSort;
         if (draftDir !== 'desc') searchOut.dir = draftDir;
         if (draftTime !== 'all') searchOut.time = draftTime;
+        if (layout !== 'opt2') searchOut.layout = layout; // 保留视图布局参数（默认 opt2 不写 URL）
         navigate({to: '/browse', search: searchOut});
     };
 
@@ -213,9 +227,102 @@ const CategoriesPage = () => {
         setDraftCats(next);
     };
 
+    // L2 整组切换：点选 L2 = 选中/取消其全部 L3 叶子。L2 本身是分类，可点选 chip，非标题。
+    const toggleGroup = (node: CategoryTreeNode) => {
+        const leaves = node.children.length > 0 ? node.children : [node];
+        const allSelected = leaves.every(l => draftCats.has(l.slug));
+        const next = new Set(draftCats);
+        for (const l of leaves) allSelected ? next.delete(l.slug) : next.add(l.slug);
+        setDraftCats(next);
+    };
+
+    const isGroupActive = (node: CategoryTreeNode) =>
+        node.children.length === 0
+            ? draftCats.has(node.slug)
+            : node.children.every(l3 => draftCats.has(l3.slug));
+
     const handleModule = (slug: string) => {
         setDraftModule(slug);
         setDraftCats(new Set()); // module switch clears category row (chips follow the row)
+    };
+
+    // 分类行渲染 — 布局可切换（BUG-162 §六 OPTIONS MATRIX，?layout=）：
+    //  opt1 分组块：L2 可点选 chip（分组）在上、L3 chip 在下（结构清晰，行高偏高）
+    //  opt2 嵌合单行：L2 可点选 chip（分组）与 L3 chip 同一换行行内联（历史 4147397 形式/题材风格，单行高）
+    //  opt3 纯平铺：仅 L3 叶子 chip 一行直显（最紧凑，无 L2 分组标签）
+    const renderCategoryRow = () => {
+        if (displayTree.length === 0) return null;
+        // 主流视频站范式（B站/YouTube）：用户选的是最末级（L3 叶子），L2 只是分组头、本身不可选；
+        // 不存在"空分组"（无子的 L2）。故：无 L3 且 media_count=0 的空 L2 直接隐藏；
+        // 无 L3 但有内容的 L2 当作叶子 chip 呈现（与 L3 同款、不加分组框），保住内容可筛入口。
+        const l2Nodes = displayTree.filter(
+            l2 => !(l2.children.length === 0 && (l2.media_count ?? 0) === 0)
+        );
+        if (l2Nodes.length === 0) return null;
+        const label = (
+            <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.category', '分类')}</span>
+        );
+        if (layout === 'opt3') {
+            const leaves = l2Nodes.flatMap(l2 => (l2.children.length > 0 ? l2.children : [l2]));
+            return (
+                <div className="flex items-start gap-3">
+                    {label}
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {leaves.map(leaf => (
+                            <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
+                                {leaf.name}
+                            </Chip>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        return (
+            <div className="flex items-start gap-3">
+                {label}
+                <div className="flex flex-wrap gap-2 flex-1">
+                    {l2Nodes.map(l2 =>
+                    l2.children.length > 0 ? (
+                        layout === 'opt2' ? (
+                            // 嵌合：L2(底色 pill，无框) + 其 L3 叶子 chip 同 inline；整体包入淡底色组合容器，强调 L2→L3 归属关系。
+                            <span key={l2.slug} className="inline-flex items-center gap-1 rounded-lg bg-muted/50 px-2 py-1 ring-1 ring-inset ring-border/40">
+                                <Chip variant="group" active={isGroupActive(l2)} onClick={() => toggleGroup(l2)}>
+                                    {l2.name}
+                                </Chip>
+                                <span className="inline-flex flex-wrap items-center gap-1">
+                                    {l2.children.map(l3 => (
+                                        <Chip key={l3.slug} active={draftCats.has(l3.slug)} onClick={() => toggleCat(l3.slug)}>
+                                            {l3.name}
+                                        </Chip>
+                                    ))}
+                                </span>
+                            </span>
+                        ) : (
+                            // opt1：L2 作为可点选 chip（分组）在上、L3 chip 在下（分组块，行高偏高）
+                            <span key={l2.slug} className="inline-flex flex-col gap-1">
+                                <Chip variant="group" active={isGroupActive(l2)} onClick={() => toggleGroup(l2)}>
+                                    {l2.name}
+                                </Chip>
+                                <span className="flex flex-wrap gap-1.5 pl-4">
+                                    {l2.children.map(l3 => (
+                                        <Chip key={l3.slug} active={draftCats.has(l3.slug)} onClick={() => toggleCat(l3.slug)}>
+                                            {l3.name}
+                                        </Chip>
+                                    ))}
+                                </span>
+                            </span>
+                        )
+                    ) : (
+                        // 叶子级 L2（无 L3 子类但有内容，如 其他/生活/科技/教程）：当作可选叶子 chip 呈现，
+                        // 与 L3 同款（不加分组框），对齐"只有末级才可选"的模型（用户 2026-08-27）。
+                        <Chip key={l2.slug} active={draftCats.has(l2.slug)} onClick={() => toggleCat(l2.slug)}>
+                            {l2.name}
+                        </Chip>
+                    )
+                    )}
+                </div>
+            </div>
+        );
     };
 
     // Applied state derived from the URL (used by the query).
@@ -306,23 +413,7 @@ const CategoriesPage = () => {
         setDraftSort('latest');
         setDraftDir('desc');
         setDraftTime('all');
-        if (hasApplied) navigate({to: '/browse', search: {v: 'video'}});
-    };
-
-    // L2 轴渲染（与主横条 CategoryChips 同款 chip 视觉）：点轴就地展开 L3 叶子。
-    const renderAxis = (axis: CategoryTreeNode) => {
-        const kids = axis.children ?? [];
-        const expandedNow = expandedAxes.has(axis.slug) || kids.some(k => draftCats.has(k.slug));
-        return (
-            <span key={axis.slug} className="flex items-center gap-1.5 flex-shrink-0">
-                <Chip active={expandedNow} onClick={() => toggleAxis(axis.slug)}>{axis.name}</Chip>
-                {expandedNow && kids.map(leaf => (
-                    <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
-                        {leaf.name}
-                    </Chip>
-                ))}
-            </span>
-        );
+        if (hasApplied) navigate({to: '/browse', search: layout !== 'opt2' ? {v: 'video', layout} : {v: 'video'}});
     };
 
     if (loading) {
@@ -344,67 +435,74 @@ const CategoriesPage = () => {
 
     return (
         <div className="space-y-5">
-            <div className="flex items-center gap-3">
-                <Folder size={24} className="text-emerald-600"/>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {t('categories.title', '浏览')}
-                </h1>
-            </div>
-
-            {/* Dynamic filter rows — no dividers, no special "row 0"; each row has a
-                leading indicator label (模块/分类/排序/时间) */}
-            <div className="space-y-3">
-                {/* Row 1: module */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.module', '模块')}</span>
-                    {(['video', 'music', 'article'] as const).map(rootSlug => {
-                        const root = fullTree.find(n => n.slug === rootSlug);
-                        return (
-                            <Chip key={rootSlug} active={draftModule === rootSlug} onClick={() => handleModule(rootSlug)}>
-                                {root?.name ?? rootSlug}
-                            </Chip>
-                        );
-                    })}
+            {/* 整页排版：标题「浏览」作为筛选面板的面板头（带分隔线），筛选行在面板内。
+               BUG-162 2026-08-26 终：修复"内容区侵入标题区"——标题必须是内容面板的拥有者，
+               不可游离在卡片外导致与首行 chip 混淆。历史 4147397 即"标题+筛选同面板"结构。 */}
+            <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm shadow-black/[0.03]">
+                {/* 面板头：标题区。与下方筛选内容以分隔线明确解耦，内容不再侵入标题。 */}
+                <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border/60">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10">
+                        <Folder size={20} className="text-emerald-600"/>
+                    </span>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {t('categories.title', '浏览')}
+                    </h1>
                 </div>
-
-                {/* Row 2: 分类 3 级（root → L2 分类 → L3 子分类）。每个 L2 分类为可点 chip，
-                    点一下就地展开其 L3 叶子。无 形式/题材 轴标签（BUG-162 2026-08-26 定稿）。 */}
-                {displayTree.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.category', '分类')}</span>
-                        {displayTree.map(axis => renderAxis(axis))}
+                <div className="space-y-3.5">
+                {/* Row 1: module — 左列标签(固定) / 右列 chip 独立换行，不绕回标签下 */}
+                <div className="flex items-start gap-3">
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.module', '模块')}</span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {(['video', 'music', 'article'] as const).map(rootSlug => {
+                            const root = fullTree.find(n => n.slug === rootSlug);
+                            return (
+                                <Chip key={rootSlug} active={draftModule === rootSlug} onClick={() => handleModule(rootSlug)}>
+                                    {ROOT_NAMES[rootSlug] ?? root?.name ?? rootSlug}
+                                </Chip>
+                            );
+                        })}
                     </div>
-                )}
-
-                {/* Row 3: sort (single-select) */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.sort', '排序')}</span>
-                    {SORT_OPTIONS.map(s => (
-                        <Chip key={s.slug} active={draftSort === s.slug} onClick={() => setDraftSort(s.slug)}>
-                            {s.name}
-                        </Chip>
-                    ))}
                 </div>
 
-                {/* Row 4: direction (single-select, 倒序/正序) */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.dir', '方向')}</span>
-                    {DIR_OPTIONS.map(d => (
-                        <Chip key={d.slug} active={draftDir === d.slug} onClick={() => setDraftDir(d.slug)}>
-                            {d.name}
-                        </Chip>
-                    ))}
+                {/* Row 2: category — 布局可切换（opt1/opt2/opt3），见 renderCategoryRow */}
+                {renderCategoryRow()}
+
+                {/* Row 3: sort */}
+                <div className="flex items-start gap-3">
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.sort', '排序')}</span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {SORT_OPTIONS.map(s => (
+                            <Chip key={s.slug} active={draftSort === s.slug} onClick={() => setDraftSort(s.slug)}>
+                                {s.name}
+                            </Chip>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Row 5: time range (single-select) */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="w-14 shrink-0 text-xs font-medium text-muted-foreground">{t('categories.time', '时间')}</span>
-                    {TIME_OPTIONS.map(o => (
-                        <Chip key={o.slug} active={draftTime === o.slug} onClick={() => setDraftTime(o.slug)}>
-                            {o.name}
-                        </Chip>
-                    ))}
+                {/* Row 4: direction */}
+                <div className="flex items-start gap-3">
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.dir', '方向')}</span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {DIR_OPTIONS.map(d => (
+                            <Chip key={d.slug} active={draftDir === d.slug} onClick={() => setDraftDir(d.slug)}>
+                                {d.name}
+                            </Chip>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Row 5: time range */}
+                <div className="flex items-start gap-3">
+                    <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.time', '时间')}</span>
+                    <div className="flex flex-wrap gap-2 flex-1">
+                        {TIME_OPTIONS.map(o => (
+                            <Chip key={o.slug} active={draftTime === o.slug} onClick={() => setDraftTime(o.slug)}>
+                                {o.name}
+                            </Chip>
+                        ))}
+                    </div>
+                </div>
+            </div>
             </div>
 
             {/* Action bar — right-aligned (submit-type actions follow the Fitts/forms

@@ -210,11 +210,12 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
     );
 };
 
-const HomePage = () => {
-    const {t, i18n} = useTranslation();
-    const containerRef = useRef<HTMLDivElement>(null);
-    // BUG-226: 全局列真相源——整页只测一次宽，所有横向行共用。
-    const globalCols = useAutoFitCols(containerRef);
+    const HomePage = () => {
+        const {t, i18n} = useTranslation();
+
+        const containerRef = useRef<HTMLDivElement>(null);
+        // BUG-226: 全局列真相源——整页只测一次宽，所有横向行共用。
+        const globalCols = useAutoFitCols(containerRef);
 
     // BUG-226(翻页修正)：拉满 30 条，保证最大宽度 6 列下也能整屏翻 5 页。
     const {data: featuredData} = useMediaList({
