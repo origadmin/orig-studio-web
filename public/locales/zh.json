@@ -484,7 +484,7 @@
       "suspended": "已暂停",
       "pending_review": "待审核"
     },
-    "shareDescription": "分享 {channel} 频道给你的朋友",
+    "shareDescription": "分享 {{channel}} 频道给你的朋友",
     "shareCopyFailed": "复制链接失败"
   },
   "profile": {

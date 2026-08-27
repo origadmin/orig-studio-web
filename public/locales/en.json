@@ -479,7 +479,7 @@
       "suspended": "Suspended",
       "pending_review": "Pending Review"
     },
-    "shareDescription": "Share {channel} with your friends",
+    "shareDescription": "Share {{channel}} with your friends",
     "shareCopyFailed": "Failed to copy link"
   },
   "profile": {

@@ -479,7 +479,7 @@
       "suspended": "停止中",
       "pending_review": "審査中"
     },
-    "shareDescription": "{channel}チャンネルを友達にシェア",
+    "shareDescription": "{{channel}}チャンネルを友達にシェア",
     "shareCopyFailed": "リンクのコピーに失敗しました"
   },
   "profile": {
