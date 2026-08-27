@@ -108,6 +108,7 @@ interface FormData {
     // BUG-139: platform feature modes (enum: disabled | opt_in | opt_out)
     comments_mode: string;
     downloads_mode: string;
+    share_platforms: string;
     smtp_host: string;
     smtp_port: string;
     smtp_user: string;
@@ -133,6 +134,25 @@ interface FormData {
     feature_payment: boolean;
     feature_promotion: boolean;
     feature_ads: boolean;
+}
+
+// Link-based share platforms. Keep in sync with the backend `share_platforms`
+// setting (seed default) and the ShareDialog platform list.
+const SHARE_PLATFORMS: {key: string; label: string}[] = [
+    {key: 'twitter', label: 'X (Twitter)'},
+    {key: 'facebook', label: 'Facebook'},
+    {key: 'whatsapp', label: 'WhatsApp'},
+    {key: 'telegram', label: 'Telegram'},
+    {key: 'linkedin', label: 'LinkedIn'},
+    {key: 'weibo', label: 'Weibo'},
+];
+
+function parseSharePlatforms(json: string): Record<string, boolean> {
+    try {
+        return JSON.parse(json || '{}');
+    } catch {
+        return {};
+    }
 }
 
 interface SystemInfo {
@@ -198,6 +218,7 @@ const defaultFormData: FormData = {
     // BUG-139 defaults: comments opt_out (on by default), downloads opt_in (off by default)
     comments_mode: 'opt_out',
     downloads_mode: 'opt_in',
+    share_platforms: '{"twitter":true,"facebook":true,"whatsapp":true,"telegram":true,"linkedin":true,"weibo":true}',
     smtp_host: '',
     smtp_port: '587',
     smtp_user: '',
@@ -337,6 +358,7 @@ const Settings: React.FC = () => {
                 review_mode: getVal('review_mode') || prev.review_mode,
                 comments_mode: getVal('comments_mode') || prev.comments_mode,
                 downloads_mode: getVal('downloads_mode') || prev.downloads_mode,
+                share_platforms: getVal('share_platforms') || prev.share_platforms,
                 smtp_host: getVal('smtp_host') || prev.smtp_host,
                 smtp_port: getVal('smtp_port') || prev.smtp_port,
                 smtp_user: getVal('smtp_user') || prev.smtp_user,
@@ -402,6 +424,11 @@ const Settings: React.FC = () => {
 
     const handleInputChange = (field: keyof FormData, value: string | boolean) => {
         setFormData(prev => ({...prev, [field]: value}));
+    };
+
+    const handleSharePlatformToggle = (key: string, enabled: boolean) => {
+        const next = {...parseSharePlatforms(formData.share_platforms), [key]: enabled};
+        handleInputChange('share_platforms', JSON.stringify(next));
     };
 
     const handleBaseUrlChange = (index: number, value: string) => {
@@ -524,6 +551,7 @@ const Settings: React.FC = () => {
                 review_mode: formData.review_mode,
                 comments_mode: formData.comments_mode,
                 downloads_mode: formData.downloads_mode,
+                share_platforms: formData.share_platforms,
                 smtp_host: formData.smtp_host,
                 smtp_port: formData.smtp_port,
                 smtp_user: formData.smtp_user,
@@ -1229,6 +1257,27 @@ const Settings: React.FC = () => {
                                             {t('settings.reviewMode.timeoutNote', 'N-day timeout strategies (auto-approve / auto-reject after N days) are defined in the spec but not enabled in this release.')}
                                         </p>
                                     </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Share Platforms — uniform switches driving video/channel/homepage share dialogs */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>{t('settings.sharePlatforms.title', 'Share Platforms')}</CardTitle>
+                                    <CardDescription>
+                                        {t('settings.sharePlatforms.desc', 'Toggle link-based social platforms shown in the video, channel and homepage share dialogs.')}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-3">
+                                    {SHARE_PLATFORMS.map((p) => (
+                                        <div key={p.key} className="flex items-center justify-between">
+                                            <Label className="text-sm font-medium">{p.label}</Label>
+                                            <Switch
+                                                checked={parseSharePlatforms(formData.share_platforms)[p.key] !== false}
+                                                onCheckedChange={(v) => handleSharePlatformToggle(p.key, v)}
+                                            />
+                                        </div>
+                                    ))}
                                 </CardContent>
                             </Card>
 

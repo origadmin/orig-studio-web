@@ -346,6 +346,8 @@ export interface PortalConfig {
         default_lang: string;
     };
     features: Record<string, boolean>;
+    // 后台"分享平台"开关: platform key -> enabled。缺省视为全部启用。
+    share?: Record<string, boolean>;
 }
 
 export interface ModulePortalConfig {
@@ -364,6 +366,8 @@ export interface ModulePortalConfig {
         allow_registration: boolean;
         allow_upload: boolean;
     };
+    // 后台"分享平台"开关: platform key -> enabled。缺省视为全部启用。
+    share?: Record<string, boolean>;
 }
 
 export const portalApi = {

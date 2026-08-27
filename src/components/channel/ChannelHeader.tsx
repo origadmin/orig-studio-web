@@ -12,8 +12,6 @@ import {
     Share2,
     Flag,
     ChevronDown,
-    Check,
-    Link2,
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -23,20 +21,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
     Avatar,
     AvatarFallback,
     AvatarImage,
 } from '@/components/ui/avatar';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import SubscribeButton from '@/components/common/SubscribeButton';
+import ShareDialog from '@/components/common/ShareDialog';
 import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
 
@@ -64,8 +55,6 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     const {user} = useAuth();
     // Share state
     const [showShareDialog, setShowShareDialog] = useState(false);
-    const [shareCopied, setShareCopied] = useState(false);
-    const [shareError, setShareError] = useState<string | null>(null);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
     // Build the canonical channel share URL using /c/{short_token}
@@ -74,34 +63,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
 
     const handleShareClick = useCallback(() => {
         setShowShareDialog(true);
-        setShareCopied(false);
-        setShareError(null);
     }, []);
-
-    const handleCopyShareLink = useCallback(async () => {
-        try {
-            await navigator.clipboard.writeText(channelShareUrl);
-            setShareCopied(true);
-            setShareError(null);
-            setTimeout(() => setShareCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy share link:', err);
-            setShareError(t('channel.shareCopyFailed'));
-        }
-    }, [channelShareUrl, t]);
-
-    const handleNativeShare = useCallback(async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: channel.name,
-                    url: channelShareUrl,
-                });
-            } catch (err) {
-                // User cancelled or share failed - not an error
-            }
-        }
-    }, [channel.name, channelShareUrl]);
 
     const videoCount = videoCountProp ?? (channel.media_count || 0);
     const subCount = subscriberCount || channel.subscriber_count || 0;
@@ -257,96 +219,15 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                 </div>
             </div>
 
-            {/* Share Channel Dialog */}
-            <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>{t('channel.shareChannel')}</DialogTitle>
-                        <DialogDescription>
-                            {t('channel.shareDescription', {channel: channel.name}) || `Share ${channel.name} with your friends`}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 px-6">
-                        {/* Share Link */}
-                        <div className="flex items-center gap-2">
-                            <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                                <Link2 className="w-4 h-4 text-gray-500 flex-shrink-0"/>
-                                <input
-                                    type="text"
-                                    value={channelShareUrl}
-                                    readOnly
-                                    className="flex-1 bg-transparent text-sm text-gray-700 dark:text-gray-300 outline-none min-w-0"
-                                />
-                            </div>
-                            <Button
-                                size="sm"
-                                onClick={handleCopyShareLink}
-                                className={shareCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-600 hover:bg-emerald-700'}
-                            >
-                                {shareCopied ? <Check className="w-4 h-4"/> : (t('watch.copyLink'))}
-                            </Button>
-                        </div>
-
-                        {shareError && (
-                            <p className="text-sm text-destructive">{shareError}</p>
-                        )}
-
-                        {/* Social Share Buttons */}
-                        <div className="grid grid-cols-4 gap-2">
-                            <a
-                                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(channelShareUrl)}&text=${encodeURIComponent(channel.name)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                            >
-                                <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                                    </svg>
-                                </div>
-                                <span className="text-xs text-gray-600 dark:text-muted-foreground">X</span>
-                            </a>
-                            <a
-                                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(channelShareUrl)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                            >
-                                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                    </svg>
-                                </div>
-                                <span className="text-xs text-gray-600 dark:text-muted-foreground">Facebook</span>
-                            </a>
-                            <a
-                                href={`https://t.me/share/url?url=${encodeURIComponent(channelShareUrl)}&text=${encodeURIComponent(channel.name)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                            >
-                                <div className="w-10 h-10 bg-info rounded-full flex items-center justify-center">
-                                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                                    </svg>
-                                </div>
-                                <span className="text-xs text-gray-600 dark:text-muted-foreground">Telegram</span>
-                            </a>
-                            {'share' in navigator && (
-                                <button
-                                    onClick={handleNativeShare}
-                                    className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                >
-                                    <div className="w-10 h-10 bg-muted dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                        <Share2 className="w-5 h-5 text-gray-700 dark:text-gray-300"/>
-                                    </div>
-                                    <span className="text-xs text-gray-600 dark:text-muted-foreground">More</span>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* Share Channel Dialog — unified, config-driven (see ShareDialog) */}
+            <ShareDialog
+                open={showShareDialog}
+                onOpenChange={setShowShareDialog}
+                url={channelShareUrl}
+                shareTitle={channel.name}
+                heading={t('channel.shareChannel')}
+                description={t('channel.shareDescription', {channel: channel.name}) || `Share ${channel.name} with your friends`}
+            />
         </div>
     );
 };
