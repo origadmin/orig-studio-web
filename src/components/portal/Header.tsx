@@ -20,6 +20,7 @@ import {
     Tv,
     UserCircle,
     ExternalLink,
+    FileText,
 } from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {useAuth} from '@/hooks/useAuth';
@@ -87,6 +88,10 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     const {isAuthenticated, user, logout, isAdmin} = useAuth();
     const {data: portalConfig} = usePortalConfig();
     const {site} = useModuleState();
+    // Articles/Write entry is disabled by default. The portal module-config
+    // switch (default off) is a future feature; when it lands, derive this
+    // from moduleConfig?.modules?.articles instead of the hardcoded default.
+    const articlesEnabled = false;
 
     // 后端 /portal/config 的 navigation 是 NavItem 扁平数组(非 {items} 对象)。
     // 兼容两种形态,避免后台配置的导航在门户页整列丢失(配置与门户页脱离的根因)。
@@ -304,6 +309,17 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                         <>
                             <NotificationBadge/>
                             <UploadCenter/>
+
+                            {/* Write Article button — hidden by default; enabled by future config switch */}
+                            {articlesEnabled && (
+                                <Link
+                                    to="/me/articles/new"
+                                    className="hidden sm:flex items-center gap-1.5 h-10 px-3.5 text-sm font-medium text-muted-foreground hover:bg-accent rounded-full transition-colors"
+                                >
+                                    <FileText size={16}/>
+                                    <span className="hidden lg:inline">{t('nav.write')}</span>
+                                </Link>
+                            )}
 
                             {/* 用户头像 + 下拉菜单 */}
                             <div className="relative" ref={userMenuRef}>
