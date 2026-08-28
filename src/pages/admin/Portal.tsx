@@ -401,7 +401,7 @@ const BannersTab: React.FC = () => {
     const [pickerLoading, setPickerLoading] = useState(false);
     const pickerTargetRef = useRef<React.Dispatch<React.SetStateAction<BannerFormData>> | null>(null);
 
-    const banners = bannerData?.items || [];
+    const banners = React.useMemo(() => bannerData?.items || [], [bannerData]);
 
     const initialGlobal: GlobalCarouselSettings = React.useMemo(() => {
         if (banners.length === 0) return {display_mode: 'wide', auto_slide_interval: 5};
