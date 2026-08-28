@@ -164,3 +164,6 @@ bug[0-9][0-9][0-9]-*.cjs
 # ignore the loose *.cjs probe class, not the whole directory.
 tests/bugs/*.cjs
 tests/bugs/bug190-visual/
+
+# Local artifacts (never commit)
+AGENTS.md
