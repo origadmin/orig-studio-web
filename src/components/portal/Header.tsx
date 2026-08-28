@@ -17,7 +17,6 @@ import {
     ChevronDown,
     Sun,
     Moon,
-    FileText,
     Tv,
     UserCircle,
     ExternalLink,
@@ -27,7 +26,6 @@ import {useAuth} from '@/hooks/useAuth';
 import NotificationBadge from '@/components/common/NotificationBadge';
 import UploadCenter from '@/components/common/UploadCenter';
 import {useUploadState} from '@/contexts/UploadContext';
-import {useModuleConfig} from '@/hooks/useModuleConfig';
 import {getLocalizedText} from '@/lib/i18n-utils';
 import {getFullUrl} from '@/lib/utils';
 import {useModuleState} from '@/contexts/ModuleConfigContext';
@@ -87,10 +85,8 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
     const navigate = useNavigate();
     const location = useLocation();
     const {isAuthenticated, user, logout, isAdmin} = useAuth();
-    const {data: moduleConfig} = useModuleConfig();
     const {data: portalConfig} = usePortalConfig();
     const {site} = useModuleState();
-    const articlesEnabled = moduleConfig?.modules?.articles !== false;
 
     // 后端 /portal/config 的 navigation 是 NavItem 扁平数组(非 {items} 对象)。
     // 兼容两种形态,避免后台配置的导航在门户页整列丢失(配置与门户页脱离的根因)。
@@ -308,17 +304,6 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                         <>
                             <NotificationBadge/>
                             <UploadCenter/>
-
-                            {/* Write Article button */}
-                            {articlesEnabled && (
-                            <Link
-                                to="/me/articles/new"
-                                className="hidden sm:flex items-center gap-1.5 h-10 px-3.5 text-sm font-medium text-muted-foreground hover:bg-accent rounded-full transition-colors"
-                            >
-                                <FileText size={16}/>
-                                <span className="hidden lg:inline">{t('nav.write')}</span>
-                            </Link>
-                            )}
 
                             {/* 用户头像 + 下拉菜单 */}
                             <div className="relative" ref={userMenuRef}>

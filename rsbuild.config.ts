@@ -6,6 +6,10 @@ import {defineConfig} from '@rsbuild/core';
 import {pluginReact} from '@rsbuild/plugin-react';
 import * as path from 'path';
 
+// Dev proxy target for the Go backend. Defaults to EE's :8080; CE overrides to :8081
+// at launch via API_PROXY_TARGET so the SPA dev server talks to the CE backend.
+const apiProxyTarget = process.env.API_PROXY_TARGET || 'http://localhost:8080';
+
 export default defineConfig({
     plugins: [pluginReact()],
     html: {
@@ -39,15 +43,15 @@ export default defineConfig({
         historyApiFallback: true,
         proxy: {
             '/api': {
-                target: 'http://localhost:8080',
+                target: apiProxyTarget,
                 changeOrigin: true,
             },
             '/files': {
-                target: 'http://localhost:8080',
+                target: apiProxyTarget,
                 changeOrigin: true,
             },
             '/healthz': {
-                target: 'http://localhost:8080',
+                target: apiProxyTarget,
                 changeOrigin: true,
             },
         },
