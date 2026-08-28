@@ -167,3 +167,5 @@ tests/bugs/bug190-visual/
 
 # Local artifacts (never commit)
 AGENTS.md
+/test-results/
+test-results/
