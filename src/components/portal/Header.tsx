@@ -42,8 +42,8 @@ interface QuickLink {
     icon?: React.ReactNode;
 }
 
-/** 顶部最多显示 N 个，超过收进"更多"下拉 */
-const VISIBLE_QUICK_LINKS = 4;
+/** 顶部最多显示 N 个，超过收进"更多"下拉（防止导航项增多时溢出屏幕） */
+const VISIBLE_QUICK_LINKS = 3;
 
 /* ── Props ───────────────────────────────────────────────────────────────── */
 
@@ -187,7 +187,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                 </Link>
 
                 {/* 中间: QuickLinks (下划线tab风格，与分类筛选pills区分) */}
-                <nav className="hidden md:flex items-center gap-1 ml-4 h-full">
+                <nav className="hidden md:flex items-center gap-1 ml-4 h-full shrink-0 min-w-0">
                     {visibleLinks.map((link, idx) => {
                         const navItem = dynamicNavItems[idx];
                         const isExternal = navItem?.type === 'external_link' || link.to.startsWith('http');
@@ -274,7 +274,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                 </nav>
 
                 {/* 搜索框 */}
-                <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-auto">
+                <form onSubmit={handleSearch} className="flex-1 min-w-0 max-w-md mx-auto">
                     <div className="relative">
                         <Search
                             size={16}
@@ -285,7 +285,7 @@ const Header: React.FC<HeaderProps> = ({onToggleSidebar, onOpenMobileSidebar, si
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder={t('header.searchPlaceholder')}
-                            className="w-full bg-muted border-0 rounded-full pl-9 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:bg-background transition-all outline-none"
+                            className="w-full bg-muted border-0 rounded-full pl-9 pr-4 py-1 text-sm focus:ring-2 focus:ring-ring focus:bg-background transition-all outline-none"
                         />
                     </div>
                 </form>
