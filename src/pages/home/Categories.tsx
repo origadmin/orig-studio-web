@@ -426,7 +426,7 @@ const CategoriesPage = () => {
                     </div>
                 </div>
 
-                {/* Row 2: category — 布局可切换（opt1/opt2/opt3），见 renderCategoryRow */}
+                {/* Row 2: category row (single fixed form, see renderCategoryRow) */}
                 {renderCategoryRow()}
 
                 {/* Row 3: sort */}
