@@ -11,7 +11,7 @@ import {adminApi, type Channel as AdminChannel} from '@/lib/api/admin';
 import {reviewApi} from '@/lib/api/review';
 import {subtitleApi} from '@/lib/api/subtitle';
 import {api} from '@/lib/request';
-import {getFullUrl} from '@/lib/utils';
+import {getFullUrl, withCacheBust} from '@/lib/utils';
 import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -1236,7 +1236,7 @@ export default function MediaEditPage() {
                                             )} onClick={() => setThumbnailDialogOpen(true)}>
                                                 {media.thumbnail && !thumbnailError ? (
                                                     <>
-                                                        <img src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`} alt={media.title}
+                                                        <img src={withCacheBust(getFullUrl(media.thumbnail), thumbnailVersion)} alt={media.title}
                                                              className="absolute inset-0 w-full h-full object-cover transition-all duration-200 group-hover:brightness-50"
                                                              onError={() => setThumbnailError(true)}/>
                                                         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">

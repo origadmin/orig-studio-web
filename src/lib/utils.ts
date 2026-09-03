@@ -14,3 +14,14 @@ export const getFullUrl = (path?: string | null): string | undefined => {
     }
     return `/files/${path}`;
 };
+
+// withCacheBust appends a cache-bust query param to an (already absolute) URL.
+// It chooses "&" when the URL already carries a query string (e.g. a signed
+// /files/*?sig=... URL) and "?" otherwise, so the gateway signature is never
+// broken by a stray second "?".
+export const withCacheBust = (url: string | undefined | null, version?: string | number): string | undefined => {
+    if (url == null || url === '') return undefined;
+    if (version == null) return url;
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}v=${version}`;
+};

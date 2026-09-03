@@ -14,7 +14,7 @@ import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {AlertTriangle, ArrowLeft, Play, Pencil, Upload} from 'lucide-react';
 import {toast} from 'sonner';
-import {getFullUrl} from '@/lib/utils';
+import {getFullUrl, withCacheBust} from '@/lib/utils';
 import {buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
 import {useQueryClient} from '@tanstack/react-query';
@@ -413,7 +413,7 @@ export default function MediaEditPage() {
                             >
                                 {media.thumbnail ? (
                                     <img
-                                        src={`${getFullUrl(media.thumbnail)}?v=${thumbnailVersion}`}
+                                        src={withCacheBust(getFullUrl(media.thumbnail), thumbnailVersion)}
                                         alt={media.title}
                                         className="w-full aspect-video object-cover transition-opacity group-hover:opacity-80"
                                         onError={(e) => {
