@@ -134,9 +134,6 @@ const CategoriesPage = () => {
     const sortQ = (search.sort as string | undefined) ?? 'latest';
     const dirQ = (search.dir as string | undefined) ?? 'desc';
     const timeQ = (search.time as string | undefined) ?? 'all';
-    // 视图布局参数（仅影响分类行的渲染方式，不参与筛选提交）。默认 opt2（用户 2026-08-26：opt2 方向贴合，单行嵌合）。
-    const layoutQ = (search.layout as string | undefined) ?? 'opt2';
-    const layout = layoutQ === 'opt1' || layoutQ === 'opt3' ? layoutQ : 'opt2';
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -217,7 +214,6 @@ const CategoriesPage = () => {
         if (draftSort !== 'latest') searchOut.sort = draftSort;
         if (draftDir !== 'desc') searchOut.dir = draftDir;
         if (draftTime !== 'all') searchOut.time = draftTime;
-        if (layout !== 'opt2') searchOut.layout = layout; // 保留视图布局参数（默认 opt2 不写 URL）
         navigate({to: '/browse', search: searchOut});
     };
 
@@ -246,15 +242,12 @@ const CategoriesPage = () => {
         setDraftCats(new Set()); // module switch clears category row (chips follow the row)
     };
 
-    // 分类行渲染 — 布局可切换（BUG-162 §六 OPTIONS MATRIX，?layout=）：
-    //  opt1 分组块：L2 可点选 chip（分组）在上、L3 chip 在下（结构清晰，行高偏高）
-    //  opt2 嵌合单行：L2 可点选 chip（分组）与 L3 chip 同一换行行内联（历史 4147397 形式/题材风格，单行高）
-    //  opt3 纯平铺：仅 L3 叶子 chip 一行直显（最紧凑，无 L2 分组标签）
+    // 分类行渲染 — 单一正式形态（BUG-162 定稿：嵌合单行）。
+    // L2 可点选 chip（分组、底色无描边）与其 L3 叶子 chip 同一换行行内联；
+    // 主流视频站范式：用户选末级（L3 叶子），L2 只是分组头；不存在"空分组"。
     const renderCategoryRow = () => {
         if (displayTree.length === 0) return null;
-        // 主流视频站范式（B站/YouTube）：用户选的是最末级（L3 叶子），L2 只是分组头、本身不可选；
-        // 不存在"空分组"（无子的 L2）。故：无 L3 且 media_count=0 的空 L2 直接隐藏；
-        // 无 L3 但有内容的 L2 当作叶子 chip 呈现（与 L3 同款、不加分组框），保住内容可筛入口。
+        // 无 L3 且 media_count=0 的空 L2 直接隐藏；无 L3 但有内容的 L2 当作叶子 chip（与 L3 同款）。
         const l2Nodes = displayTree.filter(
             l2 => !(l2.children.length === 0 && (l2.media_count ?? 0) === 0)
         );
@@ -262,56 +255,25 @@ const CategoriesPage = () => {
         const label = (
             <span className="w-16 shrink-0 text-right text-xs font-semibold text-muted-foreground pt-1.5">{t('categories.category', '分类')}</span>
         );
-        if (layout === 'opt3') {
-            const leaves = l2Nodes.flatMap(l2 => (l2.children.length > 0 ? l2.children : [l2]));
-            return (
-                <div className="flex items-start gap-3">
-                    {label}
-                    <div className="flex flex-wrap gap-2 flex-1">
-                        {leaves.map(leaf => (
-                            <Chip key={leaf.slug} active={draftCats.has(leaf.slug)} onClick={() => toggleCat(leaf.slug)}>
-                                {leaf.name}
-                            </Chip>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
         return (
             <div className="flex items-start gap-3">
                 {label}
                 <div className="flex flex-wrap gap-2 flex-1">
                     {l2Nodes.map(l2 =>
                     l2.children.length > 0 ? (
-                        layout === 'opt2' ? (
-                            // 嵌合：L2(底色 pill，无框) + 其 L3 叶子 chip 同 inline；整体包入淡底色组合容器，强调 L2→L3 归属关系。
-                            <span key={l2.slug} className="inline-flex items-center gap-1 rounded-lg bg-muted/50 px-2 py-1 ring-1 ring-inset ring-border/40">
-                                <Chip variant="group" active={isGroupActive(l2)} onClick={() => toggleGroup(l2)}>
-                                    {l2.name}
-                                </Chip>
-                                <span className="inline-flex flex-wrap items-center gap-1">
-                                    {l2.children.map(l3 => (
-                                        <Chip key={l3.slug} active={draftCats.has(l3.slug)} onClick={() => toggleCat(l3.slug)}>
-                                            {l3.name}
-                                        </Chip>
-                                    ))}
-                                </span>
+                        // L2（底色 pill，可点选整组）+ 其 L3 叶子 chip 同 inline；包入淡底色组合容器强调 L2→L3 归属。
+                        <span key={l2.slug} className="inline-flex items-center gap-1 rounded-lg bg-muted/50 px-2 py-1 ring-1 ring-inset ring-border/40">
+                            <Chip variant="group" active={isGroupActive(l2)} onClick={() => toggleGroup(l2)}>
+                                {l2.name}
+                            </Chip>
+                            <span className="inline-flex flex-wrap items-center gap-1">
+                                {l2.children.map(l3 => (
+                                    <Chip key={l3.slug} active={draftCats.has(l3.slug)} onClick={() => toggleCat(l3.slug)}>
+                                        {l3.name}
+                                    </Chip>
+                                ))}
                             </span>
-                        ) : (
-                            // opt1：L2 作为可点选 chip（分组）在上、L3 chip 在下（分组块，行高偏高）
-                            <span key={l2.slug} className="inline-flex flex-col gap-1">
-                                <Chip variant="group" active={isGroupActive(l2)} onClick={() => toggleGroup(l2)}>
-                                    {l2.name}
-                                </Chip>
-                                <span className="flex flex-wrap gap-1.5 pl-4">
-                                    {l2.children.map(l3 => (
-                                        <Chip key={l3.slug} active={draftCats.has(l3.slug)} onClick={() => toggleCat(l3.slug)}>
-                                            {l3.name}
-                                        </Chip>
-                                    ))}
-                                </span>
-                            </span>
-                        )
+                        </span>
                     ) : (
                         // 叶子级 L2（无 L3 子类但有内容，如 其他/生活/科技/教程）：当作可选叶子 chip 呈现，
                         // 与 L3 同款（不加分组框），对齐"只有末级才可选"的模型（用户 2026-08-27）。
@@ -413,7 +375,7 @@ const CategoriesPage = () => {
         setDraftSort('latest');
         setDraftDir('desc');
         setDraftTime('all');
-        if (hasApplied) navigate({to: '/browse', search: layout !== 'opt2' ? {v: 'video', layout} : {v: 'video'}});
+        if (hasApplied) navigate({to: '/browse', search: {v: 'video'}});
     };
 
     if (loading) {
