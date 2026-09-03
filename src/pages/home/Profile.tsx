@@ -102,7 +102,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
         if (!user) return;
         try {
             setVideosLoading(true);
-            const res = await mediaApi.list({user_id: user.id || undefined, page_size: 20});
+            const res = await mediaApi.list({shortid: user.slug || user.id || undefined, page_size: 20});
             const items = res.items || [];
             setVideos(normalizeMediaList(items));
         } catch (err) {

@@ -489,7 +489,14 @@ export const encodingApi = {
 
 // ==================== Media API ====================
 export const mediaApi = {
-    // Get media list (public, defaults to active state)
+    // Get media list (public, defaults to active state).
+    // M1.2-8 (BUG-282): when an owner is requested via `user_id`/`shortid`, the list
+    // is fetched from the gateway owner route `/users/{id}/medias` instead of
+    // `/medias?user_id=`. The backend (BUG-280) no longer trusts a client-supplied
+    // `user_id` query param — the gateway (BUG-281) resolves the shortid/ID to the
+    // internal user_id and injects it as a trusted header. This keeps the public
+    // `/medias` feed owner-free and fixes the previously-broken "user's videos" view
+    // (it was silently returning the global listable feed because the param was ignored).
     list: async (params?: {
         page?: number;
         page_size?: number;
@@ -498,6 +505,8 @@ export const mediaApi = {
         keyword?: string;
         tags?: string;
         user_id?: string;
+        /** Owner shortid/slug (direction A URL); falls back to `user_id` when absent. */
+        shortid?: string;
         channel_id?: string;
         state?: string;
         featured?: string;
@@ -506,7 +515,14 @@ export const mediaApi = {
         /** BUG-226: deterministic seed for order_by='random' */
         seed?: number;
     }) => {
-        const response = await api.get<unknown>("/medias", params as Record<string, unknown>);
+        const { user_id, shortid, ...rest } = params ?? {};
+        const ownerId = shortid ?? user_id;
+        if (ownerId) {
+            const response = await api.get<unknown>(`/users/${ownerId}/medias`, rest as Record<string, unknown>);
+            const normalized = normalizeMediaListResponse(response);
+            return normalized as any;
+        }
+        const response = await api.get<unknown>("/medias", rest as Record<string, unknown>);
         const normalized = normalizeMediaListResponse(response);
         return normalized as any;
     },
