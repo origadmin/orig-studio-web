@@ -382,6 +382,7 @@ const WatchPage = () => {
                         isProcessing={isProcessing}
                         poster={media.poster || media.thumbnail}
                         spriteVttUrl={media.type === 'video' && media.sprite_status === 'success' && media.vtt_path ? getFullUrl(media.vtt_path) : undefined}
+                        spriteImageUrl={media.type === 'video' && media.sprite_status === 'success' && media.sprite_path ? media.sprite_path : undefined}
                         enableSpritePreview={true}
                         subtitles={subtitleTracks}
                         onTimeUpdate={handleProgressTimeUpdate}

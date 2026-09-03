@@ -50,8 +50,18 @@ function hashVttContent(text: string): string {
  * Loads and parses a sprite sheet WebVTT file.
  *
  * @param vttUrl - WebVTT file URL, or null/undefined to disable
+ * @param imageUrlOverride - Pre-signed sprite sheet image URL. When provided,
+ *   it replaces the image URL inferred from the VTT's relative reference.
+ *   Required after byte-layer signing (BUG-277): the VTT references the sheet
+ *   by a bare relative path (`sprite.jpg`), which loses its signature once
+ *   resolved against the signed VTT URL, yielding a 403 on the image
+ *   (BUG-286). The API already returns the signed `sprite_path`, so we use it
+ *   directly instead of trusting the unsigned VTT reference.
  */
-export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttResult {
+export function useSpriteVtt(
+    vttUrl: string | null | undefined,
+    imageUrlOverride?: string | null,
+): UseSpriteVttResult {
     const {data, isLoading, error} = useQuery({
         queryKey: ['sprite-vtt', vttUrl],
         queryFn: async (): Promise<ParsedSpriteVTT | null> => {
@@ -74,6 +84,14 @@ export function useSpriteVtt(vttUrl: string | null | undefined): UseSpriteVttRes
 
             if (!result) {
                 throw new Error('Failed to parse VTT content');
+            }
+
+            // BUG-286: prefer the API-signed sprite sheet URL over the VTT's
+            // relative reference (which is unsigned after BUG-277 enforcement).
+            // The VTT only supplies #xywh coordinates; the image source must be
+            // the signed sprite_path returned by the API.
+            if (imageUrlOverride) {
+                result.imageUrl = imageUrlOverride;
             }
 
             // Step 2: Cache version binding

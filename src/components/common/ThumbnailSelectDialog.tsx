@@ -104,7 +104,7 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
         ? getFullUrl(media.vtt_path)
         : undefined;
 
-    const {parsed, loading: vttLoading, error: vttError} = useSpriteVtt(vttUrl ?? null);
+    const {parsed, loading: vttLoading, error: vttError} = useSpriteVtt(vttUrl ?? null, media.sprite_path ?? null);
 
     useEffect(() => {
         if (!open) {

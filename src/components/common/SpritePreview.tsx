@@ -10,6 +10,8 @@ interface SpritePreviewProps {
     progressBarRect: DOMRect;
     playerRect: DOMRect;
     vttUrl: string | null;
+    /** Signed sprite sheet image URL (BUG-286); overrides the VTT's unsigned reference. */
+    imageUrl?: string | null;
     duration: number;
 }
 
@@ -19,9 +21,10 @@ const SpritePreview: React.FC<SpritePreviewProps> = ({
     progressBarRect,
     playerRect,
     vttUrl,
+    imageUrl,
     duration,
 }) => {
-    const {parsed, loading, error} = useSpriteVtt(vttUrl);
+    const {parsed, loading, error} = useSpriteVtt(vttUrl, imageUrl);
 
     const cue = parsed ? findCueAtTime(parsed.cues, hoverTime) : null;
 

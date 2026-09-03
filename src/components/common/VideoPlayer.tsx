@@ -55,6 +55,8 @@ interface VideoPlayerProps {
     isProcessing?: boolean;
     /** WebVTT sprite sheet URL for progress bar hover preview */
     spriteVttUrl?: string;
+    /** Signed sprite sheet image URL (BUG-286); overrides the VTT's unsigned reference */
+    spriteImageUrl?: string;
     /** Whether to enable sprite preview on progress bar hover (default: true) */
     enableSpritePreview?: boolean;
 }
@@ -82,8 +84,9 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                                                                              autoPlayNext: controlledAutoPlayNext,
                                                                              nextVideo,
                                                                              isProcessing = false,
-                                                                             spriteVttUrl,
-                                                                             enableSpritePreview = true,
+                                                                            spriteVttUrl,
+                                                                            spriteImageUrl,
+                                                                            enableSpritePreview = true,
                                                                          }, ref) => {
 
     const {t} = useTranslation();
@@ -1433,6 +1436,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
                     progressBarRect={progressBarRect}
                     playerRect={playerRect}
                     vttUrl={spriteVttUrl ?? null}
+                    imageUrl={spriteImageUrl ?? null}
                     duration={duration}
                 />
             )}
