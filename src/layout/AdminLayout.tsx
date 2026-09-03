@@ -139,7 +139,7 @@ const AdminSidebar = memo(function AdminSidebar({collapsed, onToggleCollapse}: S
     };
 
     return (
-        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed left-0 top-0 h-full z-40`}>
+        <aside className={`${collapsed ? 'w-20' : 'w-[240px]'} bg-sidebar flex-shrink-0 flex flex-col transition-all duration-300 border-r border-sidebar-border fixed inset-y-0 left-0 z-40`}>
             {/* Logo */}
             <div className={`flex items-center border-b border-sidebar-border flex-shrink-0 ${collapsed ? 'justify-center py-4' : 'p-4'}`}>
                 <Link to="/admin" className="flex items-center gap-3">
@@ -304,7 +304,7 @@ const AdminLayout = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     return (
-        <div className="min-h-screen bg-background text-foreground flex">
+        <div className="h-screen bg-background text-foreground flex overflow-hidden">
             <AdminSidebar
                 collapsed={sidebarCollapsed}
                 onToggleCollapse={() => setSidebarCollapsed(c => !c)}
@@ -314,7 +314,7 @@ const AdminLayout = () => {
                     collapsed={sidebarCollapsed}
                     onToggleCollapse={() => setSidebarCollapsed(c => !c)}
                 />
-                <main className="flex-grow overflow-auto bg-muted/30">
+                <main className="flex-grow min-h-0 overflow-auto bg-muted/30">
                     <Outlet/>
                 </main>
             </div>
