@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,6 +66,6 @@ test.describe('BUG-137: portal media-edit sidebar Info dedupe + review status', 
         // pending 媒体无「Submit for Review」按钮
         await expect(sidebar.getByRole('button', {name: /Submit for Review/i})).toHaveCount(0);
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug137-sidebar-status.png')});
+        await page.screenshot({path: evidencePath('bug137-sidebar-status.png')});
     });
 });

@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,6 +57,6 @@ await page.waitForTimeout(800);
         const sepCount = await menu.getByRole('separator').count();
         console.log('BUG-153 non-owner separator count =', sepCount);
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug153-menu-nonowner.png')});
+        await page.screenshot({path: evidencePath('bug153-menu-nonowner.png')});
     });
 });

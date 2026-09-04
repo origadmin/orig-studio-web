@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,6 @@ test.describe('BUG-004: hot/new banners render as tracks, not Hero slides', () =
         // Hero 本身仍应有 slide（custom banner 正常渲染）。
         await expect(heroSlides.first()).toBeVisible();
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug004-banner-tracks.png'), fullPage: false});
+        await page.screenshot({path: evidencePath('bug004-banner-tracks.png'), fullPage: false});
     });
 });

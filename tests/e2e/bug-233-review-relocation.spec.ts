@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,7 +64,7 @@ test.describe('BUG-233: review relocated into media page + review console nav re
         await page.goto(`${APP}/admin/review`);
         await page.waitForTimeout(1000);
         await expect(page.getByText(/审核人|审核时间|review.?log/i)).toHaveCount(0);
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug233-no-review-nav.png')});
+        await page.screenshot({path: evidencePath('bug233-no-review-nav.png')});
     });
 
     test('媒体页"待审核"筛选 + 单一 Badge + 行内审核 + 批量条', async ({page}) => {
@@ -91,6 +92,6 @@ test.describe('BUG-233: review relocated into media page + review console nav re
         await firstRow.locator('input[type="checkbox"]').check();
         await page.waitForTimeout(500);
         await expect(page.getByText(/已选|selected/i)).toBeVisible();
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug233-media-review.png')});
+        await page.screenshot({path: evidencePath('bug233-media-review.png')});
     });
 });

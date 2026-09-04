@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,6 @@ test.describe('BUG-001: non-admin is blocked from /admin with a visible prompt',
         // 且必须被重定向回首页，而不是停留在 /admin。
         await expect(page).toHaveURL(/\/$/, {timeout: 8000});
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug001-admin-access.png'), fullPage: false});
+        await page.screenshot({path: evidencePath('bug001-admin-access.png'), fullPage: false});
     });
 });

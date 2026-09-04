@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +47,6 @@ test.describe('BUG-007: autoplay-next renders as one integrated thumbnail card',
         await expect(page.getByText('Next up')).toBeVisible({timeout: 12000});
         await expect(page.getByText('Play now')).toBeVisible({timeout: 5000});
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug007-autoplay-card.png'), fullPage: false});
+        await page.screenshot({path: evidencePath('bug007-autoplay-card.png'), fullPage: false});
     });
 });

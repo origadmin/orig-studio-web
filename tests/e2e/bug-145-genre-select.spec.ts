@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,7 +88,7 @@ test.describe('BUG-145: media edit form only offers video-root genres', () => {
         }
 
         await page.screenshot({
-            path: path.join(__dirname, '..', 'e2e-evidence', 'bug145-media-edit-genre-options.png'),
+            path: evidencePath('bug145-media-edit-genre-options.png'),
             fullPage: false,
         });
     });

@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'path';
 import {fileURLToPath} from 'url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,7 +77,7 @@ test.describe('BUG-153 owner view: no orphan separator below Download', () => {
         expect(sepCount, 'owner view must have ZERO separators (was 1 in f4dcf81)').toBe(0);
 
         await page.screenshot({
-            path: path.join(__dirname, '..', 'e2e-evidence', 'bug153-menu-owner.png'),
+            path: evidencePath('bug153-menu-owner.png'),
             fullPage: false,
         });
     });

@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,7 +56,7 @@ test.describe('BUG-171: tag detail page resolves title, not slug', () => {
         // 4. The empty-state must NOT be shown.
         await expect(page.getByText(/暂无视频|no videos/i)).toHaveCount(0);
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug171-tag-detail.png'), fullPage: false});
+        await page.screenshot({path: evidencePath('bug171-tag-detail.png'), fullPage: false});
     });
 
     /**

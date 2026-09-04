@@ -1,6 +1,7 @@
 import {test, expect} from '@playwright/test';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {evidencePath} from './evidence';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +36,6 @@ test.describe('BUG-154: tag search autocomplete dropdown', () => {
         await expect(listbox.getByText('4', {exact: true})).toBeVisible();
         await expect(listbox.getByText('4K', {exact: true})).toBeVisible();
 
-        await page.screenshot({path: path.join(__dirname, '..', 'e2e-evidence', 'bug154-autocomplete.png')});
+        await page.screenshot({path: evidencePath('bug154-autocomplete.png')});
     });
 });
