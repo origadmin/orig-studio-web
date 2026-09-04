@@ -803,6 +803,7 @@ const BannersTab: React.FC = () => {
                         value={form.image_url}
                         onChange={url => setForm({...form, image_url: url})}
                         label={t('admin.bannerImageUrl', 'Banner图片')}
+                        assetMode
                     />
                     <ImageUploadField
                         value={form.video_url}

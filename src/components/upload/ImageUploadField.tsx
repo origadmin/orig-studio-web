@@ -5,6 +5,7 @@ import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {cn, getFullUrl} from '@/lib/utils';
 import {mediaApi} from '@/lib/api/media';
+import {api} from '@/lib/request';
 import {useTranslation} from 'react-i18next';
 
 interface ImageUploadFieldProps {
@@ -15,6 +16,10 @@ interface ImageUploadFieldProps {
     accept?: string;
     kind?: 'image' | 'video';
     aspect?: 'video' | 'square' | 'banner';
+    /** BUG-287: upload into the portal asset store (assets/banners) instead of
+     *  the media library. Portal/banner imagery must NOT create content_media
+     *  records — the media library is video-only. */
+    assetMode?: boolean;
 }
 
 export function ImageUploadField({
@@ -25,6 +30,7 @@ export function ImageUploadField({
     accept = 'image/*',
     kind = 'image',
     aspect = 'video',
+    assetMode = false,
 }: ImageUploadFieldProps) {
     const {t} = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +57,25 @@ export function ImageUploadField({
         setProgress(0);
         setShowUrlInput(false);
         try {
+            if (assetMode) {
+                // BUG-287: portal asset channel — bytes go to assets/banners/,
+                // response is a plain URL; no content_media record is created.
+                if (!isImageFile) return;
+                const dataBase64 = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsDataURL(file);
+                });
+                const res = await api.post<{url: string}>('/admin/portal/assets', {
+                    filename: file.name,
+                    content_type: file.type || 'image/png',
+                    data: dataBase64,
+                });
+                const url = res?.url || (res as unknown as {data?: {url?: string}})?.data?.url || '';
+                if (url) onChange(url);
+                return;
+            }
             const result = await mediaApi.upload(file, {
                 title: file.name.replace(/\.[^.]+$/, ''),
             }, (percent: number) => {
