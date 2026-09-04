@@ -6,7 +6,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {useSearch, useNavigate, Link} from '@tanstack/react-router';
 import {
-    Loader2, RefreshCw, AlertTriangle, Trash2, FileText, Eye, Pencil, Play
+    Loader2, RefreshCw, AlertTriangle, Trash2, FileText, Eye, Pencil, Play, Download
 } from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Switch} from '@/components/ui/switch';
@@ -37,6 +37,7 @@ import {mergeTagsWithHashtags} from '@/lib/utils/hashtag';
 import {generateSlug} from '@/lib/utils/slug';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
+import {settingsApi} from '@/lib/api/system';
 import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
 import type {Ad, AdCreative} from '@/lib/api/portal';
@@ -144,6 +145,27 @@ const WatchPage = () => {
     const commentSectionRef = useRef<HTMLDivElement>(null);
     const viewCountedRef = useRef(false);
     const addedToHistoryRef = useRef(false);
+
+    // BUG-290: the per-media "allow comments / allow download" switches were
+    // persisted but never consumed on the watch page — the comment section
+    // rendered unconditionally and no download entry existed at all. Load the
+    // platform feature modes (BUG-139) so the per-media flags can be enforced:
+    //   commentsEnabled = platform mode not "disabled" AND media flag not false
+    //   canDownload     = platform mode not "disabled" AND media flag true
+    const [featureModes, setFeatureModes] = useState<{comments_mode?: string; downloads_mode?: string}>({});
+    useEffect(() => {
+        let cancelled = false;
+        settingsApi.get()
+            .then((res) => {
+                if (cancelled) return;
+                const s = (res as any)?.settings || {};
+                setFeatureModes({comments_mode: s.comments_mode, downloads_mode: s.downloads_mode});
+            })
+            .catch(() => { /* settings unavailable — fall back to per-media flags only */ });
+        return () => { cancelled = true; };
+    }, []);
+    const commentsEnabled = featureModes.comments_mode !== 'disabled' && media?.enable_comments !== false;
+    const canDownload = featureModes.downloads_mode !== 'disabled' && media?.allow_download === true && !!media?.url;
 
     // BUG-185: 订阅数的实时来源是 user_subscriptions 表
     // （GET /channels/{token}/subscribers?count=true）；media.edges.user[0].subscriber_count
@@ -537,15 +559,35 @@ const WatchPage = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center">
+                        <div className="flex items-center gap-2">
+                            {/* BUG-290: download entry only when the per-media
+                                switch allows it (and platform mode isn't disabled). */}
+                            {canDownload && (
+                                <a
+                                    href={getFullUrl(media!.url)}
+                                    download
+                                    aria-label={t('watch.downloadOriginal', '下载原文件')}
+                                >
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-1.5"
+                                    >
+                                        <Download className="w-4 h-4"/>
+                                        {t('watch.downloadOriginal', '下载')}
+                                    </Button>
+                                </a>
+                            )}
                             <InteractionBar
                                 mediaId={String(media.id)}
                                 shortToken={media.short_token || (shortToken as string)}
                                 commentCount={commentCount}
                                 isOwner={user != null && String(user.id) === String(media.user_id)}
-                                onCommentClick={() => {
+                                // BUG-290: no comment button when comments are off —
+                                // otherwise it scrolls to a section that no longer renders.
+                                onCommentClick={commentsEnabled ? () => {
                                     commentSectionRef.current?.scrollIntoView({behavior: 'smooth', block: 'start'});
-                                }}
+                                } : undefined}
                             />
                         </div>
                     </div>
@@ -581,13 +623,16 @@ const WatchPage = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Comments Section */}
-                    <div className="mt-8" ref={commentSectionRef}>
-                        <CommentSection 
-                            mediaId={String(media.id)}
-                            onCommentCountChange={setCommentCount}
-                        />
-                    </div>
+                    {/* Comments Section — BUG-290: hidden when the per-media
+                        "allow comments" switch is off (or platform mode disabled) */}
+                    {commentsEnabled && (
+                        <div className="mt-8" ref={commentSectionRef}>
+                            <CommentSection
+                                mediaId={String(media.id)}
+                                onCommentCountChange={setCommentCount}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
