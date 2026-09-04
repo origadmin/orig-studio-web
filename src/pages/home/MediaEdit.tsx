@@ -153,7 +153,11 @@ export default function MediaEditPage() {
             setForm({
                 title: media.title || '',
                 description: media.description || '',
-                category_id: media.category_id ?? '',
+                // BUG-288: the API emits category_id as a protojson int64 string
+                // ("0" for uncategorised media). "0" slips past the `?? ''`
+                // fallback, the Select then matches no option and renders blank —
+                // normalise 0/"0" to '' so the BUG-134 video-root default kicks in.
+                category_id: media.category_id && Number(media.category_id) !== 0 ? String(media.category_id) : '',
                 channel_id: media.channel_id ?? '',
                 tags: serializeTags(media.tags || []),
                 privacy: normalizePrivacy(media.privacy),
