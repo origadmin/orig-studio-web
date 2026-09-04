@@ -937,7 +937,7 @@ const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(({
             {/* Subtitle rendering overlay */}
             {activeCue && currentSubtitle !== 'off' && (
                 <div
-                    className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none px-4"
+                    className="absolute bottom-20 inset-x-0 z-20 pointer-events-none flex justify-center px-4"
                     aria-hidden="true"
                 >
                     <div className="bg-black/80 text-white text-lg md:text-xl font-medium px-4 py-2 rounded-lg text-center max-w-[80%] leading-relaxed whitespace-pre-line">

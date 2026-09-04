@@ -471,12 +471,12 @@ const WatchPage = () => {
                                 <Pencil className="w-4 h-4"/>
                                 {t('common.edit')}
                             </Button>
+                            {/* BUG-186 G5 #5: portal owner subtitle entry -> edit page subtitle manager */}
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="gap-1.5"
-                                disabled
-                                onClick={() => toast.info(t('watch.subtitleComingSoon'))}
+                                onClick={() => navigate({to: '/media/$shortToken/edit', params: {shortToken: media.short_token || (shortToken as string)}} as any)}
                             >
                                 <FileText className="w-4 h-4"/>
                                 {t('common.subtitles')}

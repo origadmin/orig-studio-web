@@ -8,6 +8,7 @@ import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from 
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {MediaEditForm, type MediaEditFormState} from '@/components/common/MediaEditForm';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
+import {SubtitleManager} from '@/components/common/SubtitleManager';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
@@ -468,6 +469,11 @@ export default function MediaEditPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* BUG-186 G5 #5: portal owner subtitle management (shared component with admin) */}
+                <div className="mt-6">
+                    <SubtitleManager shortToken={String(shortToken).replace(/["']/g, '').trim()} />
                 </div>
             </div>
 
