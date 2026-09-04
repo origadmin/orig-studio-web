@@ -1,7 +1,7 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useTranslation} from 'react-i18next';
 import {toast} from 'sonner';
-import {AlertCircle, ExternalLink, Plus, Settings2, Trash2} from 'lucide-react';
+import {AlertCircle, ExternalLink, Plus, Settings2, Trash2, Upload} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -33,10 +33,12 @@ export function SubtitleManager({shortToken, showLangManager = false}: SubtitleM
     const [subtitleList, setSubtitleList] = useState<any[]>([]);
     const [subtitleLanguages, setSubtitleLanguages] = useState<Array<{code: string; label: string}>>([]);
     const [subtitleLang, setSubtitleLang] = useState('');
-    const [subtitleFile, setSubtitleFile] = useState<File | null>(null);
     const [subtitleUploading, setSubtitleUploading] = useState(false);
     const [subtitleDeleting, setSubtitleDeleting] = useState<string | null>(null);
     const [subtitleMsg, setSubtitleMsg] = useState<{kind: 'ok' | 'err'; text: string} | null>(null);
+    // BUG-289: single integrated upload control — the hidden input replaces the
+    // native file-input chrome ("选择文件 / 未选择文件") + separate upload button.
+    const subtitleFileRef = useRef<HTMLInputElement>(null);
 
     // 语言清单管理（admin only）
     const [langDialogOpen, setLangDialogOpen] = useState(false);
@@ -57,17 +59,16 @@ export function SubtitleManager({shortToken, showLangManager = false}: SubtitleM
         setSubtitleList(Array.isArray(list) ? list : []);
     };
 
-    const handleSubtitleUpload = async () => {
-        if (!shortToken || !subtitleFile || !subtitleLang) {
+    const handleSubtitleFile = async (file: File) => {
+        if (!shortToken || !subtitleLang) {
             setSubtitleMsg({kind: 'err', text: t('mediaEdit.subtitleNeedFileLang', '请选择语言并选择字幕文件')});
             return;
         }
         setSubtitleUploading(true);
         setSubtitleMsg(null);
         try {
-            const created = await subtitleApi.upload(shortToken, subtitleFile, subtitleLang);
+            const created = await subtitleApi.upload(shortToken, file, subtitleLang);
             setSubtitleMsg({kind: created.status === 'failed' ? 'err' : 'ok', text: created.error_message || t('mediaEdit.subtitleUploaded', '字幕已上传')});
-            setSubtitleFile(null);
             setSubtitleLang('');
             await reloadList();
         } catch (e: any) {
@@ -75,6 +76,14 @@ export function SubtitleManager({shortToken, showLangManager = false}: SubtitleM
         } finally {
             setSubtitleUploading(false);
         }
+    };
+
+    const openSubtitleFilePicker = () => {
+        if (!subtitleLang) {
+            setSubtitleMsg({kind: 'err', text: t('mediaEdit.subtitlePickLangFirst', '请先选择字幕语言')});
+            return;
+        }
+        subtitleFileRef.current?.click();
     };
 
     const handleSubtitleDelete = async (id: string) => {
@@ -174,10 +183,11 @@ export function SubtitleManager({shortToken, showLangManager = false}: SubtitleM
                         {subtitleMsg.text}
                     </div>
                 )}
-                {/* 添加字幕 */}
+                {/* 添加字幕 — BUG-289: one integrated upload control (语言 + 选择文件并上传)，
+                    替换原先被切成「选择文件/未选择文件/上传」三块的布局 */}
                 <div>
                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.addSubtitle', '添加字幕')}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                         <div className="space-y-1">
                             <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.subtitleLanguage', '语言')}</Label>
                             <Select value={subtitleLang} onValueChange={setSubtitleLang}>
@@ -191,16 +201,24 @@ export function SubtitleManager({shortToken, showLangManager = false}: SubtitleM
                         </div>
                         <div className="space-y-1">
                             <Label className="text-xs font-bold uppercase tracking-wider">{t('mediaEdit.subtitleFile', '文件 (SRT/VTT，统一转 VTT)')}</Label>
-                            <Input type="file" accept=".srt,.vtt"
-                                   className="w-full bg-card h-9"
-                                   onChange={(e) => setSubtitleFile(e.target.files?.[0] || null)}/>
-                        </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-bold uppercase tracking-wider invisible">.</Label>
-                            <Button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg text-xs font-semibold"
-                                    disabled={subtitleUploading}
-                                    onClick={handleSubtitleUpload}>
-                                {subtitleUploading ? t('common.loading', '上传中...') : t('mediaEdit.subtitleUpload', '上传')}
+                            <input
+                                ref={subtitleFileRef}
+                                type="file"
+                                accept=".srt,.vtt"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const f = e.target.files?.[0];
+                                    e.target.value = '';
+                                    if (f) void handleSubtitleFile(f);
+                                }}
+                            />
+                            <Button
+                                variant="outline"
+                                className="w-full h-9 justify-start gap-2"
+                                disabled={subtitleUploading}
+                                onClick={openSubtitleFilePicker}>
+                                <Upload className="w-4 h-4"/>
+                                {subtitleUploading ? t('common.loading', '上传中...') : t('mediaEdit.subtitlePickAndUpload', '选择文件并上传')}
                             </Button>
                         </div>
                     </div>
