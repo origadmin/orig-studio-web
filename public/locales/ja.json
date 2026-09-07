@@ -778,6 +778,16 @@
     "loginToSubscribe": "このチャンネルを登録するにはログインしてください"
   },
   "admin": {
+    "tagManagement": "タグ管理",
+    "createNewTag": "新しいタグを作成",
+    "unusedTags": "未使用のタグ",
+    "colorAlerts": "カラーアラート",
+    "searchTags": "タグ、メタデータ、色を検索...",
+    "sortLatest": "並べ替え: 新しい順",
+    "sortOldest": "並べ替え: 古い順",
+    "sortNameAsc": "並べ替え: 名前 A–Z",
+    "sortNameDesc": "並べ替え: 名前 Z–A",
+    "sortMostUsed": "並べ替え: 最も使用",
     "dashboard": "ダッシュボード",
     "dashboardDesc": "メディアプラットフォームのリアルタイム統計。",
     "media": "メディア",

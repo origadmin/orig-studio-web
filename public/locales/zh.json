@@ -783,6 +783,16 @@
     "loginToSubscribe": "请登录后订阅此频道"
   },
   "admin": {
+    "tagManagement": "标签管理",
+    "createNewTag": "新建标签",
+    "unusedTags": "未使用标签",
+    "colorAlerts": "颜色警示",
+    "searchTags": "搜索标签、元数据或颜色...",
+    "sortLatest": "排序：最新",
+    "sortOldest": "排序：最早",
+    "sortNameAsc": "排序：名称 A–Z",
+    "sortNameDesc": "排序：名称 Z–A",
+    "sortMostUsed": "排序：最常用",
     "dashboard": "平台概览",
     "dashboardDesc": "媒体平台的实时统计数据。",
     "enterpriseEdition": "企业版",

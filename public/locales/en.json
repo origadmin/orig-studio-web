@@ -778,6 +778,16 @@
     "loginToSubscribe": "Please login to subscribe to this channel"
   },
   "admin": {
+    "tagManagement": "Tag Management",
+    "createNewTag": "Create New Tag",
+    "unusedTags": "Unused Tags",
+    "colorAlerts": "Color Alerts",
+    "searchTags": "Search tags, metadata, or colors...",
+    "sortLatest": "Sort: Latest",
+    "sortOldest": "Sort: Oldest",
+    "sortNameAsc": "Sort: Name A–Z",
+    "sortNameDesc": "Sort: Name Z–A",
+    "sortMostUsed": "Sort: Most Used",
     "dashboard": "Dashboard",
     "dashboardDesc": "Real-time statistics for your media platform.",
     "enterpriseEdition": "Enterprise",
