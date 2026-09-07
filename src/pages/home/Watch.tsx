@@ -349,7 +349,7 @@ const WatchPage = () => {
         return (
             <div className="flex flex-col lg:flex-row gap-6 animate-pulse">
                 <div className="flex-1 space-y-4">
-                    <Skeleton className="aspect-video w-full rounded-card"/>
+                    <Skeleton className="aspect-video w-full rounded-lg"/>
                     <Skeleton className="h-8 w-3/4"/>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">

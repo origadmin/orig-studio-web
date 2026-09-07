@@ -98,7 +98,7 @@ function MediaSelectorDialog({open, onClose, onSelect}: MediaSelectorDialogProps
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-background rounded-card shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col">
+            <div className="bg-background rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col">
                 <div className="flex items-center justify-between p-4 border-b">
                     <h3 className="font-semibold text-lg">{t('admin.selectVideo')}</h3>
                     <Button variant="ghost" size="icon" onClick={onClose}>
@@ -711,7 +711,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* ===== Left Column: Editor (Col 1-8) ===== */}
                         <div className="lg:col-span-8 space-y-8">
-                            <Card className="rounded-card">
+                            <Card className="rounded-lg">
                                 <CardContent className="p-8">
                                     {/* Title Input */}
                                     <div className="space-y-4 mb-8">
@@ -736,7 +736,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
 
                                     {/* Cover Image Upload */}
                                     <div
-                                        className="w-full aspect-video rounded-card border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center bg-muted/30 group hover:bg-muted/50 transition-colors cursor-pointer mb-8 overflow-hidden relative"
+                                        className="w-full aspect-video rounded-lg border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center bg-muted/30 group hover:bg-muted/50 transition-colors cursor-pointer mb-8 overflow-hidden relative"
                                         onClick={() => {
                                             // Trigger file input or URL input
                                             const url = window.prompt(t('admin.enterThumbnailUrl', {defaultValue: 'Enter cover image URL:'}));
@@ -775,7 +775,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                                     </div>
 
                                     {/* Rich Text Editor */}
-                                    <div className="border border-border rounded-card overflow-hidden">
+                                    <div className="border border-border rounded-lg overflow-hidden">
                                         {/* Toolbar */}
                                         <div className="bg-muted px-3 py-2 border-b border-border flex flex-wrap items-center gap-1">
                                             <ToolbarButton
@@ -849,7 +849,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                         {/* ===== Right Column: Settings (Col 9-12) ===== */}
                         <div className="lg:col-span-4 space-y-6">
                             {/* Publishing Settings */}
-                            <Card className="rounded-card overflow-hidden">
+                            <Card className="rounded-lg overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.publishingSettings', {defaultValue: 'Publishing Settings'})}
@@ -946,7 +946,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                             </Card>
 
                             {/* Taxonomy */}
-                            <Card className="rounded-card overflow-hidden">
+                            <Card className="rounded-lg overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.taxonomy', {defaultValue: 'Taxonomy'})}
@@ -1017,7 +1017,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                             </Card>
 
                             {/* Featured Image */}
-                            <Card className="rounded-card overflow-hidden">
+                            <Card className="rounded-lg overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.featuredImage', {defaultValue: 'Featured Image'})}
@@ -1059,7 +1059,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                             </Card>
 
                             {/* SEO Settings (Collapsible) */}
-                            <Card className="rounded-card overflow-hidden">
+                            <Card className="rounded-lg overflow-hidden">
                                 <Collapsible open={seoOpen} onOpenChange={setSeoOpen}>
                                     <CollapsibleTrigger asChild>
                                         <Button variant="ghost" className="w-full px-5 py-4 flex items-center justify-between hover:bg-muted/10">
@@ -1103,7 +1103,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
 
                             {/* Metadata (edit mode only) */}
                             {mode === 'edit' && article && (
-                                <Card className="rounded-card overflow-hidden">
+                                <Card className="rounded-lg overflow-hidden">
                                     <div className="px-5 py-4 border-b border-border bg-muted/20">
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                             {t('admin.metadata', {defaultValue: 'Metadata'})}
@@ -1127,7 +1127,7 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
                             )}
 
                             {/* Quick Actions */}
-                            <Card className="rounded-card overflow-hidden">
+                            <Card className="rounded-lg overflow-hidden">
                                 <div className="px-5 py-4 border-b border-border bg-muted/20">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         {t('admin.quickActions', {defaultValue: 'Quick Actions'})}

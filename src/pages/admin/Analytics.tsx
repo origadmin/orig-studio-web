@@ -126,7 +126,7 @@ const KPICard = ({
     sparkColor: string;
     icon: React.ElementType;
 }) => (
-    <Card className="p-5 rounded-card shadow-sm border hover:shadow-md transition-all duration-300">
+    <Card className="p-5 rounded-lg shadow-sm border hover:shadow-md transition-all duration-300">
         <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {label}
@@ -255,7 +255,7 @@ const Analytics = () => {
                     </p>
                 </div>
                 <div
-                    className="flex items-center gap-1 bg-card p-1 rounded-card border border-border shadow-sm">
+                    className="flex items-center gap-1 bg-card p-1 rounded-lg border border-border shadow-sm">
                     {dateRangeOptions.slice(0, 3).map((opt) => (
                         <Button
                             key={opt.key}
@@ -328,7 +328,7 @@ const Analytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 {/* Left: Content Performance Over Time */}
                 <div className="lg:col-span-8">
-                    <Card className="rounded-card shadow-sm border">
+                    <Card className="rounded-lg shadow-sm border">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-lg font-semibold text-foreground">
@@ -408,7 +408,7 @@ const Analytics = () => {
 
                 {/* Right: Content by Category */}
                 <div className="lg:col-span-4">
-                    <Card className="rounded-card shadow-sm border h-full flex flex-col">
+                    <Card className="rounded-lg shadow-sm border h-full flex flex-col">
                         <CardContent className="p-6 flex flex-col h-full">
                             <h3 className="text-lg font-semibold text-foreground mb-8">
                                 Content by Category
@@ -465,7 +465,7 @@ const Analytics = () => {
             </div>
 
             {/* ── Conversion Funnel ──────────────────────────── */}
-            <Card className="rounded-card shadow-sm border">
+            <Card className="rounded-lg shadow-sm border">
                 <CardContent className="p-6">
                     <h3 className="text-lg font-semibold text-foreground mb-6">
                         Audience Conversion Funnel
@@ -508,7 +508,7 @@ const Analytics = () => {
             </Card>
 
             {/* ── Top Performing Content Table ────────────────── */}
-            <Card className="rounded-card shadow-sm border overflow-hidden">
+            <Card className="rounded-lg shadow-sm border overflow-hidden">
                 <div className="p-6 border-b border-border flex items-center justify-between bg-card">
                     <h3 className="text-lg font-semibold text-foreground">
                         Top Performing Content

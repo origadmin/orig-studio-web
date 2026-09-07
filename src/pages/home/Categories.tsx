@@ -11,7 +11,7 @@ import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree
 
 const VideoCard: React.FC<{media: any}> = ({media}) => (
     <Link to="/watch" search={{v: media.short_token}} className="group w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-11px)] lg:w-[calc(25%-12px)] xl:w-[calc(20%-13px)] 3xl:w-[calc(16.666%-14px)]">
-        <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+        <div className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
             <div className="relative aspect-video overflow-hidden">
                 <img
                     src={getImageUrl(media.thumbnail, 'thumbnail')}

@@ -108,7 +108,7 @@ const FavoritesPage = () => {
                         return (
                             <Link key={video.id} to="/watch" search={{v: video.short_token || String(video.id)}} className="group">
                                 <div
-                                    className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                    className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                                     <div className="relative aspect-video">
                                         <img src={video.thumbnail ? getFullUrl(video.thumbnail) : undefined}
                                              alt={video.title}

@@ -115,7 +115,7 @@ const SearchPage = () => {
 
                 {/* Filters */}
                 {showFilters && (
-                    <div className="mt-4 p-4 bg-muted rounded-card">
+                    <div className="mt-4 p-4 bg-muted rounded-lg">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-sm font-medium text-foreground">
                                 {t('search.filterByCategory')}
@@ -216,9 +216,9 @@ const SearchPage = () => {
                     <div className="space-y-6">
                         {searchResults.map((item: Media) => (
                             <Link key={item.id} to="/watch" search={{v: item.short_token}}
-                                  className="flex flex-col md:flex-row gap-6 group p-4 rounded-card hover:bg-muted/50 transition-all">
+                                  className="flex flex-col md:flex-row gap-6 group p-4 rounded-lg hover:bg-muted/50 transition-all">
                                 <div
-                                    className="relative w-full md:w-72 aspect-video bg-muted rounded-card overflow-hidden shrink-0 border border-border shadow-sm">
+                                    className="relative w-full md:w-72 aspect-video bg-muted rounded-lg overflow-hidden shrink-0 border border-border shadow-sm">
                                     <img src={item.thumbnail ? getFullUrl(item.thumbnail) : undefined}
                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                          alt={item.title}/>

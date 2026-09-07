@@ -62,7 +62,7 @@ const ChannelPage = () => {
     if (loading) {
         return (
             <div className="space-y-8 animate-pulse">
-                <div className="h-48 md:h-80 rounded-card bg-muted dark:bg-gray-800"/>
+                <div className="h-48 md:h-80 rounded-lg bg-muted dark:bg-gray-800"/>
                 <div className="pt-20 px-6 space-y-4">
                     <div className="h-8 bg-muted dark:bg-gray-800 rounded w-1/3"/>
                     <div className="h-4 bg-muted dark:bg-gray-800 rounded w-1/2"/>
@@ -80,7 +80,7 @@ const ChannelPage = () => {
     return (
         <div className="space-y-8">
             <div className="relative">
-                <div className="h-48 md:h-80 rounded-card bg-cover bg-center bg-muted dark:bg-gray-800"
+                <div className="h-48 md:h-80 rounded-lg bg-cover bg-center bg-muted dark:bg-gray-800"
                      style={channel.banner ? {backgroundImage: `url(${channel.banner})`} : undefined}/>
                 <div className="absolute -bottom-16 left-6 flex items-end gap-6">
                     <Avatar className="w-32 h-32 border-4 border-white dark:border-gray-900 shadow-lg">
@@ -130,7 +130,7 @@ const ChannelPage = () => {
                             {videos.map(video => (
                                 <Link key={video.id} to="/watch" search={{v: video.short_token}} className="group">
                                     <div
-                                        className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                                        className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
                                         <div className="relative aspect-video">
                                             {video.thumbnail ? (
                                                 <img src={video.thumbnail} alt={video.title}
@@ -167,7 +167,7 @@ const ChannelPage = () => {
                                     params={{slug: article.slug || article.id}}
                                     className="group"
                                 >
-                                    <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
+                                    <div className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-border">
                                         {article.thumbnail && (
                                             <div className="aspect-video bg-muted">
                                                 <img src={article.thumbnail} alt={article.title}

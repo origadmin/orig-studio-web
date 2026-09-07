@@ -117,7 +117,7 @@ const LatestPage = () => {
                 {items.map((media) => (
                     <Link key={media.id} to="/watch" search={{v: media.short_token}} className="group">
                         <div
-                            className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                            className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                             <div className="relative aspect-video overflow-hidden">
                                 <img
                                     src={getImageUrl(media.thumbnail, 'thumbnail')}

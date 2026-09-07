@@ -121,7 +121,7 @@ const MembersPage = () => {
                         key={member.id}
                         to="/u/$id"
                         params={{id: member.slug || String(member.id)}}
-                        className="group p-4 bg-card border border-border rounded-card hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all"
+                        className="group p-4 bg-card border border-border rounded-lg hover:shadow-lg hover:border-emerald-200 dark:hover:border-emerald-800 transition-all"
                     >
                         <div className="flex items-center gap-3">
                             <Avatar className="w-12 h-12 ring-2 ring-gray-100 dark:ring-gray-700 group-hover:ring-emerald-200 dark:group-hover:ring-emerald-800 transition-all">

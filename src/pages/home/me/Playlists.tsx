@@ -130,7 +130,7 @@ const PlaylistsPage = () => {
                     {playlists.map((pl) => (
                         <div
                             key={pl.id}
-                            className="bg-card rounded-card overflow-hidden border border-border hover:shadow-lg transition-all group relative"
+                            className="bg-card rounded-lg overflow-hidden border border-border hover:shadow-lg transition-all group relative"
                         >
                             {/* Cover - clickable to detail */}
                             <Link to="/playlist/$token" params={{token: pl.short_token || pl.id}}>

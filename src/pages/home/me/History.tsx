@@ -228,7 +228,7 @@ const HistoryPage = () => {
                     return isDeleted ? (
                         <div
                             key={item.id}
-                            className="group flex items-center gap-4 p-3 bg-card rounded-card opacity-60"
+                            className="group flex items-center gap-4 p-3 bg-card rounded-lg opacity-60"
                         >
                             {content}
                         </div>
@@ -236,7 +236,7 @@ const HistoryPage = () => {
                         <Link
                             key={item.id}
                             to={contentLink}
-                            className="group flex items-center gap-4 p-3 bg-card rounded-card hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            className="group flex items-center gap-4 p-3 bg-card rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                         >
                             {content}
                         </Link>

@@ -33,7 +33,7 @@ import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
 import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
-import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
+import {parseTagsInput} from '@/lib/utils/hashtag';
 import {toast} from 'sonner';
 import {useQueryClient} from '@tanstack/react-query';
 import type {Media} from '@/lib/api/media';
@@ -319,7 +319,12 @@ export default function MediaEditPage() {
                 state: media.state || 'draft',
                 category_id: media.category_id ?? '',
                 channel_id: media.channel_id ?? '',
-                tags: serializeTags(media.tags || []),
+                // BUG-294: the chip editor below edits comma-separated raw tags and
+                // the save path (parseTagsInput) falls back to comma splitting when
+                // no hashtag is present — init with the SAME comma format instead of
+                // serializeTags (#-space), which collapsed into one merged chip and
+                // silently dropped Enter-added tags on save.
+                tags: (media.tags || []).map(t => String(t).replace(/^#/, '')).join(', '),
                 privacy: normalizePrivacy(media.privacy),
                 featured: media.featured || false,
                 enable_comments: media.enable_comments ?? true,
@@ -409,7 +414,10 @@ export default function MediaEditPage() {
                     title: form.title,
                     description: form.description,
                     state: form.state,
-                    category_id: form.category_id !== '' && form.category_id !== undefined ? Number(form.category_id) : undefined,
+                    // BUG-288 (admin variant): only send category_id when it is a
+                    // selectable genre (BUG-145) — an unset/module-root anchor must
+                    // not be written back invisibly (undefined skips it server-side).
+                    category_id: genreOptions.some(o => String(o.id) === String(form.category_id)) ? Number(form.category_id) : undefined,
                     // BUG-105: '' (from the "无频道" option) clears the assignment.
                     channel_id: form.channel_id !== '' && form.channel_id !== undefined ? String(form.channel_id) : '',
                     tags: parseTagsInput(form.tags),
@@ -1176,7 +1184,15 @@ export default function MediaEditPage() {
 
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('mediaEdit.category', '分类')}</Label>
-                                                        <Select value={String(form.category_id || '0')} onValueChange={val => setForm({...form, category_id: val !== '0' ? Number(val) : ''})}>
+                                                        {/* BUG-288 (admin variant): a media anchored to a module root
+                                                            (e.g. video root id) or unset matches NO option here — the
+                                                            option list is genres-only per BUG-145 — and the select
+                                                            rendered blank, while saving wrote the invisible anchor back.
+                                                            Fall back to the 通用 option whenever the current value is
+                                                            not a selectable genre, and guard the save path likewise. */}
+                                                        <Select
+                                                            value={genreOptions.some(o => String(o.id) === String(form.category_id)) ? String(form.category_id) : '0'}
+                                                            onValueChange={val => setForm({...form, category_id: val !== '0' ? Number(val) : ''})}>
                                                             <SelectTrigger className="w-full">
                                                                 <SelectValue placeholder={t('mediaEdit.selectCategory', '选择分类')}/>
                                                             </SelectTrigger>
@@ -1214,7 +1230,7 @@ export default function MediaEditPage() {
                                                                     if (e.key === 'Enter' && tagInput.trim()) {
                                                                         e.preventDefault();
                                                                         const current = form.tags ? form.tags.split(',').map(s => s.trim()).filter(Boolean) : [];
-                                                                        const newTag = tagInput.trim().replace(/,/g, '');
+                                                                        const newTag = tagInput.trim().replace(/,/g, '').replace(/^#/, '');
                                                                         if (newTag && !current.includes(newTag)) {
                                                                             setForm({...form, tags: [...current, newTag].join(', ')});
                                                                         }

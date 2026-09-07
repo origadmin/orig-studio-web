@@ -17,7 +17,7 @@ const AboutPage = () => {
             </div>
 
             <div
-                className="bg-card rounded-card border border-border p-8 space-y-6">
+                className="bg-card rounded-lg border border-border p-8 space-y-6">
                 <div>
                     <h2 className="text-xl font-bold text-foreground mb-3">{t('about.whatIs')}</h2>
                     <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -26,17 +26,17 @@ const AboutPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <Code size={28} className="mx-auto text-emerald-500 mb-2"/>
                         <p className="text-sm font-medium text-foreground">{t('about.goReact')}</p>
                         <p className="text-xs text-gray-500 mt-1">{t('about.modernStack')}</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <Heart size={28} className="mx-auto text-destructive mb-2"/>
                         <p className="text-sm font-medium text-foreground">{t('about.openSource')}</p>
                         <p className="text-xs text-gray-500 mt-1">AGPLv3 License</p>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-card">
+                    <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                         <Users size={28} className="mx-auto text-info mb-2"/>
                         <p className="text-sm font-medium text-foreground">{t('about.communityDriven')}</p>
                         <p className="text-xs text-gray-500 mt-1">{t('about.welcomeContrib')}</p>

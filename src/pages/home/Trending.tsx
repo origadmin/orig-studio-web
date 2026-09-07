@@ -42,7 +42,7 @@ export default function Trending() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
                     {Array.from({length: 12}).map((_, i) => (
                         <div key={i} className="animate-pulse">
-                            <div className="aspect-video bg-muted rounded-card mb-3"/>
+                            <div className="aspect-video bg-muted rounded-lg mb-3"/>
                             <div className="h-4 bg-muted rounded w-3/4 mb-2"/>
                             <div className="h-3 bg-muted rounded w-1/2"/>
                         </div>
@@ -100,7 +100,7 @@ export default function Trending() {
                             search={{v: item.short_token}}
                             className="group"
                         >
-                            <div className="bg-card rounded-card overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+                            <div className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
                                 <div className="relative aspect-video overflow-hidden">
                                     <img
                                         src={getImageUrl(item.thumbnail, 'thumbnail')}
