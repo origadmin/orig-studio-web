@@ -403,7 +403,8 @@ const CategoriesPage = () => {
                BUG-162 2026-08-26 终：修复"内容区侵入标题区"——标题必须是内容面板的拥有者，
                不可游离在卡片外导致与首行 chip 混淆。历史 4147397 即"标题+筛选同面板"结构。 */}
             <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-sm shadow-black/[0.03]">
-                {/* 面板头：标题区。与下方筛选内容以分隔线明确解耦，内容不再侵入标题。 */}
+                {/* 面板头：标题区 + 操作区（查询/重置）同行右对齐——修复 BUG：原按钮游离在卡片下方，位置错误；
+                   按"和标题一行"规范归位（设计系统 Button，禁用态/同级重置逻辑不变）。 */}
                 <div className="flex items-center gap-3 pb-4 mb-4 border-b border-border/60">
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10">
                         <Folder size={20} className="text-emerald-600"/>
@@ -411,6 +412,24 @@ const CategoriesPage = () => {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                         {t('categories.title', '浏览')}
                     </h1>
+                    <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
+                        {filterSummary.length > 0 && (
+                            <span className="text-sm text-gray-400">{filterSummary.join(' ∩ ')}</span>
+                        )}
+                        {(hasDraft || hasApplied) && (
+                            <Button variant="outline" onClick={resetAll}>
+                                {t('categories.reset', '重置')}
+                            </Button>
+                        )}
+                        <Button
+                            onClick={commitQuery}
+                            disabled={!hasDraft}
+                            title={hasDraft ? t('categories.query', '查询分类') : t('categories.noFilter', '无筛选条件，当前显示全部')}
+                        >
+                            <Search size={14}/>
+                            {t('categories.query', '查询分类')}
+                        </Button>
+                    </div>
                 </div>
                 <div className="space-y-3.5">
                 {/* Row 1: module — 左列标签(固定) / 右列 chip 独立换行，不绕回标签下 */}
@@ -469,27 +488,7 @@ const CategoriesPage = () => {
             </div>
             </div>
 
-            {/* Action bar — right-aligned (submit-type actions follow the Fitts/forms
-                convention: primary CTA rightmost). Reset is a peer of Query, shown
-                whenever there is a draft or an applied filter (BUG-162 UX). */}
-            <div className="flex flex-wrap items-center justify-end gap-3">
-                {filterSummary.length > 0 && (
-                    <span className="text-sm text-gray-400 mr-auto">{filterSummary.join(' ∩ ')}</span>
-                )}
-                {(hasDraft || hasApplied) && (
-                    <Button variant="outline" onClick={resetAll}>
-                        {t('categories.reset', '重置')}
-                    </Button>
-                )}
-                <Button
-                    onClick={commitQuery}
-                    disabled={!hasDraft}
-                    title={hasDraft ? t('categories.query', '查询分类') : t('categories.noFilter', '无筛选条件，当前显示全部')}
-                >
-                    <Search size={14}/>
-                    {t('categories.query', '查询分类')}
-                </Button>
-            </div>
+            {/* 操作区（查询/重置）已上移面板头标题行，与标题同行右对齐；此处不再重复渲染 */}
 
 
             {mediaLoading ? (
