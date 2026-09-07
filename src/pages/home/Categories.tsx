@@ -8,6 +8,8 @@ import {categoryApi, type Category} from '@/lib/api/category';
 import {useInfiniteMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
 
 const VideoCard: React.FC<{media: any}> = ({media}) => (
     <Link to="/watch" search={{v: media.short_token}} className="group w-full sm:w-[calc(50%-8px)] md:w-[calc(33.333%-11px)] lg:w-[calc(25%-12px)] xl:w-[calc(20%-13px)] 3xl:w-[calc(16.666%-14px)]">
@@ -475,22 +477,18 @@ const CategoriesPage = () => {
                     <span className="text-sm text-gray-400 mr-auto">{filterSummary.join(' ∩ ')}</span>
                 )}
                 {(hasDraft || hasApplied) && (
-                    <button
-                        onClick={resetAll}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-600 text-emerald-600 text-sm font-medium hover:bg-emerald-50 transition-colors"
-                    >
+                    <Button variant="outline" onClick={resetAll}>
                         {t('categories.reset', '重置')}
-                    </button>
+                    </Button>
                 )}
-                <button
+                <Button
                     onClick={commitQuery}
                     disabled={!hasDraft}
                     title={hasDraft ? t('categories.query', '查询分类') : t('categories.noFilter', '无筛选条件，当前显示全部')}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-emerald-600"
                 >
                     <Search size={14}/>
                     {t('categories.query', '查询分类')}
-                </button>
+                </Button>
             </div>
 
 

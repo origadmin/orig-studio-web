@@ -15,8 +15,16 @@ export interface Category {
     icon?: string;
     color?: string;
     media_count: number;
+    module?: string;     // 所属模块（video/music/article），分类模型 module 中立
+    dimension?: string;  // 分类维度（genre/region/type/rating），分面筛选用
     create_time?: string;
     update_time?: string;
+}
+
+// 规范身份键桥接：门户用 slug、管理用 id，禁止散落 cat.id/cat.slug 混用（D1）。
+export type CategorySurface = 'portal' | 'admin';
+export function categoryKey(cat: Category, surface: CategorySurface = 'portal'): string {
+    return surface === 'portal' ? (cat.slug ?? String(cat.id)) : String(cat.id);
 }
 
 export interface CategoryListResponse {
