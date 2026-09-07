@@ -148,6 +148,35 @@ export function useMediaList(params: {
 }
 
 /**
+ * Compute the next page param for the media infinite scroll.
+ *
+ * Prefers the authoritative server-side `total` (ListMediasResponse.total,
+ * which the backend always returns) over the fragile
+ * `items.length === requestedPageSize` heuristic: the heuristic mis-reports
+ * "all loaded" whenever a non-final page returns a count != requested
+ * page_size (e.g. a server-side page-size override or partial page), which
+ * prematurely showed the browse page end marker while more pages existed.
+ * Falls back to the length heuristic only when the server reports no usable
+ * total (0/absent), so mock/legacy responses keep working.
+ *
+ * With an authoritative total this also removes the wasted empty fetch that
+ * the old heuristic made when total was an exact multiple of page_size.
+ */
+export function nextMediaPageParam(
+    lastPage: {items?: unknown[]; total?: number} | undefined,
+    allPages: {items?: unknown[]; total?: number}[],
+    requestedPageSize: number,
+): number | undefined {
+    const items = lastPage?.items || [];
+    const total = typeof lastPage?.total === 'number' ? lastPage.total : 0;
+    const loaded = allPages.reduce((n, p) => n + (p?.items?.length || 0), 0);
+    if (total > 0) {
+        return loaded < total ? allPages.length + 1 : undefined;
+    }
+    return items.length === requestedPageSize ? allPages.length + 1 : undefined;
+}
+
+/**
  * useInfiniteMediaList: Fetch paginated media list with infinite scroll
  *
  * Parameter mapping (hook params → API params):
@@ -198,11 +227,8 @@ export function useInfiniteMediaList(params: {
             return res;
         },
         initialPageParam: 1,
-        getNextPageParam: (lastPage, allPages) => {
-            const size = params.page_size || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE;
-            const items = lastPage.items || [];
-            return items.length === size ? allPages.length + 1 : undefined;
-        },
+        getNextPageParam: (lastPage, allPages) =>
+            nextMediaPageParam(lastPage, allPages, params.page_size || PAGINATION_CONFIG.DEFAULT_PAGE_SIZE),
         enabled: isEnabled,
     });
 }
