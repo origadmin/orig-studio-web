@@ -4,7 +4,7 @@ import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {createPortal} from 'react-dom';
 import {useCategoryList} from '@/hooks/queries';
 import {cn} from '@/lib/utils';
-import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree';
+import {buildCategoryTree, filterEnabledBranches, type CategoryTreeNode} from '@/lib/utils/categoryTree';
 
 interface CategoryChipsProps {
     embedded?: boolean;

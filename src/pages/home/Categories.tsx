@@ -7,7 +7,7 @@ import {useTranslation} from 'react-i18next';
 import {categoryApi, type Category} from '@/lib/api/category';
 import {useInfiniteMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
-import {buildCategoryTree, type CategoryTreeNode} from '@/lib/utils/categoryTree';
+import {buildCategoryTree, filterEnabledBranches, type CategoryTreeNode} from '@/lib/utils/categoryTree';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 
@@ -164,7 +164,10 @@ const CategoriesPage = () => {
     }, [t]);
 
     const fullTree = useMemo(() => {
-        const enabled = categories.filter(c => c.status === 1);
+        // BUG-300: a closed category takes its whole branch offline; filtering
+        // by a node's own status alone let closed groups' children leak in as
+        // orphan roots.
+        const enabled = filterEnabledBranches(categories);
         return buildCategoryTree(enabled);
     }, [categories]);
 

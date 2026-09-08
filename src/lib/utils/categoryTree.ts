@@ -115,15 +115,29 @@ export function buildCategoryTree(flatList: Category[]): CategoryTreeNode[] {
   }
   sortChildren(rootNodes);
 
-  // Step 4: Calculate depth and ancestorIds
-  function calculateDepthAndAncestors(nodes: CategoryTreeNode[], parentDepth: number, parentAncestorIds: number[]): void {
+  // Step 4: Calculate depth, ancestorIds and isAncestorDisabled
+  function calculateDepthAndAncestors(
+    nodes: CategoryTreeNode[],
+    parentDepth: number,
+    parentAncestorIds: number[],
+    parentDisabled: boolean,
+  ): void {
     for (const node of nodes) {
       node.depth = parentDepth;
       node.ancestorIds = [...parentAncestorIds];
-      calculateDepthAndAncestors(node.children, parentDepth + 1, [...parentAncestorIds, node.id]);
+      // BUG-300: propagate the disabled state down the branch. Previously
+      // this field was hard-coded to false, so consumers could never tell
+      // that a node sits under a closed category.
+      node.isAncestorDisabled = parentDisabled || node.status !== 1;
+      calculateDepthAndAncestors(
+        node.children,
+        parentDepth + 1,
+        [...parentAncestorIds, node.id],
+        node.isAncestorDisabled,
+      );
     }
   }
-  calculateDepthAndAncestors(rootNodes, 0, []);
+  calculateDepthAndAncestors(rootNodes, 0, [], false);
 
   // Step 5: Calculate descendantCount (post-order)
   function calculateDescendantCount(nodes: CategoryTreeNode[]): void {
@@ -243,6 +257,42 @@ export function getTreeSelectOptions(
 export const VIDEO_ROOT_SLUG = 'video';
 
 /**
+ * Keeps only the categories that are reachable for portal/form use.
+ *
+ * BUG-300: a closed category takes its whole branch offline. Filtering by a
+ * node's own status is not enough — the children of a closed node are still
+ * `status === 1`, and buildCategoryTree promotes them to root nodes when their
+ * parent is missing, leaking a closed branch into the portal (which is exactly
+ * why disabling "电影" still displayed 动作片/喜剧片/科幻片/剧情片).
+ *
+ * @param flatList - Flat array of Category from the API
+ * @returns Categories that are enabled themselves and have no disabled ancestor
+ */
+export function filterEnabledBranches(flatList: Category[]): Category[] {
+  if (!flatList || flatList.length === 0) return [];
+  const byId = new Map<number, Category>();
+  for (const c of flatList) byId.set(c.id, c);
+
+  const disabledCache = new Map<number, boolean>();
+  const branchDisabled = (cat: Category, guard: Set<number>): boolean => {
+    if (cat.status !== 1) return true;
+    const parentId = cat.parent_id;
+    if (!parentId || parentId === 0) return false;
+    const cached = disabledCache.get(parentId);
+    if (cached !== undefined) return cached;
+    const parent = byId.get(parentId);
+    if (!parent || guard.has(parentId)) return false; // orphan/cycle: keep
+    guard.add(parentId);
+    const disabled = branchDisabled(parent, guard);
+    guard.delete(parentId);
+    disabledCache.set(parentId, disabled);
+    return disabled;
+  };
+
+  return flatList.filter(c => !branchDisabled(c, new Set<number>()));
+}
+
+/**
  * Returns the selectable genre options for a *video* (media) form.
  *
  * Only descendants of the `video` root are selectable: the module roots
@@ -256,9 +306,11 @@ export const VIDEO_ROOT_SLUG = 'video';
  * @returns Flat, depth-annotated options in tree display order
  */
 export function getVideoGenreOptions(flatList: Category[]): TreeSelectOption[] {
-  if (!flatList || flatList.length === 0) return [];
+  // BUG-300: closed categories (and everything under them) are not selectable.
+  const enabled = filterEnabledBranches(flatList);
+  if (enabled.length === 0) return [];
 
-  const tree = buildCategoryTree(flatList);
+  const tree = buildCategoryTree(enabled);
   const videoRoot = tree.find(n => n.slug === VIDEO_ROOT_SLUG);
 
   // No video root => pre-migration DB. Keep the old flat behaviour.
