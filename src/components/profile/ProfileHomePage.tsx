@@ -563,27 +563,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     </div>
                                 </div>
                             )}
-                            {/* Toolbar: context title + upload */}
-                            <div className="flex items-center justify-between gap-3 flex-wrap">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-sm font-medium truncate">
-                                        {selectedChannelId === 'all' || !activeChannel
-                                            ? t('video.allChannels', '全部频道')
-                                            : activeChannel.name}
-                                    </span>
-                                    {selectedChannelId !== 'all' && activeChannel && (
-                                        <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
-                                            <Tv className="w-3 h-3"/>
-                                            {(activeChannel as any).media_count ?? 0} {t('common.videos', '视频')}
-                                        </Badge>
-                                    )}
-                                </div>
-                                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white flex-shrink-0">
-                                    <Plus className="w-4 h-4 mr-2"/>
-                                    {t('myVideos.uploadVideo', '上传视频')}
-                                </Button>
-                            </div>
-
                             {/* Video grid with infinite scroll */}
                             {renderVideoGridWithPaging()}
                         </div>
@@ -750,6 +729,11 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     {/* Action buttons: right side */}
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {isOwner ? (
+                            <>
+                            <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white">
+                                <Upload className="w-4 h-4 mr-1"/>
+                                {t('myVideos.uploadVideo', '上传视频')}
+                            </Button>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button>
@@ -788,6 +772,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
+                            </>
                         ) : (
                             <>
                                 <Button
