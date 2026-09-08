@@ -54,7 +54,6 @@ import {
     ArrowRight,
     Settings,
     Plus,
-    Filter,
     Trash2,
 } from 'lucide-react';
 import {
@@ -65,13 +64,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -81,7 +73,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type {Channel} from '@/lib/api/channel';
 
 interface ProfileHomePageProps {
     username: string;
@@ -449,7 +440,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 <EmptyState type="videos" isOwner={true}/>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-x-4 gap-y-6">
                         {videoItems.map(item => (
                             <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={selectedChannelId === 'all'}/>
                         ))}
@@ -482,48 +473,93 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         </>
     );
 
+    // REDESIGN-B: shared left channel sidebar for BOTH the videos tab and the
+    // channels tab (left/right list layout). Selecting here drives the same
+    // `selectedChannelId` state, so tabs never disagree; the old Select dropdown
+    // in the videos toolbar is replaced by this sidebar.
+    const renderChannelSideBar = () => {
+        const knownKeys = new Set(channels.map(c => String(c.id)));
+        const activeKey = selectedChannelId !== 'all' && knownKeys.has(selectedChannelId)
+            ? selectedChannelId
+            : 'all';
+        const itemCls = (selected: boolean) =>
+            `w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition-colors ${
+                selected ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-accent text-foreground'
+            }`;
+        return (
+            <aside className="flex-shrink-0 md:w-56">
+                {/* Mobile: horizontal scroll strip; Desktop: vertical list */}
+                <div className="flex md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible pb-1 md:pb-0">
+                    <button type="button" className={`${itemCls(activeKey === 'all')} flex-shrink-0`} onClick={() => { setSelectedChannelId('all'); setVideoPage(1); }}>
+                        <ListVideo className="w-4 h-4 flex-shrink-0"/>
+                        <span className="truncate">{t('video.allChannels', '全部频道')}</span>
+                    </button>
+                    {channels.map(ch => {
+                        const key = String(ch.id);
+                        const selected = activeKey === key;
+                        return (
+                            <button key={ch.id} type="button" className={`${itemCls(selected)} flex-shrink-0`} onClick={() => { setSelectedChannelId(key); setVideoPage(1); }}>
+                                <span className="w-7 h-7 rounded-md bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-7 h-7 object-cover"/> : <Tv className="w-3.5 h-3.5 text-muted-foreground"/>}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block text-sm truncate">
+                                        {ch.name}
+                                        {(ch as any).is_default && <span className="ml-1 text-[10px] text-muted-foreground">({t('common.default', '默认')})</span>}
+                                    </span>
+                                    <span className="block text-[11px] text-muted-foreground">{(ch as any).media_count ?? 0} {t('common.videos', '视频')}</span>
+                                </span>
+                                {selected && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" aria-hidden/>}
+                            </button>
+                        );
+                    })}
+                    {isOwner && (
+                        <button
+                            type="button"
+                            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-muted-foreground hover:bg-accent transition-colors border border-dashed flex-shrink-0"
+                            onClick={() => navigate({to: '/me/channels'} as any)}
+                        >
+                            <Settings className="w-4 h-4 flex-shrink-0"/>
+                            <span className="truncate text-sm">{t('channel.channelSettings', '管理频道')}</span>
+                        </button>
+                    )}
+                </div>
+            </aside>
+        );
+    };
+
     const renderOwnerTabContent = () => {
         switch (ownerTab) {
             case 'videos': {
-                const channelMap = new Map<string, Channel>();
-                channels.forEach(ch => channelMap.set(String(ch.id), ch));
+                const activeChannel = channels.find(c => String(c.id) === selectedChannelId);
                 return (
-                    <div className="space-y-4">
-                        {/* Toolbar: upload button + channel filter */}
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <div className="flex items-center gap-2">
-                                    <Filter className="w-4 h-4 text-muted-foreground"/>
-                                    <span className="text-sm text-muted-foreground">{t('common.channel', '频道')}:</span>
+                    <div className="flex flex-col md:flex-row gap-5">
+                        {renderChannelSideBar()}
+                        <div className="flex-1 min-w-0 space-y-4">
+                            {/* Toolbar: context title + upload */}
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-sm font-medium truncate">
+                                        {selectedChannelId === 'all' || !activeChannel
+                                            ? t('video.allChannels', '全部频道')
+                                            : activeChannel.name}
+                                    </span>
+                                    {selectedChannelId !== 'all' && activeChannel && (
+                                        <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
+                                            <Tv className="w-3 h-3"/>
+                                            {(activeChannel as any).media_count ?? 0} {t('common.videos', '视频')}
+                                        </Badge>
+                                    )}
                                 </div>
-                                <Select value={selectedChannelId} onValueChange={setSelectedChannelId}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder={t('video.allChannels', '全部频道')}/>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">{t('video.allChannels', '全部频道')}</SelectItem>
-                                        {channels.map(ch => (
-                                            <SelectItem key={ch.id} value={String(ch.id)}>
-                                                {(ch as any).is_default ? `${ch.name} (${t('common.default', '默认')})` : ch.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {selectedChannelId !== 'all' && channelMap.get(selectedChannelId) && (
-                                    <Badge variant="secondary" className="flex items-center gap-1">
-                                        <Tv className="w-3 h-3"/>
-                                        {channelMap.get(selectedChannelId)!.name}
-                                    </Badge>
-                                )}
+                                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white flex-shrink-0">
+                                    <Plus className="w-4 h-4 mr-2"/>
+                                    {t('myVideos.uploadVideo', '上传视频')}
+                                </Button>
                             </div>
-                            <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white">
-                                <Plus className="w-4 h-4 mr-2"/>
-                                {t('myVideos.uploadVideo', '上传视频')}
-                            </Button>
-                        </div>
 
-                        {/* Video grid with infinite scroll */}
-                        {renderVideoGridWithPaging()}
+                            {/* Video grid with infinite scroll */}
+                            {renderVideoGridWithPaging()}
+                        </div>
                     </div>
                 );
             }
@@ -546,91 +582,47 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 if (channels.length === 0) {
                     return <EmptyState type="channels" isOwner={isOwner}/>;
                 }
-                // REDESIGN-B (channel-centric): the channels tab IS the channel view.
-                // Picking a channel here and filtering the videos tab share the same
-                // `selectedChannelId` state, so the two tabs never disagree. The
-                // public channel page is demoted to a small icon; management lives
-                // in /me/channels.
+                // REDESIGN-B (channel-centric, left/right layout): the channels tab
+                // IS the channel view. The left sidebar (shared with the videos tab)
+                // picks the channel; the right pane embeds the channel header and
+                // that channel's video grid. The public channel page stays a small
+                // button; management lives in /me/channels via the sidebar entry.
                 const chKey = (ch: any) => String(ch.id);
                 const effectiveKey = selectedChannelId !== 'all' && channels.some(c => chKey(c) === selectedChannelId)
                     ? selectedChannelId
                     : chKey(channels[0]);
                 const activeChannel = channels.find(c => chKey(c) === effectiveKey);
-                const setActive = (key: string) => {
-                    setSelectedChannelId(key);
-                    setVideoPage(1);
-                };
                 return (
-                    <div className="space-y-5">
-                        {/* Channel picker row */}
-                        <div className="flex items-stretch gap-3 flex-wrap">
-                            {channels.map((ch: any) => {
-                                const selected = chKey(ch) === effectiveKey;
-                                return (
-                                    <div
-                                        key={ch.id}
-                                        className={`relative flex items-center gap-3 p-3 pr-9 rounded-lg border cursor-pointer transition-colors min-w-[200px] ${
-                                            selected ? 'border-primary bg-primary/5' : 'border hover:bg-accent'
-                                        }`}
-                                        onClick={() => setActive(chKey(ch))}
-                                    >
-                                        <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-11 h-11 object-cover"/> : <Tv className="w-5 h-5 text-muted-foreground"/>}
+                    <div className="flex flex-col md:flex-row gap-5">
+                        {renderChannelSideBar()}
+                        <div className="flex-1 min-w-0 space-y-4">
+                            {activeChannel && (
+                                <div className="rounded-xl border p-4">
+                                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                                {activeChannel.logo ? <img src={getImageUrl(activeChannel.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-semibold truncate">{activeChannel.name}</p>
+                                                <p className="text-xs text-muted-foreground line-clamp-1">
+                                                    {activeChannel.description || t('profile.noDescription')}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="min-w-0 flex-1">
-                                            <p className={`font-medium text-sm truncate ${selected ? 'text-primary' : ''}`}>
-                                                {ch.name}
-                                                {(ch as any).is_default && <span className="ml-1.5 text-[10px] text-muted-foreground">({t('common.default', '默认')})</span>}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {(ch as any).media_count ?? 0} {t('common.videos', '视频')}
-                                            </p>
-                                        </div>
-                                        {selected && (
-                                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" aria-hidden/>
-                                        )}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navigate({to: '/c/$token', params: {token: (activeChannel as any).token || activeChannel.short_token}} as any)}
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5 mr-1.5"/>
+                                            {t('channel.viewChannel', '公开主页')}
+                                        </Button>
                                     </div>
-                                );
-                            })}
-                            {isOwner && (
-                                <button
-                                    type="button"
-                                    className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-muted-foreground hover:bg-accent transition-colors text-sm"
-                                    onClick={() => navigate({to: '/me/channels'} as any)}
-                                >
-                                    <Settings className="w-4 h-4"/>
-                                    {t('channel.channelSettings', '管理频道')}
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Embedded channel view: header + this channel's videos */}
-                        {activeChannel && (
-                            <div className="rounded-xl border p-4 space-y-4">
-                                <div className="flex items-center justify-between gap-3 flex-wrap">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                            {activeChannel.logo ? <img src={getImageUrl(activeChannel.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-semibold truncate">{activeChannel.name}</p>
-                                            <p className="text-xs text-muted-foreground line-clamp-1">
-                                                {activeChannel.description || t('profile.noDescription')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => navigate({to: '/c/$token', params: {token: (activeChannel as any).token || activeChannel.short_token}} as any)}
-                                    >
-                                        <ExternalLink className="w-3.5 h-3.5 mr-1.5"/>
-                                        {t('channel.viewChannel', '公开主页')}
-                                    </Button>
                                 </div>
-                                {renderVideoGridWithPaging()}
-                            </div>
-                        )}
+                            )}
+                            {renderVideoGridWithPaging()}
+                        </div>
                     </div>
                 );
             }
