@@ -499,7 +499,14 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         const key = String(ch.id);
                         const selected = activeKey === key;
                         return (
-                            <button key={ch.id} type="button" className={`${itemCls(selected)} flex-shrink-0`} onClick={() => { setSelectedChannelId(key); setVideoPage(1); }}>
+                            <div
+                                key={ch.id}
+                                role="button"
+                                tabIndex={0}
+                                className={`${itemCls(selected)} flex-shrink-0 cursor-pointer`}
+                                onClick={() => { setSelectedChannelId(key); setVideoPage(1); }}
+                                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { setSelectedChannelId(key); setVideoPage(1); } }}
+                            >
                                 <span className="w-7 h-7 rounded-md bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-7 h-7 object-cover"/> : <Tv className="w-3.5 h-3.5 text-muted-foreground"/>}
                                 </span>
@@ -510,8 +517,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     </span>
                                     <span className="block text-[11px] text-muted-foreground">{(ch as any).media_count ?? 0} {t('common.videos', '视频')}</span>
                                 </span>
-                                {selected && <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" aria-hidden/>}
-                            </button>
+                                <button
+                                    type="button"
+                                    title={t('channel.viewChannel', '公开主页')}
+                                    className="p-1 rounded text-muted-foreground/60 hover:text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
+                                    onClick={e => { e.stopPropagation(); navigate({to: '/c/$token', params: {token: (ch as any).token || ch.short_token}} as any); }}
+                                >
+                                    <ExternalLink className="w-3.5 h-3.5"/>
+                                </button>
+                            </div>
                         );
                     })}
                     {isOwner && (
@@ -537,32 +551,8 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     <div className="flex flex-col md:flex-row gap-5">
                         {renderChannelSideBar()}
                         <div className="flex-1 min-w-0 space-y-4">
-                            {/* REDESIGN-B r3: embedded channel header when a concrete channel is selected */}
-                            {activeChannel && (
-                                <div className="rounded-xl border p-4">
-                                    <div className="flex items-center justify-between gap-3 flex-wrap">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                                {activeChannel.logo ? <img src={getImageUrl(activeChannel.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="font-semibold truncate">{activeChannel.name}</p>
-                                                <p className="text-xs text-muted-foreground line-clamp-1">
-                                                    {activeChannel.description || t('profile.noDescription')}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => navigate({to: '/c/$token', params: {token: (activeChannel as any).token || activeChannel.short_token}} as any)}
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5 mr-1.5"/>
-                                            {t('channel.viewChannel', '公开主页')}
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
+                            {/* REDESIGN-B r6: header card removed - the public-page jump moved
+                                into the sidebar rows, the right pane is a pure video grid */}
                             {/* Video grid with infinite scroll */}
                             {renderVideoGridWithPaging()}
                         </div>
@@ -730,7 +720,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {isOwner ? (
                             <>
-                            <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white">
+                            <Button onClick={() => openDialog()} className="bg-primary hover:bg-primary/90 text-white">
                                 <Upload className="w-4 h-4 mr-1"/>
                                 {t('myVideos.uploadVideo', '上传视频')}
                             </Button>
