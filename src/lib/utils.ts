@@ -5,10 +5,16 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
+// SPA-static root-relative assets are served by nginx directly (Dockerfile
+// frontend) or the SPA handler — NEVER by the /files/ storage gate (BUG-312).
+// Same prefix list as the backend SPA handler (internal/pkg/http/spa/spa.go).
+const SPA_STATIC_PREFIXES = ['/assets/', '/static/', '/locales/', '/themes/'];
+
 export const getFullUrl = (path?: string | null): string | undefined => {
     if (path == null || path === '') return undefined;
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     if (path.startsWith('/files/') || path.startsWith('/media/')) return path;
+    if (SPA_STATIC_PREFIXES.some((p) => path.startsWith(p))) return path;
     if (path.startsWith('/')) {
         return `/files/${path.slice(1)}`;
     }

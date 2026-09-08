@@ -148,8 +148,12 @@ export const channelApi = {
 
     delete: (token: string) => api.del<void>(`/channels/${token}`),
 
+    // BUG-311: handle resolution must follow the proto contract
+    // (media_service.proto: GET /api/v1/resolve with `handle` as a QUERY param).
+    // The old path form /resolve/@{handle} was never registered and 404'd — it
+    // sat in the BUG-302 phantom baseline until this fix retired it.
     resolveHandle: (handle: string) =>
-        api.get<{resolution: HandleResolution}>(`/resolve/@${handle}`),
+        api.get<{resolution: HandleResolution}>('/resolve', {handle: '@' + handle}),
 
     validateHandle: (handle: string) =>
         api.get<{available: boolean; message?: string}>('/channels/validate-handle', {handle}),

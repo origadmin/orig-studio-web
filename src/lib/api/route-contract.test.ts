@@ -37,6 +37,7 @@ const VERIFIED_MANUAL_ROUTES: string[] = [
     '/admin/medias/{}/thumbnail/upload',      // service.go srv.Handle (media proxy)
     '/me/medias/{}/thumbnail/upload',         // service.go srv.Handle (media proxy)
     '/users/{}/medias',                       // service.go srv.Handle (BUG-281 owner route)
+    '/users/{}/channels',                     // service.go srv.Handle (BUG-309, gateway shortid resolver)
 ];
 
 // ---------------------------------------------------------------------------
@@ -62,8 +63,8 @@ const PHANTOM_BASELINE: string[] = [
     'src/lib/api/ads.ts:83:/admin/ad-placements/{}/creatives',
     'src/lib/api/ads.ts:86:/admin/ad-placements/{}/creatives/{}',
     'src/lib/api/ads.ts:94:/ads/placement/{}',
-    // channel handle resolve
-    'src/lib/api/channel.ts:141:/resolve/@{}',
+    // channel handle resolve — FIXED as BUG-311 (query form per proto contract),
+    // baseline entry retired per the ratchet rule.
     // DRM admin module — nothing registered
     'src/lib/api/drm.ts:76:/admin/drm-policies/{}',
     'src/lib/api/drm.ts:79:/admin/drm-policies/{}',
