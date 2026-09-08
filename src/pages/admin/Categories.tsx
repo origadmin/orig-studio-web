@@ -63,6 +63,7 @@ const Categories: React.FC = () => {
     expandedIds,
     loading,
     loadCategories,
+    patchCategoryStatus,
     toggleExpand,
     expandAll,
     collapseAll,
@@ -180,14 +181,17 @@ const Categories: React.FC = () => {
   const handleToggleStatus = useCallback(
     async (category: CategoryTreeNode) => {
       const newStatus = category.status === 1 ? 2 : 1;
+      // BUG-298: optimistic in-place update — no full reload, so the table
+      // never blanks out to a spinner row between the click and the response.
+      const previousStatus = patchCategoryStatus(category.id, newStatus);
       try {
         await adminCategoryApi.patch(category.id, { status: newStatus });
-        await loadCategories();
       } catch (err) {
+        patchCategoryStatus(category.id, previousStatus);
         console.error('Failed to toggle category status:', err);
       }
     },
-    [loadCategories]
+    [patchCategoryStatus]
   );
 
   const handleDelete = useCallback(async () => {

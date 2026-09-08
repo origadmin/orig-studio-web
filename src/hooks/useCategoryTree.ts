@@ -36,6 +36,14 @@ export interface UseCategoryTreeReturn {
 
   // Actions
   loadCategories: (params?: { page?: number; page_size?: number; keyword?: string }) => Promise<void>;
+  /**
+   * BUG-298: apply a status change to one category in place, without a full
+   * reload. Toggling a status used to call loadCategories(), which set
+   * loading=true and replaced the whole table body with a spinner row
+   * ("show -> disappear -> show"). Returns the previous status so the caller
+   * can roll back if the request fails.
+   */
+  patchCategoryStatus: (id: number, status: number) => number;
   toggleExpand: (id: number) => void;
   expandAll: () => void;
   collapseAll: () => void;
@@ -139,6 +147,18 @@ export function useCategoryTree(): UseCategoryTreeReturn {
     []
   );
 
+  const patchCategoryStatus = useCallback((id: number, status: number): number => {
+    let previous = status;
+    setCategories(prev =>
+      prev.map(c => {
+        if (c.id !== id) return c;
+        previous = c.status;
+        return {...c, status};
+      })
+    );
+    return previous;
+  }, []);
+
   return {
     categories,
     loading,
@@ -147,6 +167,7 @@ export function useCategoryTree(): UseCategoryTreeReturn {
     visibleNodes,
     expandedIds,
     loadCategories,
+    patchCategoryStatus,
     toggleExpand,
     expandAll,
     collapseAll,
