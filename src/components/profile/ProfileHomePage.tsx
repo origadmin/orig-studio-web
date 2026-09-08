@@ -78,12 +78,13 @@ interface ProfileHomePageProps {
     username: string;
 }
 
-type OwnerTab = 'videos' | 'channels' | 'articles' | 'followers' | 'favorites' | 'playlists' | 'history' | 'about';
+// REDESIGN-B r3: 'channels' merged into 'videos' (same data source, same grid;
+// the channel header + manage entry now live inside the videos tab sidebar view).
+type OwnerTab = 'videos' | 'articles' | 'followers' | 'favorites' | 'playlists' | 'history' | 'about';
 type VisitorTab = 'videos' | 'channels' | 'playlists' | 'followers' | 'about';
 
 const OWNER_TABS: {key: OwnerTab; icon: React.ElementType; labelKey: string; manageTo: string}[] = [
     {key: 'videos', icon: Video, labelKey: 'nav.myVideos', manageTo: '/me/videos'},
-    {key: 'channels', icon: Tv, labelKey: 'nav.myChannels', manageTo: '/me/channels'},
     {key: 'articles', icon: FileText, labelKey: 'nav.myArticles', manageTo: '/me/articles'},
     {key: 'followers', icon: UserCheck, labelKey: 'profile.myFollowers', manageTo: '/u/$id'},
     {key: 'favorites', icon: Heart, labelKey: 'nav.myFavorites', manageTo: '/me/favorites'},
@@ -101,7 +102,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {modules} = useModuleState();
     const {openDialog} = useUploadState();
     const search = useSearch({strict: false }) as Record<string, unknown>;
-    const validOwnerTabs = useMemo(() => new Set<OwnerTab>(['videos','channels','articles','followers','favorites','playlists','history','about']), []);
+    const validOwnerTabs = useMemo(() => new Set<OwnerTab>(['videos','articles','followers','favorites','playlists','history','about']), []);
     const validVisitorTabs = useMemo(() => new Set<VisitorTab>(['videos','channels','playlists','followers','about']), []);
     const _tab = search.tab;
     const initialOwnerTab = validOwnerTabs.has(_tab as OwnerTab) ? (_tab as OwnerTab) : 'videos';
@@ -377,7 +378,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             navigate({to: tab.manageTo, params: {id: profile.slug || profile.username}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
             setOwnerTab('about');
-        } else if (tab.key === 'videos' || tab.key === 'channels' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'playlists' || tab.key === 'articles') {
+        } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'playlists' || tab.key === 'articles') {
             setOwnerTab(tab.key);
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
@@ -536,66 +537,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     <div className="flex flex-col md:flex-row gap-5">
                         {renderChannelSideBar()}
                         <div className="flex-1 min-w-0 space-y-4">
-                            {/* Toolbar: context title + upload */}
-                            <div className="flex items-center justify-between gap-3 flex-wrap">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-sm font-medium truncate">
-                                        {selectedChannelId === 'all' || !activeChannel
-                                            ? t('video.allChannels', '全部频道')
-                                            : activeChannel.name}
-                                    </span>
-                                    {selectedChannelId !== 'all' && activeChannel && (
-                                        <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
-                                            <Tv className="w-3 h-3"/>
-                                            {(activeChannel as any).media_count ?? 0} {t('common.videos', '视频')}
-                                        </Badge>
-                                    )}
-                                </div>
-                                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white flex-shrink-0">
-                                    <Plus className="w-4 h-4 mr-2"/>
-                                    {t('myVideos.uploadVideo', '上传视频')}
-                                </Button>
-                            </div>
-
-                            {/* Video grid with infinite scroll */}
-                            {renderVideoGridWithPaging()}
-                        </div>
-                    </div>
-                );
-            }
-            case 'channels': {
-                if (channelsLoading && channels.length === 0) {
-                    return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {[1,2,3,4].map(i => (
-                                <div key={i} className="animate-pulse flex items-center gap-3 p-3">
-                                    <div className="w-12 h-12 bg-muted rounded-lg"/>
-                                    <div className="flex-1">
-                                        <div className="h-4 bg-muted rounded w-2/3 mb-1"/>
-                                        <div className="h-3 bg-muted rounded w-1/2"/>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    );
-                }
-                if (channels.length === 0) {
-                    return <EmptyState type="channels" isOwner={isOwner}/>;
-                }
-                // REDESIGN-B (channel-centric, left/right layout): the channels tab
-                // IS the channel view. The left sidebar (shared with the videos tab)
-                // picks the channel; the right pane embeds the channel header and
-                // that channel's video grid. The public channel page stays a small
-                // button; management lives in /me/channels via the sidebar entry.
-                const chKey = (ch: any) => String(ch.id);
-                const effectiveKey = selectedChannelId !== 'all' && channels.some(c => chKey(c) === selectedChannelId)
-                    ? selectedChannelId
-                    : chKey(channels[0]);
-                const activeChannel = channels.find(c => chKey(c) === effectiveKey);
-                return (
-                    <div className="flex flex-col md:flex-row gap-5">
-                        {renderChannelSideBar()}
-                        <div className="flex-1 min-w-0 space-y-4">
+                            {/* REDESIGN-B r3: embedded channel header when a concrete channel is selected */}
                             {activeChannel && (
                                 <div className="rounded-xl border p-4">
                                     <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -621,6 +563,28 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                     </div>
                                 </div>
                             )}
+                            {/* Toolbar: context title + upload */}
+                            <div className="flex items-center justify-between gap-3 flex-wrap">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-sm font-medium truncate">
+                                        {selectedChannelId === 'all' || !activeChannel
+                                            ? t('video.allChannels', '全部频道')
+                                            : activeChannel.name}
+                                    </span>
+                                    {selectedChannelId !== 'all' && activeChannel && (
+                                        <Badge variant="secondary" className="flex items-center gap-1 flex-shrink-0">
+                                            <Tv className="w-3 h-3"/>
+                                            {(activeChannel as any).media_count ?? 0} {t('common.videos', '视频')}
+                                        </Badge>
+                                    )}
+                                </div>
+                                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white flex-shrink-0">
+                                    <Plus className="w-4 h-4 mr-2"/>
+                                    {t('myVideos.uploadVideo', '上传视频')}
+                                </Button>
+                            </div>
+
+                            {/* Video grid with infinite scroll */}
                             {renderVideoGridWithPaging()}
                         </div>
                     </div>
@@ -799,7 +763,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                         <Upload className="w-4 h-4 mr-2"/>
                                         {t('profile.uploadContent')}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setOwnerTab('channels')}>
+                                    <DropdownMenuItem onClick={() => navigate({to: '/me/channels'} as any)}>
                                         <Tv className="w-4 h-4 mr-2"/>
                                         {t('profile.createChannel')}
                                     </DropdownMenuItem>
