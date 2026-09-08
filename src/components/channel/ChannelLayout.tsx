@@ -41,7 +41,8 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
 }) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('home');
+    // REDESIGN-B r5: home tab removed (duplicated videos); videos is the landing tab.
+    const [activeTab, setActiveTab] = useState('videos');
     const [subscriberCount, setSubscriberCount] = useState(channel.subscriber_count || 0);
     const [contentEmpty, setContentEmpty] = useState(false);
 
@@ -123,16 +124,6 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
 
                 <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <main className="w-full">
-                        {activeTab === 'home' && (
-                            <HomeTabContent
-                                channelToken={channelToken}
-                                channelId={channel.id}
-                                isOwner={isOwner}
-                                channelName={channel.name}
-                                onTabChange={handleTabChange}
-                                onEmptyChange={handleContentEmptyChange}
-                            />
-                        )}
                         {activeTab === 'videos' && (
                             <VideosTabContent
                                 isOwner={isOwner}
@@ -176,83 +167,6 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
     );
 };
 
-// ================================
-// Home Tab - Shows featured + latest videos from API
-// ================================
-const HomeTabContent: React.FC<{
-    channelToken?: string;
-    channelId?: string;
-    isOwner: boolean;
-    channelName?: string;
-    onTabChange: (tab: string) => void;
-    onEmptyChange?: (empty: boolean) => void;
-}> = ({channelToken, channelId, isOwner, channelName, onTabChange, onEmptyChange}) => {
-    const {t} = useTranslation();
-
-    const {data: videosData, isLoading} = useChannelVideos(channelToken || null, {
-        sort: 'newest',
-        page_size: 8,
-    });
-
-    const videos = videosData?.items || [];
-
-    React.useEffect(() => {
-        if (!isLoading) {
-            onEmptyChange?.(videos.length === 0);
-        }
-    }, [isLoading, videos.length, onEmptyChange]);
-
-    if (isLoading) {
-        return (
-            <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                        <div key={i} className="animate-pulse">
-                            <div className="aspect-video bg-muted rounded-lg"/>
-                            <div className="mt-2 space-y-2">
-                                <div className="h-4 bg-muted rounded w-3/4"/>
-                                <div className="h-3 bg-muted rounded w-1/2"/>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
-    if (videos.length === 0) {
-        return <EmptyState type="home" isOwner={isOwner}/>;
-    }
-
-    return (
-        <div className="space-y-8">
-            <section>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold flex items-center gap-2">
-                        <span>{t('home.latestVideos')}</span>
-                    </h2>
-                    <button
-                        onClick={() => onTabChange('videos')}
-                        className="text-sm text-primary hover:underline font-medium"
-                    >
-                        {t('home.viewAll')}
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
-                    {videos.map((video) => (
-                        <VideoCard
-                            key={video.id}
-                            video={mapMediaToVideo(video)}
-                            showChannelInfo={false}
-                            isOwner={isOwner}
-                            showProgress
-                        />
-                    ))}
-                </div>
-            </section>
-        </div>
-    );
-};
 
 // ================================
 // Videos Tab - Full video list with sort and search

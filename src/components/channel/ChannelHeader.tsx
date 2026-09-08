@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/avatar';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import SubscribeButton from '@/components/common/SubscribeButton';
+import {useUploadState} from '@/contexts/UploadContext';
 import ShareDialog from '@/components/common/ShareDialog';
 import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import {useAuth} from '@/hooks/useAuth';
@@ -67,7 +68,8 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     }, []);
 
     const videoCount = videoCountProp ?? (channel.media_count || 0);
-    const subCount = subscriberCount || channel.subscriber_count || 0;
+    const {openDialog} = useUploadState();
+        const subCount = subscriberCount || channel.subscriber_count || 0;
     const viewCount = channel.total_views || 0;
     const description = channel.description || '';
 
@@ -193,14 +195,13 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                             </>
                         ) : (
                             <>
-                                <Button asChild size="sm">
-                                    <Link
-                                        to="/$handle"
-                                        params={{handle: user?.username ? '@' + user.username : '@me'}}
-                                        search={{tab: 'videos'}}
-                                    >
-                                        <Upload className="w-4 h-4"/>
-                                    </Link>
+                                {/* REDESIGN-B r5: in-channel upload — opens the dialog with this channel preselected */}
+                                <Button
+                                    size="sm"
+                                    title={t('myVideos.uploadVideo', '上传视频')}
+                                    onClick={() => openDialog(channel.id?.toString() || channel.short_token || undefined)}
+                                >
+                                    <Upload className="w-4 h-4"/>
                                 </Button>
                                 <Button asChild variant="outline" size="sm">
                                     <Link

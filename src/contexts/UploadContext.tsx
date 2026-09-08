@@ -17,7 +17,9 @@ interface UploadContextValue {
     tasks: GlobalUploadTask[];
     activeCount: number;
     isDialogOpen: boolean;
-    openDialog: () => void;
+    /** REDESIGN-B r5: preset channel (id or short_token) for the next openDialog. */
+    presetChannelId: string;
+    openDialog: (presetChannelId?: string) => void;
     closeDialog: () => void;
     addTask: (file: File, metadata?: Partial<Pick<UploadTask, 'title' | 'description' | 'categoryId' | 'tags' | 'channelId'>>) => string;
     pauseTask: (taskId: string) => void;
@@ -31,6 +33,7 @@ const UploadContext = createContext<UploadContextValue>({
     tasks: [],
     activeCount: 0,
     isDialogOpen: false,
+    presetChannelId: '',
     openDialog: () => {},
     closeDialog: () => {},
     addTask: () => '',
@@ -50,7 +53,11 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
     const fileMapRef = useRef<Map<string, File>>(new Map());
     const activeUploadsRef = useRef<Map<string, UploadTask>>(new Map());
 
-    const openDialog = useCallback(() => setIsDialogOpen(true), []);
+    const [presetChannelId, setPresetChannelId] = useState<string>('');
+    const openDialog = useCallback((preset?: string) => {
+        setPresetChannelId(preset || '');
+        setIsDialogOpen(true);
+    }, []);
     const closeDialog = useCallback(() => setIsDialogOpen(false), []);
 
     const updateTask = useCallback((id: string, updates: Partial<GlobalUploadTask>) => {
@@ -186,6 +193,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         tasks,
         activeCount,
         isDialogOpen,
+        presetChannelId,
         openDialog,
         closeDialog,
         addTask,
@@ -194,7 +202,7 @@ export const UploadProvider: React.FC<{ children: React.ReactNode }> = ({childre
         cancelTask,
         removeTask,
         clearCompleted,
-    }), [tasks, activeCount, isDialogOpen, openDialog, closeDialog, addTask, pauseTask, resumeTask, cancelTask, removeTask, clearCompleted]);
+    }), [tasks, activeCount, isDialogOpen, presetChannelId, openDialog, closeDialog, addTask, pauseTask, resumeTask, cancelTask, removeTask, clearCompleted]);
 
     return (
         <UploadContext.Provider value={value}>

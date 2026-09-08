@@ -1,6 +1,6 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
-import {Film, Info, Home, MessageSquare, Users} from 'lucide-react';
+import {Film, Info, MessageSquare, Users} from 'lucide-react';
 
 interface ChannelNavProps {
     activeTab: string;
@@ -15,8 +15,9 @@ const ChannelNav: React.FC<ChannelNavProps> = ({
 }) => {
     const {t} = useTranslation();
 
+    // REDESIGN-B r5: 'home' dropped — its featured+latest content duplicates the
+    // videos tab for channels with a single page of content.
     const tabs = [
-        {id: 'home', label: t('channel.tabHome'), icon: Home},
         {id: 'videos', label: t('channel.tabVideos'), icon: Film},
         {id: 'community', label: t('channel.tabCommunity'), icon: MessageSquare},
         ...(_isOwner ? [{id: 'subscriptions', label: t('channel.tabSubscriptions'), icon: Users}] : []),

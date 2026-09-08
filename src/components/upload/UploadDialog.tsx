@@ -39,7 +39,7 @@ const NONE_CHANNEL = '_none_';
 export const UploadDialog: React.FC = () => {
     const {t} = useTranslation();
     const {isAuthenticated} = useAuth();
-    const {addTask, isDialogOpen, closeDialog} = useUploadState();
+    const {addTask, isDialogOpen, closeDialog, presetChannelId: presetChannelIdCtx} = useUploadState();
     const {data: channels, isLoading: channelsLoading} = useMyChannels(isDialogOpen && isAuthenticated);
     const [selectedChannelId, setSelectedChannelId] = useState<string>('');
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -111,9 +111,16 @@ export const UploadDialog: React.FC = () => {
 
     useEffect(() => {
         if (isDialogOpen && hasChannels && !selectedChannelId) {
-            setSelectedChannelId(getChannelValue(channelList[0]));
+            // REDESIGN-B r5: an opener-provided preset channel wins over first-channel default.
+            // The preset may be an id OR a short_token depending on the caller, and the
+            // dialog list may come from listAll while the caller passed a token — match
+            // on both, then normalize to the list item's own value.
+            const presetHit = presetChannelIdCtx
+                ? channelList.find(ch => getChannelValue(ch) === presetChannelIdCtx || ch.short_token === presetChannelIdCtx)
+                : undefined;
+            setSelectedChannelId(presetHit ? getChannelValue(presetHit) : getChannelValue(channelList[0]));
         }
-    }, [isDialogOpen, hasChannels, channelList, selectedChannelId, getChannelValue]);
+    }, [isDialogOpen, hasChannels, channelList, selectedChannelId, getChannelValue, presetChannelIdCtx]);
 
     useEffect(() => {
         if (!isDialogOpen) {
