@@ -118,18 +118,25 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const [ownerTab, setOwnerTab] = useState<OwnerTab>(initialOwnerTab);
     const [visitorTab, setVisitorTab] = useState<VisitorTab>(initialVisitorTab);
 
-    // Sync external URL tab changes (browser back/forward, Link nav) to local state.
-    // Internal tab clicks update state directly (do NOT push URL) so history stack stays clean.
+    // BUG-301: remember the last tab value we synced FROM the URL. Internal tab
+    // clicks update state directly and intentionally do NOT push the URL (so the
+    // history stack stays clean). The previous effect compared `search.tab` against
+    // local state and reverted every internal click back to the URL's tab — so after
+    // landing via `/@user?tab=playlists`, switching tabs appeared dead. Now we only
+    // react when the URL's tab param actually changes (external nav / back-forward).
+    const lastUrlTabRef = useRef<string | undefined>(undefined);
+
     useEffect(() => {
-        const next = search.tab as OwnerTab | undefined;
-        if (next && validOwnerTabs.has(next) && next !== ownerTab) {
-            setOwnerTab(next);
+        const next = search.tab as string | undefined;
+        if (next === lastUrlTabRef.current) return;
+        lastUrlTabRef.current = next;
+        if (next && validOwnerTabs.has(next as OwnerTab)) {
+            setOwnerTab(next as OwnerTab);
         }
-        const nextV = search.tab as VisitorTab | undefined;
-        if (nextV && validVisitorTabs.has(nextV) && nextV !== visitorTab) {
-            setVisitorTab(nextV);
+        if (next && validVisitorTabs.has(next as VisitorTab)) {
+            setVisitorTab(next as VisitorTab);
         }
-    }, [search.tab, validOwnerTabs, validVisitorTabs, ownerTab, visitorTab]);
+    }, [search.tab, validOwnerTabs, validVisitorTabs]);
 
     // Filter out articles tab when articles module is disabled
     const visibleOwnerTabs = useMemo(() => {
