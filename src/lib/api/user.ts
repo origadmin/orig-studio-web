@@ -338,9 +338,9 @@ export const userApi = {
     getUserSubscriptions: (slug: string, params?: { page?: number; page_size?: number }) =>
         api.get<SubscriptionListResponse>(`/users/${slug}/subscriptions`, params),
 
-    // Get user's channels (public)
-    getUserChannels: (slug: string, params?: { page?: number; limit?: number; page_size?: number }) =>
-        api.get<{items: any[]; total: number; page: number; page_size: number}>(`/users/${slug}/channels`, params),
+    // getUserChannels was REMOVED (BUG-302): /users/{slug}/channels was never a
+    // registered endpoint. A user's channel list lives at GET /channels?user_id=
+    // (channelApi.list({user_id})).
 
     // ==================== Dedicated User Stats APIs (decoupled from content list) ====================
     // Get a user's profile stats by username/slug/id (public) — returns total_medias etc.

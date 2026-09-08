@@ -12,7 +12,6 @@ import {
     useUserUnsubscribe,
     useDeleteMedia,
     useUserPlaylists,
-    useUserChannels,
     useUserFollowers,
     useUserStats,
     useMyStats,
@@ -195,10 +194,18 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {data: userStats} = useUserStats(username, isProfileLoaded && !isOwner);
     const headerVideoCount = (isOwner ? myStats?.total_medias : userStats?.total_medias) ?? 0;
 
-    const {data: userChannelsData, isLoading: channelsLoading} = useUserChannels(
-        isProfileLoaded ? username : null
+    // BUG-302: the profile channels tab used useUserChannels(slug) which called
+    // GET /users/{slug}/channels — an endpoint that was NEVER registered in the
+    // proto contract or the gateway (404 swallowed by React Query -> permanent
+    // empty state). The contract endpoint for a user's channel list is
+    // GET /channels?user_id={id} (media_service.proto ListChannels), which
+    // useMyChannels already exercises for the owner view; it is public so it
+    // works for the visitor view too.
+    const {data: userChannelsData, isLoading: channelsLoading} = useMyChannels(
+        isProfileLoaded && !!profileIdStr,
+        profileIdStr,
     );
-    const channels: any[] = Array.isArray((userChannelsData as any)?.items) ? (userChannelsData as any).items : [];
+    const channels: any[] = Array.isArray(userChannelsData) ? userChannelsData : [];
 
     const selectedChannelIdForQuery = useMemo(() => {
         return isOwner && selectedChannelId !== 'all' ? selectedChannelId : undefined;

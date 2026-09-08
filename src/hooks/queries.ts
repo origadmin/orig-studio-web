@@ -467,20 +467,10 @@ export function useMyChannels(enabled: boolean, userId?: string) {
 }
 
 /**
- * useUserChannels: Get a user's public channel list (/users/:slug/channels)
- * Works for both owner and visitor perspectives.
+ * useUserChannels was REMOVED (BUG-302): it called /users/:slug/channels, an
+ * endpoint that never existed in the backend contract (permanent 404). Use
+ * useMyChannels(enabled, userId) which goes through GET /channels?user_id=.
  */
-export function useUserChannels(slug: string | null | undefined, enabled?: boolean) {
-    return useQuery({
-        queryKey: ['user-channels', slug],
-        queryFn: async () => {
-            if (!slug) return {items: [], total: 0};
-            const res = await userApi.getUserChannels(slug, {page: 1, page_size: 50});
-            return res;
-        },
-        enabled: !!slug && enabled !== false,
-    });
-}
 
 /**
  * useUserFollowers: Get a user's public followers list (/users/:slug/followers)
