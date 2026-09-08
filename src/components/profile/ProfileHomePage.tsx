@@ -47,6 +47,7 @@ import {
     ChevronDown,
     Tv,
     Video,
+    ExternalLink,
     FileText,
     History,
     UserCheck,
@@ -425,6 +426,62 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         {id: 'about', label: t('profile.tabAbout'), icon: Info},
     ];
 
+    // REDESIGN-B: shared video grid + paging used by BOTH the videos tab and the
+    // channels tab (channel-centric embedded view). One source of truth for the
+    // selected channel (`selectedChannelId`) keeps the two views consistent.
+    const renderVideoGridWithPaging = () => (
+        <>
+            {videosLoading && videoItems.length === 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
+                    {[1,2,3,4,5,6,7,8].map(i => (
+                        <div key={i} className="animate-pulse">
+                            <div className="aspect-video bg-muted rounded-lg mb-2"/>
+                            <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
+                            <div className="h-3 bg-muted rounded w-1/2"/>
+                        </div>
+                    ))}
+                </div>
+            ) : videosError && videoItems.length === 0 ? (
+                <div className="flex items-center justify-center py-20 text-destructive">
+                    {videosError.message || t('common.error')}
+                </div>
+            ) : videoItems.length === 0 ? (
+                <EmptyState type="videos" isOwner={true}/>
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
+                        {videoItems.map(item => (
+                            <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={selectedChannelId === 'all'}/>
+                        ))}
+                    </div>
+                    <div ref={videoSentinelRef} className="flex flex-col items-center py-8">
+                        {videosLoading && (
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <Spinner size="sm"/>
+                                <span className="text-sm">{t('common.loading')}</span>
+                            </div>
+                        )}
+                        {!videosLoading && videoHasMore && videoItems.length > 0 && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleLoadMoreVideos}
+                                className="mt-2"
+                            >
+                                <ChevronDown className="w-4 h-4 mr-1.5"/>
+                                {t('common.loadMore', '加载更多')}
+                            </Button>
+                        )}
+                        {!videoHasMore && videoItems.length > 0 && (
+                            <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
+                        )}
+                    </div>
+                </>
+            )}
+        </>
+    );
+
     const renderOwnerTabContent = () => {
         switch (ownerTab) {
             case 'videos': {
@@ -466,58 +523,11 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         </div>
 
                         {/* Video grid with infinite scroll */}
-                        {videosLoading && videoItems.length === 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
-                                {[1,2,3,4,5,6,7,8].map(i => (
-                                    <div key={i} className="animate-pulse">
-                                        <div className="aspect-video bg-muted rounded-lg mb-2"/>
-                                        <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
-                                        <div className="h-3 bg-muted rounded w-1/2"/>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : videosError && videoItems.length === 0 ? (
-                            <div className="flex items-center justify-center py-20 text-destructive">
-                                {videosError.message || t('common.error')}
-                            </div>
-                        ) : videoItems.length === 0 ? (
-                            <EmptyState type="videos" isOwner={true}/>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
-                                    {videoItems.map(item => (
-                                        <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={false}/>
-                                    ))}
-                                </div>
-                                <div ref={videoSentinelRef} className="flex flex-col items-center py-8">
-                                    {videosLoading && (
-                                        <div className="flex items-center gap-3 text-muted-foreground">
-                                            <Spinner size="sm"/>
-                                            <span className="text-sm">{t('common.loading')}</span>
-                                        </div>
-                                    )}
-                                    {!videosLoading && videoHasMore && videoItems.length > 0 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleLoadMoreVideos}
-                                            className="mt-2"
-                                        >
-                                            <ChevronDown className="w-4 h-4 mr-1.5"/>
-                                            {t('common.loadMore', '加载更多')}
-                                        </Button>
-                                    )}
-                                    {!videoHasMore && videoItems.length > 0 && (
-                                        <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
-                                    )}
-                                </div>
-                            </>
-                        )}
+                        {renderVideoGridWithPaging()}
                     </div>
                 );
             }
-            case 'channels':
+            case 'channels': {
                 if (channelsLoading && channels.length === 0) {
                     return (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -536,23 +546,94 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 if (channels.length === 0) {
                     return <EmptyState type="channels" isOwner={isOwner}/>;
                 }
+                // REDESIGN-B (channel-centric): the channels tab IS the channel view.
+                // Picking a channel here and filtering the videos tab share the same
+                // `selectedChannelId` state, so the two tabs never disagree. The
+                // public channel page is demoted to a small icon; management lives
+                // in /me/channels.
+                const chKey = (ch: any) => String(ch.id);
+                const effectiveKey = selectedChannelId !== 'all' && channels.some(c => chKey(c) === selectedChannelId)
+                    ? selectedChannelId
+                    : chKey(channels[0]);
+                const activeChannel = channels.find(c => chKey(c) === effectiveKey);
+                const setActive = (key: string) => {
+                    setSelectedChannelId(key);
+                    setVideoPage(1);
+                };
                 return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {channels.map((ch: any) => (
-                            <div key={ch.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
-                                 onClick={() => navigate({to: '/c/$token', params: {token: ch.token || ch.short_token}} as any)}>
-                                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                    {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
+                    <div className="space-y-5">
+                        {/* Channel picker row */}
+                        <div className="flex items-stretch gap-3 flex-wrap">
+                            {channels.map((ch: any) => {
+                                const selected = chKey(ch) === effectiveKey;
+                                return (
+                                    <div
+                                        key={ch.id}
+                                        className={`relative flex items-center gap-3 p-3 pr-9 rounded-lg border cursor-pointer transition-colors min-w-[200px] ${
+                                            selected ? 'border-primary bg-primary/5' : 'border hover:bg-accent'
+                                        }`}
+                                        onClick={() => setActive(chKey(ch))}
+                                    >
+                                        <div className="w-11 h-11 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {ch.logo ? <img src={getImageUrl(ch.logo, 'avatar')} alt="" className="w-11 h-11 object-cover"/> : <Tv className="w-5 h-5 text-muted-foreground"/>}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className={`font-medium text-sm truncate ${selected ? 'text-primary' : ''}`}>
+                                                {ch.name}
+                                                {(ch as any).is_default && <span className="ml-1.5 text-[10px] text-muted-foreground">({t('common.default', '默认')})</span>}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {(ch as any).media_count ?? 0} {t('common.videos', '视频')}
+                                            </p>
+                                        </div>
+                                        {selected && (
+                                            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" aria-hidden/>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            {isOwner && (
+                                <button
+                                    type="button"
+                                    className="flex items-center gap-2 p-3 rounded-lg border border-dashed text-muted-foreground hover:bg-accent transition-colors text-sm"
+                                    onClick={() => navigate({to: '/me/channels'} as any)}
+                                >
+                                    <Settings className="w-4 h-4"/>
+                                    {t('channel.channelSettings', '管理频道')}
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Embedded channel view: header + this channel's videos */}
+                        {activeChannel && (
+                            <div className="rounded-xl border p-4 space-y-4">
+                                <div className="flex items-center justify-between gap-3 flex-wrap">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                            {activeChannel.logo ? <img src={getImageUrl(activeChannel.logo, 'avatar')} alt="" className="w-12 h-12 object-cover"/> : <Tv className="w-6 h-6 text-muted-foreground"/>}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold truncate">{activeChannel.name}</p>
+                                            <p className="text-xs text-muted-foreground line-clamp-1">
+                                                {activeChannel.description || t('profile.noDescription')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => navigate({to: '/c/$token', params: {token: (activeChannel as any).token || activeChannel.short_token}} as any)}
+                                    >
+                                        <ExternalLink className="w-3.5 h-3.5 mr-1.5"/>
+                                        {t('channel.viewChannel', '公开主页')}
+                                    </Button>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="font-medium text-sm line-clamp-2">{ch.name}</p>
-                                    <p className="text-xs text-muted-foreground line-clamp-2">{ch.description || t('profile.noDescription')}</p>
-                                </div>
-                                {isOwner && <Settings className="w-4 h-4 text-muted-foreground flex-shrink-0"/>}
+                                {renderVideoGridWithPaging()}
                             </div>
-                        ))}
+                        )}
                     </div>
                 );
+            }
             case 'articles':
                 return (
                     <ContentSection
