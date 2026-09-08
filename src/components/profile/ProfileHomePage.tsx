@@ -187,16 +187,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {data: userStats} = useUserStats(username, isProfileLoaded && !isOwner);
     const headerVideoCount = (isOwner ? myStats?.total_medias : userStats?.total_medias) ?? 0;
 
-    // BUG-302: the profile channels tab used useUserChannels(slug) which called
-    // GET /users/{slug}/channels — an endpoint that was NEVER registered in the
-    // proto contract or the gateway (404 swallowed by React Query -> permanent
-    // empty state). The contract endpoint for a user's channel list is
-    // GET /channels?user_id={id} (media_service.proto ListChannels), which
-    // useMyChannels already exercises for the owner view; it is public so it
-    // works for the visitor view too.
+    // BUG-309: the profile channels tab uses useMyChannels with the profile slug.
+    // Visitor view hits GET /users/{slug}/channels (gateway resolves shortid→
+    // user_id and injects the trusted header); owner view hits GET /channels/me
+    // (token-derived). The legacy GET /channels?user_id={id} anti-pattern
+    // (internal UUID in the URL, client-spoofable) is retired.
     const {data: userChannelsData, isLoading: channelsLoading} = useMyChannels(
-        isProfileLoaded && !!profileIdStr,
+        isProfileLoaded && !!profile?.slug,
         profileIdStr,
+        profile?.slug,
     );
     const channels: any[] = Array.isArray(userChannelsData) ? userChannelsData : [];
 

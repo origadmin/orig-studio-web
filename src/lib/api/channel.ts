@@ -131,6 +131,17 @@ export const channelApi = {
     getMyChannel: () =>
         api.get<{channel: ChannelDetail | null}>('/channels/me'),
 
+    // BUG-309: owner's channels, token-derived (GET /channels/me). No user_id
+    // in the URL — identity comes from the JWT. Returns the full list shape.
+    getMyChannelsList: () =>
+        api.get<ChannelList>('/channels/me'),
+
+    // BUG-309: a user's public channels by shortid/slug (GET /users/{shortid}/channels).
+    // The gateway resolves shortid→user_id and injects the trusted header; the
+    // legacy GET /channels?user_id=<UUID> anti-pattern is retired.
+    listByUser: (slug: string, params?: { page?: number; limit?: number }) =>
+        api.get<ChannelList>(`/users/${slug}/channels`, params as Record<string, unknown>),
+
     create: (data: {channel: CreateChannelInput}) => api.post<{channel: Channel}>('/channels', data),
 
     update: (token: string, data: {channel: Partial<Channel>}) => api.put<{channel: Channel}>(`/channels/${token}`, data),

@@ -453,22 +453,28 @@ export function useMyChannel(enabled: boolean) {
     });
 }
 
-export function useMyChannels(enabled: boolean, userId?: string) {
-    // BUG-306: the caller may omit userId (upload dialog, my-channels page,
-    // my-videos filter, media edit). The old fallback was channelApi.listAll(),
-    // i.e. the PUBLIC channel list — so admins saw every user's channels in the
-    // upload dropdown and could file videos into testuser_a/b/c channels.
-    // Fall back to the signed-in user instead, and disable the query entirely
-    // when we have no user id: never silently widen to the public list.
+export function useMyChannels(enabled: boolean, userId?: string, slug?: string) {
+    // BUG-306 / BUG-309: identity must come from the token or a shortid, never
+    // a client-supplied ?user_id=<UUID>. Owner view (no userId, or userId is
+    // the signed-in user) hits GET /channels/me (token-derived). Visitor view
+    // hits GET /users/{slug}/channels — the gateway resolves shortid→user_id and
+    // injects the trusted header; the legacy GET /channels?user_id=<UUID>
+    // anti-pattern is retired. When neither a slug nor a userId is available the
+    // query is disabled: never silently widen to the public list.
     const {user} = useAuth();
-    const ownerId = userId || user?.id || '';
+    const isOwnerView = !userId || userId === user?.id;
+    const queryKey = isOwnerView ? ['channels', 'me'] : ['channels', 'user', slug || userId];
     return useQuery({
-        queryKey: ['channels', ownerId || 'me'],
+        queryKey,
         queryFn: async () => {
-            const res = await channelApi.list({user_id: ownerId});
-            return res.items as Channel[];
+            if (isOwnerView) {
+                const res = await channelApi.getMyChannelsList();
+                return (res?.items ?? []) as Channel[];
+            }
+            const res = await channelApi.listByUser(slug || userId || '');
+            return (res?.items ?? []) as Channel[];
         },
-        enabled: enabled && !!ownerId,
+        enabled: enabled && (isOwnerView || !!(slug || userId)),
     });
 }
 
