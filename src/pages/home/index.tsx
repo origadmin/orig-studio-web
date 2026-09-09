@@ -371,7 +371,7 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
     return (
         <div className="w-full">
             {heroItems.length > 0 && (
-                <section className="mb-6">
+                <section className="mb-6 full-bleed">
                     <HeroBanner items={heroItems} mode={heroMode} autoPlayInterval={heroInterval}/>
                 </section>
             )}

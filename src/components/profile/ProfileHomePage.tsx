@@ -742,7 +742,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 Fallback is a compliant blue→teal gradient (no purple-pink). */}
             {/* BUG-318: owner entry — the profile cover is the default
                 channel's banner, so the edit target is that channel. */}
-            <div className="relative">
+            {/* BUG-321: full-bleed so the cover spans viewport edge-to-edge
+                (sidebar overlays its left slice via backdrop-blur). */}
+            <div className="relative full-bleed">
                 {profileBannerUrl ? (
                     <img
                         src={profileBannerUrl}

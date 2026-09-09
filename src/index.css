@@ -485,4 +485,16 @@
     .dark .sidebar-scrollbar:hover::-webkit-scrollbar-thumb {
         background-color: rgb(75 85 99 / 0.7);
     }
+
+    /* BUG-321: breakout primitive. PortalLayout's content wrapper adds
+       paddingLeft = var(--sidebar-width) so Outlet pages are readable past
+       the sidebar. Elements that should span the full viewport (covers,
+       banners, full-width hero strips) opt into .full-bleed to escape
+       that padding. This is the single, documented place where the
+       breakout lives — NOT the scattered -mx-* patches BUG-321 forbade.
+       Requires a parent that sets `--sidebar-width` (PortalLayout does). */
+    .full-bleed {
+        margin-left: calc(-1 * var(--sidebar-width, 0px));
+        width: calc(100% + var(--sidebar-width, 0px));
+    }
 }
