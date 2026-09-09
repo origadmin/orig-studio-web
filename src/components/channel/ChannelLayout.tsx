@@ -10,10 +10,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2} from 'lucide-react';
+import {Search, ExternalLink, Globe, Link2, Users, UserPlus, Loader2, Plus} from 'lucide-react';
 import type {ChannelDetail} from '@/lib/api/channel';
 import type {Media} from '@/lib/api/media';
-import {useChannelVideos} from '@/hooks/queries';
+import {useChannelVideos, useDeleteMedia} from '@/hooks/queries';
+import {useQueryClient} from '@tanstack/react-query';
+import {useUploadState} from '@/contexts/UploadContext';
+import {toast} from 'sonner';
 import {mediaApi} from '@/lib/api/media';
 import {subscriptionApi, type SubscriptionListResponse} from '@/lib/api/subscription';
 import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
@@ -127,6 +130,8 @@ const ChannelLayout: React.FC<ChannelLayoutProps> = ({
                         {activeTab === 'videos' && (
                             <VideosTabContent
                                 isOwner={isOwner}
+                                channelId={channel.id}
+                                channelToken={channel.short_token}
                                 videosData={videosQueryData}
                                 isLoading={videosLoading}
                                 isFetching={videosFetching}
@@ -183,8 +188,28 @@ const VideosTabContent: React.FC<{
     page: number;
     onPageChange: (p: number) => void;
     onEmptyChange?: (empty: boolean) => void;
-}> = ({isOwner, videosData, isLoading, isFetching, sortBy, onSortChange, searchKeyword, onSearchChange, page, onPageChange, onEmptyChange}) => {
+    channelId: string;
+    channelToken?: string;
+}> = ({isOwner, channelId, channelToken, videosData, isLoading, isFetching, sortBy, onSortChange, searchKeyword, onSearchChange, page, onPageChange, onEmptyChange}) => {
     const {t} = useTranslation();
+    const {openDialog} = useUploadState();
+    const deleteMutation = useDeleteMedia();
+    const queryClient = useQueryClient();
+
+    // Channel-as-studio (BUG-317 r3): manage affordances live on the channel
+    // page itself. Upload presets this channel; delete invalidates the
+    // channel-scoped videos query so the grid refetches in place.
+    const handleDeleteVideo = async (videoId: string) => {
+        try {
+            await deleteMutation.mutateAsync(videoId);
+            toast.success(t('common.deleted', '已删除'));
+            if (channelToken) {
+                await queryClient.invalidateQueries({queryKey: ['channelVideos', channelToken]});
+            }
+        } catch {
+            toast.error(t('common.deleteFailed', '删除失败'));
+        }
+    };
     const [allVideos, setAllVideos] = useState<any[]>([]);
 
     // The real query lives in ChannelLayout (always mounted), so `videosData` is
@@ -250,6 +275,16 @@ const VideosTabContent: React.FC<{
                 <h2 className="text-lg font-semibold">
                     {t('channel.allVideos')} ({total})
                 </h2>
+                {isOwner && channelId && (
+                    <Button
+                        size="sm"
+                        onClick={() => openDialog(channelId)}
+                        className="bg-primary hover:bg-primary/90 text-white"
+                    >
+                        <Plus className="w-4 h-4 mr-1.5"/>
+                        {t('channel.uploadToChannel', '上传视频到频道')}
+                    </Button>
+                )}
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
@@ -289,8 +324,7 @@ const VideosTabContent: React.FC<{
                             showChannelInfo={false}
                             isOwner={isOwner}
                             showProgress
-                            onEdit={(id) => console.log('Edit video:', id)}
-                            onViewStats={(id) => console.log('View stats:', id)}
+                            onDelete={isOwner ? handleDeleteVideo : undefined}
                         />
                     ))}
                 </div>

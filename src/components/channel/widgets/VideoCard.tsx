@@ -41,6 +41,7 @@ interface VideoCardProps {
     isOwner?: boolean;
     size?: 'normal' | 'compact' | 'large';
     onEdit?: (videoId: string) => void;
+    onDelete?: (videoId: string) => void;
     onViewStats?: (videoId: string) => void;
     onAddToPlaylist?: (videoId: string) => void;
     onShare?: (videoId: string) => void;
@@ -53,6 +54,7 @@ const VideoCard: React.FC<VideoCardProps> = ({
     isOwner = false,
     size = 'normal',
     onEdit,
+    onDelete,
     onViewStats,
     onAddToPlaylist,
     onShare,
@@ -107,6 +109,10 @@ const VideoCard: React.FC<VideoCardProps> = ({
         } else {
             navigate({to: '/media/$shortToken/edit', params: {shortToken: video.short_token || String(video.id)}} as any);
         }
+    };
+
+    const handleDelete = () => {
+        onDelete?.(video.id);
     };
 
     const handleViewStats = () => {
@@ -230,6 +236,18 @@ const VideoCard: React.FC<VideoCardProps> = ({
                         >
                             <Pencil className="w-3.5 h-3.5 text-white"/>
                         </button>
+                        {onDelete && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete();
+                                }}
+                                className="p-1.5 bg-black/60 hover:bg-red-600 rounded-full backdrop-blur-sm transition-colors"
+                                title={t('common.delete') || 'Delete video'}
+                            >
+                                <Trash2 className="w-3.5 h-3.5 text-white"/>
+                            </button>
+                        )}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();

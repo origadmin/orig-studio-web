@@ -101,8 +101,11 @@ const MyChannels = () => {
         }
     };
 
+    // Channel-as-studio (BUG-317 r3): manage happens ON the channel page.
+    // /c/{token} is owner-aware (backend is_owner) - the videos tab carries
+    // the upload/edit/delete affordances there.
     const handleManageVideos = (channel: Channel) => {
-        navigate({to: '/me/videos', search: {channel: String(channel.id)}});
+        navigate({to: '/c/$id', params: {id: channel.short_token || String(channel.id)}});
     };
 
     if (isLoading) {
@@ -245,15 +248,6 @@ const MyChannels = () => {
                                                 <ListVideo size={14} className="mr-1"/>
                                                 {t('channel.manageVideos', '管理视频')}
                                             </Button>
-                                            <Link
-                                                to="/c/$id"
-                                                params={{id: channel.short_token || channel.id}}
-                                            >
-                                                <Button variant="outline" size="sm">
-                                                    <ExternalLink size={14} className="mr-1"/>
-                                                    {t('channel.viewChannel')}
-                                                </Button>
-                                            </Link>
                                         </div>
                                     </div>
                                 </div>
