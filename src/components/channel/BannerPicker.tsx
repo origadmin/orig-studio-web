@@ -122,7 +122,9 @@ export const BannerPickerDialog: React.FC<BannerPickerDialogProps> = ({
                             : t('channel.banner_desc', '选择内置背景，或上传自己的条图（保存后立即生效）')}
                     </DialogDescription>
                 </DialogHeader>
-                <BannerPicker value={value} onChange={setValue}/>
+                <div className="px-6 py-4 min-w-0">
+                    <BannerPicker value={value} onChange={setValue}/>
+                </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
                         {t('common.cancel', '取消')}
