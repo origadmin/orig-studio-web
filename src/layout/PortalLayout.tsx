@@ -56,16 +56,8 @@ const PortalLayout = () => {
             <main
                 className="min-h-screen transition-all duration-300 bg-background relative z-10 flex-1 flex flex-col"
                 style={{
-                    // BUG-321 (overlay pattern): the Sidebar is already `fixed
-                    // left-0 + z-40 + bg-background` (an opaque overlay). It does
-                    // NOT need main to be pushed out of its way. Main is therefore
-                    // full viewport width; the outlet wrapper below adds
-                    // paddingLeft = sidebarWidth so text/buttons inside Outlet
-                    // stay readable past the sidebar. Covers and banners opt
-                    // into `.full-bleed` to span the viewport edge-to-edge
-                    // (and are then overlaid by the semi-transparent sidebar).
+                    marginLeft: sidebarWidth,
                     paddingTop: 56,
-                    ['--sidebar-width' as string]: sidebarWidth + 'px',
                 }}
             >
                 {!hideCategoryChips && (
@@ -73,15 +65,10 @@ const PortalLayout = () => {
                         <CategoryChips embedded={true}/>
                     </div>
                 )}
-                <div
-                    className="py-4 md:py-6 flex-1"
-                    style={{paddingLeft: 'var(--sidebar-width)'}}
-                >
+                <div className="py-4 md:py-6 flex-1">
                     <Outlet/>
                 </div>
-                <div style={{paddingLeft: 'var(--sidebar-width)'}}>
-                    <Footer/>
-                </div>
+                <Footer/>
             </main>
             <UploadDialog/>
         </div>

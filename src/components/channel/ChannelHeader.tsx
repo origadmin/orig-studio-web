@@ -77,7 +77,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     const description = channel.description || '';
 
     return (
-        <div className="relative full-bleed">
+        <div className="relative">
             {/* Banner Section - 250px height, full-width background */}
             <div className="relative group">
                 {channel.banner ? (

@@ -539,7 +539,7 @@ const Sidebar: React.FC<SidebarProps> = ({collapsed = false}) => {
         <>
             <aside
                 style={{width}}
-                className="fixed left-0 top-14 bottom-0 z-40 hidden md:flex flex-col transition-all duration-200 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-r border-border/40"
+                className="fixed left-0 top-14 bottom-0 bg-background z-40 hidden md:flex flex-col transition-all duration-200"
             >
                 {collapsed ? (
                     <nav className="flex-1 overflow-hidden py-2 relative">
