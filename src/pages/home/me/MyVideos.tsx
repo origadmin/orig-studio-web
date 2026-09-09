@@ -233,7 +233,7 @@ const MyVideos = () => {
                         >
                             <Button variant="outline">
                                 <ExternalLink className="w-4 h-4 mr-2"/>
-                                {t('channel.viewChannel', '查看频道')}
+                                {t('channel.channelHome', '频道主页')}
                             </Button>
                         </Link>
                     )}

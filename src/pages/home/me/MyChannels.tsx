@@ -104,7 +104,7 @@ const MyChannels = () => {
     // Channel-as-studio (BUG-317 r3): manage happens ON the channel page.
     // /c/{token} is owner-aware (backend is_owner) - the videos tab carries
     // the upload/edit/delete affordances there.
-    const handleManageVideos = (channel: Channel) => {
+    const handleOpenChannelHome = (channel: Channel) => {
         navigate({to: '/c/$id', params: {id: channel.short_token || String(channel.id)}});
     };
 
@@ -242,11 +242,11 @@ const MyChannels = () => {
                                             <Button
                                                 variant="default"
                                                 size="sm"
-                                                onClick={() => handleManageVideos(channel)}
+                                                onClick={() => handleOpenChannelHome(channel)}
                                                 className="bg-primary hover:bg-primary/90 text-white"
                                             >
-                                                <ListVideo size={14} className="mr-1"/>
-                                                {t('channel.manageVideos', '管理视频')}
+                                                <ExternalLink size={14} className="mr-1"/>
+                                                {t('channel.channelHome', '频道主页')}
                                             </Button>
                                         </div>
                                     </div>
