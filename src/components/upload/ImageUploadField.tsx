@@ -20,6 +20,9 @@ interface ImageUploadFieldProps {
      *  the media library. Portal/banner imagery must NOT create content_media
      *  records — the media library is video-only. */
     assetMode?: boolean;
+    /** SM-4: override the portal-asset endpoint (default /admin/portal/assets,
+     *  admin-gated). Owner banner uploads pass /me/banner (JWT-gated). */
+    assetEndpoint?: string;
 }
 
 export function ImageUploadField({
@@ -31,6 +34,7 @@ export function ImageUploadField({
     kind = 'image',
     aspect = 'video',
     assetMode = false,
+    assetEndpoint = '/admin/portal/assets',
 }: ImageUploadFieldProps) {
     const {t} = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +71,7 @@ export function ImageUploadField({
                     reader.onerror = () => reject(reader.error);
                     reader.readAsDataURL(file);
                 });
-                const res = await api.post<{url: string}>('/admin/portal/assets', {
+                const res = await api.post<{url: string}>(assetEndpoint, {
                     filename: file.name,
                     content_type: file.type || 'image/png',
                     data: dataBase64,

@@ -14,6 +14,7 @@ import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {Label} from '@/components/ui/label';
 import {CreateChannelDialog} from '@/components/channel/CreateChannelDialog';
+import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {getImageUrl} from '@/lib/imageUtils';
 import {
     Dialog,
@@ -36,6 +37,13 @@ import {
     ListVideo,
 } from 'lucide-react';
 
+const BANNER_TEMPLATES = [
+    {path: '/assets/images/banners/banner-ocean.svg', label: 'Ocean'},
+    {path: '/assets/images/banners/banner-forest.svg', label: 'Forest'},
+    {path: '/assets/images/banners/banner-sunset.svg', label: 'Sunset'},
+    {path: '/assets/images/banners/banner-slate.svg', label: 'Slate'},
+];
+
 const MyChannels = () => {
     const {t} = useTranslation();
     const navigate = useNavigate();
@@ -47,7 +55,7 @@ const MyChannels = () => {
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [editChannel, setEditChannel] = useState<Channel | null>(null);
     const [editLoading, setEditLoading] = useState(false);
-    const [editForm, setEditForm] = useState({name: '', description: ''});
+    const [editForm, setEditForm] = useState({name: '', description: '', banner: ''});
 
     const channelList = channels || [];
     const canCreate = limits ? limits.can_create : true;
@@ -65,13 +73,13 @@ const MyChannels = () => {
 
     const handleCreateSuccess = () => {
         setCreateDialogOpen(false);
-        queryClient.invalidateQueries({queryKey: ['channels', 'me']});
+        queryClient.invalidateQueries({queryKey: ['channels']}); // BUG-314: owner key is ['channels','mine',uid] — invalidate the prefix
         queryClient.invalidateQueries({queryKey: ['channel', 'limits']});
     };
 
     const openEditDialog = (channel: Channel) => {
         setEditChannel(channel);
-        setEditForm({name: channel.name, description: channel.description || ''});
+        setEditForm({name: channel.name, description: channel.description || '', banner: channel.banner || ''});
     };
 
     const handleEditSave = async () => {
@@ -82,9 +90,10 @@ const MyChannels = () => {
                 channel: {
                     name: editForm.name,
                     description: editForm.description,
+                    banner: editForm.banner,
                 },
             });
-            queryClient.invalidateQueries({queryKey: ['channels', 'me']});
+            queryClient.invalidateQueries({queryKey: ['channels']}); // BUG-314: owner key is ['channels','mine',uid] — invalidate the prefix
             setEditChannel(null);
         } catch {
         } finally {
@@ -297,6 +306,31 @@ const MyChannels = () => {
                                 value={editForm.description}
                                 onChange={(e) => setEditForm(prev => ({...prev, description: e.target.value}))}
                                 rows={3}
+                            />
+                        </div>
+                        {/* SM-4: channel banner — template picker + owner upload (/me/banner) */}
+                        <div className="grid gap-2">
+                            <Label>{t('channel.banner_label', '频道条图')}</Label>
+                            <div className="grid grid-cols-4 gap-2">
+                                {BANNER_TEMPLATES.map(tpl => (
+                                    <button
+                                        key={tpl.path}
+                                        type="button"
+                                        onClick={() => setEditForm(prev => ({...prev, banner: tpl.path}))}
+                                        className={`h-12 rounded-md overflow-hidden border-2 transition-colors ${editForm.banner === tpl.path ? 'border-primary' : 'border-transparent hover:border-muted-foreground/40'}`}
+                                        title={tpl.label}
+                                    >
+                                        <img src={tpl.path} alt={tpl.label} className="w-full h-full object-cover"/>
+                                    </button>
+                                ))}
+                            </div>
+                            <ImageUploadField
+                                value={editForm.banner}
+                                onChange={(url) => setEditForm(prev => ({...prev, banner: url || ''}))}
+                                label={t('channel.banner_upload', '上传自定义条图')}
+                                kind="image"
+                                assetMode
+                                assetEndpoint="/me/banner"
                             />
                         </div>
                     </div>

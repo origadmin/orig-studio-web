@@ -11,6 +11,7 @@ export interface ChannelLink {
 }
 
 export interface Channel {
+    is_default?: boolean;
     id: string;
     name: string;
     title?: string;

@@ -208,6 +208,16 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     );
     const channels: any[] = Array.isArray(userChannelsData) ? userChannelsData : [];
 
+    // SM-4: profile cover = the owner's banner imagery. Default channel first,
+    // then any channel carrying a banner. Templates (/assets/...) and uploads
+    // (/files/assets/banners/...) both resolve — the latter via getFullUrl.
+    const profileBannerUrl = useMemo(() => {
+        const withBanner = channels.find(c => c.banner);
+        const banner = (channels.find(c => c.is_default) || withBanner || {}).banner;
+        if (!banner) return null;
+        return banner.startsWith('/assets/') ? banner : (getFullUrl(banner) || null);
+    }, [channels]);
+
     // BUG-315: ListMediasRequest has NO channel_id contract field — the
     // frontend's channel_id param was silently dropped by proto binding, so
     // switching the channel selector replayed the same list (measured: 10/10/10
@@ -702,8 +712,18 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
 
     return (
         <div className="-mx-4 md:-mx-6 lg:-mx-8">
-            {/* Banner: pure gradient background */}
-            <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 relative"/>
+            {/* Banner: SM-4 — the profile cover follows the channel-owner's
+                banner (default channel first, then any banner-ed channel).
+                Fallback is a compliant blue→teal gradient (no purple-pink). */}
+            {profileBannerUrl ? (
+                <img
+                    src={profileBannerUrl}
+                    alt=""
+                    className="h-32 sm:h-40 md:h-48 w-full object-cover relative"
+                />
+            ) : (
+                <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500 relative"/>
+            )}
 
             {/* Profile info section: entirely below the banner */}
             <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5">
