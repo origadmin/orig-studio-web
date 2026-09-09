@@ -105,8 +105,11 @@ const MyChannels = () => {
         navigate({to: '/me/videos', search: {channel: String(channel.id)}});
     };
 
-    const handleManageArticles = (channel: Channel) => {
-        navigate({to: '/me/articles', search: {channel: String(channel.id)}});
+    const handleManageArticles = (_channel: Channel) => {
+        // Channel-IA fix (BUG-317): /articles/me is token-derived and has no
+        // channel filter in the contract — passing ?channel= was a fake scope
+        // the destination never read. Open the global article manager instead.
+        navigate({to: '/me/articles'});
     };
 
     if (isLoading) {

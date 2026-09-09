@@ -3,6 +3,8 @@ import React, {useState, useMemo, useEffect, useRef, useCallback} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link, useSearch} from '@tanstack/react-router';
 import {useMediaList, useDeleteMedia, useMyChannels} from '@/hooks/queries';
+import {useQuery} from '@tanstack/react-query';
+import {channelApi} from '@/lib/api/channel';
 import {useAuth} from '@/hooks/useAuth';
 import {useUploadState} from '@/contexts/UploadContext';
 import {Card, CardContent} from '@/components/ui/card';
@@ -68,12 +70,28 @@ const MyVideos = () => {
         return map;
     }, [channels]);
 
-    const {data, isLoading, error} = useMediaList({
+    // Channel-IA fix (BUG-317): the manage surface must honor its scope.
+    // - a specific channel -> GET /channels/{token}/videos (ListMediasRequest
+    //   has NO channel_id field; passing one was silently dropped -> fake filter)
+    // - 'all' -> GET /users/{username}/medias (BUG-285 strips user_id from
+    //   /medias, so this page used to show the whole site's videos)
+    const selectedToken = selectedChannelId !== 'all'
+        ? channelMap.get(selectedChannelId)?.short_token
+        : undefined;
+    const {data: channelScopeData, isLoading: channelScopeLoading, error: channelScopeError} = useQuery({
+        queryKey: ['channelVideos', 'manage', selectedToken, page],
+        queryFn: () => channelApi.getVideos(selectedToken!, {page, limit: PAGE_SIZE}),
+        enabled: !!selectedToken,
+    });
+    const {data: ownerAllData, isLoading: ownerAllLoading, error: ownerAllError} = useMediaList({
         page,
         page_size: PAGE_SIZE,
-        user_id: user?.id,
-        channel_id: selectedChannelId !== 'all' ? selectedChannelId : undefined,
+        shortid: user?.username || undefined,
+        enabled: !!user && !selectedToken,
     });
+    const data = selectedToken ? channelScopeData : ownerAllData;
+    const isLoading = selectedToken ? channelScopeLoading : ownerAllLoading;
+    const error = selectedToken ? channelScopeError : ownerAllError;
 
     const deleteMutation = useDeleteMedia();
 
