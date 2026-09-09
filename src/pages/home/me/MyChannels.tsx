@@ -105,13 +105,6 @@ const MyChannels = () => {
         navigate({to: '/me/videos', search: {channel: String(channel.id)}});
     };
 
-    const handleManageArticles = (_channel: Channel) => {
-        // Channel-IA fix (BUG-317): /articles/me is token-derived and has no
-        // channel filter in the contract — passing ?channel= was a fake scope
-        // the destination never read. Open the global article manager instead.
-        navigate({to: '/me/articles'});
-    };
-
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -252,16 +245,6 @@ const MyChannels = () => {
                                                 <ListVideo size={14} className="mr-1"/>
                                                 {t('channel.manageVideos', '管理视频')}
                                             </Button>
-                                            {modules.articles && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleManageArticles(channel)}
-                                                >
-                                                    <FileText size={14} className="mr-1"/>
-                                                    {t('channel.manageArticles', '管理文章')}
-                                                </Button>
-                                            )}
                                             <Link
                                                 to="/c/$id"
                                                 params={{id: channel.short_token || channel.id}}

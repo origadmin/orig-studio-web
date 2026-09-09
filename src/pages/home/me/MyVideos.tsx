@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
     Video,
+    ArrowLeft,
     Clock,
     Eye,
     Trash2,
@@ -69,6 +70,16 @@ const MyVideos = () => {
         });
         return map;
     }, [channels]);
+
+    const contextChannel = selectedChannelId !== 'all' ? channelMap.get(selectedChannelId) : undefined;
+
+    // Deep-link guard: a stale ?channel=<deleted id> silently falls back to 'all'
+    // instead of rendering a header for a channel that no longer exists.
+    useEffect(() => {
+        if (channels.length > 0 && selectedChannelId !== 'all' && !channelMap.has(selectedChannelId)) {
+            setSelectedChannelId('all');
+        }
+    }, [channels, channelMap, selectedChannelId]);
 
     // Channel-IA fix (BUG-317): the manage surface must honor its scope.
     // - a specific channel -> GET /channels/{token}/videos (ListMediasRequest
@@ -195,13 +206,45 @@ const MyVideos = () => {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">{t('myVideos.title', '我的视频')}</h1>
-                    <p className="text-sm text-muted-foreground">{t('myVideos.subtitle', '管理你上传的所有视频内容')}</p>
+                    {/* Channel-IA (BUG-317): the manage destination must declare
+                       its context — which channel is being managed — and offer
+                       the way back and the public view. */}
+                    <Link
+                        to="/me/channels"
+                        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-1"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5"/>
+                        {t('myChannels.title', '我的频道')}
+                    </Link>
+                    <h1 className="text-2xl font-bold text-foreground">
+                        {contextChannel ? contextChannel.name : t('myVideos.title', '我的视频')}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        {contextChannel
+                            ? t('myVideos.channelContext', '管理此频道的视频内容')
+                            : t('myVideos.subtitle', '管理你上传的所有视频内容')}
+                    </p>
                 </div>
-                <Button onClick={openDialog} className="bg-primary hover:bg-primary/90 text-white">
-                    <Plus className="w-4 h-4 mr-2"/>
-                    {t('myVideos.uploadVideo', '上传视频')}
-                </Button>
+                <div className="flex items-center gap-2">
+                    {contextChannel && (
+                        <Link
+                            to="/c/$id"
+                            params={{id: contextChannel.short_token || String(contextChannel.id)}}
+                        >
+                            <Button variant="outline">
+                                <ExternalLink className="w-4 h-4 mr-2"/>
+                                {t('channel.viewChannel', '查看频道')}
+                            </Button>
+                        </Link>
+                    )}
+                    <Button
+                        onClick={() => openDialog(contextChannel ? String(contextChannel.id) : undefined)}
+                        className="bg-primary hover:bg-primary/90 text-white"
+                    >
+                        <Plus className="w-4 h-4 mr-2"/>
+                        {t('myVideos.uploadVideo', '上传视频')}
+                    </Button>
+                </div>
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
@@ -215,7 +258,6 @@ const MyVideos = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">{t('video.allChannels', '全部频道')}</SelectItem>
-                        <SelectItem value="__unassigned__">{t('video.unassigned', '未归类')}</SelectItem>
                         {channels.map(ch => (
                             <SelectItem key={ch.id} value={String(ch.id)}>
                                 {ch.is_default ? `${ch.name} (${t('common.default', '默认')})` : ch.name}
@@ -223,7 +265,7 @@ const MyVideos = () => {
                         ))}
                     </SelectContent>
                 </Select>
-                {selectedChannelId !== 'all' && selectedChannelId !== '__unassigned__' && channelMap.get(selectedChannelId) && (
+                {selectedChannelId !== 'all' && channelMap.get(selectedChannelId) && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                         <Tv className="w-3 h-3"/>
                         {channelMap.get(selectedChannelId)!.name}
@@ -242,7 +284,7 @@ const MyVideos = () => {
                             <h3 className="text-lg font-medium text-foreground">{t('myVideos.noVideos', '还没有上传视频')}</h3>
                             <p className="text-sm text-muted-foreground">{t('myVideos.noVideosDesc', '你还没有上传过任何视频')}</p>
                         </div>
-                        <Button variant="outline" onClick={openDialog}>
+                        <Button variant="outline" onClick={() => openDialog()}>
                             {t('myVideos.uploadFirst', '上传第一个视频')}
                         </Button>
                     </CardContent>
