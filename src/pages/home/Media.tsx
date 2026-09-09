@@ -50,7 +50,7 @@ export default function MediaPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50">
-                <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-8">
+                <div className="px-4 md:px-6 lg:px-8 py-8">
                     <div className="animate-pulse space-y-4">
                         <div className="h-8 bg-muted rounded w-48"></div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 3xl:grid-cols-6 gap-x-4 gap-y-6">
@@ -85,7 +85,7 @@ export default function MediaPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-8">
+            <div className="px-4 md:px-6 lg:px-8 py-8">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">{t('media.title')}</h1>
                     <Link to="/" className="text-indigo-600 hover:underline">

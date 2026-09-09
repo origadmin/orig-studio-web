@@ -41,7 +41,7 @@ function MeLayout() {
     const pageTitle = getPageTitle();
 
     return (
-        <div className="-mx-4 md:-mx-6 lg:-mx-8">
+        <div className="">
             <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 sticky top-14 z-20">
                 <div className="px-4 sm:px-6 lg:px-8 pt-4">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

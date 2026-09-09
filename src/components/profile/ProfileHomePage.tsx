@@ -736,7 +736,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     };
 
     return (
-        <div className="-mx-4 md:-mx-6 lg:-mx-8">
+        <div className="">
             {/* Banner: SM-4 — the profile cover follows the channel-owner's
                 banner (default channel first, then any banner-ed channel).
                 Fallback is a compliant blue→teal gradient (no purple-pink). */}

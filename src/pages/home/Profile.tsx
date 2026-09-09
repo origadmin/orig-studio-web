@@ -303,7 +303,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                         )}
                     </div>
 
-                    <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8">
+                    <div className="px-4 md:px-6 lg:px-8">
                         <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-10 sm:-mt-14 relative z-10 pb-4">
                             <Avatar className="w-20 h-20 sm:w-28 sm:h-28 md:w-[120px] md:h-[120px] border-4 border-background shadow-lg flex-shrink-0">
                                 {user.avatar ? (
@@ -376,7 +376,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                 </div>
 
                 <div className="border-b border-border sticky top-16 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-                    <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8">
+                    <div className="px-4 md:px-6 lg:px-8">
                         <nav className="flex gap-1 sm:gap-2 overflow-x-auto scrollbar-hide -mb-px" role="tablist">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
@@ -422,7 +422,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({userId: propUserId}) => {
                     </div>
                 </div>
 
-                <div className="-mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 py-6">
+                <div className="px-4 md:px-6 lg:px-8 py-6">
                     {activeTab === 'home' && (
                         (channelsLoading || videosLoading) && channels.length === 0 && videos.length === 0 ? (
                             <div className="space-y-8">

@@ -65,7 +65,10 @@ const PortalLayout = () => {
                         <CategoryChips embedded={true}/>
                     </div>
                 )}
-                <div className="px-4 md:px-6 lg:px-8 py-4 md:py-6 flex-1">
+                {/* No horizontal gutter here: each page owns its own gutter, so
+                    full-bleed sections (covers/banners) need no negative-margin
+                    escape hatch (root cause of repeated whitespace regressions). */}
+                <div className="py-4 md:py-6 flex-1">
                     <Outlet/>
                 </div>
                 <Footer/>
