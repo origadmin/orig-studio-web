@@ -1004,6 +1004,20 @@ const Settings: React.FC = () => {
                                     </Card>
                                 )}
 
+                                {/* BUG-313 / SM-1: hard-constraint reminders for storage switching.
+                                    Full plan: docs/plans/STORAGE_MIGRATION_PLAN.md */}
+                                <Card className="border-amber-300 bg-amber-50/60">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-sm font-semibold text-amber-800">{t('settings.storage.switchLimits', '切换限制（务必阅读）')}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-1.5 text-xs text-amber-800">
+                                        <p>⛔ {t('settings.storage.limitDirectS3', '禁止 local 直切纯远端(s3)：存量文件只在本盘，直切后全部不可读。必须先切 hybrid（镜像）并完成存量补传。')}</p>
+                                        <p>⛔ {t('settings.storage.limitSameType', 'gateway 与 media 的存储类型必须同时切换，单边切换会导致新文件在网关侧读不到。')}</p>
+                                        <p>⛔ {t('settings.storage.limitCacheEvict', '启用缓存驱逐（LocalCacheSize>0）前，必须确认全量同步对账通过。')}</p>
+                                        <p>ℹ️ {t('settings.storage.limitNoBackfill', '同步仅发生在新写入时，存量文件不会自动补传——切换后需执行一次补传。')}{t('settings.storage.limitPlanRef', '操作手册与里程碑：docs/plans/STORAGE_MIGRATION_PLAN.md')}</p>
+                                    </CardContent>
+                                </Card>
+
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>{t('settings.storage.primaryEngine', 'Primary Storage Engine')}</CardTitle>
