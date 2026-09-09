@@ -169,12 +169,36 @@ interface SystemInfo {
     numGoroutine: number;
 }
 
-interface StorageCapabilities {
-    current_type: string;
-    available_types: string[];
-    s3_configured: boolean;
-    s3_available: boolean;
-    hybrid_available: boolean;
+// BUG-313: the storage section previously read storage_type from the
+// unconsumed system_settings copy (seeded "local") and fetched capabilities
+// from a route that 404s on the microservices stack, so the page showed a
+// fake "local" state while the runtime ran hybrid/SeaweedFS. This is the
+// runtime-truth report served by the media process itself.
+interface StorageEffective {
+    effective: {
+        type: string;
+        base_path: string;
+        s3: {
+            endpoint: string;
+            bucket: string;
+            region: string;
+            use_path_style: boolean;
+            access_key_masked: string;
+        };
+        source: string;
+    };
+    usage: {
+        local_files: number;
+        local_bytes: number;
+    };
+    desired: {
+        storage_type: string;
+        fallback_value: string;
+        customized: boolean;
+        source: string;
+    };
+    in_sync: boolean;
+    apply_mode: string;
 }
 
 interface EmailStatus {
@@ -258,6 +282,17 @@ const tabs = [
 ];
 
 const Settings: React.FC = () => {
+    const formatBytes = (n: number): string => {
+        if (!n || n <= 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let v = n;
+        let i = 0;
+        while (v >= 1024 && i < units.length - 1) {
+            v /= 1024;
+            i++;
+        }
+        return `${v.toFixed(v >= 100 || i === 0 ? 0 : 2)} ${units[i]}`;
+    };
     const {t} = useTranslation();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState('general');
@@ -266,13 +301,7 @@ const Settings: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
-    const [storageCaps, setStorageCaps] = useState<StorageCapabilities>({
-        current_type: 'local',
-        available_types: ['local'],
-        s3_configured: false,
-        s3_available: false,
-        hybrid_available: false,
-    });
+    const [storageEffective, setStorageEffective] = useState<StorageEffective | null>(null);
     const [emailStatus, setEmailStatus] = useState<EmailStatus>({configured: false});
     const [emailTestSending, setEmailTestSending] = useState(false);
     const [emailTestTo, setEmailTestTo] = useState('');
@@ -281,7 +310,7 @@ const Settings: React.FC = () => {
     useEffect(() => {
         fetchSettings();
         fetchSystemInfo();
-        fetchStorageCapabilities();
+        fetchStorageEffective();
         fetchEmailStatus();
     }, []);
 
@@ -404,12 +433,16 @@ const Settings: React.FC = () => {
         }
     };
 
-    const fetchStorageCapabilities = async () => {
+    // BUG-313: runtime truth from the media process (env-derived config the
+    // service actually booted with) — replaces the 404 capabilities probe and
+    // the unconsumed settings-table copy.
+    const fetchStorageEffective = async () => {
         try {
-            const caps = await api.get<StorageCapabilities>('/admin/settings/storage/capabilities');
-            setStorageCaps(caps);
+            const caps = await api.get<StorageEffective>('/admin/settings/storage/effective');
+            setStorageEffective(caps);
         } catch (error) {
-            console.error('Failed to fetch storage capabilities:', error);
+            console.error('Failed to fetch storage effective config:', error);
+            setStorageEffective(null);
         }
     };
 
@@ -910,6 +943,67 @@ const Settings: React.FC = () => {
                         <div className="grid grid-cols-12 gap-8">
                             {/* Left Column (8/12) */}
                             <div className="col-span-12 lg:col-span-8 space-y-6">
+                                {/* BUG-313: runtime truth panel — what the media process
+                                    actually booted with (env), not the unconsumed table copy. */}
+                                {storageEffective && (
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2">
+                                                {t('settings.storage.effectiveTitle', '当前生效配置（运行时）')}
+                                                <Badge variant={storageEffective.in_sync ? 'soft-success' : 'soft-warning'}>
+                                                    {storageEffective.in_sync
+                                                        ? t('settings.storage.inSync', '与设置一致')
+                                                        : t('settings.storage.drift', '待重启生效')}
+                                                </Badge>
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-muted-foreground w-28 shrink-0">{t('settings.storage.runningEngine', '存储引擎')}</span>
+                                                <span className="font-mono font-semibold text-card-foreground">
+                                                    {storageEffective.effective.type === 'hybrid'
+                                                        ? t('settings.storage.hybridDesc', 'hybrid（本地优先写入 + SeaweedFS S3 同步）')
+                                                        : storageEffective.effective.type === 's3'
+                                                            ? t('settings.storage.s3Desc', 's3（对象存储直写）')
+                                                            : t('settings.storage.localDesc', 'local（本地文件系统）')}
+                                                </span>
+                                            </div>
+                                            {storageEffective.effective.s3.endpoint && (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <span className="text-muted-foreground w-28 shrink-0">S3 Endpoint</span>
+                                                        <span className="font-mono text-card-foreground">{storageEffective.effective.s3.endpoint}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <span className="text-muted-foreground w-28 shrink-0">{t('settings.storage.bucket', 'Bucket')}</span>
+                                                        <span className="font-mono text-card-foreground">{storageEffective.effective.s3.bucket}</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-muted-foreground w-28 shrink-0">{t('settings.storage.basePath', '本地根路径')}</span>
+                                                <span className="font-mono text-card-foreground">{storageEffective.effective.base_path}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <span className="text-muted-foreground w-28 shrink-0">{t('settings.storage.localUsage', '本地占用')}</span>
+                                                <span className="font-mono text-card-foreground">
+                                                    {formatBytes(storageEffective.usage.local_bytes)} · {storageEffective.usage.local_files.toLocaleString()} {t('settings.storage.files', '个文件')}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                {t('settings.storage.effectiveSource', '来源：')}<code className="font-mono">{storageEffective.effective.source}</code>
+                                                {' · '}{t('settings.storage.applyHint', '修改存储类型后需重启 media 服务生效')}
+                                            </p>
+                                            {!storageEffective.in_sync && (
+                                                <p className="text-xs font-semibold text-amber-600">
+                                                    {t('settings.storage.driftDetail', '设置表中的 storage_type=')}
+                                                    <code className="font-mono">{storageEffective.desired.storage_type || '（空）'}</code>
+                                                    {t('settings.storage.driftHint', '与运行时不一致，重启后按表值生效')}
+                                                </p>
+                                            )}                                        </CardContent>
+                                    </Card>
+                                )}
+
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>{t('settings.storage.primaryEngine', 'Primary Storage Engine')}</CardTitle>
@@ -926,32 +1020,36 @@ const Settings: React.FC = () => {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="local">{t('settings.storage.localFs', 'Local File System')}</SelectItem>
-                                                    <SelectItem value="s3" disabled={!storageCaps.s3_available}>Amazon S3{!storageCaps.s3_available ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
-                                                    <SelectItem value="hybrid" disabled={!storageCaps.hybrid_available}>Hybrid{!storageCaps.hybrid_available ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
+                                                    <SelectItem value="s3" disabled={!storageEffective?.effective.s3.endpoint}>Amazon S3{!storageEffective?.effective.s3.endpoint ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
+                                                    <SelectItem value="hybrid" disabled={!storageEffective?.effective.s3.endpoint}>Hybrid{!storageEffective?.effective.s3.endpoint ? ` (${t('settings.storage.notAvailable', 'Not Available')})` : ''}</SelectItem>
                                                 </SelectContent>
                                             </Select>
+                                            <p className="text-xs text-muted-foreground">{t('settings.storage.typeHint', '保存后写入系统设置，重启 media 服务后按此值生效')}</p>
                                         </div>
 
-                                        {/* S3 Configuration (conditional) */}
+                                        {/* S3 Configuration (runtime-managed, read-only — BUG-313:
+                                            connection params come from env at boot; the editable
+                                            table copy was consumed by nothing) */}
                                         {showS3Config && (
                                             <div className="p-6 border border-border rounded-lg bg-muted">
-                                                <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-4">{t('settings.storage.s3Config', 'S3 Configuration')}</h4>
+                                                <h4 className="text-[11px] font-bold text-card-foreground uppercase tracking-wider mb-1">{t('settings.storage.s3Config', 'S3 Configuration')}</h4>
+                                                <p className="text-xs text-muted-foreground mb-4">{t('settings.storage.s3EnvHint', '连接参数由部署环境（.env / 编排）管理，此处为当前生效值（只读）')}</p>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
                                                         <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.endpoint', 'Endpoint')}</Label>
                                                         <Input
                                                             className="font-mono"
-                                                            value={formData.s3_endpoint}
-                                                            onChange={(e) => handleInputChange('s3_endpoint', e.target.value)}
-                                                            placeholder="https://s3.amazonaws.com"
+                                                            value={storageEffective?.effective.s3.endpoint || formData.s3_endpoint}
+                                                            disabled
+                                                            placeholder="http://seaweedfs:8333"
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
                                                         <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.region', 'Region')}</Label>
                                                         <Input
                                                             className="font-mono"
-                                                            value={formData.s3_region}
-                                                            onChange={(e) => handleInputChange('s3_region', e.target.value)}
+                                                            value={storageEffective?.effective.s3.region || formData.s3_region}
+                                                            disabled
                                                             placeholder="us-east-1"
                                                         />
                                                     </div>
@@ -959,8 +1057,8 @@ const Settings: React.FC = () => {
                                                         <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.bucket', 'Bucket Name')}</Label>
                                                         <Input
                                                             className="font-mono"
-                                                            value={formData.s3_bucket}
-                                                            onChange={(e) => handleInputChange('s3_bucket', e.target.value)}
+                                                            value={storageEffective?.effective.s3.bucket || formData.s3_bucket}
+                                                            disabled
                                                             placeholder="origstudio-assets-production"
                                                         />
                                                     </div>
@@ -968,9 +1066,8 @@ const Settings: React.FC = () => {
                                                         <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.accessKey', 'Access Key')}</Label>
                                                         <Input
                                                             className="font-mono"
-                                                            type="password"
-                                                            value={formData.s3_access_key}
-                                                            onChange={(e) => handleInputChange('s3_access_key', e.target.value)}
+                                                            value={storageEffective?.effective.s3.access_key_masked || ''}
+                                                            disabled
                                                             placeholder="AKIA****************"
                                                         />
                                                     </div>
@@ -979,22 +1076,21 @@ const Settings: React.FC = () => {
                                                         <Input
                                                             className="font-mono"
                                                             type="password"
-                                                            value={formData.s3_secret_key}
-                                                            onChange={(e) => handleInputChange('s3_secret_key', e.target.value)}
-                                                            placeholder="********************************"
+                                                            value="**********"
+                                                            disabled
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Local Storage Path */}
+                                        {/* Local Storage Path (runtime-managed, read-only — BUG-313) */}
                                         <div className="flex flex-col gap-1.5">
                                             <Label className="text-[11px] font-medium text-card-foreground uppercase tracking-wider">{t('settings.storage.basePath', 'Storage Base Path')}</Label>
                                             <Input
                                                 className="font-mono"
-                                                value={formData.storage_base_path}
-                                                onChange={(e) => handleInputChange('storage_base_path', e.target.value)}
+                                                value={storageEffective?.effective.base_path || formData.storage_base_path}
+                                                disabled
                                                 placeholder="/var/media"
                                             />
                                         </div>
@@ -1009,27 +1105,39 @@ const Settings: React.FC = () => {
                                 </Card>
                             </div>
 
-                            {/* Right Column (4/12) */}
+                            {/* Right Column (4/12) — real usage from the runtime report (BUG-313) */}
                             <div className="col-span-12 lg:col-span-4">
                                 <Card>
                                     <CardHeader>
                                         <CardTitle className="text-base">{t('settings.storage.usageBreakdown', 'Usage Breakdown')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        <div>
-                                            <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-muted-foreground">{t('settings.storage.hotStorage', 'Hot Storage')}</span>
-                                                <span className="text-xs font-mono text-card-foreground">8.4 TB</span>
-                                            </div>
-                                            <Progress value={82} className="h-2"/>
-                                        </div>
-                                        <div>
-                                            <div className="flex justify-between mb-1">
-                                                <span className="text-xs text-muted-foreground">{t('settings.storage.archival', 'Archival')}</span>
-                                                <span className="text-xs font-mono text-card-foreground">112 TB</span>
-                                            </div>
-                                            <Progress value={45} className="h-2"/>
-                                        </div>
+                                        {storageEffective ? (
+                                            <>
+                                                <div>
+                                                    <div className="flex justify-between mb-1">
+                                                        <span className="text-xs text-muted-foreground">{t('settings.storage.localDisk', '本地存储盘')}</span>
+                                                        <span className="text-xs font-mono text-card-foreground">{formatBytes(storageEffective.usage.local_bytes)}</span>
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {storageEffective.usage.local_files.toLocaleString()} {t('settings.storage.files', '个文件')} · {storageEffective.effective.base_path}
+                                                    </div>
+                                                </div>
+                                                {storageEffective.effective.s3.endpoint && (
+                                                    <div>
+                                                        <div className="flex justify-between mb-1">
+                                                            <span className="text-xs text-muted-foreground">S3 ({storageEffective.effective.s3.bucket || 'bucket'})</span>
+                                                            <span className="text-xs font-mono text-card-foreground">{t('settings.storage.syncByWorkers', '由同步作业异步同步')}</span>
+                                                        </div>
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {storageEffective.effective.s3.endpoint}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">{t('settings.storage.usageUnavailable', '无法读取运行时存储用量')}</p>
+                                        )}
                                     </CardContent>
                                 </Card>
                             </div>
