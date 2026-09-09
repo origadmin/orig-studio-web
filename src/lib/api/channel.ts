@@ -131,10 +131,14 @@ export const channelApi = {
     getMyChannel: () =>
         api.get<{channel: ChannelDetail | null}>('/channels/me'),
 
-    // BUG-309: owner's channels, token-derived (GET /channels/me). No user_id
-    // in the URL — identity comes from the JWT. Returns the full list shape.
-    getMyChannelsList: () =>
-        api.get<ChannelList>('/channels/me'),
+    // BUG-314: GET /channels/me is the proto GetMyChannel route and returns a
+    // SINGLE-channel shape ({channel}) — the BUG-309 owner-list change pointed
+    // here while expecting a ChannelList, breaking /me/channels entirely. The
+    // owner LIST uses the proto ListChannels contract GET /channels?user_id=<me>;
+    // the server (BUG-309 hardening) honors user_id only when it matches the
+    // token caller or the caller is an admin.
+    getMyChannelsList: (userId: string) =>
+        api.get<ChannelList>('/channels', { user_id: userId }),
 
     // BUG-309: a user's public channels by shortid/slug (GET /users/{shortid}/channels).
     // The gateway resolves shortid→user_id and injects the trusted header; the

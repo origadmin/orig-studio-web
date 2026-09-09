@@ -454,21 +454,25 @@ export function useMyChannel(enabled: boolean) {
 }
 
 export function useMyChannels(enabled: boolean, userId?: string, slug?: string) {
-    // BUG-306 / BUG-309: identity must come from the token or a shortid, never
-    // a client-supplied ?user_id=<UUID>. Owner view (no userId, or userId is
-    // the signed-in user) hits GET /channels/me (token-derived). Visitor view
-    // hits GET /users/{slug}/channels — the gateway resolves shortid→user_id and
-    // injects the trusted header; the legacy GET /channels?user_id=<UUID>
-    // anti-pattern is retired. When neither a slug nor a userId is available the
-    // query is disabled: never silently widen to the public list.
+    // BUG-306 / BUG-309 / BUG-314: identity comes from the token or a shortid.
+    // Owner view (signed-in user, no userId or userId === user.id) hits the
+    // proto ListChannels contract GET /channels?user_id=<me> — the server only
+    // honors user_id when it matches the token caller or the caller is an
+    // admin (p6-allow trust boundary), so this is NOT the pre-BUG-309 insecure
+    // pattern. GET /channels/me is the proto GetMyChannel route (single-channel
+    // shape) and must NOT be used for lists — that mismatch broke /me/channels.
+    // Visitor view hits GET /users/{slug}/channels — the gateway resolves
+    // shortid→user_id and injects the trusted header. When neither a signed-in
+    // user nor a slug/userId is available the query is disabled: never silently
+    // widen to the public list.
     const {user} = useAuth();
-    const isOwnerView = !userId || userId === user?.id;
-    const queryKey = isOwnerView ? ['channels', 'me'] : ['channels', 'user', slug || userId];
+    const isOwnerView = !!user?.id && (!userId || userId === user.id);
+    const queryKey = isOwnerView ? ['channels', 'mine', user?.id] : ['channels', 'user', slug || userId];
     return useQuery({
         queryKey,
         queryFn: async () => {
             if (isOwnerView) {
-                const res = await channelApi.getMyChannelsList();
+                const res = await channelApi.getMyChannelsList(user!.id);
                 return (res?.items ?? []) as Channel[];
             }
             const res = await channelApi.listByUser(slug || userId || '');
