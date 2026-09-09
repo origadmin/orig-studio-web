@@ -5,6 +5,7 @@ import {
     usePublicProfile,
     useMediaList,
     useMyChannels,
+    useChannelVideos,
     useFavoriteList,
     useHistoryList,
     useUserSubscriptionStatus,
@@ -130,6 +131,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         }
     }, [search.tab, validOwnerTabs, validVisitorTabs]);
 
+    // BUG-316: internal tab switches now REPLACE the ?tab= param so the URL
+    // always reflects the visible tab (refresh/share/back behave correctly)
+    // while keeping BUG-301's intent: replace, never push — the history stack
+    // stays clean and the URL-sync effect never bounces the click back.
+    const changeTab = useCallback((setTab: (t: any) => void, key: string) => {
+        setTab(key);
+        navigate({to: '.', search: (prev: any) => ({...prev, tab: key}), replace: true} as any);
+    }, [navigate]);
+
     // Filter out articles tab when articles module is disabled
     const visibleOwnerTabs = useMemo(() => {
         if (modules.articles) return OWNER_TABS;
@@ -187,11 +197,10 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const {data: userStats} = useUserStats(username, isProfileLoaded && !isOwner);
     const headerVideoCount = (isOwner ? myStats?.total_medias : userStats?.total_medias) ?? 0;
 
-    // BUG-309: the profile channels tab uses useMyChannels with the profile slug.
-    // Visitor view hits GET /users/{slug}/channels (gateway resolves shortid→
-    // user_id and injects the trusted header); owner view hits GET /channels/me
-    // (token-derived). The legacy GET /channels?user_id={id} anti-pattern
-    // (internal UUID in the URL, client-spoofable) is retired.
+    // BUG-309 / BUG-314: profile channels come from useMyChannels — owner:
+    // ListChannels contract GET /channels?user_id=<self>; visitor:
+    // /users/{slug}/channels (gateway resolves shortid and injects the
+    // trusted header).
     const {data: userChannelsData, isLoading: channelsLoading} = useMyChannels(
         isProfileLoaded && !!profile?.slug,
         profileIdStr,
@@ -199,21 +208,38 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     );
     const channels: any[] = Array.isArray(userChannelsData) ? userChannelsData : [];
 
-    const selectedChannelIdForQuery = useMemo(() => {
-        return isOwner && selectedChannelId !== 'all' ? selectedChannelId : undefined;
-    }, [isOwner, selectedChannelId]);
+    // BUG-315: ListMediasRequest has NO channel_id contract field — the
+    // frontend's channel_id param was silently dropped by proto binding, so
+    // switching the channel selector replayed the same list (measured: 10/10/10
+    // for expected 10/0/7). Channel-scoped rows now come from the purpose-built
+    // GetChannelVideos contract (GET /channels/{token}/videos); the 'all' view
+    // keeps /medias?user_id=.
+    const selectedChannel = useMemo(
+        () => channels.find(c => String(c.id) === selectedChannelId),
+        [channels, selectedChannelId],
+    );
+    const selectedChannelToken = isOwner && selectedChannelId !== 'all'
+        ? (selectedChannel?.short_token || null)
+        : null;
 
     const videoParams = useMemo(() => ({
         page: videoPage,
         page_size: PAGE_SIZE,
-        user_id: profileIdStr,
-        channel_id: selectedChannelIdForQuery,
+        // BUG-315: owner-scoped via /users/{shortid}/medias (gateway trusted
+        // header). /medias?user_id= is stripped by the BUG-285 public-feed
+        // gate, so the shortid path is the ONLY correct owner/visitor list.
+        shortid: profile?.slug || profile?.username || profileIdStr,
         order_by: 'create_time' as const,
         descending: true,
-        enabled: isProfileLoaded,
-    }), [videoPage, PAGE_SIZE, profileIdStr, selectedChannelIdForQuery, isProfileLoaded]);
+        enabled: isProfileLoaded && !selectedChannelToken,
+    }), [videoPage, PAGE_SIZE, profile?.slug, profile?.username, profileIdStr, isProfileLoaded, selectedChannelToken]);
 
-    const {data: videoPageData, isLoading: videosLoading, error: videosError} = useMediaList(videoParams);
+    const {data: allVideosData, isLoading: allVideosLoading, error: allVideosError} = useMediaList(videoParams);
+    const {data: channelVideosData, isLoading: channelVideosLoading, error: channelVideosError} = useChannelVideos(selectedChannelToken, {page: videoPage, page_size: PAGE_SIZE});
+
+    const videoPageData = selectedChannelToken ? channelVideosData : allVideosData;
+    const videosLoading = selectedChannelToken ? channelVideosLoading : allVideosLoading;
+    const videosError = selectedChannelToken ? channelVideosError : allVideosError;
 
     const deleteMutation = useDeleteMedia();
 
@@ -376,9 +402,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         if (tab.key === 'followers' && profile) {
             navigate({to: tab.manageTo, params: {id: profile.slug || profile.username}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
-            setOwnerTab('about');
+            changeTab(setOwnerTab, 'about');
         } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'playlists' || tab.key === 'articles') {
-            setOwnerTab(tab.key);
+            changeTab(setOwnerTab, tab.key);
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
         }
@@ -741,12 +767,12 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                         {t('profile.createChannel')}
                                     </DropdownMenuItem>
                                     {modules.articles && (
-                                        <DropdownMenuItem onClick={() => setOwnerTab('articles')}>
+                                        <DropdownMenuItem onClick={() => changeTab(setOwnerTab, 'articles')}>
                                             <FileText className="w-4 h-4 mr-2"/>
                                             {t('profile.createArticle')}
                                         </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => setOwnerTab('playlists')}>
+                                    <DropdownMenuItem onClick={() => changeTab(setOwnerTab, 'playlists')}>
                                         <ListVideo className="w-4 h-4 mr-2"/>
                                         {t('profile.createPlaylist')}
                                     </DropdownMenuItem>
@@ -805,7 +831,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         {visibleOwnerTabs.map(tab => (
                             <button
                                 key={tab.key}
-                                onClick={() => setOwnerTab(tab.key)}
+                                onClick={() => changeTab(setOwnerTab, tab.key)}
                                 className={`flex items-center gap-1.5 px-3 py-2.5 font-medium text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                                     ownerTab === tab.key
                                         ? 'border-primary text-primary'
@@ -828,7 +854,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         {visitorTabs.map(tab => (
                             <button
                                 key={tab.id}
-                                onClick={() => setVisitorTab(tab.id)}
+                                onClick={() => changeTab(setVisitorTab, tab.id)}
                                 className={`flex items-center gap-2 px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                                     visitorTab === tab.id
                                         ? 'border-primary text-primary'

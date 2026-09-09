@@ -181,6 +181,16 @@ const MyChannels = () => {
                                             <div className="flex-1 min-w-0 pt-1 sm:pt-0">
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     <h3 className="text-lg font-semibold truncate">{channel.name}</h3>
+                                                    {/* BUG-315 batch: settings moved to a gear next to the
+                                                        title (was a labelled button in the action row). */}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon-sm"
+                                                        title={t('channel.channelSettings')}
+                                                        onClick={() => openEditDialog(channel)}
+                                                    >
+                                                        <Settings size={14}/>
+                                                    </Button>
                                                     {channel.is_default && (
                                                         <Badge variant="secondary" className="text-xs">
                                                             {t('common.default', '默认')}
@@ -249,10 +259,6 @@ const MyChannels = () => {
                                                     {t('channel.viewChannel')}
                                                 </Button>
                                             </Link>
-                                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(channel)}>
-                                                <Settings size={14} className="mr-1"/>
-                                                {t('channel.channelSettings')}
-                                            </Button>
                                         </div>
                                     </div>
                                 </div>

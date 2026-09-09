@@ -45,6 +45,7 @@ export const mediaKeys = {
         params.page ?? 1,
         params.page_size ?? PAGINATION_CONFIG.DEFAULT_PAGE_SIZE,
         params.user_id ?? null,
+        params.shortid ?? null,
         params.channel_id ?? null,
         params.category_id ?? null,
         arrayKeyPart(params.category_ids),
@@ -89,6 +90,10 @@ export function useMediaList(params: {
     category_id?: number | null;
     category_ids?: number[];
     user_id?: string | number;
+    /** BUG-315: owner-scoped list via /users/{shortid}/medias (gateway trusted
+     *  header). /medias?user_id= is stripped by the BUG-285 public-feed gate,
+     *  so owner/visitor profile lists MUST go through the shortid path. */
+    shortid?: string;
     channel_id?: string | number;
     keyword?: string;
     search?: string;
@@ -118,6 +123,7 @@ export function useMediaList(params: {
                 // (category_ids=2&category_ids=1), which the gateway BindQuery parses.
                 category_ids: params.category_ids && params.category_ids.length > 0 ? params.category_ids : undefined,
                 user_id: params.user_id || undefined,
+                shortid: params.shortid || undefined,
                 channel_id: params.channel_id != null ? String(params.channel_id) : undefined,
                 keyword: params.search || params.keyword,
                 // Same repeated-key treatment as category_ids (fixes multi-tag filtering too).
@@ -189,6 +195,10 @@ export function useInfiniteMediaList(params: {
     category_id?: number | null;
     category_ids?: number[];
     user_id?: string | number;
+    /** BUG-315: owner-scoped list via /users/{shortid}/medias (gateway trusted
+     *  header). /medias?user_id= is stripped by the BUG-285 public-feed gate,
+     *  so owner/visitor profile lists MUST go through the shortid path. */
+    shortid?: string;
     channel_id?: string | number;
     featured?: boolean;
     order_by?: string;
