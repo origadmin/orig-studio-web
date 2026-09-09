@@ -1,0 +1,128 @@
+[
+  {
+    "name": "banner-picker-dialog",
+    "measured": {
+      "dialog": {
+        "w": 512,
+        "h": 455,
+        "left": 457
+      },
+      "children": [
+        {
+          "tag": "div",
+          "cls": "flex flex-col space-y-1.5 px-6 py-5 border-b border-border t",
+          "left": 457.5,
+          "w": 510,
+          "h": 105,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "px-6 py-4 min-w-0",
+          "left": 457.5,
+          "w": 510,
+          "h": 280,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "flex flex-col-reverse px-6 py-4 bg-muted/50 sm:flex-row sm:j",
+          "left": 457.5,
+          "w": 510,
+          "h": 68,
+          "pos": "static",
+          "visible": true
+        }
+      ],
+      "spread": 0
+    },
+    "pass": true,
+    "reason": "left-edge spread 0px (tol 2px)"
+  },
+  {
+    "name": "upload-dialog",
+    "measured": {
+      "dialog": {
+        "w": 672,
+        "h": 331,
+        "left": 377
+      },
+      "children": [
+        {
+          "tag": "div",
+          "cls": "flex flex-col space-y-1.5 px-6 py-5 border-b border-border t",
+          "left": 377.5,
+          "w": 670,
+          "h": 85,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "flex-1 overflow-y-auto space-y-4 py-2 px-6",
+          "left": 377.5,
+          "w": 670,
+          "h": 176,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "flex-col-reverse px-6 py-4 bg-muted/50 sm:flex-row sm:space-",
+          "left": 377.5,
+          "w": 670,
+          "h": 68,
+          "pos": "static",
+          "visible": true
+        }
+      ],
+      "spread": 0
+    },
+    "pass": true,
+    "reason": "left-edge spread 0px (tol 2px)"
+  },
+  {
+    "name": "create-channel-dialog",
+    "measured": {
+      "dialog": {
+        "w": 500,
+        "h": 633,
+        "left": 463
+      },
+      "children": [
+        {
+          "tag": "div",
+          "cls": "flex flex-col space-y-1.5 px-6 py-5 border-b border-border t",
+          "left": 463.5,
+          "w": 498,
+          "h": 85,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "grid gap-4 px-6 py-4",
+          "left": 463.5,
+          "w": 498,
+          "h": 478,
+          "pos": "static",
+          "visible": true
+        },
+        {
+          "tag": "div",
+          "cls": "flex flex-col-reverse px-6 py-4 bg-muted/50 sm:flex-row sm:j",
+          "left": 463.5,
+          "w": 498,
+          "h": 68,
+          "pos": "static",
+          "visible": true
+        }
+      ],
+      "spread": 0
+    },
+    "pass": true,
+    "reason": "left-edge spread 0px (tol 2px)"
+  }
+]
