@@ -15,7 +15,7 @@ interface ImageUploadFieldProps {
     placeholder?: string;
     accept?: string;
     kind?: 'image' | 'video';
-    aspect?: 'video' | 'square' | 'banner';
+    aspect?: 'video' | 'square' | 'banner' | 'cover';
     /** BUG-287: upload into the portal asset store (assets/banners) instead of
      *  the media library. Portal/banner imagery must NOT create content_media
      *  records — the media library is video-only. */
@@ -130,6 +130,7 @@ export function ImageUploadField({
         video: 'aspect-video',
         square: 'aspect-square max-w-[280px]',
         banner: 'aspect-[21/9]',
+        cover: 'aspect-[4/1] max-h-[140px]',
     }[aspect];
 
     const hasPreview = value && !showUrlInput;

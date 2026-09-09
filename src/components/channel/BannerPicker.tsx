@@ -53,6 +53,7 @@ export const BannerPicker: React.FC<BannerPickerProps> = ({value, onChange}) => 
                 onChange={(url) => onChange(url || '')}
                 label={t('channel.banner_upload', '上传自定义条图')}
                 kind="image"
+                aspect="cover"
                 assetMode
                 assetEndpoint="/me/banner"
             />
