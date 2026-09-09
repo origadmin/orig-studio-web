@@ -213,18 +213,35 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     // SM-4: profile cover = the owner's banner imagery. Default channel first,
     // then any channel carrying a banner. Templates (/assets/...) and uploads
     // (/files/assets/banners/...) both resolve — the latter via getFullUrl.
+    const primaryChannel = useMemo(() => {
+        if (!channels.length) return undefined;
+        const sorted = [...channels].sort((a, b) => {
+            const ta = Date.parse(a.create_time || '') || 0;
+            const tb = Date.parse(b.create_time || '') || 0;
+            return ta - tb;
+        });
+        return sorted[0];
+    }, [channels]);
+    const bannerTargetToken = primaryChannel?.short_token ? String(primaryChannel.short_token) : '';
+    const bannerTargetBanner = primaryChannel?.banner || '';
+    const bannerTargetName = primaryChannel?.name || '';
+    const [bannerOpen, setBannerOpen] = useState(false);
+
     const profileBannerUrl = useMemo(() => {
-        const withBanner = channels.find(c => c.banner);
-        const banner = (channels.find(c => c.is_default) || withBanner || {}).banner;
+        // BUG-320: the profile has no banner field of its own and channels have
+        // no is_default column, so `c.is_default` is always undefined. Anchor the
+        // cover to the owner's primary (oldest) channel — the SAME channel the
+        // edit dialog writes to. The previous rule ("first channel that has a
+        // banner") could point at a different channel than the edit target, so
+        // saving looked like it had no effect.
+        const banner = primaryChannel?.banner;
         if (!banner) return null;
         return banner.startsWith('/assets/') ? banner : (getFullUrl(banner) || null);
     }, [channels]);
 
-    // BUG-318: which channel owns the profile cover (default channel first).
-    const bannerTarget = channels.find(c => c.is_default) || channels[0];
-    const bannerTargetToken = bannerTarget?.short_token ? String(bannerTarget.short_token) : '';
-    const bannerTargetBanner = bannerTarget?.banner || '';
-    const [bannerOpen, setBannerOpen] = useState(false);
+    // BUG-320: the cover's owning channel. No is_default column exists, so the
+    // primary channel is the owner's OLDEST channel (stable, order-independent).
+
 
     // BUG-315: ListMediasRequest has NO channel_id contract field — the
     // frontend's channel_id param was silently dropped by proto binding, so
@@ -751,6 +768,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     open={bannerOpen}
                     onOpenChange={setBannerOpen}
                     channelToken={bannerTargetToken}
+                    channelName={bannerTargetName}
                     current={bannerTargetBanner}
                 />
             </div>

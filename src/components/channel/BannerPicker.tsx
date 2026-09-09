@@ -68,6 +68,8 @@ interface BannerPickerDialogProps {
     channelToken: string;
     /** Current banner value. */
     current?: string;
+    /** Name of the channel whose banner this edits (shown as a hint). */
+    channelName?: string;
     onSaved?: (banner: string) => void;
 }
 
@@ -81,6 +83,7 @@ export const BannerPickerDialog: React.FC<BannerPickerDialogProps> = ({
     onOpenChange,
     channelToken,
     current = '',
+    channelName = '',
     onSaved,
 }) => {
     const {t} = useTranslation();
@@ -114,7 +117,9 @@ export const BannerPickerDialog: React.FC<BannerPickerDialogProps> = ({
                 <DialogHeader>
                     <DialogTitle>{t('channel.banner_title', '更换背景')}</DialogTitle>
                     <DialogDescription>
-                        {t('channel.banner_desc', '选择内置背景，或上传自己的条图（保存后立即生效）')}
+                        {channelName
+                            ? t('channel.banner_desc_named', '主页背景取自频道「{{name}}」的条图。选择内置背景，或上传自己的条图（保存后立即生效）', {name: channelName})
+                            : t('channel.banner_desc', '选择内置背景，或上传自己的条图（保存后立即生效）')}
                     </DialogDescription>
                 </DialogHeader>
                 <BannerPicker value={value} onChange={setValue}/>
