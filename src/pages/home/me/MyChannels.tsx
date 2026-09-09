@@ -15,6 +15,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {Label} from '@/components/ui/label';
 import {CreateChannelDialog} from '@/components/channel/CreateChannelDialog';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
+import {BannerPicker} from '@/components/channel/BannerPicker';
 import {getImageUrl} from '@/lib/imageUtils';
 import {
     Dialog,
@@ -37,7 +38,8 @@ import {
     ListVideo,
 } from 'lucide-react';
 
-const BANNER_TEMPLATES = [
+// (moved to components/channel/BannerPicker)
+const _BANNER_TEMPLATES_MOVED = [
     {path: '/assets/images/banners/banner-ocean.svg', label: 'Ocean'},
     {path: '/assets/images/banners/banner-forest.svg', label: 'Forest'},
     {path: '/assets/images/banners/banner-sunset.svg', label: 'Sunset'},
@@ -291,26 +293,9 @@ const MyChannels = () => {
                         {/* SM-4: channel banner — template picker + owner upload (/me/banner) */}
                         <div className="grid gap-2">
                             <Label>{t('channel.banner_label', '频道条图')}</Label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {BANNER_TEMPLATES.map(tpl => (
-                                    <button
-                                        key={tpl.path}
-                                        type="button"
-                                        onClick={() => setEditForm(prev => ({...prev, banner: tpl.path}))}
-                                        className={`h-12 rounded-md overflow-hidden border-2 transition-colors ${editForm.banner === tpl.path ? 'border-primary' : 'border-transparent hover:border-muted-foreground/40'}`}
-                                        title={tpl.label}
-                                    >
-                                        <img src={tpl.path} alt={tpl.label} className="w-full h-full object-cover"/>
-                                    </button>
-                                ))}
-                            </div>
-                            <ImageUploadField
+                            <BannerPicker
                                 value={editForm.banner}
-                                onChange={(url) => setEditForm(prev => ({...prev, banner: url || ''}))}
-                                label={t('channel.banner_upload', '上传自定义条图')}
-                                kind="image"
-                                assetMode
-                                assetEndpoint="/me/banner"
+                                onChange={(v) => setEditForm(prev => ({...prev, banner: v}))}
                             />
                         </div>
                     </div>

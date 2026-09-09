@@ -12,6 +12,7 @@ import {
     Share2,
     Flag,
     ChevronDown,
+    Image as ImageIcon,
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -32,6 +33,7 @@ import ShareDialog from '@/components/common/ShareDialog';
 import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
+import {BannerPickerDialog} from './BannerPicker';
 
 interface ChannelHeaderProps {
     channel: ChannelDetail;
@@ -57,6 +59,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
     const {user} = useAuth();
     // Share state
     const [showShareDialog, setShowShareDialog] = useState(false);
+    const [bannerOpen, setBannerOpen] = useState(false);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
     // Build the canonical channel share URL using /c/{short_token}
@@ -83,12 +86,32 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                         style={{backgroundImage: `url(${channel.banner})`}}
                     />
                 ) : (
-                    <div className="w-full h-[150px] sm:h-[200px] md:h-[250px] bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500"/>
+                    <div className="w-full h-[150px] sm:h-[200px] md:h-[250px] bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500"/>
                 )}
 
                 {/* Gradient overlay for better text readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"/>
+
+                {/* BUG-318: owner entry — replace this channel's banner in place */}
+                {isOwner && (
+                    <button
+                        type="button"
+                        onClick={() => setBannerOpen(true)}
+                        data-testid="channel-banner-edit"
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-md bg-black/55 hover:bg-black/75 px-2.5 py-1.5 text-xs text-white backdrop-blur-sm transition-colors"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5"/>
+                        {t('channel.banner_edit', '更换条图')}
+                    </button>
+                )}
             </div>
+
+            <BannerPickerDialog
+                open={bannerOpen}
+                onOpenChange={setBannerOpen}
+                channelToken={channel.short_token || String(channel.id)}
+                current={channel.banner || ''}
+            />
 
             {/* Channel Info Bar */}
             <div className="mx-auto px-4 sm:px-6 lg:px-8">

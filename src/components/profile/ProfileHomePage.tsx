@@ -22,6 +22,7 @@ import {useModuleState} from '@/contexts/ModuleConfigContext';
 import {useUploadState} from '@/contexts/UploadContext';
 import {getImageUrl} from '@/lib/imageUtils';
 import {getFullUrl} from '@/lib/utils';
+import {BannerPickerDialog} from '@/components/channel/BannerPicker';
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -56,6 +57,7 @@ import {
     Settings,
     Plus,
     Trash2,
+    Image as ImageIcon,
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -217,6 +219,12 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
         if (!banner) return null;
         return banner.startsWith('/assets/') ? banner : (getFullUrl(banner) || null);
     }, [channels]);
+
+    // BUG-318: which channel owns the profile cover (default channel first).
+    const bannerTarget = channels.find(c => c.is_default) || channels[0];
+    const bannerTargetToken = bannerTarget?.short_token ? String(bannerTarget.short_token) : '';
+    const bannerTargetBanner = bannerTarget?.banner || '';
+    const [bannerOpen, setBannerOpen] = useState(false);
 
     // BUG-315: ListMediasRequest has NO channel_id contract field — the
     // frontend's channel_id param was silently dropped by proto binding, so
@@ -715,15 +723,37 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             {/* Banner: SM-4 — the profile cover follows the channel-owner's
                 banner (default channel first, then any banner-ed channel).
                 Fallback is a compliant blue→teal gradient (no purple-pink). */}
-            {profileBannerUrl ? (
-                <img
-                    src={profileBannerUrl}
-                    alt=""
-                    className="h-32 sm:h-40 md:h-48 w-full object-cover relative"
+            {/* BUG-318: owner entry — the profile cover is the default
+                channel's banner, so the edit target is that channel. */}
+            <div className="relative">
+                {profileBannerUrl ? (
+                    <img
+                        src={profileBannerUrl}
+                        alt=""
+                        className="h-32 sm:h-40 md:h-48 w-full object-cover"
+                        data-testid="profile-cover"
+                    />
+                ) : (
+                    <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500" data-testid="profile-cover-fallback"/>
+                )}
+                {isOwner && bannerTargetToken && (
+                    <button
+                        type="button"
+                        onClick={() => setBannerOpen(true)}
+                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-md bg-black/55 hover:bg-black/75 px-2.5 py-1.5 text-xs text-white backdrop-blur-sm transition-colors"
+                        data-testid="profile-banner-edit"
+                    >
+                        <ImageIcon className="w-3.5 h-3.5"/>
+                        {t('profile.banner_edit', '更换背景')}
+                    </button>
+                )}
+                <BannerPickerDialog
+                    open={bannerOpen}
+                    onOpenChange={setBannerOpen}
+                    channelToken={bannerTargetToken}
+                    current={bannerTargetBanner}
                 />
-            ) : (
-                <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500 relative"/>
-            )}
+            </div>
 
             {/* Profile info section: entirely below the banner */}
             <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5">
