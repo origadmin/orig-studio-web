@@ -34,6 +34,13 @@ import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import {useAuth} from '@/hooks/useAuth';
 import type {ChannelDetail} from '@/lib/api/channel';
 import {BannerPickerDialog} from './BannerPicker';
+import {
+    CHANNEL_BANNER_HEIGHT,
+    CHANNEL_BANNER_FALLBACK,
+    CHANNEL_AVATAR_PAGE,
+    CHANNEL_AVATAR_OVERLAP_PAGE,
+    CHANNEL_ACTION_PRIMARY,
+} from './theme';
 
 interface ChannelHeaderProps {
     channel: ChannelDetail;
@@ -82,11 +89,15 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             <div className="relative group">
                 {channel.banner ? (
                     <div
-                        className="w-full h-[150px] sm:h-[200px] md:h-[250px] bg-cover bg-center"
+                        data-testid="channel-hero-banner"
+                        className={`w-full ${CHANNEL_BANNER_HEIGHT} bg-cover bg-center`}
                         style={{backgroundImage: `url(${channel.banner})`}}
                     />
                 ) : (
-                    <div className="w-full h-[150px] sm:h-[200px] md:h-[250px] bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500"/>
+                    <div
+                        data-testid="channel-hero-banner"
+                        className={`w-full ${CHANNEL_BANNER_HEIGHT} ${CHANNEL_BANNER_FALLBACK}`}
+                    />
                 )}
 
                 {/* Gradient overlay for better text readability */}
@@ -115,9 +126,12 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
 
             {/* Channel Info Bar */}
             <div className="mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6 -mt-8 sm:-mt-14 relative z-10 pb-4">
+                <div className={`flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-6 ${CHANNEL_AVATAR_OVERLAP_PAGE} relative z-10 pb-4`}>
                     {/* Avatar */}
-                    <Avatar className="w-16 h-16 sm:w-28 sm:h-28 md:w-[120px] md:h-[120px] border-4 border-background shadow-lg flex-shrink-0">
+                    <Avatar
+                        data-testid="channel-hero-avatar"
+                        className={`${CHANNEL_AVATAR_PAGE} border-4 border-background shadow-lg flex-shrink-0`}
+                    >
                         <AvatarImage
                             src={getImageUrl(channel.avatar, 'avatar')}
                             alt={channel.name}
@@ -220,19 +234,20 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                             <>
                                 {/* REDESIGN-B r5: in-channel upload — opens the dialog with this channel preselected */}
                                 <Button
-                                    size="sm"
-                                    title={t('myVideos.uploadVideo', '上传视频')}
+                                    className={CHANNEL_ACTION_PRIMARY}
                                     onClick={() => openDialog(channel.id?.toString() || channel.short_token || undefined)}
                                 >
-                                    <Upload className="w-4 h-4"/>
+                                    <Upload className="w-4 h-4 mr-1"/>
+                                    {t('myVideos.uploadVideo', '上传视频')}
                                 </Button>
-                                <Button asChild variant="outline" size="sm">
+                                <Button asChild>
                                     <Link
                                         to="/$handle"
                                         params={{handle: user?.username ? '@' + user.username : '@me'}}
                                         search={{tab: 'channels'}}
                                     >
-                                        <Settings className="w-4 h-4"/>
+                                        <Settings className="w-4 h-4 mr-1"/>
+                                        {t('channel.channelSettings', '频道设置')}
                                     </Link>
                                 </Button>
                                 <Button variant="ghost" size="icon" className="rounded-full" onClick={handleShareClick}>

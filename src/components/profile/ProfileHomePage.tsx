@@ -23,6 +23,7 @@ import {useUploadState} from '@/contexts/UploadContext';
 import {getImageUrl} from '@/lib/imageUtils';
 import {getFullUrl} from '@/lib/utils';
 import {BannerPickerDialog} from '@/components/channel/BannerPicker';
+import {CHANNEL_BANNER_HEIGHT, CHANNEL_BANNER_FALLBACK, CHANNEL_AVATAR_PAGE, CHANNEL_AVATAR_OVERLAP_PAGE} from '@/components/channel/theme';
 import {Avatar, AvatarImage, AvatarFallback} from '@/components/ui/avatar';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -747,11 +748,11 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     <img
                         src={profileBannerUrl}
                         alt=""
-                        className="h-32 sm:h-40 md:h-48 w-full object-cover"
+                        className={`${CHANNEL_BANNER_HEIGHT} w-full object-cover`}
                         data-testid="profile-cover"
                     />
                 ) : (
-                    <div className="h-32 sm:h-40 md:h-48 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500" data-testid="profile-cover-fallback"/>
+                    <div className={`${CHANNEL_BANNER_HEIGHT} ${CHANNEL_BANNER_FALLBACK}`} data-testid="profile-cover-fallback"/>
                 )}
                 {isOwner && bannerTargetToken && (
                     <button
@@ -773,11 +774,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 />
             </div>
 
-            {/* Profile info section: entirely below the banner */}
-            <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
-                    {/* Avatar: below banner, no overlap */}
-                    <Avatar className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-background shadow-lg flex-shrink-0">
+            {/* Profile info section — canonical 嵌入一半 mode: avatar overlaps the banner
+                (same treatment as the channel page header, so the two surfaces agree). */}
+            <div className="px-4 sm:px-6 lg:px-8">
+                <div className={`flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-5 ${CHANNEL_AVATAR_OVERLAP_PAGE} relative z-10 pb-4`}>
+                    {/* Avatar: straddles the lower edge of the banner — identical size + 50% overlap to the channel hero */}
+                    <Avatar
+                        data-testid="profile-cover-avatar"
+                        className={`${CHANNEL_AVATAR_PAGE} border-4 border-background shadow-lg flex-shrink-0`}
+                    >
                         <AvatarImage src={getImageUrl(profile.avatar, 'avatar')} alt={profile.username}/>
                         <AvatarFallback className="text-2xl font-bold bg-muted text-muted-foreground">
                             {profile.username?.charAt(0)?.toUpperCase() || '?'}

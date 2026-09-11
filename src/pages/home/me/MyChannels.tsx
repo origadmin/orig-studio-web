@@ -16,6 +16,7 @@ import {Label} from '@/components/ui/label';
 import {CreateChannelDialog} from '@/components/channel/CreateChannelDialog';
 import {ImageUploadField} from '@/components/upload/ImageUploadField';
 import {BannerPicker} from '@/components/channel/BannerPicker';
+import {CHANNEL_BANNER_FALLBACK} from '@/components/channel/theme';
 import {getImageUrl} from '@/lib/imageUtils';
 import {
     Dialog,
@@ -165,21 +166,28 @@ const MyChannels = () => {
                     {channelList.map(channel => (
                         <Card key={channel.id} className="hover:shadow-md transition-shadow overflow-hidden">
                             <CardContent className="p-0">
-                                <div className="flex flex-col sm:flex-row">
-                                    <div className="sm:w-48 h-32 sm:h-auto flex-shrink-0 overflow-hidden">
-                                        {channel.banner ? (
-                                            <img
-                                                src={getImageUrl(channel.banner, 'cover')}
-                                                alt={channel.name}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500"/>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 p-4 sm:p-5 flex flex-col gap-3">
-                                        <div className="flex items-start gap-3">
-                                            <Avatar className="w-14 h-14 border-2 border-background shadow flex-shrink-0 -mt-8 sm:mt-0 ring-4 ring-background z-10">
+                                <div className="relative">
+                                    {/* Channel banner embedded as the card's FULL background (整卡铺满), not a left thumbnail */}
+                                    {channel.banner ? (
+                                        <img
+                                            data-testid="channel-card-banner"
+                                            src={getImageUrl(channel.banner)}
+                                            alt=""
+                                            className="absolute inset-0 w-full h-full object-cover opacity-60"
+                                        />
+                                    ) : (
+                                        <div data-testid="channel-card-banner" className={`absolute inset-0 opacity-60 ${CHANNEL_BANNER_FALLBACK}`}/>
+                                    )}
+                                    {/* Scrim so the text stays readable over any banner */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/30 to-black/5"/>
+
+                                    {/* Content — same layout as before, now sitting on the embedded background */}
+                                    <div className="relative p-4 sm:p-5 sm:min-h-[124px] flex flex-col gap-3">
+                                        <div className="flex flex-1 items-center gap-3">
+                                            <Avatar
+                                                data-testid="channel-card-avatar"
+                                                className="w-14 h-14 border-2 border-background shadow flex-shrink-0 ring-4 ring-background z-10"
+                                            >
                                                 <AvatarImage
                                                     src={getImageUrl(channel.avatar, 'avatar')}
                                                     alt={channel.name}
@@ -188,9 +196,9 @@ const MyChannels = () => {
                                                     {channel.name?.charAt(0)?.toUpperCase() || '?'}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="flex-1 min-w-0 pt-1 sm:pt-0">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                    <h3 className="text-lg font-semibold truncate">{channel.name}</h3>
+                                                    <h3 className="text-lg font-semibold truncate text-white">{channel.name}</h3>
                                                     {/* BUG-315 batch: settings moved to a gear next to the
                                                         title (was a labelled button in the action row). */}
                                                     <Button
@@ -198,29 +206,30 @@ const MyChannels = () => {
                                                         size="icon-sm"
                                                         title={t('channel.channelSettings')}
                                                         onClick={() => openEditDialog(channel)}
+                                                        className="text-white/80 hover:text-white hover:bg-white/15"
                                                     >
                                                         <Settings size={14}/>
                                                     </Button>
                                                     {channel.is_default && (
-                                                        <Badge variant="secondary" className="text-xs">
+                                                        <Badge variant="secondary" className="text-xs bg-white/20 text-white hover:bg-white/20">
                                                             {t('common.default', '默认')}
                                                         </Badge>
                                                     )}
                                                     {channel.is_verified && (
-                                                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs dark:bg-blue-900 dark:text-blue-200">
+                                                        <Badge variant="secondary" className="text-xs bg-white/20 text-white hover:bg-white/20">
                                                             ✓ {t('channel.verified')}
                                                         </Badge>
                                                     )}
                                                     {channel.status && channel.status !== 'ACTIVE' && (
-                                                        <Badge variant="outline" className="text-xs">
+                                                        <Badge variant="outline" className="text-xs text-white border-white/40">
                                                             {getChannelStatusLabel(channel.status)}
                                                         </Badge>
                                                     )}
                                                 </div>
                                                 {channel.description && (
-                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{channel.description}</p>
+                                                    <p className="text-sm text-white/80 mt-1 line-clamp-2">{channel.description}</p>
                                                 )}
-                                                <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground flex-wrap">
+                                                <div className="flex items-center gap-4 mt-2 text-xs text-white/80 flex-wrap">
                                                     <span className="flex items-center gap-1 whitespace-nowrap">
                                                         <Users size={14}/> {channel.subscriber_count || 0} {t('channel.subscribers')}
                                                     </span>
@@ -240,7 +249,7 @@ const MyChannels = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2 pt-2 sm:pt-0 flex-wrap sm:self-end">
+                                        <div className="flex items-center gap-2 justify-end flex-wrap">
                                             <Button
                                                 variant="default"
                                                 size="sm"

@@ -1,0 +1,38 @@
+[
+  {
+    "viewport": "mobile",
+    "surface": "profile-hero",
+    "bannerH": 150,
+    "avatarH": 64,
+    "overlapPx": 32,
+    "overlapRatio": 0.5,
+    "ok": true
+  },
+  {
+    "viewport": "mobile",
+    "surface": "channel-hero",
+    "bannerH": 150,
+    "avatarH": 64,
+    "overlapPx": 32,
+    "overlapRatio": 0.5,
+    "ok": true
+  },
+  {
+    "viewport": "desktop",
+    "surface": "profile-hero",
+    "bannerH": 250,
+    "avatarH": 120,
+    "overlapPx": 60,
+    "overlapRatio": 0.5,
+    "ok": true
+  },
+  {
+    "viewport": "desktop",
+    "surface": "channel-hero",
+    "bannerH": 250,
+    "avatarH": 120,
+    "overlapPx": 60,
+    "overlapRatio": 0.5,
+    "ok": true
+  }
+]

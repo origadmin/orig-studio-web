@@ -1,17 +1,18 @@
 import React from 'react';
+import {CHANNEL_BANNER_HEIGHT, CHANNEL_AVATAR_PAGE, CHANNEL_AVATAR_OVERLAP_PAGE} from './theme';
 
 const ChannelSkeleton: React.FC = () => {
     return (
         <div className="channel-page min-h-screen bg-background animate-pulse">
             <div className="max-w-[1920px] mx-auto">
                 {/* Banner skeleton */}
-                <div className="w-full h-[150px] sm:h-[200px] md:h-[250px] bg-muted"/>
+                <div className={`w-full ${CHANNEL_BANNER_HEIGHT} bg-muted`}/>
 
                 {/* Channel info bar skeleton */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 -mt-10 sm:-mt-14 relative z-10 pb-4">
+                    <div className={`flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 ${CHANNEL_AVATAR_OVERLAP_PAGE} relative z-10 pb-4`}>
                         {/* Avatar skeleton */}
-                        <div className="w-20 h-20 sm:w-28 sm:h-28 md:w-[120px] md:h-[120px] rounded-full bg-muted border-4 border-background flex-shrink-0"/>
+                        <div className={`${CHANNEL_AVATAR_PAGE} rounded-full bg-muted border-4 border-background flex-shrink-0`}/>
                         {/* Info skeleton */}
                         <div className="flex-1 pt-2 sm:pt-4 space-y-3">
                             <div className="h-8 w-64 bg-muted rounded"/>
