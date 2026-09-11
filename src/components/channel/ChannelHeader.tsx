@@ -160,12 +160,13 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                                 <Film className="w-3 h-3 sm:w-3.5 sm:h-3.5"/>
                                 {videoCount} {t('channel.videoCount')}
                             </span>
-                            {viewCount > 0 && (
-                                <span className="flex items-center gap-1 whitespace-nowrap">
-                                    <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5"/>
-                                    {formatCount(viewCount)} {t('channel.views')}
-                                </span>
-                            )}
+                            {/* BUG-325/R-DM6: render the real value unconditionally — the old
+                                `viewCount > 0` gate silently hid the fact that the channel
+                                aggregate was never maintained. */}
+                            <span className="flex items-center gap-1 whitespace-nowrap">
+                                <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5"/>
+                                {formatCount(viewCount)} {t('channel.views')}
+                            </span>
                         </div>
 
                         {/* Description - expandable */}
