@@ -4,7 +4,8 @@ import type {TFunction} from 'i18next';
 import {useParams, useNavigate} from '@tanstack/react-router';
 import {usePublicMediaDetail, useUpdatePublicMedia, useDeleteMedia, useCategoryList, useMyChannels} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
-import {EditPageHeader, type HeaderBadgeConfig, type EncodingStatusConfig} from '@/components/common/EditPageHeader';
+import {EditPageHeader, type HeaderBadgeConfig} from '@/components/common/EditPageHeader';
+import type {StatusDotStatus} from '@/components/common/StatusDot';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {MediaEditForm, type MediaEditFormState} from '@/components/common/MediaEditForm';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
@@ -55,29 +56,70 @@ const STATE_BADGE_MAP: Record<string, { variant: HeaderBadgeConfig['variant'] }>
     deleted: {variant: 'destructive'},
 };
 
-function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): HeaderBadgeConfig[] {
+// Mirrors admin/pages/MediaEdit.tsx so the portal header renders the media type
+// in the user's language instead of the raw backend enum ("video" -> "视频").
+const TYPE_I18N_KEYS: Record<string, string> = {
+    video: 'admin.video',
+    audio: 'admin.audio',
+    image: 'admin.image',
+    document: 'admin.document',
+};
+
+// Comprehensive status = encoding + lifecycle + review, rendered as ONE badge
+// with a status dot. This mirrors the admin edit page (which shows a single
+// status pill) and is what removes the duplicate "已发布": previously the portal
+// rendered a separate lifecycle badge AND a separate encoding StatusDot, and for
+// an active + encoded media both resolved to "已发布".
+function getComprehensiveStatus(media: any): StatusDotStatus {
+    const enc = media.encoding_status;
+    const st = media.state;
+    if (enc === 'failed') return 'failed';
+    if (enc === 'processing') return 'processing';
+    if (enc === 'pending') return 'pending';
+    if (enc === 'partial') return 'partial';
+    if (enc === 'success' || st === 'active') return 'success';
+    if (st === 'draft') return 'draft';
+    if (st === 'deleted') return 'deleted';
+    return 'unknown';
+}
+
+function getStatusLabel(media: any, t: TFunction): string {
+    const status = getComprehensiveStatus(media);
+    switch (status) {
+        case 'success': return t('common.status.success', 'Published');
+        case 'processing': return t('common.status.processing', 'Processing');
+        case 'pending': return t('common.status.pending', 'Queued');
+        case 'failed': return t('common.status.failed', 'Failed');
+        case 'partial': return t('common.status.partial', 'Partial');
+        case 'draft': return t('common.status.draft', 'Draft');
+        case 'deleted': return t('common.status.deleted', 'Deleted');
+        default: return t('common.unknown', 'Unknown');
+    }
+}
+
+export function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): HeaderBadgeConfig[] {
     const badges: HeaderBadgeConfig[] = [];
 
+    // Media type — translated (BUG-323: was the raw backend enum "video").
+    const typeKey = TYPE_I18N_KEYS[media.type];
+    const typeLabel = typeKey ? t(typeKey, media.type) : media.type;
     badges.push({
         type: 'media-type',
         variant: 'outline',
-        label: media.type,
-        ariaLabel: `${t('mediaEdit.mediaTypeAria', 'Media type')}: ${media.type}`,
+        label: typeLabel,
+        ariaLabel: `${t('mediaEdit.mediaTypeAria', 'Media type')}: ${typeLabel}`,
     });
 
-    // BUG-233: review status is carried by `review_status` (not `state`, which
-    // only holds the lifecycle). A media pending review shows "Pending Review"
-    // regardless of its lifecycle draft state.
+    // Single comprehensive status badge (encoding dot + lifecycle/review label).
+    // BUG-233: a media pending review shows "Pending Review" regardless of its
+    // draft lifecycle state.
     const reviewPending = media.review_status === 'pending_review';
-    const stateLabel = reviewPending ? t('mediaEdit.pendingReview', 'Pending Review')
-        : media.state === 'active' ? t('admin.publishedStatus', 'Published')
-        : media.state === 'draft' ? t('admin.draftStatus', 'Draft')
-        : media.state === 'deleted' ? t('admin.deletedStatus', 'Deleted')
-        : media.state;
-    const stateConfig = reviewPending ? {variant: 'secondary' as const} : (STATE_BADGE_MAP[media.state] || {variant: 'outline' as const});
+    const stateLabel = reviewPending ? t('mediaEdit.pendingReview', 'Pending Review') : getStatusLabel(media, t);
+    const stateVariant = reviewPending ? 'secondary' : (STATE_BADGE_MAP[media.state] || {variant: 'outline'}).variant;
     badges.push({
         type: 'state',
-        variant: stateConfig.variant,
+        variant: stateVariant,
+        statusDot: getComprehensiveStatus(media),
         label: stateLabel,
         ariaLabel: `${t('mediaEdit.stateAria', 'Status')}: ${stateLabel}`,
     });
@@ -93,12 +135,6 @@ function mapMediaToHeaderBadges(media: any, isAdmin: boolean, t: TFunction): Hea
     }
 
     return badges;
-}
-
-function mapEncodingStatus(status: string | undefined): EncodingStatusConfig | undefined {
-    const validStatuses = ['success', 'processing', 'pending', 'failed'];
-    if (!status || !validStatuses.includes(status)) return undefined;
-    return {status: status as EncodingStatusConfig['status']};
 }
 
 export default function MediaEditPage() {
@@ -300,7 +336,6 @@ export default function MediaEditPage() {
     useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, isAdmin, t) : [], [media, isAdmin, t]);
-    const encodingConfig = useMemo(() => media ? mapEncodingStatus(media.encoding_status) : undefined, [media]);
 
     if (isLoading) {
         return (
@@ -349,7 +384,6 @@ export default function MediaEditPage() {
                     onPreview={handlePreview}
                     onDelete={() => setDeleteDialogOpen(true)}
                     badges={headerBadges}
-                    encodingStatus={encodingConfig}
                 />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
