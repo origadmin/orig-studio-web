@@ -18,6 +18,7 @@ import {toast} from 'sonner';
 import {getFullUrl, withCacheBust} from '@/lib/utils';
 import {buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
 import {serializeTags, parseTagsInput} from '@/lib/utils/hashtag';
+import {toChannelIdPayload, toCategoryIdPayload} from '@/lib/utils/mediaUpdate';
 import {useQueryClient} from '@tanstack/react-query';
 import {settingsApi} from '@/lib/api/system';
 
@@ -116,7 +117,9 @@ export default function MediaEditPage() {
         title: '',
         description: '',
         category_id: '' as string | number,
-        channel_id: '' as string | number,
+        // Channel ids are UUID strings; typing this as `string | number` is what
+        // licensed the old Number() coercion (see lib/utils/mediaUpdate.ts).
+        channel_id: '' as string,
         tags: '',
         privacy: 1,
         state: 'draft',
@@ -178,9 +181,7 @@ export default function MediaEditPage() {
             // ("视频类") so empty media are anchored to the video class.
             const categoriesList = (categoriesData as any)?.items ?? [];
             const videoRootId = buildCategoryTree(categoriesList).find(n => n.slug === VIDEO_ROOT_SLUG)?.id;
-            const resolvedCategoryId = form.category_id !== '' && form.category_id !== undefined
-                ? Number(form.category_id)
-                : (videoRootId ?? undefined);
+            const resolvedCategoryId = toCategoryIdPayload(form.category_id) ?? videoRootId;
             await updateMutation.mutateAsync({
                 shortToken,
                 data: {
@@ -189,7 +190,10 @@ export default function MediaEditPage() {
                     category_id: resolvedCategoryId,
                     // BUG-105: '' (from the _none_ option) must reach the backend as
                     // an empty string so the update_mask can clear the assignment.
-                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : '',
+                    // Channel ids are UUID strings — use the shared helper, never
+                    // Number() (that yields NaN -> null on the wire and silently
+                    // clears the channel; see lib/utils/mediaUpdate.ts).
+                    channel_id: toChannelIdPayload(form.channel_id),
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     state: isAdmin ? form.state : undefined,
@@ -208,7 +212,7 @@ export default function MediaEditPage() {
                 ],
             });
             // Keep local form in sync with the persisted value (BUG-134 default).
-            if (form.category_id !== resolvedCategoryId) {
+            if (resolvedCategoryId !== undefined && String(form.category_id) !== String(resolvedCategoryId)) {
                 syncFromData({...form, category_id: resolvedCategoryId});
             } else {
                 resetDirty();
@@ -230,16 +234,14 @@ export default function MediaEditPage() {
         try {
             const categoriesList = (categoriesData as any)?.items ?? [];
             const videoRootId = buildCategoryTree(categoriesList).find(n => n.slug === VIDEO_ROOT_SLUG)?.id;
-            const resolvedCategoryId = form.category_id !== '' && form.category_id !== undefined
-                ? Number(form.category_id)
-                : (videoRootId ?? undefined);
+            const resolvedCategoryId = toCategoryIdPayload(form.category_id) ?? videoRootId;
             await updateMutation.mutateAsync({
                 shortToken,
                 data: {
                     title: form.title,
                     description: form.description,
                     category_id: resolvedCategoryId,
-                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? Number(form.channel_id) : '',
+                    channel_id: toChannelIdPayload(form.channel_id),
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     state: 'pending_review',

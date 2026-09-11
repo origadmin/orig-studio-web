@@ -15,7 +15,7 @@ export interface MediaEditFormState {
     title: string;
     description: string;
     category_id: string | number;
-    channel_id: string | number;
+    channel_id: string;
     tags: string;
     privacy: number;
     state: string;

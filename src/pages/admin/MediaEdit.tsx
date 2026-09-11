@@ -34,6 +34,7 @@ import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditP
 import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
+import {toChannelIdPayload} from '@/lib/utils/mediaUpdate';
 import {toast} from 'sonner';
 import {useQueryClient} from '@tanstack/react-query';
 import type {Media} from '@/lib/api/media';
@@ -269,7 +270,8 @@ export default function MediaEditPage() {
         description: '',
         state: 'draft',
         category_id: '' as string | number,
-        channel_id: '' as string | number,
+        // UUID string — see lib/utils/mediaUpdate.ts (never Number()-coerce).
+        channel_id: '' as string,
         tags: '',
         privacy: 1,
         featured: false,
@@ -419,7 +421,7 @@ export default function MediaEditPage() {
                     // not be written back invisibly (undefined skips it server-side).
                     category_id: genreOptions.some(o => String(o.id) === String(form.category_id)) ? Number(form.category_id) : undefined,
                     // BUG-105: '' (from the "无频道" option) clears the assignment.
-                    channel_id: form.channel_id !== '' && form.channel_id !== undefined ? String(form.channel_id) : '',
+                    channel_id: toChannelIdPayload(form.channel_id),
                     tags: parseTagsInput(form.tags),
                     privacy: form.privacy,
                     featured: form.featured,

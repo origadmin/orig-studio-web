@@ -342,7 +342,8 @@ export interface UpdateMediaRequest {
     description?: string;
     thumbnail?: string;
     category_id?: number | null;
-    channel_id?: number | string | null;
+    /** UUID string. `''` clears the assignment; never pass a Number() (NaN -> null -> silently cleared). */
+    channel_id?: string | null;
     tags?: string[];
     state?: string;
     privacy?: number;
