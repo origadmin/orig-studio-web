@@ -455,16 +455,24 @@ export default function MediaEditPage() {
     // as 私密 (privacy): privacy only narrows the audience, offline removes the
     // media from the published set entirely.
     const [offlineBusy, setOfflineBusy] = useState(false);
-    const handleOffline = useCallback(async () => {
+    // BUG-347: takedown is a review/moderation remediation state. The admin can
+    // take a published (active) media down to "removed" (owner cannot republish
+    // it) and restore it back to "active". This replaces the old floating header
+    // "下线" button so governance lives in the review/moderation workflow.
+    const handleTakeDown = useCallback(async (target: 'removed' | 'active') => {
         if (!id || offlineBusy) return;
         setOfflineBusy(true);
         try {
-            await adminMediaApi.changeState(id, 'draft');
-            toast.success(t('mediaEdit.takeOfflineSuccess', '已下线'));
+            await adminMediaApi.changeState(id, target);
+            toast.success(target === 'removed'
+                ? t('mediaEdit.takeOfflineSuccess', '已下线')
+                : t('mediaEdit.restoreOnlineSuccess', '已恢复上线'));
             queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
         } catch (err: any) {
-            toast.error(`${t('mediaEdit.takeOfflineFailed', '下线失败')}: ${err?.message || t('common.unknown', '未知错误')}`);
-            console.error('Failed to take media offline', err);
+            const key = target === 'removed' ? 'mediaEdit.takeOfflineFailed' : 'mediaEdit.restoreOnlineFailed';
+            const fallback = target === 'removed' ? '下线失败' : '恢复失败';
+            toast.error(`${t(key, fallback)}: ${err?.message || t('common.unknown', '未知错误')}`);
+            console.error('Failed to change media takedown state', err);
         } finally {
             setOfflineBusy(false);
         }
@@ -914,6 +922,33 @@ export default function MediaEditPage() {
                             </Button>
                         </div>
                     )}
+                    {(media?.state === 'active' || media?.state === 'removed') && (
+                        <div className="pt-3 mt-1 border-t border-border/60">
+                            {media?.state === 'active' ? (
+                                <Button
+                                    data-testid="take-down-button"
+                                    variant="outline"
+                                    className="w-full py-2 text-destructive border-destructive/40 hover:bg-destructive/10"
+                                    disabled={offlineBusy}
+                                    onClick={() => handleTakeDown('removed')}
+                                >
+                                    <EyeOff className="w-4 h-4 mr-2"/>
+                                    {t('mediaEdit.takeOffline', '下线（移出公开）')}
+                                </Button>
+                            ) : (
+                                <Button
+                                    data-testid="restore-button"
+                                    variant="outline"
+                                    className="w-full py-2"
+                                    disabled={offlineBusy}
+                                    onClick={() => handleTakeDown('active')}
+                                >
+                                    <RefreshCw className="w-4 h-4 mr-2"/>
+                                    {t('mediaEdit.restoreOnline', '恢复上线')}
+                                </Button>
+                            )}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -1010,19 +1045,6 @@ export default function MediaEditPage() {
                         <Button variant="outline" onClick={handlePreview}>
                             <Eye className="w-4 h-4 mr-2"/>
                             {t('common.preview', '预览')}
-                        </Button>
-                    )}
-                    {media.state === 'active' && (
-                        <Button
-                            variant="outline"
-                            data-testid="offline-media-button"
-                            disabled={offlineBusy}
-                            onClick={handleOffline}
-                        >
-                            {offlineBusy
-                                ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
-                                : <EyeOff className="w-4 h-4 mr-2"/>}
-                            {t('mediaEdit.takeOffline', '下线')}
                         </Button>
                     )}
                     <Button onClick={handleSave} disabled={isSaving}>
