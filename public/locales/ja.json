@@ -2298,7 +2298,14 @@
     "titleAria": "タイトル",
     "updatedAt": "更新日",
     "views": "再生回数",
-    "workflow": "ワークフロー"
+    "workflow": "ワークフロー",
+    "spriteReady": "準備完了",
+    "spriteFailed": "失敗",
+    "integritySuccess": "完全",
+    "integrityFailed": "破損",
+    "integrityPartial": "部分的欠落",
+    "integrityProcessing": "検証中",
+    "integrityUnknown": "未検証"
   },
   "permissions": {
     "title": "権限管理",

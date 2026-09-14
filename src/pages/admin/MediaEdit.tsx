@@ -31,7 +31,7 @@ import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
-import {ArrowLeft, RefreshCw, Play, Eye, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Share2, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
+import {ArrowLeft, RefreshCw, Play, Eye, EyeOff, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
 import {toChannelIdPayload} from '@/lib/utils/mediaUpdate';
@@ -346,13 +346,20 @@ export default function MediaEditPage() {
         }
     }, [id]);
 
-    // BUG-105: load all channels for the channel-assignment selector.
+    // Load the channels the media may legally be assigned to: only those owned
+    // by the media's owner. Listing every platform channel allowed assigning
+    // user A's media to user B's channel (cross-user ownership leak).
     useEffect(() => {
-        adminApi.getChannels({page: 1, page_size: 100}).then((res: any) => {
+        const ownerId = media?.user?.id;
+        if (!ownerId) {
+            setChannels([]);
+            return;
+        }
+        adminApi.getChannels({page: 1, page_size: 100, user_id: ownerId}).then((res: any) => {
             const list = Array.isArray(res?.items) ? res.items : [];
             setChannels(list);
         }).catch(() => {});
-    }, []);
+    }, [media?.user?.id]);
 
     // SSE: 转码事件流实时更新
     useEffect(() => {
@@ -441,6 +448,27 @@ export default function MediaEditPage() {
             console.error('Failed to save', err);
         }
     }, [id, isSaving, form, updateMutation, setSaving, setSuccess, setError, resetDirty]);
+
+    // BUG-329: take a published video offline. "Offline" means the media is no
+    // longer publicly published — it moves back to draft, which is the existing
+    // lifecycle state for a not-published media. It is deliberately NOT the same
+    // as 私密 (privacy): privacy only narrows the audience, offline removes the
+    // media from the published set entirely.
+    const [offlineBusy, setOfflineBusy] = useState(false);
+    const handleOffline = useCallback(async () => {
+        if (!id || offlineBusy) return;
+        setOfflineBusy(true);
+        try {
+            await adminMediaApi.changeState(id, 'draft');
+            toast.success(t('mediaEdit.takeOfflineSuccess', '已下线'));
+            queryClient.invalidateQueries({queryKey: ['adminMedia', 'detail', String(id)]});
+        } catch (err: any) {
+            toast.error(`${t('mediaEdit.takeOfflineFailed', '下线失败')}: ${err?.message || t('common.unknown', '未知错误')}`);
+            console.error('Failed to take media offline', err);
+        } finally {
+            setOfflineBusy(false);
+        }
+    }, [id, offlineBusy, queryClient]);
 
     // Delete handler
     const handleDelete = useCallback(async () => {
@@ -631,38 +659,6 @@ export default function MediaEditPage() {
     // Compute header badges from media
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, t) : [], [media, t]);
 
-    const encodingStatusDot = (status: string | undefined): StatusDotStatus => {
-        switch (status) {
-            case 'success': return 'success';
-            case 'processing': return 'processing';
-            case 'pending': return 'pending';
-            case 'failed': return 'failed';
-            case 'partial': return 'partial';
-            default: return 'unknown';
-        }
-    };
-
-    // Resolve profile_id to a human-readable profile name
-    const getProfileName = (profileId: number): string => {
-        const profile = profiles.get(profileId);
-        if (profile) {
-            return profile.name || `${t('mediaEdit.profile', '配置')} #${profileId}`;
-        }
-        return `${t('mediaEdit.profile', '配置')} #${profileId}`;
-    };
-
-    // Get profile resolution info for display
-    const getProfileInfo = (profileId: number): string => {
-        const profile = profiles.get(profileId);
-        if (profile) {
-            const parts: string[] = [];
-            if (profile.resolution) parts.push(profile.resolution);
-            if (profile.extension) parts.push(profile.extension.toUpperCase());
-            return parts.length > 0 ? parts.join(' / ') : '';
-        }
-        return '';
-    };
-
     // Compute task summary counts
     const taskSummary = useMemo(() => {
         const counts = {success: 0, processing: 0, pending: 0, failed: 0, partial: 0, total: tasks.length};
@@ -722,16 +718,6 @@ export default function MediaEditPage() {
             case 'audio': return 'bg-info/10 text-info';
             default: return 'bg-muted text-muted-foreground';
         }
-    };
-
-    const getCategoryName = () => {
-        if (media.category?.name) return media.category.name;
-        const catId = media.category_id;
-        if (catId && categoriesData?.items) {
-            const cat = categoriesData.items.find((c: any) => c.id === catId);
-            if (cat?.name) return cat.name;
-        }
-        return t('mediaEdit.general', '通用');
     };
 
     const getUserName = () => {
@@ -878,10 +864,9 @@ export default function MediaEditPage() {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                            <span className="text-muted-foreground">{t('mediaEdit.category', '分类')}</span>
-                            <span className="font-semibold">{getCategoryName()}</span>
-                        </div>
+                        {/* Category intentionally lives only in the 元数据 tab: a
+                            read-only copy here created a second source of truth
+                            for the same field (R-DM7 / BUG-330). */}
                     </div>
                 </CardContent>
             </Card>
@@ -1025,6 +1010,19 @@ export default function MediaEditPage() {
                         <Button variant="outline" onClick={handlePreview}>
                             <Eye className="w-4 h-4 mr-2"/>
                             {t('common.preview', '预览')}
+                        </Button>
+                    )}
+                    {media.state === 'active' && (
+                        <Button
+                            variant="outline"
+                            data-testid="offline-media-button"
+                            disabled={offlineBusy}
+                            onClick={handleOffline}
+                        >
+                            {offlineBusy
+                                ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/>
+                                : <EyeOff className="w-4 h-4 mr-2"/>}
+                            {t('mediaEdit.takeOffline', '下线')}
                         </Button>
                     )}
                     <Button onClick={handleSave} disabled={isSaving}>
@@ -1430,37 +1428,8 @@ export default function MediaEditPage() {
                                     {taskSummary.success > 0 && <Button variant="secondary" size="sm" className="rounded-full text-xs font-bold text-success bg-success/20">{t('common.status.success', 'Completed')} ({taskSummary.success})</Button>}
                                 </div>
 
-                                <div className="space-y-4 mb-8">
-                                    {tasks.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground py-8 text-center">{t('mediaEdit.noEncodingTasks', 'No encoding tasks')}</p>
-                                    ) : (
-                                        tasks.map(task => (
-                                            <div key={task.id} className="p-4 bg-muted rounded-lg border border-border relative overflow-hidden">
-                                                <div className="flex justify-between items-start mb-3 relative z-10">
-                                                    <div className="flex items-center gap-3">
-                                                        <StatusDot status={encodingStatusDot(task.status)} />
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <p className="font-bold text-sm">{getProfileName(task.profile_id)}</p>
-                                                                <span className="px-1.5 py-0.5 bg-primary/10 text-primary text-xs font-mono rounded uppercase">
-                                                                    {getProfileInfo(task.profile_id).split(' / ')[1] || t('mediaEdit.codec', 'Codec')}
-                                                                </span>
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground">{t('mediaEdit.created', 'Created')}: {formatDateTime(task.create_time)}</p>
-                                                        </div>
-                                                    </div>
-                                                    {task.status === 'failed' && (
-                                                        <Button variant="outline" size="sm" onClick={() => handleRetryTask(task.id)}>
-                                                            <RefreshCw className="w-3 h-3 mr-1"/>{t('common.retry', 'Retry')}
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
 
-                                <div className="border-t border-border pt-6">
+                                <div className="pt-2">
                                     <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">{t('mediaEdit.mediaVariants', 'Media Variants')}</h3>
                                     <div className="overflow-x-auto">
                                         <Table>
@@ -1469,7 +1438,8 @@ export default function MediaEditPage() {
                                                     <TableHead className="pb-2 font-bold">{t('mediaEdit.variant')}</TableHead>
                                                     <TableHead className="pb-2 font-bold">{t('mediaEdit.resolution')}</TableHead>
                                                     <TableHead className="pb-2 font-bold">{t('mediaEdit.codec')}</TableHead>
-                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.size')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.progress', '进度')}</TableHead>
+                                                    <TableHead className="pb-2 font-bold">{t('mediaEdit.created', 'Created')}</TableHead>
                                                     <TableHead className="pb-2 font-bold">{t('mediaEdit.actions')}</TableHead>
                                                     <TableHead className="pb-2 font-bold">{t('mediaEdit.status')}</TableHead>
                                                 </TableRow>
@@ -1477,7 +1447,7 @@ export default function MediaEditPage() {
                                             <TableBody className="divide-y divide-border/10">
                                                 {tasks.length === 0 ? (
                                                     <TableRow>
-                                                        <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+                                                        <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                                                             {t('mediaEdit.noVariants')}
                                                         </TableCell>
                                                     </TableRow>
@@ -1489,18 +1459,27 @@ export default function MediaEditPage() {
                                                                 <TableCell className="py-3 font-mono">{profile?.name || `${t('mediaEdit.profile', '配置')}-${task.profile_id}`}</TableCell>
                                                                 <TableCell className="py-3">{profile?.resolution || '-'}</TableCell>
                                                                 <TableCell className="py-3">{profile?.video_codec || '-'}</TableCell>
-                                                                <TableCell className="py-3">{task.progress}%</TableCell>
+                                                                <TableCell className="py-3 tabular-nums">{task.progress}%</TableCell>
+                                                                <TableCell className="py-3 whitespace-nowrap">{task.create_time ? formatDateTime(task.create_time) : '—'}</TableCell>
                                                                 <TableCell className="py-3">
                                                                     <div className="flex items-center gap-2">
-                                                                        <Button variant="ghost" size="icon" className="w-6 h-6"><Eye className="w-4 h-4"/></Button>
-                                                                        <Button variant="ghost" size="icon" className="w-6 h-6"><Copy className="w-4 h-4"/></Button>
+                                                                        <Button variant="ghost" size="icon" className="w-6 h-6" title={t('mediaEdit.preview', '预览')}><Eye className="w-4 h-4"/></Button>
+                                                                        <Button variant="ghost" size="icon" className="w-6 h-6" title={t('common.copy', '复制')} onClick={() => task.output_path && navigator.clipboard?.writeText(task.output_path)}><Copy className="w-4 h-4"/></Button>
+                                                                        {task.status === 'failed' && (
+                                                                            <Button variant="ghost" size="icon" className="w-6 h-6 text-destructive" title={t('common.retry', 'Retry')} onClick={() => handleRetryTask(task.id)}>
+                                                                                <RefreshCw className="w-4 h-4"/>
+                                                                            </Button>
+                                                                        )}
                                                                     </div>
                                                                 </TableCell>
                                                                 <TableCell className="py-3">
-                                                                    {task.status === 'success' && <CheckCircle className="w-5 h-5 text-success"/>}
-                                                                    {task.status === 'processing' && <Loader2 className="w-5 h-5 text-primary animate-spin"/>}
-                                                                    {task.status === 'failed' && <XCircle className="w-5 h-5 text-destructive"/>}
-                                                                    {task.status === 'pending' && <Clock className="w-5 h-5 text-muted-foreground"/>}
+                                                                    <div className="flex items-center gap-2">
+                                                                        {task.status === 'success' && <CheckCircle className="w-5 h-5 text-success"/>}
+                                                                        {task.status === 'processing' && <Loader2 className="w-5 h-5 text-primary animate-spin"/>}
+                                                                        {task.status === 'failed' && <XCircle className="w-5 h-5 text-destructive"/>}
+                                                                        {task.status === 'pending' && <Clock className="w-5 h-5 text-muted-foreground"/>}
+                                                                        <span className="text-xs">{t(`mediaEdit.encoding${task.status.charAt(0).toUpperCase()}${task.status.slice(1)}`, task.status)}</span>
+                                                                    </div>
                                                                 </TableCell>
                                                             </TableRow>
                                                         );
@@ -1653,16 +1632,9 @@ export default function MediaEditPage() {
                                         <p className="text-2xl font-bold">{Number(stats?.favorite_count ?? media?.favorite_count ?? 0).toLocaleString()}</p>
                                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.favorites', '收藏')}</p>
                                     </div>
-                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
-                                        <Share2 className="text-violet-500 text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{Number(media?.share_count ?? stats?.share_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.shares', '分享')}</p>
-                                    </div>
-                                    <div className="p-4 bg-muted rounded-lg border border-border flex flex-col items-center justify-center text-center">
-                                        <Download className="text-indigo-500 text-2xl mb-2"/>
-                                        <p className="text-2xl font-bold">{Number(media?.download_count ?? stats?.download_count ?? 0).toLocaleString()}</p>
-                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('mediaEdit.downloads', '下载')}</p>
-                                    </div>
+                                    {/* BUG-331: 分享 / 下载 removed from the panel — neither has a
+                                        write path anywhere in the backend (only a stub hardcodes 0),
+                                        so they were permanent-zero fake metrics (R-DM4/R-DM6). */}
                                 </div>
                                     </CardContent>
                                 </Card>

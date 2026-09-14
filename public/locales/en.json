@@ -2438,7 +2438,14 @@
     "subtitleUploaded": "Subtitle uploaded",
     "subtitles": "Subtitles",
     "techSpecs": "Technical Specs",
-    "thumbnailFile": "Thumbnail"
+    "thumbnailFile": "Thumbnail",
+    "spriteReady": "Ready",
+    "spriteFailed": "Failed",
+    "integritySuccess": "Complete",
+    "integrityFailed": "Broken",
+    "integrityPartial": "Partial",
+    "integrityProcessing": "Checking",
+    "integrityUnknown": "Unchecked"
   },
   "permissions": {
     "title": "Permission Management",

@@ -434,7 +434,7 @@ export default function MediaPage() {
                     <div className="flex items-start justify-between">
                         <div>
                             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest min-h-[2.5rem]">{t('admin.failedTasks', '失败任务')}</p>
-                            <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{String(failedTasks).padStart(2, '0')}</h3>
+                            <h3 className="text-3xl font-extrabold tabular-nums text-red-600 mt-1">{failedTasks}</h3>
                         </div>
                         <div className="w-11 h-11 bg-red-50 text-red-600 rounded-xl flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors">
                             <AlertCircle className="w-5 h-5"/>
