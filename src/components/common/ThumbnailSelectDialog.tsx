@@ -225,14 +225,14 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                         : await spriteApi.regenerateOwnerThumbnail(media.short_token!, {thumbnail_time: timestamp}));
                 const rawThumb = pickThumbnail(res);
                 const newThumb = rawThumb ? getFullUrl(rawThumb) : undefined;
-                // Only report success when we actually received a (new) thumbnail
-                // URL. Otherwise the backend may have returned success without a
-                // usable path (stale binary / regeneration race), and we must not
-                // lie to the user that the cover was updated.
-                if (!newThumb) {
-                    toast.error(t('thumbnailDialog.coverUpdateFailed'));
-                    return;
-                }
+                // Success is defined by the server accepting the request: the
+                // HTTP layer throws on any failure, so reaching here means 200.
+                // The sprite-sheet endpoint (OwnerSetThumbnail) intentionally
+                // does NOT echo a thumbnail URL in its response, so absence of a
+                // URL must NOT be reported as a failure. When a URL is present
+                // (single-frame / upload paths) we pass it for an instant local
+                // update; otherwise onSuccess(undefined) makes the parent refetch
+                // the media and refresh the cover.
                 toast.success(t('thumbnailDialog.coverUpdated'));
                 if (onSuccess) {
                     onSuccess(newThumb);
@@ -256,10 +256,8 @@ const ThumbnailSelectDialog: React.FC<ThumbnailSelectDialogProps> = ({
                     : await spriteApi.uploadCustomThumbnail(media.short_token!, customFile);
                 const rawThumb = pickThumbnail(res);
                 const newThumb = rawThumb ? getFullUrl(rawThumb) : undefined;
-                if (!newThumb) {
-                    toast.error(t('thumbnailDialog.coverUpdateFailed'));
-                    return;
-                }
+                // Same contract as the frames path: HTTP 200 means the cover was
+                // updated server-side; the response may or may not echo a URL.
                 toast.success(t('thumbnailDialog.coverUpdated'));
                 if (onSuccess) {
                     onSuccess(newThumb);
