@@ -237,6 +237,9 @@ export interface UserStats {
     total_medias: number;
     total_followers: number;
     total_following?: number;
+    // BUG-336: false when the counting source was unreachable, so the UI can
+    // show an explicit unavailable marker instead of a misleading 0.
+    total_medias_known?: boolean;
 }
 
 export const userApi = {

@@ -198,7 +198,12 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     // list below. Owner reads /me/stats; visitor reads /users/:slug/stats.
     const {data: myStats} = useMyStats(isProfileLoaded && isOwner);
     const {data: userStats} = useUserStats(username, isProfileLoaded && !isOwner);
-    const headerVideoCount = (isOwner ? myStats?.total_medias : userStats?.total_medias) ?? 0;
+    // BUG-336: the stats endpoint reports total_medias_known=false when the
+    // counting source (the media service) could not be reached, so a failure is
+    // never rendered as "0 videos". Unknown is shown as an explicit dash.
+    const activeStats = isOwner ? myStats : userStats;
+    const headerVideoCountKnown = activeStats?.total_medias_known !== false;
+    const headerVideoCount = headerVideoCountKnown ? (activeStats?.total_medias ?? 0) : '—';
 
     // BUG-309 / BUG-314: profile channels come from useMyChannels — owner:
     // ListChannels contract GET /channels?user_id=<self>; visitor:
