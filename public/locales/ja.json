@@ -2412,5 +2412,22 @@
     "report": "通報/フィードバック",
     "system": "システム/運用",
     "test": "テスト"
-  }
+  },
+  "profileTitle": "プロフィール",
+  "profileDesc": "公開プロフィールを管理",
+  "profileNickname": "ニックネーム",
+  "profileEmail": "メールアドレス",
+  "profilePhone": "電話番号",
+  "profileBio": "自己紹介",
+  "profileLocation": "所在地",
+  "profileSlug": "プロフィールURL",
+  "profileSlugDesc": "プロフィールページのURL",
+  "profileReset": "リセット",
+  "profileSave": "保存",
+  "avatarChange": "アバターを変更",
+  "avatarUpload": "アバターをアップロード",
+  "avatarTooSmall": "アバター画像が小さすぎます",
+  "cropAvatar": "アバターをトリミング",
+  "apply": "適用",
+  "cancel": "キャンセル"
 }

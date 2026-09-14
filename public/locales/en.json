@@ -2554,5 +2554,22 @@
     "report": "Report / Feedback",
     "system": "System / Ops",
     "test": "Test"
-  }
+  },
+  "profileTitle": "Profile",
+  "profileDesc": "Manage your public profile",
+  "profileNickname": "Nickname",
+  "profileEmail": "Email",
+  "profilePhone": "Phone",
+  "profileBio": "Bio",
+  "profileLocation": "Location",
+  "profileSlug": "Profile URL",
+  "profileSlugDesc": "Your profile page URL",
+  "profileReset": "Reset",
+  "profileSave": "Save",
+  "avatarChange": "Change avatar",
+  "avatarUpload": "Upload avatar",
+  "avatarTooSmall": "Avatar image is too small",
+  "cropAvatar": "Crop avatar",
+  "apply": "Apply",
+  "cancel": "Cancel"
 }

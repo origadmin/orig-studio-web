@@ -855,7 +855,13 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                         {t('profile.createPlaylist')}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
-                                    <DropdownMenuItem onClick={() => navigate({to: '/u/$id', params: {id: profile.slug || profile.username}, search: {tab: 'profile'}})}>
+                                    {/* BUG-348: profile editing has exactly one
+                                        destination, /settings/profile. It used to
+                                        navigate to /u/$id?tab=profile, which is this
+                                        same read-only public page with a tab value
+                                        that is not a valid tab, so the click silently
+                                        fell back to the videos tab and looked dead. */}
+                                    <DropdownMenuItem onClick={() => navigate({to: '/settings/profile'})}>
                                         <Pencil className="w-4 h-4 mr-2"/>
                                         {t('profile.editProfile')}
                                     </DropdownMenuItem>

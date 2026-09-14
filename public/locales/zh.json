@@ -3037,5 +3037,22 @@
     "report": "举报/反馈",
     "system": "系统/运营",
     "test": "测试"
-  }
+  },
+  "profileTitle": "个人资料",
+  "profileDesc": "管理你的公开资料",
+  "profileNickname": "昵称",
+  "profileEmail": "邮箱",
+  "profilePhone": "手机号",
+  "profileBio": "简介",
+  "profileLocation": "所在地",
+  "profileSlug": "个人主页地址",
+  "profileSlugDesc": "你的个人主页地址",
+  "profileReset": "重置",
+  "profileSave": "保存",
+  "avatarChange": "更换头像",
+  "avatarUpload": "上传头像",
+  "avatarTooSmall": "头像图片过小",
+  "cropAvatar": "裁剪头像",
+  "apply": "应用",
+  "cancel": "取消"
 }
