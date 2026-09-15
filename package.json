@@ -27,10 +27,11 @@
     "test:e2e": "bun node_modules/@playwright/test/cli.js test",
     "test:e2e:ui": "bun node_modules/@playwright/test/cli.js test --ui",
     "test:e2e:mock": "bun node_modules/@playwright/test/cli.js test -c playwright.mock.config.ts",
-    "check": "bun run lint && bun run typecheck && bun run style-lint",
+    "check": "bun run lint && bun run typecheck && bun run style-lint && bun run i18n:check",
     "generate:routes": "tsr generate",
     "generate:types": "openapi-typescript ../resources/api-docs/openapi/openapi.yaml -o src/types/api.d.ts",
-    "prepare": "bun run scripts/install-hooks.ts"
+    "prepare": "bun run scripts/install-hooks.ts",
+    "i18n:check": "node scripts/check-i18n-keys.mjs"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",

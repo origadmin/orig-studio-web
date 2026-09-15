@@ -1884,7 +1884,8 @@
       "modules": "モジュール",
       "features": "機能",
       "system": "システム"
-    }
+    },
+    "backToPortal": "ポータルに戻る"
   },
   "theme": {
     "appearanceMode": "外観モード",
@@ -2429,5 +2430,30 @@
   "avatarTooSmall": "アバター画像が小さすぎます",
   "cropAvatar": "アバターをトリミング",
   "apply": "適用",
-  "cancel": "キャンセル"
+  "cancel": "キャンセル",
+  "appearanceTheme": "テーマ",
+  "appearanceThemeDesc": "インターフェースのテーマ",
+  "appearanceLanguage": "言語",
+  "appearanceLanguageDesc": "インターフェースの言語",
+  "appearanceTimezone": "タイムゾーン",
+  "appearanceTimezoneDesc": "時刻の表示に使用",
+  "prefPlayback": "再生",
+  "prefPlaybackDesc": "既定の再生設定",
+  "prefDefaultQuality": "既定の画質",
+  "prefAutoplay": "次の動画を自動再生",
+  "prefNotifications": "通知",
+  "prefNotificationsDesc": "受け取る通知を管理",
+  "prefEmailNotifications": "メール通知",
+  "prefPushNotifications": "プッシュ通知",
+  "prefNotifyLikes": "いいねを通知",
+  "prefCommentReply": "コメント返信を通知",
+  "prefNewSubscriber": "新規購読者",
+  "prefPrivacy": "プライバシー",
+  "prefPrivacyDesc": "他のユーザーに表示する内容",
+  "prefProfileVisibility": "プロフィールの公開範囲",
+  "prefShowSubscriptions": "購読リストを表示",
+  "prefShowActivity": "アクティビティを表示",
+  "prefFollowersOnly": "フォロワーのみ",
+  "prefSave": "保存",
+  "prefSaved": "保存しました"
 }

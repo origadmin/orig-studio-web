@@ -2020,7 +2020,8 @@
       "modules": "Modules",
       "features": "Features",
       "system": "System"
-    }
+    },
+    "backToPortal": "Back to portal"
   },
   "theme": {
     "appearanceMode": "Appearance Mode",
@@ -2571,5 +2572,30 @@
   "avatarTooSmall": "Avatar image is too small",
   "cropAvatar": "Crop avatar",
   "apply": "Apply",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "appearanceTheme": "Theme",
+  "appearanceThemeDesc": "Choose the interface theme",
+  "appearanceLanguage": "Language",
+  "appearanceLanguageDesc": "Choose the interface language",
+  "appearanceTimezone": "Timezone",
+  "appearanceTimezoneDesc": "Used when displaying times",
+  "prefPlayback": "Playback",
+  "prefPlaybackDesc": "Default playback settings",
+  "prefDefaultQuality": "Default quality",
+  "prefAutoplay": "Autoplay next video",
+  "prefNotifications": "Notifications",
+  "prefNotificationsDesc": "Manage the notifications you receive",
+  "prefEmailNotifications": "Email notifications",
+  "prefPushNotifications": "Push notifications",
+  "prefNotifyLikes": "Notify me about likes",
+  "prefCommentReply": "Notify me about comment replies",
+  "prefNewSubscriber": "New subscribers",
+  "prefPrivacy": "Privacy",
+  "prefPrivacyDesc": "Control what others can see",
+  "prefProfileVisibility": "Profile visibility",
+  "prefShowSubscriptions": "Show my subscriptions",
+  "prefShowActivity": "Show my activity",
+  "prefFollowersOnly": "Followers only",
+  "prefSave": "Save",
+  "prefSaved": "Saved"
 }

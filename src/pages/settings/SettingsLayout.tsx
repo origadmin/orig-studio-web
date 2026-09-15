@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
-import { User, Lock, Palette, Sliders } from 'lucide-react';
+import { User, Lock, Palette, Sliders, ArrowLeft } from 'lucide-react';
 
 const navItems = [
   { to: '/settings/profile', icon: User, label: 'profileTitle' },
@@ -16,6 +16,17 @@ export default function SettingsLayout() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
+      {/* BUG-350: /settings sits under the authenticated layout but outside the
+          portal layout, so it renders without the portal header or sidebar.
+          Without this link the page is a dead end: there is no other control
+          that gets the user back to the videos or the portal home. */}
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {t('settings.backToPortal', '返回门户')}
+      </Link>
       <h1 className="text-2xl font-bold mb-6">{t('settings.title')}</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <nav className="md:w-48 shrink-0">

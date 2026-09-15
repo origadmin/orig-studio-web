@@ -2074,7 +2074,8 @@
       "modules": "模块",
       "features": "功能",
       "system": "系统"
-    }
+    },
+    "backToPortal": "返回门户"
   },
   "theme": {
     "appearanceMode": "外观模式",
@@ -3054,5 +3055,30 @@
   "avatarTooSmall": "头像图片过小",
   "cropAvatar": "裁剪头像",
   "apply": "应用",
-  "cancel": "取消"
+  "cancel": "取消",
+  "appearanceTheme": "主题",
+  "appearanceThemeDesc": "选择界面主题",
+  "appearanceLanguage": "语言",
+  "appearanceLanguageDesc": "选择界面语言",
+  "appearanceTimezone": "时区",
+  "appearanceTimezoneDesc": "用于显示时间",
+  "prefPlayback": "播放",
+  "prefPlaybackDesc": "默认播放设置",
+  "prefDefaultQuality": "默认画质",
+  "prefAutoplay": "自动播放下一个",
+  "prefNotifications": "通知",
+  "prefNotificationsDesc": "管理你收到的通知",
+  "prefEmailNotifications": "邮件通知",
+  "prefPushNotifications": "推送通知",
+  "prefNotifyLikes": "有人点赞时通知我",
+  "prefCommentReply": "有人回复评论时通知我",
+  "prefNewSubscriber": "新增订阅者",
+  "prefPrivacy": "隐私",
+  "prefPrivacyDesc": "控制他人能看到什么",
+  "prefProfileVisibility": "资料可见性",
+  "prefShowSubscriptions": "显示我的订阅",
+  "prefShowActivity": "显示我的活动",
+  "prefFollowersOnly": "仅关注者可见",
+  "prefSave": "保存",
+  "prefSaved": "已保存"
 }
