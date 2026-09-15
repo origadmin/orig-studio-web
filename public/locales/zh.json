@@ -3040,6 +3040,10 @@
     "test": "测试"
   },
   "profileTitle": "个人资料",
+  "settingsTitle": "设置",
+  "passwordTitle": "密码",
+  "appearanceTitle": "外观",
+  "preferencesTitle": "偏好设置",
   "profileDesc": "管理你的公开资料",
   "profileNickname": "昵称",
   "profileEmail": "邮箱",

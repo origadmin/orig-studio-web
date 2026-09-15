@@ -2415,6 +2415,10 @@
     "test": "テスト"
   },
   "profileTitle": "プロフィール",
+  "settingsTitle": "設定",
+  "passwordTitle": "パスワード",
+  "appearanceTitle": "外観",
+  "preferencesTitle": "環境設定",
   "profileDesc": "公開プロフィールを管理",
   "profileNickname": "ニックネーム",
   "profileEmail": "メールアドレス",

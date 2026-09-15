@@ -2557,6 +2557,10 @@
     "test": "Test"
   },
   "profileTitle": "Profile",
+  "settingsTitle": "Settings",
+  "passwordTitle": "Password",
+  "appearanceTitle": "Appearance",
+  "preferencesTitle": "Preferences",
   "profileDesc": "Manage your public profile",
   "profileNickname": "Nickname",
   "profileEmail": "Email",

@@ -3,20 +3,25 @@ import { Link, Outlet, useLocation } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 import { User, Lock, Palette, Sliders } from 'lucide-react';
 
-const navItems = [
-  { to: '/settings/profile', icon: User, label: 'profileTitle' },
-  { to: '/settings/password', icon: Lock, label: 'passwordTitle' },
-  { to: '/settings/appearance', icon: Palette, label: 'appearanceTitle' },
-  { to: '/settings/preferences', icon: Sliders, label: 'preferencesTitle' },
-];
-
 export default function SettingsLayout() {
   const { t } = useTranslation();
   const location = useLocation();
 
+  // The tab labels are resolved with literal keys inside the component so the
+  // static i18n scan can see them. Looking them up through a variable
+  // (`t(item.label)`) is invisible to that scan, which is how
+  // passwordTitle/appearanceTitle/preferencesTitle shipped untranslated and
+  // rendered as raw keys in the tab strip.
+  const navItems = [
+    { to: '/settings/profile', icon: User, label: t('profileTitle') },
+    { to: '/settings/password', icon: Lock, label: t('passwordTitle') },
+    { to: '/settings/appearance', icon: Palette, label: t('appearanceTitle') },
+    { to: '/settings/preferences', icon: Sliders, label: t('preferencesTitle') },
+  ];
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-5xl">
-      <h1 className="text-2xl font-bold mb-6">{t('settings.title')}</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('settingsTitle')}</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <nav className="md:w-48 shrink-0">
           <ul className="space-y-1">
@@ -34,7 +39,7 @@ export default function SettingsLayout() {
                     )}
                   >
                     <item.icon className="w-4 h-4" />
-                    {t(item.label)}
+                    {item.label}
                   </Link>
                 </li>
               );
