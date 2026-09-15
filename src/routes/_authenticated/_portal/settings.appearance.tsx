@@ -10,7 +10,7 @@ const PageLoader = () => (
   </div>
 );
 
-export const Route = createFileRoute('/_authenticated/settings/appearance')({
+export const Route = createFileRoute('/_authenticated/_portal/settings/appearance')({
   component: () => (
     <Suspense fallback={<PageLoader />}>
       <Page />

@@ -10,7 +10,7 @@ const PageLoader = () => (
   </div>
 );
 
-export const Route = createFileRoute('/_authenticated/settings')({
+export const Route = createFileRoute('/_authenticated/_portal/settings')({
   component: () => (
     <Suspense fallback={<PageLoader />}>
       <SettingsLayout />
