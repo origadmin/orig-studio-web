@@ -8,6 +8,7 @@ import {categoryApi, type Category} from '@/lib/api/category';
 import {useInfiniteMediaList} from '@/hooks/queries';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {buildCategoryTree, filterEnabledBranches, type CategoryTreeNode} from '@/lib/utils/categoryTree';
+import {isPortalModule, resolveModuleFilterIds} from '@/lib/utils/portalModuleFilter';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 
@@ -297,26 +298,29 @@ const CategoriesPage = () => {
     const sort = SORT_OPTIONS.find(s => s.slug === (sortQ || 'latest')) ?? SORT_OPTIONS[0];
     const dirDesc = (dirQ || 'desc') === 'desc';
     const time = TIME_OPTIONS.find(o => o.slug === (timeQ || 'all')) ?? TIME_OPTIONS[0];
-    const appliedModule = vQ && ['video', 'music', 'article'].includes(vQ) ? vQ : 'video';
-    const appliedModuleRoot = useMemo(() => fullTree.find(n => n.slug === appliedModule), [fullTree, appliedModule]);
+    const appliedModule = isPortalModule(vQ) ? vQ : 'video';
 
     // Applied categories → ids (server-side tree expansion tracked in BUG-164).
+    // resolveModuleFilterIds() owns the "a non-video module must always constrain
+    // the query" rule — see that helper for why the music tab used to show the
+    // whole (video) feed.
     const categoryIdsForFilter = useMemo((): number[] | undefined => {
-        if (appliedCats.size === 0) {
-            if (appliedModule === 'video') return undefined;
-            const root = fullTree.find(n => n.slug === appliedModule);
-            return root ? [root.id] : undefined;
-        }
-        const ids = new Set<number>();
+        const appliedCatIds: number[] = [];
         for (const slug of appliedCats) {
             const node = findNodeBySlug(fullTree, slug);
-            if (node) ids.add(node.id);
+            // BUG-237/2026-08-20: 不要额外加 module root.id。2 层下 root 无直属媒体，
+            // 加上不影响结果；但若 admin 后续给 root 挂子树，加 root.id 会把整个
+            // root 子树（全部视频）拉出来 → 过滤失效。只传叶子 id 即可。
+            if (node) appliedCatIds.push(node.id);
         }
-        // BUG-237/2026-08-20: 不要额外加 module root.id。2 层下 root 无直属媒体，
-        // 加上不影响结果；但若 admin 后续给 root 挂子树，加 root.id 会把整个
-        // root 子树（全部视频）拉出来 → 过滤失效。只传叶子 id 即可。
-        return [...ids];
-    }, [fullTree, appliedCats, appliedModule]);
+        return resolveModuleFilterIds({
+            module: appliedModule,
+            hasAppliedCats: appliedCats.size > 0,
+            appliedCatIds,
+            categories,
+            enabledTree: fullTree,
+        });
+    }, [fullTree, categories, appliedCats, appliedModule]);
 
     const {
         data: mediaPages,
