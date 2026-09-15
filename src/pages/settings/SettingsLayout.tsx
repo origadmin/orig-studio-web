@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
-import { User, Lock, Palette, Sliders, ArrowLeft } from 'lucide-react';
+import { User, Lock, Palette, Sliders } from 'lucide-react';
 
 const navItems = [
   { to: '/settings/profile', icon: User, label: 'profileTitle' },
