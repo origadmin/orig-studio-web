@@ -182,7 +182,7 @@ export interface PublicProfile {
     is_subscribed?: boolean;
 }
 
-function normalizeUser(raw: any): User {
+export function normalizeUser(raw: any): User {
     if (!raw || typeof raw !== 'object') return raw;
     const safe = (val: unknown, defaultVal: any = ''): any => {
         if (val === null || val === undefined) return defaultVal;
@@ -197,7 +197,9 @@ function normalizeUser(raw: any): User {
         email: String(raw.email || ''),
         avatar: safe(raw.avatar),
         cover: safe(raw.cover || raw.logo),
-        bio: safe(raw.bio || raw.description),
+        // bio lives in users.title (UpdateUserProfile SetTitle(Bio)); users.description
+        // is the USER SETTINGS blob (UpdateUserSetting) and must never be rendered.
+        bio: safe(raw.bio || raw.title),
         phone: safe(raw.phone),
         role: String(raw.role || ''),
         status: raw.status,
