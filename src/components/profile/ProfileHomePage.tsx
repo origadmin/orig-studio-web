@@ -904,9 +904,12 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     </div>
                 </div>
 
-                {profile.bio && (
-                    <p className="text-sm text-muted-foreground mt-3 max-w-2xl">{profile.bio}</p>
-                )}
+                {/* BUG-358: the header carried a second copy of the bio with no design
+                    source. The only prototype that shows a description here is the
+                    CHANNEL page (docs/design/stitch-downloads/.../channel_page), which
+                    is a different page and ships a clamp + expand control with it; the
+                    user profile page has no prototype at all. The bio therefore lives
+                    only in the 关于 tab, which is what that tab is for. */}
             </div>
 
             {isOwner ? (

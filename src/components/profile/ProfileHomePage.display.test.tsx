@@ -12,7 +12,7 @@
  * contract field, empty here), so neither junk string may reach the DOM.
  */
 import React from 'react';
-import {render, screen, waitFor} from '@testing-library/react';
+import {render, screen, waitFor, fireEvent} from '@testing-library/react';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
 const LIVE_RAW = {
@@ -124,14 +124,33 @@ describe('profile intro rendering', () => {
         expect(bodyText()).not.toContain('{"theme"');
     });
 
-    it('renders the intro when the contract profile carries a bio', async () => {
+    it('does NOT render the intro in the header (BUG-358: no design source for it)', async () => {
         response = RESP_BIO;
         renderProfile();
 
         await waitFor(() => {
-            expect(screen.getAllByText('这是我的简介').length).toBeGreaterThan(0);
+            expect(bodyText()).toContain('@admin');
         });
 
-        expect(bodyText()).not.toContain('{"theme"');
+        // The bio must not be duplicated into the channel header; it belongs to 关于.
+        expect(bodyText()).not.toContain('这是我的简介');
+    });
+
+    it('renders the intro in the 关于 tab', async () => {
+        response = RESP_BIO;
+        renderProfile();
+
+        await waitFor(() => {
+            expect(bodyText()).toContain('@admin');
+        });
+
+        // i18n is not initialised under jest, so the tab label can be the raw key.
+        const aboutTab = screen.getAllByRole('button').find((b) => /关于|tabAbout|About/i.test(b.textContent || ''));
+        expect(aboutTab).toBeTruthy();
+        fireEvent.click(aboutTab!);
+
+        await waitFor(() => {
+            expect(screen.getAllByText('这是我的简介').length).toBe(1);
+        });
     });
 });
