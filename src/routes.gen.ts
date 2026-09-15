@@ -28,7 +28,6 @@ import { Route as PortalCookiesRouteImport } from "./routes/_portal/cookies";
 import { Route as PortalBrowseRouteImport } from "./routes/_portal/browse";
 import { Route as PortalAboutRouteImport } from "./routes/_portal/about";
 import { Route as PortalHandleRouteImport } from "./routes/_portal/$handle";
-import { Route as AuthenticatedSettingsRouteImport } from "./routes/_authenticated/settings";
 import { Route as AuthenticatedAdminRouteImport } from "./routes/_authenticated/admin";
 import { Route as AuthenticatedPortalRouteImport } from "./routes/_authenticated/_portal";
 import { Route as PortalHandleIndexRouteImport } from "./routes/_portal/$handle/index";
@@ -38,10 +37,6 @@ import { Route as PortalPlaylistTokenRouteImport } from "./routes/_portal/playli
 import { Route as PortalPSlugRouteImport } from "./routes/_portal/p.$slug";
 import { Route as PortalCIdRouteImport } from "./routes/_portal/c.$id";
 import { Route as PortalHandleSplatRouteImport } from "./routes/_portal/$handle/$";
-import { Route as AuthenticatedSettingsProfileRouteImport } from "./routes/_authenticated/settings.profile";
-import { Route as AuthenticatedSettingsPreferencesRouteImport } from "./routes/_authenticated/settings.preferences";
-import { Route as AuthenticatedSettingsPasswordRouteImport } from "./routes/_authenticated/settings.password";
-import { Route as AuthenticatedSettingsAppearanceRouteImport } from "./routes/_authenticated/settings.appearance";
 import { Route as AuthenticatedAdminUsersRouteImport } from "./routes/_authenticated/admin/users";
 import { Route as AuthenticatedAdminTranscodingRouteImport } from "./routes/_authenticated/admin/transcoding";
 import { Route as AuthenticatedAdminTagsRouteImport } from "./routes/_authenticated/admin/tags";
@@ -61,6 +56,7 @@ import { Route as AuthenticatedAdminChannelsRouteImport } from "./routes/_authen
 import { Route as AuthenticatedAdminCategoriesRouteImport } from "./routes/_authenticated/admin/categories";
 import { Route as AuthenticatedAdminAdsRouteImport } from "./routes/_authenticated/admin/ads";
 import { Route as AuthenticatedPortalSubscriptionsRouteImport } from "./routes/_authenticated/_portal/subscriptions";
+import { Route as AuthenticatedPortalSettingsRouteImport } from "./routes/_authenticated/_portal/settings";
 import { Route as AuthenticatedPortalNotificationsRouteImport } from "./routes/_authenticated/_portal/notifications";
 import { Route as AuthenticatedAdminMediaRouteRouteImport } from "./routes/_authenticated/admin/media/route";
 import { Route as AuthenticatedAdminArticlesRouteRouteImport } from "./routes/_authenticated/admin/articles/route";
@@ -74,6 +70,10 @@ import { Route as AuthenticatedAdminTranscodingStatusRouteImport } from "./route
 import { Route as AuthenticatedAdminTranscodingProfilesRouteImport } from "./routes/_authenticated/admin/transcoding.profiles";
 import { Route as AuthenticatedAdminMediaIdRouteImport } from "./routes/_authenticated/admin/media/$id";
 import { Route as AuthenticatedAdminArticlesNewRouteImport } from "./routes/_authenticated/admin/articles/new";
+import { Route as AuthenticatedPortalSettingsProfileRouteImport } from "./routes/_authenticated/_portal/settings.profile";
+import { Route as AuthenticatedPortalSettingsPreferencesRouteImport } from "./routes/_authenticated/_portal/settings.preferences";
+import { Route as AuthenticatedPortalSettingsPasswordRouteImport } from "./routes/_authenticated/_portal/settings.password";
+import { Route as AuthenticatedPortalSettingsAppearanceRouteImport } from "./routes/_authenticated/_portal/settings.appearance";
 import { Route as AuthenticatedPortalMeVideosRouteImport } from "./routes/_authenticated/_portal/me/videos";
 import { Route as AuthenticatedPortalMeUploadRouteImport } from "./routes/_authenticated/_portal/me/upload";
 import { Route as AuthenticatedPortalMeStyleGuideRouteImport } from "./routes/_authenticated/_portal/me/style-guide";
@@ -184,11 +184,6 @@ const PortalHandleRoute = PortalHandleRouteImport.update({
   path: "/$handle",
   getParentRoute: () => PortalRouteRoute,
 } as any);
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: "/settings",
-  path: "/settings",
-  getParentRoute: () => AuthenticatedRoute,
-} as any);
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: "/admin",
   path: "/admin",
@@ -233,30 +228,6 @@ const PortalHandleSplatRoute = PortalHandleSplatRouteImport.update({
   path: "/$",
   getParentRoute: () => PortalHandleRoute,
 } as any);
-const AuthenticatedSettingsProfileRoute =
-  AuthenticatedSettingsProfileRouteImport.update({
-    id: "/profile",
-    path: "/profile",
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any);
-const AuthenticatedSettingsPreferencesRoute =
-  AuthenticatedSettingsPreferencesRouteImport.update({
-    id: "/preferences",
-    path: "/preferences",
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any);
-const AuthenticatedSettingsPasswordRoute =
-  AuthenticatedSettingsPasswordRouteImport.update({
-    id: "/password",
-    path: "/password",
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any);
-const AuthenticatedSettingsAppearanceRoute =
-  AuthenticatedSettingsAppearanceRouteImport.update({
-    id: "/appearance",
-    path: "/appearance",
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any);
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: "/users",
   path: "/users",
@@ -367,6 +338,12 @@ const AuthenticatedPortalSubscriptionsRoute =
     path: "/subscriptions",
     getParentRoute: () => AuthenticatedPortalRoute,
   } as any);
+const AuthenticatedPortalSettingsRoute =
+  AuthenticatedPortalSettingsRouteImport.update({
+    id: "/settings",
+    path: "/settings",
+    getParentRoute: () => AuthenticatedPortalRoute,
+  } as any);
 const AuthenticatedPortalNotificationsRoute =
   AuthenticatedPortalNotificationsRouteImport.update({
     id: "/notifications",
@@ -444,6 +421,30 @@ const AuthenticatedAdminArticlesNewRoute =
     id: "/new",
     path: "/new",
     getParentRoute: () => AuthenticatedAdminArticlesRouteRoute,
+  } as any);
+const AuthenticatedPortalSettingsProfileRoute =
+  AuthenticatedPortalSettingsProfileRouteImport.update({
+    id: "/profile",
+    path: "/profile",
+    getParentRoute: () => AuthenticatedPortalSettingsRoute,
+  } as any);
+const AuthenticatedPortalSettingsPreferencesRoute =
+  AuthenticatedPortalSettingsPreferencesRouteImport.update({
+    id: "/preferences",
+    path: "/preferences",
+    getParentRoute: () => AuthenticatedPortalSettingsRoute,
+  } as any);
+const AuthenticatedPortalSettingsPasswordRoute =
+  AuthenticatedPortalSettingsPasswordRouteImport.update({
+    id: "/password",
+    path: "/password",
+    getParentRoute: () => AuthenticatedPortalSettingsRoute,
+  } as any);
+const AuthenticatedPortalSettingsAppearanceRoute =
+  AuthenticatedPortalSettingsAppearanceRouteImport.update({
+    id: "/appearance",
+    path: "/appearance",
+    getParentRoute: () => AuthenticatedPortalSettingsRoute,
   } as any);
 const AuthenticatedPortalMeVideosRoute =
   AuthenticatedPortalMeVideosRouteImport.update({
@@ -545,7 +546,6 @@ const AuthenticatedPortalMeArticlesTokenEditRoute =
 export interface FileRoutesByFullPath {
   "/": typeof PortalIndexRoute;
   "/admin": typeof AuthenticatedAdminRouteWithChildren;
-  "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/$handle": typeof PortalHandleRouteWithChildren;
   "/about": typeof PortalAboutRoute;
   "/browse": typeof PortalBrowseRoute;
@@ -567,6 +567,7 @@ export interface FileRoutesByFullPath {
   "/admin/articles": typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   "/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
   "/notifications": typeof AuthenticatedPortalNotificationsRoute;
+  "/settings": typeof AuthenticatedPortalSettingsRouteWithChildren;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -586,10 +587,6 @@ export interface FileRoutesByFullPath {
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
-  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
-  "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
-  "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
-  "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/$handle/$": typeof PortalHandleSplatRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
@@ -608,6 +605,10 @@ export interface FileRoutesByFullPath {
   "/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/me/videos": typeof AuthenticatedPortalMeVideosRoute;
+  "/settings/appearance": typeof AuthenticatedPortalSettingsAppearanceRoute;
+  "/settings/password": typeof AuthenticatedPortalSettingsPasswordRoute;
+  "/settings/preferences": typeof AuthenticatedPortalSettingsPreferencesRoute;
+  "/settings/profile": typeof AuthenticatedPortalSettingsProfileRoute;
   "/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
   "/admin/media/$id": typeof AuthenticatedAdminMediaIdRoute;
   "/admin/transcoding/profiles": typeof AuthenticatedAdminTranscodingProfilesRoute;
@@ -624,7 +625,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   "/": typeof PortalIndexRoute;
-  "/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/about": typeof PortalAboutRoute;
   "/browse": typeof PortalBrowseRoute;
   "/cookies": typeof PortalCookiesRoute;
@@ -641,6 +641,7 @@ export interface FileRoutesByTo {
   "/auth/signin": typeof AuthSigninRoute;
   "/auth/signup": typeof AuthSignupRoute;
   "/notifications": typeof AuthenticatedPortalNotificationsRoute;
+  "/settings": typeof AuthenticatedPortalSettingsRouteWithChildren;
   "/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -660,10 +661,6 @@ export interface FileRoutesByTo {
   "/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/admin/users": typeof AuthenticatedAdminUsersRoute;
-  "/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
-  "/settings/password": typeof AuthenticatedSettingsPasswordRoute;
-  "/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
-  "/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/$handle/$": typeof PortalHandleSplatRoute;
   "/c/$id": typeof PortalCIdRoute;
   "/p/$slug": typeof PortalPSlugRoute;
@@ -681,6 +678,10 @@ export interface FileRoutesByTo {
   "/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/me/videos": typeof AuthenticatedPortalMeVideosRoute;
+  "/settings/appearance": typeof AuthenticatedPortalSettingsAppearanceRoute;
+  "/settings/password": typeof AuthenticatedPortalSettingsPasswordRoute;
+  "/settings/preferences": typeof AuthenticatedPortalSettingsPreferencesRoute;
+  "/settings/profile": typeof AuthenticatedPortalSettingsProfileRoute;
   "/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
   "/admin/media/$id": typeof AuthenticatedAdminMediaIdRoute;
   "/admin/transcoding/profiles": typeof AuthenticatedAdminTranscodingProfilesRoute;
@@ -701,7 +702,6 @@ export interface FileRoutesById {
   "/_authenticated": typeof AuthenticatedRouteWithChildren;
   "/_authenticated/_portal": typeof AuthenticatedPortalRouteWithChildren;
   "/_authenticated/admin": typeof AuthenticatedAdminRouteWithChildren;
-  "/_authenticated/settings": typeof AuthenticatedSettingsRouteWithChildren;
   "/_portal/$handle": typeof PortalHandleRouteWithChildren;
   "/_portal/about": typeof PortalAboutRoute;
   "/_portal/browse": typeof PortalBrowseRoute;
@@ -724,6 +724,7 @@ export interface FileRoutesById {
   "/_authenticated/admin/articles": typeof AuthenticatedAdminArticlesRouteRouteWithChildren;
   "/_authenticated/admin/media": typeof AuthenticatedAdminMediaRouteRouteWithChildren;
   "/_authenticated/_portal/notifications": typeof AuthenticatedPortalNotificationsRoute;
+  "/_authenticated/_portal/settings": typeof AuthenticatedPortalSettingsRouteWithChildren;
   "/_authenticated/_portal/subscriptions": typeof AuthenticatedPortalSubscriptionsRoute;
   "/_authenticated/admin/ads": typeof AuthenticatedAdminAdsRoute;
   "/_authenticated/admin/categories": typeof AuthenticatedAdminCategoriesRoute;
@@ -743,10 +744,6 @@ export interface FileRoutesById {
   "/_authenticated/admin/tags": typeof AuthenticatedAdminTagsRoute;
   "/_authenticated/admin/transcoding": typeof AuthenticatedAdminTranscodingRouteWithChildren;
   "/_authenticated/admin/users": typeof AuthenticatedAdminUsersRoute;
-  "/_authenticated/settings/appearance": typeof AuthenticatedSettingsAppearanceRoute;
-  "/_authenticated/settings/password": typeof AuthenticatedSettingsPasswordRoute;
-  "/_authenticated/settings/preferences": typeof AuthenticatedSettingsPreferencesRoute;
-  "/_authenticated/settings/profile": typeof AuthenticatedSettingsProfileRoute;
   "/_portal/$handle/$": typeof PortalHandleSplatRoute;
   "/_portal/c/$id": typeof PortalCIdRoute;
   "/_portal/p/$slug": typeof PortalPSlugRoute;
@@ -765,6 +762,10 @@ export interface FileRoutesById {
   "/_authenticated/_portal/me/style-guide": typeof AuthenticatedPortalMeStyleGuideRoute;
   "/_authenticated/_portal/me/upload": typeof AuthenticatedPortalMeUploadRoute;
   "/_authenticated/_portal/me/videos": typeof AuthenticatedPortalMeVideosRoute;
+  "/_authenticated/_portal/settings/appearance": typeof AuthenticatedPortalSettingsAppearanceRoute;
+  "/_authenticated/_portal/settings/password": typeof AuthenticatedPortalSettingsPasswordRoute;
+  "/_authenticated/_portal/settings/preferences": typeof AuthenticatedPortalSettingsPreferencesRoute;
+  "/_authenticated/_portal/settings/profile": typeof AuthenticatedPortalSettingsProfileRoute;
   "/_authenticated/admin/articles/new": typeof AuthenticatedAdminArticlesNewRoute;
   "/_authenticated/admin/media/$id": typeof AuthenticatedAdminMediaIdRoute;
   "/_authenticated/admin/transcoding/profiles": typeof AuthenticatedAdminTranscodingProfilesRoute;
@@ -784,7 +785,6 @@ export interface FileRouteTypes {
   fullPaths:
     | "/"
     | "/admin"
-    | "/settings"
     | "/$handle"
     | "/about"
     | "/browse"
@@ -806,6 +806,7 @@ export interface FileRouteTypes {
     | "/admin/articles"
     | "/admin/media"
     | "/notifications"
+    | "/settings"
     | "/subscriptions"
     | "/admin/ads"
     | "/admin/categories"
@@ -825,10 +826,6 @@ export interface FileRouteTypes {
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
-    | "/settings/appearance"
-    | "/settings/password"
-    | "/settings/preferences"
-    | "/settings/profile"
     | "/$handle/$"
     | "/c/$id"
     | "/p/$slug"
@@ -847,6 +844,10 @@ export interface FileRouteTypes {
     | "/me/style-guide"
     | "/me/upload"
     | "/me/videos"
+    | "/settings/appearance"
+    | "/settings/password"
+    | "/settings/preferences"
+    | "/settings/profile"
     | "/admin/articles/new"
     | "/admin/media/$id"
     | "/admin/transcoding/profiles"
@@ -863,7 +864,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
-    | "/settings"
     | "/about"
     | "/browse"
     | "/cookies"
@@ -880,6 +880,7 @@ export interface FileRouteTypes {
     | "/auth/signin"
     | "/auth/signup"
     | "/notifications"
+    | "/settings"
     | "/subscriptions"
     | "/admin/ads"
     | "/admin/categories"
@@ -899,10 +900,6 @@ export interface FileRouteTypes {
     | "/admin/tags"
     | "/admin/transcoding"
     | "/admin/users"
-    | "/settings/appearance"
-    | "/settings/password"
-    | "/settings/preferences"
-    | "/settings/profile"
     | "/$handle/$"
     | "/c/$id"
     | "/p/$slug"
@@ -920,6 +917,10 @@ export interface FileRouteTypes {
     | "/me/style-guide"
     | "/me/upload"
     | "/me/videos"
+    | "/settings/appearance"
+    | "/settings/password"
+    | "/settings/preferences"
+    | "/settings/profile"
     | "/admin/articles/new"
     | "/admin/media/$id"
     | "/admin/transcoding/profiles"
@@ -939,7 +940,6 @@ export interface FileRouteTypes {
     | "/_authenticated"
     | "/_authenticated/_portal"
     | "/_authenticated/admin"
-    | "/_authenticated/settings"
     | "/_portal/$handle"
     | "/_portal/about"
     | "/_portal/browse"
@@ -962,6 +962,7 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/articles"
     | "/_authenticated/admin/media"
     | "/_authenticated/_portal/notifications"
+    | "/_authenticated/_portal/settings"
     | "/_authenticated/_portal/subscriptions"
     | "/_authenticated/admin/ads"
     | "/_authenticated/admin/categories"
@@ -981,10 +982,6 @@ export interface FileRouteTypes {
     | "/_authenticated/admin/tags"
     | "/_authenticated/admin/transcoding"
     | "/_authenticated/admin/users"
-    | "/_authenticated/settings/appearance"
-    | "/_authenticated/settings/password"
-    | "/_authenticated/settings/preferences"
-    | "/_authenticated/settings/profile"
     | "/_portal/$handle/$"
     | "/_portal/c/$id"
     | "/_portal/p/$slug"
@@ -1003,6 +1000,10 @@ export interface FileRouteTypes {
     | "/_authenticated/_portal/me/style-guide"
     | "/_authenticated/_portal/me/upload"
     | "/_authenticated/_portal/me/videos"
+    | "/_authenticated/_portal/settings/appearance"
+    | "/_authenticated/_portal/settings/password"
+    | "/_authenticated/_portal/settings/preferences"
+    | "/_authenticated/_portal/settings/profile"
     | "/_authenticated/admin/articles/new"
     | "/_authenticated/admin/media/$id"
     | "/_authenticated/admin/transcoding/profiles"
@@ -1160,13 +1161,6 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof PortalHandleRouteImport;
       parentRoute: typeof PortalRouteRoute;
     };
-    "/_authenticated/settings": {
-      id: "/_authenticated/settings";
-      path: "/settings";
-      fullPath: "/settings";
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport;
-      parentRoute: typeof AuthenticatedRoute;
-    };
     "/_authenticated/admin": {
       id: "/_authenticated/admin";
       path: "/admin";
@@ -1229,34 +1223,6 @@ declare module "@tanstack/react-router" {
       fullPath: "/$handle/$";
       preLoaderRoute: typeof PortalHandleSplatRouteImport;
       parentRoute: typeof PortalHandleRoute;
-    };
-    "/_authenticated/settings/profile": {
-      id: "/_authenticated/settings/profile";
-      path: "/profile";
-      fullPath: "/settings/profile";
-      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRoute;
-    };
-    "/_authenticated/settings/preferences": {
-      id: "/_authenticated/settings/preferences";
-      path: "/preferences";
-      fullPath: "/settings/preferences";
-      preLoaderRoute: typeof AuthenticatedSettingsPreferencesRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRoute;
-    };
-    "/_authenticated/settings/password": {
-      id: "/_authenticated/settings/password";
-      path: "/password";
-      fullPath: "/settings/password";
-      preLoaderRoute: typeof AuthenticatedSettingsPasswordRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRoute;
-    };
-    "/_authenticated/settings/appearance": {
-      id: "/_authenticated/settings/appearance";
-      path: "/appearance";
-      fullPath: "/settings/appearance";
-      preLoaderRoute: typeof AuthenticatedSettingsAppearanceRouteImport;
-      parentRoute: typeof AuthenticatedSettingsRoute;
     };
     "/_authenticated/admin/users": {
       id: "/_authenticated/admin/users";
@@ -1391,6 +1357,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthenticatedPortalSubscriptionsRouteImport;
       parentRoute: typeof AuthenticatedPortalRoute;
     };
+    "/_authenticated/_portal/settings": {
+      id: "/_authenticated/_portal/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof AuthenticatedPortalSettingsRouteImport;
+      parentRoute: typeof AuthenticatedPortalRoute;
+    };
     "/_authenticated/_portal/notifications": {
       id: "/_authenticated/_portal/notifications";
       path: "/notifications";
@@ -1481,6 +1454,34 @@ declare module "@tanstack/react-router" {
       fullPath: "/admin/articles/new";
       preLoaderRoute: typeof AuthenticatedAdminArticlesNewRouteImport;
       parentRoute: typeof AuthenticatedAdminArticlesRouteRoute;
+    };
+    "/_authenticated/_portal/settings/profile": {
+      id: "/_authenticated/_portal/settings/profile";
+      path: "/profile";
+      fullPath: "/settings/profile";
+      preLoaderRoute: typeof AuthenticatedPortalSettingsProfileRouteImport;
+      parentRoute: typeof AuthenticatedPortalSettingsRoute;
+    };
+    "/_authenticated/_portal/settings/preferences": {
+      id: "/_authenticated/_portal/settings/preferences";
+      path: "/preferences";
+      fullPath: "/settings/preferences";
+      preLoaderRoute: typeof AuthenticatedPortalSettingsPreferencesRouteImport;
+      parentRoute: typeof AuthenticatedPortalSettingsRoute;
+    };
+    "/_authenticated/_portal/settings/password": {
+      id: "/_authenticated/_portal/settings/password";
+      path: "/password";
+      fullPath: "/settings/password";
+      preLoaderRoute: typeof AuthenticatedPortalSettingsPasswordRouteImport;
+      parentRoute: typeof AuthenticatedPortalSettingsRoute;
+    };
+    "/_authenticated/_portal/settings/appearance": {
+      id: "/_authenticated/_portal/settings/appearance";
+      path: "/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof AuthenticatedPortalSettingsAppearanceRouteImport;
+      parentRoute: typeof AuthenticatedPortalSettingsRoute;
     };
     "/_authenticated/_portal/me/videos": {
       id: "/_authenticated/_portal/me/videos";
@@ -1733,10 +1734,35 @@ const AuthenticatedPortalMeRouteRouteWithChildren =
     AuthenticatedPortalMeRouteRouteChildren,
   );
 
+interface AuthenticatedPortalSettingsRouteChildren {
+  AuthenticatedPortalSettingsAppearanceRoute: typeof AuthenticatedPortalSettingsAppearanceRoute;
+  AuthenticatedPortalSettingsPasswordRoute: typeof AuthenticatedPortalSettingsPasswordRoute;
+  AuthenticatedPortalSettingsPreferencesRoute: typeof AuthenticatedPortalSettingsPreferencesRoute;
+  AuthenticatedPortalSettingsProfileRoute: typeof AuthenticatedPortalSettingsProfileRoute;
+}
+
+const AuthenticatedPortalSettingsRouteChildren: AuthenticatedPortalSettingsRouteChildren =
+  {
+    AuthenticatedPortalSettingsAppearanceRoute:
+      AuthenticatedPortalSettingsAppearanceRoute,
+    AuthenticatedPortalSettingsPasswordRoute:
+      AuthenticatedPortalSettingsPasswordRoute,
+    AuthenticatedPortalSettingsPreferencesRoute:
+      AuthenticatedPortalSettingsPreferencesRoute,
+    AuthenticatedPortalSettingsProfileRoute:
+      AuthenticatedPortalSettingsProfileRoute,
+  };
+
+const AuthenticatedPortalSettingsRouteWithChildren =
+  AuthenticatedPortalSettingsRoute._addFileChildren(
+    AuthenticatedPortalSettingsRouteChildren,
+  );
+
 interface AuthenticatedPortalRouteChildren {
   AuthenticatedPortalArticlesRouteRoute: typeof AuthenticatedPortalArticlesRouteRouteWithChildren;
   AuthenticatedPortalMeRouteRoute: typeof AuthenticatedPortalMeRouteRouteWithChildren;
   AuthenticatedPortalNotificationsRoute: typeof AuthenticatedPortalNotificationsRoute;
+  AuthenticatedPortalSettingsRoute: typeof AuthenticatedPortalSettingsRouteWithChildren;
   AuthenticatedPortalSubscriptionsRoute: typeof AuthenticatedPortalSubscriptionsRoute;
   AuthenticatedPortalMediaShortTokenEditRoute: typeof AuthenticatedPortalMediaShortTokenEditRoute;
 }
@@ -1746,6 +1772,8 @@ const AuthenticatedPortalRouteChildren: AuthenticatedPortalRouteChildren = {
     AuthenticatedPortalArticlesRouteRouteWithChildren,
   AuthenticatedPortalMeRouteRoute: AuthenticatedPortalMeRouteRouteWithChildren,
   AuthenticatedPortalNotificationsRoute: AuthenticatedPortalNotificationsRoute,
+  AuthenticatedPortalSettingsRoute:
+    AuthenticatedPortalSettingsRouteWithChildren,
   AuthenticatedPortalSubscriptionsRoute: AuthenticatedPortalSubscriptionsRoute,
   AuthenticatedPortalMediaShortTokenEditRoute:
     AuthenticatedPortalMediaShortTokenEditRoute,
@@ -1862,35 +1890,14 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren);
 
-interface AuthenticatedSettingsRouteChildren {
-  AuthenticatedSettingsAppearanceRoute: typeof AuthenticatedSettingsAppearanceRoute;
-  AuthenticatedSettingsPasswordRoute: typeof AuthenticatedSettingsPasswordRoute;
-  AuthenticatedSettingsPreferencesRoute: typeof AuthenticatedSettingsPreferencesRoute;
-  AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute;
-}
-
-const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
-  AuthenticatedSettingsAppearanceRoute: AuthenticatedSettingsAppearanceRoute,
-  AuthenticatedSettingsPasswordRoute: AuthenticatedSettingsPasswordRoute,
-  AuthenticatedSettingsPreferencesRoute: AuthenticatedSettingsPreferencesRoute,
-  AuthenticatedSettingsProfileRoute: AuthenticatedSettingsProfileRoute,
-};
-
-const AuthenticatedSettingsRouteWithChildren =
-  AuthenticatedSettingsRoute._addFileChildren(
-    AuthenticatedSettingsRouteChildren,
-  );
-
 interface AuthenticatedRouteChildren {
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRouteWithChildren;
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren;
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren;
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPortalRoute: AuthenticatedPortalRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
-  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
 };
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
