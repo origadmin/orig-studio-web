@@ -384,11 +384,13 @@ export default function MediaEditPage() {
                     onPreview={handlePreview}
                     onDelete={() => setDeleteDialogOpen(true)}
                     badges={headerBadges}
+                    pageTitle={t('mediaEdit.pageTitle', '媒体编辑')}
+                    breadcrumb={t('mediaEdit.breadcrumbMine', '我的视频')}
                 />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2 space-y-6">
                         <div className="bg-card rounded-lg border p-6">
                             <MediaEditForm
                                 form={form}
@@ -401,6 +403,11 @@ export default function MediaEditPage() {
                                 featureModes={featureModes}
                             />
                         </div>
+                        {/* BUG-186 G5 #5 / BUG-355: portal owner subtitle management (shared
+                            component with admin). It lives INSIDE the main column so it is
+                            exactly as wide as the form above it — it used to sit below the
+                            grid, spanning the full container width (width mismatch). */}
+                        <SubtitleManager shortToken={String(shortToken).replace(/["']/g, '').trim()} />
                     </div>
 
                     <div className="space-y-6">
@@ -511,10 +518,6 @@ export default function MediaEditPage() {
                     </div>
                 </div>
 
-                {/* BUG-186 G5 #5: portal owner subtitle management (shared component with admin) */}
-                <div className="mt-6">
-                    <SubtitleManager shortToken={String(shortToken).replace(/["']/g, '').trim()} />
-                </div>
             </div>
 
             <DeleteConfirmDialog

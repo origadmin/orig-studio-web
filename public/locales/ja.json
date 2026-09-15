@@ -2064,6 +2064,8 @@
     "featureDisabledDesc": "この機能は管理者によって無効化されています"
   },
   "mediaEdit": {
+    "pageTitle": "メディア編集",    
+    "breadcrumbMine": "マイ動画",
     "title": "タイトル",
     "titlePlaceholder": "メディアタイトルを入力...",
     "description": "説明",

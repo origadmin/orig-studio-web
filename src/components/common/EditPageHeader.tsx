@@ -4,7 +4,6 @@ import {ArrowLeft, Save, Play, MoreHorizontal, Trash2, CheckCircle, XCircle, Loa
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
-import {Separator} from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +54,14 @@ export interface EditPageHeaderProps {
   /** When provided, the title renders as an inline editable input (BUG-135, mirrors admin's title-in-h1 pattern). */
   editableTitle?: string;
   onTitleChange?: (value: string) => void;
+  /**
+   * Page-level identity rendered as a small line ABOVE the media title, so the
+   * user can tell which page they are on (the media title alone does not say
+   * "you are editing"). Mirrors the admin page's breadcrumb row.
+   */
+  pageTitle?: string;
+  /** Optional breadcrumb tail for the identity line, e.g. the list it came from. */
+  breadcrumb?: string;
 }
 
 const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
@@ -67,18 +74,15 @@ const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
 const BackNavigation = memo(function BackNavigation({onBack}: { onBack: () => void }) {
   const {t} = useTranslation();
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onBack}
-        aria-label={t('mediaEdit.backAria')}
-      >
-        <ArrowLeft className="w-4 h-4"/>
-        <span className="hidden sm:inline">{t('mediaEdit.back')}</span>
-      </Button>
-      <Separator orientation="vertical" className="h-6"/>
-    </>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={onBack}
+      aria-label={t('mediaEdit.backAria')}
+    >
+      <ArrowLeft className="w-4 h-4"/>
+      <span className="hidden sm:inline">{t('mediaEdit.back')}</span>
+    </Button>
   );
 });
 
@@ -160,10 +164,10 @@ const TitleWithBadges = memo(function TitleWithBadges({
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder={t('mediaEdit.unnamedMedia')}
           aria-label={t('mediaEdit.titleAria')}
-          className="text-base font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
+          className="text-lg font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
         />
       ) : (
-        <h1 className="text-base font-semibold truncate">
+        <h1 className="text-lg font-bold tracking-tight truncate">
           {title || t('mediaEdit.unnamedMedia')}
           {isDirty && <DirtyIndicator/>}
         </h1>
@@ -245,6 +249,7 @@ function getSaveButtonText(saveState: SaveState, t: (key: string) => string): st
 const HeaderActions = memo(function HeaderActions({
   saveState,
   isDirty,
+  onBack,
   onSave,
   onPreview,
   onDelete,
@@ -252,6 +257,7 @@ const HeaderActions = memo(function HeaderActions({
 }: {
   saveState: SaveState;
   isDirty: boolean;
+  onBack: () => void;
   onSave: () => void;
   onPreview?: () => void;
   onDelete: () => void;
@@ -262,12 +268,28 @@ const HeaderActions = memo(function HeaderActions({
   const saveDisabled = isSaving;
 
   return (
+    // Order mirrors the admin media header: 返回 / 预览 / 保存 (primary last), so
+    // the two pages read the same even though the admin header is its own impl.
     <div className="flex items-center gap-2 shrink-0">
+      <BackNavigation onBack={onBack}/>
+
+      {hasPreview && onPreview && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onPreview}
+          className="hidden sm:inline-flex"
+          aria-label={t('mediaEdit.previewAria')}
+        >
+          <Play className="w-4 h-4"/>
+          <span className="hidden md:inline">{t('mediaEdit.preview')}</span>
+        </Button>
+      )}
+
       <TooltipProvider delayDuration={300}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
               size="sm"
               onClick={onSave}
               disabled={saveDisabled}
@@ -283,19 +305,6 @@ const HeaderActions = memo(function HeaderActions({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-
-      {hasPreview && onPreview && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPreview}
-          className="hidden sm:inline-flex"
-          aria-label={t('mediaEdit.previewAria')}
-        >
-          <Play className="w-4 h-4"/>
-          <span className="hidden md:inline">{t('mediaEdit.preview')}</span>
-        </Button>
-      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -340,6 +349,8 @@ export function EditPageHeader({
   encodingStatus,
   editableTitle,
   onTitleChange,
+  pageTitle,
+  breadcrumb,
 }: EditPageHeaderProps) {
   const isSm = useMediaQuery('(min-width: 640px)');
   const isLg = useMediaQuery('(min-width: 1024px)');
@@ -354,11 +365,20 @@ export function EditPageHeader({
 
   return (
     <div
-      className="sticky top-14 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 h-12 sm:h-14 px-8"
+      className="sticky top-14 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 px-8 py-2 min-h-12 sm:min-h-14"
     >
-      <div className="h-full flex items-center justify-between">
-        <div className="flex items-center gap-4 min-w-0">
-          <BackNavigation onBack={onBack}/>
+      <div className="h-full flex items-center justify-between gap-4">
+        {/* Left: page identity line + media title. The identity line answers
+            "which page am I on" — the media title alone does not. The back
+            control lives with the actions on the right (mirrors admin). */}
+        <div className="flex flex-col justify-center min-w-0 flex-1">
+          {(pageTitle || breadcrumb) && (
+            <div className="text-xs text-muted-foreground truncate leading-5">
+              {pageTitle && <span className="font-medium">{pageTitle}</span>}
+              {pageTitle && breadcrumb && <span className="px-1 opacity-60">·</span>}
+              {breadcrumb}
+            </div>
+          )}
           <TitleWithBadges
             title={title}
             isDirty={isDirty}
@@ -373,6 +393,7 @@ export function EditPageHeader({
         <HeaderActions
           saveState={saveState}
           isDirty={isDirty}
+          onBack={onBack}
           onSave={onSave}
           onPreview={onPreview}
           onDelete={onDelete}
