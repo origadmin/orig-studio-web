@@ -2200,6 +2200,7 @@
     "featureDisabledDesc": "This feature has been disabled by the administrator"
   },
   "mediaEdit": {
+    "editTitle": "Edit title",
     "pageTitle": "Edit media",    
     "breadcrumbMine": "My videos",
     "title": "Title",

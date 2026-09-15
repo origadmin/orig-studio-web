@@ -10,11 +10,11 @@ import {adminMediaApi, encodingApi, type EncodeProfile} from '@/lib/api/media';
 import {adminApi, type Channel as AdminChannel} from '@/lib/api/admin';
 import {reviewApi} from '@/lib/api/review';
 import {SubtitleManager} from '@/components/common/SubtitleManager';
+import {EditableHeading} from '@/components/common/EditableHeading';
 import {api} from '@/lib/request';
 import {getFullUrl, withCacheBust} from '@/lib/utils';
 import {getVideoGenreOptions} from '@/lib/utils/categoryTree';
 import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
 import {Textarea} from '@/components/ui/textarea';
 import {Label} from '@/components/ui/label';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
@@ -1007,11 +1007,15 @@ export default function MediaEditPage() {
                         <span className="h-8 w-8 shrink-0 flex items-center justify-center text-sky-600">
                             <Film className="h-8 w-8"/>
                         </span>
-                        <Input
+                        {/* Text + pencil (not an always-on transparent input): the title
+                            reads as a heading and only becomes editable on demand. */}
+                        <EditableHeading
                             value={form.title}
-                            onChange={e => setForm({...form, title: e.target.value})}
+                            onChange={(v) => setForm({...form, title: v})}
                             placeholder={t('mediaEdit.unnamedMedia', '未命名媒体')}
-                            className="text-3xl font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
+                            ariaLabel={t('mediaEdit.titleAria', '标题')}
+                            editLabel={t('mediaEdit.editTitle', '修改标题')}
+                            className="text-3xl font-bold tracking-tight"
                         />
                     </h1>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 min-w-0">

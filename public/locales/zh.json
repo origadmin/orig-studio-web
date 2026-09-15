@@ -2254,6 +2254,7 @@
     "featureDisabledDesc": "该功能已被管理员禁用"
   },
   "mediaEdit": {
+    "editTitle": "修改标题",
     "pageTitle": "媒体编辑",    
     "breadcrumbMine": "我的视频",
     "title": "标题",

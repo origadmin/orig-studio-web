@@ -1,14 +1,21 @@
-import {memo, useMemo} from 'react';
+import {Fragment, memo, useMemo, type ReactNode} from 'react';
 import {useTranslation} from 'react-i18next';
+import {Link} from '@tanstack/react-router';
 import {ArrowLeft, Save, Play, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
 import {Badge} from '@/components/ui/badge';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -18,6 +25,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
+import {EditableHeading} from '@/components/common/EditableHeading';
 import {useMediaQuery} from '@/hooks/useMediaQuery';
 import {cn} from '@/lib/utils';
 
@@ -40,6 +48,12 @@ export interface EncodingStatusConfig {
   ariaLabel?: string;
 }
 
+export interface BreadcrumbEntry {
+  label: string;
+  /** Omit for the trailing (current) crumb. */
+  to?: string;
+}
+
 export interface EditPageHeaderProps {
   title: string;
   isDirty: boolean;
@@ -51,17 +65,15 @@ export interface EditPageHeaderProps {
   onDelete: () => void;
   badges: HeaderBadgeConfig[];
   encodingStatus?: EncodingStatusConfig;
-  /** When provided, the title renders as an inline editable input (BUG-135, mirrors admin's title-in-h1 pattern). */
+  /** Editable media title — rendered as text + pencil (see EditableHeading). */
   editableTitle?: string;
   onTitleChange?: (value: string) => void;
-  /**
-   * Page-level identity rendered as a small line ABOVE the media title, so the
-   * user can tell which page they are on (the media title alone does not say
-   * "you are editing"). Mirrors the admin page's breadcrumb row.
-   */
-  pageTitle?: string;
-  /** Optional breadcrumb tail for the identity line, e.g. the list it came from. */
-  breadcrumb?: string;
+  /** Breadcrumb trail above the title (same structure as the admin page). */
+  breadcrumbItems?: BreadcrumbEntry[];
+  /** Leading icon of the title row (e.g. the media-type icon). */
+  icon?: ReactNode;
+  /** Muted description next to the badges, as on the admin page. */
+  subtitle?: string;
 }
 
 const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
@@ -71,20 +83,31 @@ const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
   'custom': 2,
 };
 
-const BackNavigation = memo(function BackNavigation({onBack}: { onBack: () => void }) {
-  const {t} = useTranslation();
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={onBack}
-      aria-label={t('mediaEdit.backAria')}
-    >
-      <ArrowLeft className="w-4 h-4"/>
-      <span className="hidden sm:inline">{t('mediaEdit.back')}</span>
-    </Button>
-  );
-});
+function SaveButtonIcon({saveState}: { saveState: SaveState }) {
+  switch (saveState) {
+    case 'saving':
+      return <Loader2 className="w-4 h-4 animate-spin"/>;
+    case 'success':
+      return <CheckCircle className="w-4 h-4 text-success"/>;
+    case 'error':
+      return <XCircle className="w-4 h-4 text-destructive"/>;
+    default:
+      return <Save className="w-4 h-4"/>;
+  }
+}
+
+function getSaveButtonText(saveState: SaveState, t: (key: string) => string): string {
+  switch (saveState) {
+    case 'saving':
+      return t('mediaEdit.saving');
+    case 'success':
+      return t('mediaEdit.saved');
+    case 'error':
+      return t('mediaEdit.saveFailed');
+    default:
+      return t('common.save');
+  }
+}
 
 function DirtyIndicator() {
   const {t} = useTranslation();
@@ -121,131 +144,6 @@ function BadgeOverflow({count, items}: { count: number; items: HeaderBadgeConfig
   );
 }
 
-const TitleWithBadges = memo(function TitleWithBadges({
-  title,
-  isDirty,
-  badges,
-  encodingStatus,
-  maxBadges,
-  showEncodingStatus,
-  editableTitle,
-  onTitleChange,
-}: {
-  title: string;
-  isDirty: boolean;
-  badges: HeaderBadgeConfig[];
-  encodingStatus?: EncodingStatusConfig;
-  maxBadges: number;
-  showEncodingStatus: boolean;
-  editableTitle?: string;
-  onTitleChange?: (value: string) => void;
-}) {
-  const {t} = useTranslation();
-  const sortedBadges = useMemo(() =>
-    badges
-      .filter(b => b.visible !== false)
-      .sort((a, b) => BADGE_PRIORITY[a.type] - BADGE_PRIORITY[b.type]),
-    [badges]
-  );
-
-  const visibleBadges = maxBadges < sortedBadges.length
-    ? sortedBadges.slice(0, maxBadges)
-    : sortedBadges;
-  const overflowBadges = maxBadges < sortedBadges.length
-    ? sortedBadges.slice(maxBadges)
-    : [];
-  const overflowCount = overflowBadges.length;
-
-  return (
-    <div className="flex items-center gap-2 min-w-0">
-      {editableTitle !== undefined && onTitleChange ? (
-        <Input
-          value={editableTitle}
-          onChange={(e) => onTitleChange(e.target.value)}
-          placeholder={t('mediaEdit.unnamedMedia')}
-          aria-label={t('mediaEdit.titleAria')}
-          className="text-lg font-bold tracking-tight border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-0 h-auto py-0 bg-transparent placeholder:text-muted-foreground/50 flex-1 min-w-0"
-        />
-      ) : (
-        <h1 className="text-lg font-bold tracking-tight truncate">
-          {title || t('mediaEdit.unnamedMedia')}
-          {isDirty && <DirtyIndicator/>}
-        </h1>
-      )}
-      {(visibleBadges.length > 0 || (showEncodingStatus && encodingStatus) || overflowCount > 0) && (
-        <div className="flex items-center gap-1.5 shrink-0">
-          {visibleBadges.map((badge) => {
-            if (badge.statusDot) {
-              return (
-                <StatusDot
-                  key={badge.type}
-                  status={badge.statusDot}
-                  label={badge.label}
-                  className={badge.className}
-                />
-              );
-            }
-            const typeColors: Record<string, string> = {
-              'media-type': 'bg-primary/10 text-primary',
-              'featured': 'bg-warning/10 text-warning border border-warning/30',
-              'custom': badge.pillClass || 'bg-muted text-muted-foreground',
-            };
-            const colorClass = typeColors[badge.type] || typeColors['custom'];
-            return (
-              <span
-                key={badge.type}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium',
-                  colorClass,
-                  badge.className
-                )}
-                aria-label={badge.ariaLabel}
-              >
-                {badge.label}
-              </span>
-            );
-          })}
-          {showEncodingStatus && encodingStatus && (
-            <StatusDot
-              status={encodingStatus.status}
-              label={encodingStatus.label}
-            />
-          )}
-          {overflowCount > 0 && (
-            <BadgeOverflow count={overflowCount} items={overflowBadges}/>
-          )}
-        </div>
-      )}
-    </div>
-  );
-});
-
-function SaveButtonIcon({saveState}: { saveState: SaveState }) {
-  switch (saveState) {
-    case 'saving':
-      return <Loader2 className="w-4 h-4 animate-spin"/>;
-    case 'success':
-      return <CheckCircle className="w-4 h-4 text-success"/>;
-    case 'error':
-      return <XCircle className="w-4 h-4 text-destructive"/>;
-    default:
-      return <Save className="w-4 h-4"/>;
-  }
-}
-
-function getSaveButtonText(saveState: SaveState, t: (key: string) => string): string {
-  switch (saveState) {
-    case 'saving':
-      return t('mediaEdit.saving');
-    case 'success':
-      return t('mediaEdit.saved');
-    case 'error':
-      return t('mediaEdit.saveFailed');
-    default:
-      return t('common.save');
-  }
-}
-
 const HeaderActions = memo(function HeaderActions({
   saveState,
   isDirty,
@@ -264,25 +162,20 @@ const HeaderActions = memo(function HeaderActions({
   hasPreview: boolean;
 }) {
   const {t} = useTranslation();
-  const isSaving = saveState === 'saving';
-  const saveDisabled = isSaving;
+  const saveDisabled = saveState === 'saving';
 
   return (
-    // Order mirrors the admin media header: 返回 / 预览 / 保存 (primary last), so
-    // the two pages read the same even though the admin header is its own impl.
+    // 返回 / 预览 / 保存 (primary last) — identical to the admin media header.
     <div className="flex items-center gap-2 shrink-0">
-      <BackNavigation onBack={onBack}/>
+      <Button variant="outline" onClick={onBack} aria-label={t('mediaEdit.backAria')}>
+        <ArrowLeft className="w-4 h-4 mr-2"/>
+        {t('common.back')}
+      </Button>
 
       {hasPreview && onPreview && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPreview}
-          className="hidden sm:inline-flex"
-          aria-label={t('mediaEdit.previewAria')}
-        >
-          <Play className="w-4 h-4"/>
-          <span className="hidden md:inline">{t('mediaEdit.preview')}</span>
+        <Button variant="outline" onClick={onPreview} aria-label={t('mediaEdit.previewAria')}>
+          <Play className="w-4 h-4 mr-2"/>
+          {t('mediaEdit.preview')}
         </Button>
       )}
 
@@ -290,14 +183,13 @@ const HeaderActions = memo(function HeaderActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              size="sm"
               onClick={onSave}
               disabled={saveDisabled}
               className={cn(isDirty && saveState === 'idle' && 'ring-2 ring-primary/30')}
               aria-label={t('mediaEdit.saveAria')}
             >
               <SaveButtonIcon saveState={saveState}/>
-              <span className="hidden md:inline">{getSaveButtonText(saveState, t)}</span>
+              <span className="ml-2">{getSaveButtonText(saveState, t)}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -308,20 +200,11 @@ const HeaderActions = memo(function HeaderActions({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label={t('mediaEdit.moreActionsAria')}>
+          <Button variant="ghost" aria-label={t('mediaEdit.moreActionsAria')}>
             <MoreHorizontal className="w-4 h-4"/>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {hasPreview && onPreview && (
-            <>
-              <DropdownMenuItem onClick={onPreview} className="sm:hidden">
-                <Play className="w-4 h-4 mr-2"/>
-                {t('mediaEdit.preview')}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="sm:hidden"/>
-            </>
-          )}
           <DropdownMenuItem
             onClick={onDelete}
             className="text-destructive focus:text-destructive"
@@ -339,7 +222,6 @@ const HeaderActions = memo(function HeaderActions({
 export function EditPageHeader({
   title,
   isDirty,
-  isSaving: _isSaving,
   saveState,
   onBack,
   onSave,
@@ -349,9 +231,11 @@ export function EditPageHeader({
   encodingStatus,
   editableTitle,
   onTitleChange,
-  pageTitle,
-  breadcrumb,
+  breadcrumbItems,
+  icon,
+  subtitle,
 }: EditPageHeaderProps) {
+  const {t} = useTranslation();
   const isSm = useMediaQuery('(min-width: 640px)');
   const isLg = useMediaQuery('(min-width: 1024px)');
 
@@ -361,35 +245,117 @@ export function EditPageHeader({
     return 1;
   }, [isSm, isLg]);
 
-  const showEncodingStatus = isSm;
+  const sortedBadges = useMemo(() =>
+    badges
+      .filter(b => b.visible !== false)
+      .sort((a, b) => BADGE_PRIORITY[a.type] - BADGE_PRIORITY[b.type]),
+    [badges]
+  );
+  const visibleBadges = maxBadges < sortedBadges.length ? sortedBadges.slice(0, maxBadges) : sortedBadges;
+  const overflowBadges = maxBadges < sortedBadges.length ? sortedBadges.slice(maxBadges) : [];
+
+  const typeColors: Record<string, string> = {
+    'media-type': 'bg-primary/10 text-primary',
+    'featured': 'bg-warning/10 text-warning border border-warning/30',
+    'custom': 'bg-muted text-muted-foreground',
+  };
 
   return (
-    <div
-      className="sticky top-14 z-30 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 px-8 py-2 min-h-12 sm:min-h-14"
-    >
-      <div className="h-full flex items-center justify-between gap-4">
-        {/* Left: page identity line + media title. The identity line answers
-            "which page am I on" — the media title alone does not. The back
-            control lives with the actions on the right (mirrors admin). */}
-        <div className="flex flex-col justify-center min-w-0 flex-1">
-          {(pageTitle || breadcrumb) && (
-            <div className="text-xs text-muted-foreground truncate leading-5">
-              {pageTitle && <span className="font-medium">{pageTitle}</span>}
-              {pageTitle && breadcrumb && <span className="px-1 opacity-60">·</span>}
-              {breadcrumb}
-            </div>
-          )}
-          <TitleWithBadges
-            title={title}
-            isDirty={isDirty}
-            badges={badges}
-            encodingStatus={encodingStatus}
-            maxBadges={maxBadges}
-            showEncodingStatus={showEncodingStatus}
-            editableTitle={editableTitle}
-            onTitleChange={onTitleChange}
-          />
+    // Same markup + classes as the admin media page header: breadcrumb row,
+    // then icon + 3xl title with the actions on the right, then a badge /
+    // description row. Copying the admin structure is what keeps the two pages
+    // from drifting apart (the portal used to have its own sticky strip).
+    <header>
+      {breadcrumbItems && breadcrumbItems.length > 0 && (
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            {breadcrumbItems.map((item, i) => (
+              <Fragment key={`${item.label}-${i}`}>
+                {i > 0 && <BreadcrumbSeparator/>}
+                <BreadcrumbItem>
+                  {item.to ? (
+                    <BreadcrumbLink asChild>
+                      <Link to={item.to}>{item.label}</Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
+
+      <div className="flex justify-between items-end gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+            {icon && (
+              <span className="h-8 w-8 shrink-0 flex items-center justify-center text-sky-600">
+                {icon}
+              </span>
+            )}
+            {editableTitle !== undefined && onTitleChange ? (
+              <EditableHeading
+                value={editableTitle}
+                onChange={onTitleChange}
+                placeholder={t('mediaEdit.unnamedMedia')}
+                ariaLabel={t('mediaEdit.titleAria')}
+                editLabel={t('mediaEdit.editTitle', '修改标题')}
+                className="text-3xl font-bold tracking-tight"
+              />
+            ) : (
+              <span className="truncate">
+                {title || t('mediaEdit.unnamedMedia')}
+                {isDirty && <DirtyIndicator/>}
+              </span>
+            )}
+          </h1>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 min-w-0">
+            <span className="inline-flex items-center gap-1.5 shrink-0">
+              {visibleBadges.map((badge) => {
+                if (badge.statusDot) {
+                  return (
+                    <StatusDot
+                      key={badge.type}
+                      status={badge.statusDot}
+                      label={badge.label}
+                      className={badge.className}
+                    />
+                  );
+                }
+                const colorClass = typeColors[badge.type] || typeColors['custom'];
+                return (
+                  <span
+                    key={badge.type}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0',
+                      colorClass,
+                      badge.className
+                    )}
+                    aria-label={badge.ariaLabel}
+                  >
+                    {badge.label}
+                  </span>
+                );
+              })}
+              {isSm && encodingStatus && (
+                <StatusDot status={encodingStatus.status} label={encodingStatus.label}/>
+              )}
+              {overflowBadges.length > 0 && (
+                <BadgeOverflow count={overflowBadges.length} items={overflowBadges}/>
+              )}
+            </span>
+            {subtitle && (
+              <>
+                <span className="h-4 w-px bg-border shrink-0 hidden sm:block"/>
+                <p className="text-sm text-muted-foreground min-w-0 flex-1">{subtitle}</p>
+              </>
+            )}
+          </div>
         </div>
+
         <HeaderActions
           saveState={saveState}
           isDirty={isDirty}
@@ -400,6 +366,8 @@ export function EditPageHeader({
           hasPreview={!!onPreview}
         />
       </div>
-    </div>
+    </header>
   );
 }
+
+export default EditPageHeader;

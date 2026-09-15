@@ -14,7 +14,7 @@ import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditP
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
-import {AlertTriangle, ArrowLeft, Play, Pencil, Upload} from 'lucide-react';
+import {AlertTriangle, ArrowLeft, Film, Play, Pencil, Upload} from 'lucide-react';
 import {toast} from 'sonner';
 import {getFullUrl, withCacheBust} from '@/lib/utils';
 import {buildCategoryTree, VIDEO_ROOT_SLUG} from '@/lib/utils/categoryTree';
@@ -372,6 +372,7 @@ export default function MediaEditPage() {
 
     return (
         <div className="min-h-screen bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
                 <EditPageHeader
                     title={form.title || 'Untitled Media'}
                     editableTitle={form.title}
@@ -384,11 +385,14 @@ export default function MediaEditPage() {
                     onPreview={handlePreview}
                     onDelete={() => setDeleteDialogOpen(true)}
                     badges={headerBadges}
-                    pageTitle={t('mediaEdit.pageTitle', '媒体编辑')}
-                    breadcrumb={t('mediaEdit.breadcrumbMine', '我的视频')}
+                    breadcrumbItems={[
+                        {label: t('mediaEdit.breadcrumbMine', '我的视频'), to: '/me/videos'},
+                        {label: t('mediaEdit.pageTitle', '媒体编辑')},
+                    ]}
+                    icon={<Film className="h-8 w-8"/>}
+                    subtitle={t('mediaEdit.mediaDescription', '管理媒体文件的元数据、发布设置和转码任务')}
                 />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-card rounded-lg border p-6">
