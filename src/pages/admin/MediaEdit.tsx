@@ -30,7 +30,8 @@ import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import type {HeaderBadgeConfig} from '@/components/common/EditPageHeader';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
-import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
+import {useDirtyState, useSaveState} from '@/hooks/useEditPage';
+import {useSaveShortcut} from '@/hooks/useSaveShortcut';
 import {ArrowLeft, RefreshCw, Play, Eye, EyeOff, ThumbsUp, MessageSquareText, Download, AlertTriangle, CheckCircle, Clock, XCircle, Image, Film, Star, Upload, Copy, Subtitles, Video, Music, BookOpen, ShieldCheck, Edit, Link2, Delete, Loader2, Users, Save, User as UserIcon, Wrench, Settings2, Plus, Trash2, ExternalLink, AlertCircle} from 'lucide-react';
 import {formatDateTime, formatDuration, formatFileSize} from '@/lib/format';
 import {parseTagsInput} from '@/lib/utils/hashtag';
@@ -530,7 +531,8 @@ export default function MediaEditPage() {
     }, [navigate]);
 
     // Keyboard shortcut: Ctrl+S / Cmd+S
-    useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
+    // Shared shortcut hook: same declaration as the portal header (keyboard-shortcuts.md).
+    useSaveShortcut(handleSave, {enabled: !isSaving});
 
     // Helper: extract tasks list from API response
     const extractTasks = (res: any): EncodingTask[] => {

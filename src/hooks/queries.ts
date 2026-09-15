@@ -4,6 +4,7 @@ import {mediaApi, publicMediaApi, adminMediaApi, type Media, type UpdateMediaReq
 import {categoryApi, type Category} from '@/lib/api/category';
 import {channelApi, type Channel, type ChannelDetail, type ChannelLimits} from '@/lib/api/channel';
 import {userApi, type PublicProfile, type UserStats} from '@/lib/api/user';
+import {mapPublicProfile} from '@/hooks/publicProfileMapping';
 import {playlistApi, type Playlist, type PlaylistListResponse} from '@/lib/api/playlist';
 import {portalApi, adminPortalApi} from '@/lib/api/portal';
 import {adminCommentApi} from '@/lib/api/comment';
@@ -409,26 +410,9 @@ export function usePublicProfile(username: string | null) {
         queryFn: async () => {
             const res = await userApi.getPublicProfile(username!);
             const raw = (res as any)?.user ?? res;
-            return {
-                id: raw.id,
-                username: raw.username,
-                nickname: raw.nickname || undefined,
-                avatar: raw.avatar || undefined,
-                slug: raw.slug || undefined,
-                bio: raw.description || raw.bio || undefined,
-                location: raw.location || undefined,
-                website: raw.website || undefined,
-                title: raw.title || undefined,
-                is_featured: raw.is_verified || false,
-                media_count: raw.media_count || 0,
-                subscriber_count: raw.subscriber_count || 0,
-                created_at: raw.create_time || raw.created_at,
-                default_channel_token: raw.default_channel_token || undefined,
-                // BUG-085: preserve backend-provided is_me so is_owner can be
-                // derived authoritatively without auth-state race conditions.
-                is_me: raw.is_me,
-                is_subscribed: raw.is_subscribed || false,
-            } as Omit<PublicProfile, 'is_owner'> & { is_me?: boolean };
+            // Mapping lives in publicProfileMapping.ts (unit-tested): bio comes from
+            // `title`, and `description` (the user-settings blob) is never rendered.
+            return mapPublicProfile(raw);
         },
         enabled: !!username,
     });

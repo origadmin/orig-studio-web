@@ -10,7 +10,7 @@ import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {MediaEditForm, type MediaEditFormState} from '@/components/common/MediaEditForm';
 import ThumbnailSelectDialog from '@/components/common/ThumbnailSelectDialog';
 import {SubtitleManager} from '@/components/common/SubtitleManager';
-import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
+import {useDirtyState, useSaveState} from '@/hooks/useEditPage';
 import {Spinner} from '@/components/ui/spinner';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
@@ -333,7 +333,6 @@ export default function MediaEditPage() {
         queryClient.invalidateQueries({queryKey: ['public-media-list']});
     }, [queryClient, shortToken, media]);
 
-    useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
 
     const headerBadges = useMemo(() => media ? mapMediaToHeaderBadges(media, isAdmin, t) : [], [media, isAdmin, t]);
 

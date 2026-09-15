@@ -19,7 +19,8 @@ import {Switch} from '@/components/ui/switch';
 import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group';
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
-import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
+import {useDirtyState, useSaveState} from '@/hooks/useEditPage';
+import {useSaveShortcut} from '@/hooks/useSaveShortcut';
 import {Spinner} from '@/components/ui/spinner';
 import {Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator} from '@/components/ui/breadcrumb';
 import {
@@ -603,7 +604,8 @@ export default function ArticleEditPage({mode}: ArticleEditPageProps) {
     }, [tagInput, addTag]);
 
     // Keyboard shortcut: Ctrl+S / Cmd+S
-    useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
+    // Shared shortcut hook (see docs/modules/shared/engineering/keyboard-shortcuts.md).
+    useSaveShortcut(handleSave, {enabled: !isSaving});
 
     // Resolve thumbnail for display
     const displayThumbnail = getFullUrl(form.thumbnail || selectedMedia?.thumbnail);

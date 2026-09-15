@@ -1,7 +1,7 @@
 import {Fragment, memo, useMemo, type ReactNode} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
-import {ArrowLeft, Save, Play, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
+import {ArrowLeft, Save, Eye, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {
@@ -27,6 +27,7 @@ import {
 import {StatusDot, type StatusDotStatus} from '@/components/common/StatusDot';
 import {EditableHeading} from '@/components/common/EditableHeading';
 import {useMediaQuery} from '@/hooks/useMediaQuery';
+import {useSaveShortcut} from '@/hooks/useSaveShortcut';
 import {cn} from '@/lib/utils';
 
 export type SaveState = 'idle' | 'saving' | 'success' | 'error';
@@ -86,13 +87,13 @@ const BADGE_PRIORITY: Record<HeaderBadgeConfig['type'], number> = {
 function SaveButtonIcon({saveState}: { saveState: SaveState }) {
   switch (saveState) {
     case 'saving':
-      return <Loader2 className="w-4 h-4 animate-spin"/>;
+      return <Loader2 className="w-4 h-4 mr-2 animate-spin"/>;
     case 'success':
-      return <CheckCircle className="w-4 h-4 text-success"/>;
+      return <CheckCircle className="w-4 h-4 mr-2 text-success"/>;
     case 'error':
-      return <XCircle className="w-4 h-4 text-destructive"/>;
+      return <XCircle className="w-4 h-4 mr-2 text-destructive"/>;
     default:
-      return <Save className="w-4 h-4"/>;
+      return <Save className="w-4 h-4 mr-2"/>;
   }
 }
 
@@ -174,29 +175,25 @@ const HeaderActions = memo(function HeaderActions({
 
       {hasPreview && onPreview && (
         <Button variant="outline" onClick={onPreview} aria-label={t('mediaEdit.previewAria')}>
-          <Play className="w-4 h-4 mr-2"/>
+          <Eye className="w-4 h-4 mr-2"/>
           {t('mediaEdit.preview')}
         </Button>
       )}
 
-      <TooltipProvider delayDuration={300}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={onSave}
-              disabled={saveDisabled}
-              className={cn(isDirty && saveState === 'idle' && 'ring-2 ring-primary/30')}
-              aria-label={t('mediaEdit.saveAria')}
-            >
-              <SaveButtonIcon saveState={saveState}/>
-              <span className="ml-2">{getSaveButtonText(saveState, t)}</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Ctrl+S</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      {/* Same button as the admin media header: icon (carrying mr-2) + label,
+          default variant, no tooltip wrapper. Ctrl+S is bound by the header
+          itself (see useSaveShortcut below) so every page using this header
+          gets the shortcut without wiring it again. */}
+      <Button
+        onClick={onSave}
+        disabled={saveDisabled}
+        className={cn(isDirty && saveState === 'idle' && 'ring-2 ring-primary/30')}
+        aria-label={t('mediaEdit.saveAria')}
+        title="Ctrl+S"
+      >
+        <SaveButtonIcon saveState={saveState}/>
+        {getSaveButtonText(saveState, t)}
+      </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -253,6 +250,9 @@ export function EditPageHeader({
   );
   const visibleBadges = maxBadges < sortedBadges.length ? sortedBadges.slice(0, maxBadges) : sortedBadges;
   const overflowBadges = maxBadges < sortedBadges.length ? sortedBadges.slice(maxBadges) : [];
+
+  // The shared header owns Ctrl+S: pages only implement onSave.
+  useSaveShortcut(onSave, {enabled: saveState !== 'saving'});
 
   const typeColors: Record<string, string> = {
     'media-type': 'bg-primary/10 text-primary',

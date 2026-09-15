@@ -9,7 +9,8 @@ import {articleApi, userArticleApi, type Article, type UserCreateArticleRequest,
 import {mediaApi, type Media} from '@/lib/api/media';
 import {useCategoryList} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
-import {useDirtyState, useSaveState, useKeyboardShortcut} from '@/hooks/useEditPage';
+import {useDirtyState, useSaveState} from '@/hooks/useEditPage';
+import {useSaveShortcut} from '@/hooks/useSaveShortcut';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
@@ -334,7 +335,8 @@ export default function UserArticleEditor({mode}: { mode: 'create' | 'edit' }) {
     }, [setForm]);
 
     // Keyboard shortcut: Ctrl+S / Cmd+S
-    useKeyboardShortcut('ctrl+s', handleSave, {enabled: !isSaving});
+    // Shared shortcut hook (see docs/modules/shared/engineering/keyboard-shortcuts.md).
+    useSaveShortcut(handleSave, {enabled: !isSaving});
 
     // Categories for select
     const categories = (Array.isArray(categoriesData?.items) ? categoriesData.items : Array.isArray(categoriesData) ? categoriesData : []);
