@@ -46,15 +46,15 @@ const VERIFIED_MANUAL_ROUTES: string[] = [
 // ---------------------------------------------------------------------------
 const PHANTOM_BASELINE: string[] = [
     // me/* profile endpoints — never registered anywhere
-    'src/lib/api/user.ts:423:/me/profile',
-    'src/lib/api/user.ts:425:/me/profile',
-    'src/lib/api/user.ts:430:/me/avatar',
-    'src/lib/api/user.ts:435:/me/avatar',
-    'src/lib/api/user.ts:437:/me/setting',
-    'src/lib/api/user.ts:439:/me/setting',
+    'src/lib/api/user.ts:439:/me/profile',
+    'src/lib/api/user.ts:441:/me/profile',
+    'src/lib/api/user.ts:446:/me/avatar',
+    'src/lib/api/user.ts:451:/me/avatar',
+    'src/lib/api/user.ts:453:/me/setting',
+    'src/lib/api/user.ts:455:/me/setting',
     'src/lib/api.ts:47:/stats',
     // user public favorites — backend registers /medias/{token}/favorites, not this
-    'src/lib/api/user.ts:335:/users/{}/favorites',
+    'src/lib/api/user.ts:351:/users/{}/favorites',
     // ads/creatives module — list routes exist, sub-resource routes do not
     'src/lib/api/ads.ts:65:/admin/creatives/{}',
     'src/lib/api/ads.ts:71:/admin/creatives/{}',
@@ -73,10 +73,10 @@ const PHANTOM_BASELINE: string[] = [
     'src/lib/api/drm.ts:88:/admin/drm-keys/{}',
     'src/lib/api/drm.ts:91:/admin/drm-licenses',
     // transcode task retry
-    'src/lib/api/media.ts:467:/admin/encoding/tasks/{}/retry',
+    'src/lib/api/media.ts:468:/admin/encoding/tasks/{}/retry',
     // media integrity/repair admin actions
-    'src/lib/api/media.ts:977:/admin/medias/{}/integrity-check',
-    'src/lib/api/media.ts:983:/admin/medias/{}/repair',
+    'src/lib/api/media.ts:978:/admin/medias/{}/integrity-check',
+    'src/lib/api/media.ts:984:/admin/medias/{}/repair',
     // notification delete-by-id
     'src/lib/api/notification.ts:105:/admin/notifications/{}',
     // promotion module — nothing registered

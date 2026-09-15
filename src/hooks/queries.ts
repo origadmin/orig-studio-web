@@ -410,8 +410,9 @@ export function usePublicProfile(username: string | null) {
         queryFn: async () => {
             const res = await userApi.getPublicProfile(username!);
             const raw = (res as any)?.user ?? res;
-            // Mapping lives in publicProfileMapping.ts (unit-tested): bio comes from
-            // `title`, and `description` (the user-settings blob) is never rendered.
+            // Mapping lives in publicProfileMapping.ts (unit-tested): the bio is
+            // read from the contract (`user.profile`, requested via with_profile),
+            // never from a raw column.
             return mapPublicProfile(raw);
         },
         enabled: !!username,

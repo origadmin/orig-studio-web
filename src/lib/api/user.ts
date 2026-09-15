@@ -13,6 +13,11 @@ export interface User {
     avatar?: string;
     cover?: string;
     bio?: string;
+    /**
+     * Contract carrier for the profile fields (`types.UserProfile`), returned as
+     * `user.profile` when a read passes `with_profile=true`. `bio` lives there.
+     */
+    profile?: Record<string, any>;
     phone?: string;
     role: string;
     status: number | string;
@@ -195,11 +200,15 @@ export function normalizeUser(raw: any): User {
         slug: safe(raw.slug, undefined),
         nickname: safe(raw.nickname),
         email: String(raw.email || ''),
-        avatar: safe(raw.avatar),
+        avatar: safe(raw.profile?.avatar || raw.avatar),
         cover: safe(raw.cover || raw.logo),
-        // bio lives in users.title (UpdateUserProfile SetTitle(Bio)); users.description
-        // is the USER SETTINGS blob (UpdateUserSetting) and must never be rendered.
-        bio: safe(raw.bio || raw.title),
+        // Contract-shaped: `bio` lives in `types.UserProfile`, returned as
+        // `user.profile` when the read asks for `with_profile=true`. Raw columns
+        // (`title`, `description`) are NOT read here - `description` carries the
+        // user-settings blob and reading columns is what leaked junk onto the page.
+        bio: safe(raw.profile?.bio || raw.bio),
+        // Keep the profile sub-object so downstream mapping reads one contract shape.
+        profile: raw.profile ?? undefined,
         phone: safe(raw.phone),
         role: String(raw.role || ''),
         status: raw.status,
@@ -266,7 +275,9 @@ export const userApi = {
 
     // 获取公开个人资料 (F016: 含 is_owner/is_subscribed) - 通过 username/slug/ID
     getPublicProfile: async (identifier: string) => {
-        const res = await api.get<{user: any}>(`/users/${identifier}`);
+        // `with_profile=true` is the contract's own switch for returning
+        // `user.profile` (types.UserProfile), the carrier of `bio`.
+        const res = await api.get<{user: any}>(`/users/${identifier}?with_profile=true`);
         return normalizeUser(res.user) as PublicProfile;
     },
 

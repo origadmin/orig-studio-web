@@ -8,29 +8,28 @@ export type MappedPublicProfile = Omit<PublicProfile, 'is_owner'> & { is_me?: bo
 /**
  * Map the raw user payload onto the portal's public profile.
  *
- * Field sources (verified against the user service, `internal/features/user/dal/user_repo.go`):
- * - `users.title`       -> the profile bio. `UpdateUserProfile` stores the submitted
- *                          bio with `SetTitle`, and `convertUserToProfileProto`
- *                          maps `Bio: u.Title`, so title IS the bio column.
- * - `users.description` -> the USER SETTINGS blob: `UpdateUserSetting` marshals the
- *                          settings JSON into it. It must never be rendered as text
- *                          (it used to leak into the page as `{"theme":"light"}`).
- * - `users.logo` / `users.location` -> avatar / location.
- *
- * `title` is deliberately NOT mapped: it would render the same value a second time
- * (the bio is already the `bio` field).
+ * Source of truth is the CONTRACT, not a raw column:
+ * - `GET /api/v1/users/{id}?with_profile=true` returns `types.User.user.profile`
+ *   (`types.UserProfile`), and that is where `bio` lives. `GetUserRequest` declares
+ *   `with_profile` for exactly this reason; without the flag the backend leaves
+ *   `user.profile` nil.
+ * - `users.title` / `users.description` are NOT read here. They are internal
+ *   columns that the same response also carries (`description` currently holds the
+ *   user-settings blob), and reading them is what put `{"theme":"light"}` and then
+ *   the legacy `title` value on screen as the intro.
  */
 export function mapPublicProfile(raw: RawPublicUser): MappedPublicProfile {
+    // `profile` is the designed carrier for bio/location/website/avatar.
+    const profile = (raw.profile ?? {}) as Record<string, any>;
     return {
         id: raw.id,
         username: raw.username,
-        nickname: raw.nickname || undefined,
-        avatar: raw.avatar || undefined,
+        nickname: raw.nickname || profile.name || undefined,
+        avatar: profile.avatar || raw.avatar || undefined,
         slug: raw.slug || undefined,
-        // bio <- title (the real storage column); never `description` (settings blob).
-        bio: raw.title || raw.bio || undefined,
-        location: raw.location || undefined,
-        website: raw.website || undefined,
+        bio: profile.bio || undefined,
+        location: profile.location || raw.location || undefined,
+        website: profile.website || raw.website || undefined,
         is_featured: raw.is_verified || false,
         media_count: raw.media_count || 0,
         subscriber_count: raw.subscriber_count || 0,
