@@ -30,7 +30,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     if (!items || items.length === 0) return null;
 
     return (
-        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+        <div data-testid="playlist-panel" className="bg-card border border-border rounded-xl p-4 space-y-3">
             {title && <h3 className="font-bold text-foreground text-sm">{title}</h3>}
             <div className="space-y-1">
                 {items.map((item, index) => {
