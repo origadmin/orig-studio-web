@@ -37,6 +37,8 @@ import {mergeTagsWithHashtags} from '@/lib/utils/hashtag';
 import {generateSlug} from '@/lib/utils/slug';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
+import {usePlaylistPlayback} from '@/hooks/usePlaylistPlayback';
+import {resolveNextPlayback, buildWatchSearch} from '@/lib/utils/playbackOrder';
 import {settingsApi} from '@/lib/api/system';
 import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
@@ -128,7 +130,11 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
 
 const WatchPage = () => {
     const {t} = useTranslation();
-    const {v: rawToken, autoplay: urlAutoPlay} = useSearch({strict: false});
+    const {v: rawToken, autoplay: urlAutoPlay, playlist: urlPlaylist, index: urlIndex} = useSearch({strict: false});
+    // Continuous playback: a playlist context in the URL wins over the
+    // site-wide recommendation list (playlist design 2.3, BUG-197).
+    const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
+    const {items: playlistItems} = usePlaylistPlayback(urlPlaylist);
     // BUG-183: coerce to string — the search serializer may hand back a number
     // for numeric-looking tokens.
     const shortToken = rawToken != null ? String(rawToken) : undefined;
@@ -309,12 +315,23 @@ const WatchPage = () => {
         return found ? [found] : [];
     }, [sidebarDecision, watchSidebarItems]);
 
-    // Next video for YouTube-style autoplay countdown
-    const nextVideo: NextVideoInfo | null = recommendations.length > 0 ? {
-        title: recommendations[0].title,
-        thumbnail: recommendations[0].thumbnail || recommendations[0].poster || '',
-        channelName: recommendations[0].edges?.user?.[0]?.nickname || recommendations[0].edges?.user?.[0]?.username,
-        duration: recommendations[0].duration,
+    // Next video for YouTube-style autoplay countdown.
+    const nextPlayback = React.useMemo(
+        () => resolveNextPlayback({
+            playlistToken: urlPlaylist,
+            index: playlistIndex,
+            items: urlPlaylist ? playlistItems : null,
+            recommendations: recommendations as unknown as Array<{short_token: string}>,
+            currentToken: rawToken,
+        }),
+        [urlPlaylist, playlistIndex, playlistItems, recommendations, rawToken],
+    );
+    const nextVideoSource: NextVideoInfo | null = nextPlayback ? {
+        title: (nextPlayback.item as any).title ?? '',
+        thumbnail: (nextPlayback.item as any).thumbnail || (nextPlayback.item as any).poster || '',
+        channelName: (nextPlayback.item as any).edges?.user?.[0]?.nickname
+            || (nextPlayback.item as any).edges?.user?.[0]?.username,
+        duration: (nextPlayback.item as any).duration,
     } : null;
 
     // Handle media deletion
@@ -421,14 +438,19 @@ const WatchPage = () => {
                             console.error('Video player error:', error);
                         }}
                         onAutoPlayNext={() => {
-                            if (recommendations.length > 0) {
-                                const nextVideoItem = recommendations[0];
-                                navigate({to: '/watch', search: {v: nextVideoItem.short_token, autoplay: '1'}});
-                            }
+                            if (!nextPlayback) return;
+                            navigate({
+                                to: '/watch',
+                                search: buildWatchSearch({
+                                    token: nextPlayback.item.short_token,
+                                    playlistToken: nextPlayback.source === 'playlist' ? urlPlaylist : null,
+                                    index: nextPlayback.index,
+                                }) as never,
+                            });
                         }}
                         autoPlay={urlAutoPlay === '1'}
                         autoPlayNext={autoPlayNext}
-                        nextVideo={nextVideo}
+                        nextVideo={nextVideoSource}
                     />
                     
                     {/* Encoding Status Indicator */}

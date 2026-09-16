@@ -11,10 +11,16 @@ const PageLoader = () => (
 );
 
 export const Route = createFileRoute('/_portal/watch')({
-    validateSearch: (search: Record<string, unknown>): { v: string | undefined; autoplay?: string | undefined } => {
-        const v = search.v ? String(search.v).replace(/["']/g, '').trim() : undefined;
-        const autoplay = search.autoplay ? String(search.autoplay).replace(/["']/g, '').trim() : undefined;
-        return { v, autoplay };
+    validateSearch: (search: Record<string, unknown>): {
+        v: string | undefined;
+        autoplay?: string | undefined;
+        /** Playlist context for continuous playback (BUG-197, playlist design 2.3). */
+        playlist?: string | undefined;
+        /** 0-based position inside the playlist. */
+        index?: string | undefined;
+    } => {
+        const strip = (value: unknown) => (value ? String(value).replace(/["']/g, '').trim() : undefined);
+        return {v: strip(search.v), autoplay: strip(search.autoplay), playlist: strip(search.playlist), index: strip(search.index)};
     },
     component: () => <Suspense fallback={<PageLoader />}><Page /></Suspense>,
 });
