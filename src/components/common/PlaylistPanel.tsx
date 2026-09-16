@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {Link} from '@tanstack/react-router';
 import {Play} from 'lucide-react';
 import {type PlaylistMediaItem} from '@/lib/api/playlist';
@@ -18,8 +18,10 @@ interface PlaylistPanelProps {
 /**
  * Playlist panel for the watch page sidebar (BUG-197).
  *
- * Renders the ordered playlist, highlights the current item, and lets the user
- * jump to any item while preserving the playlist context.
+ * The panel is height-capped and scrolls **inside itself**, so a long playlist
+ * never stretches the sidebar (the NextVideo block stays reachable). The header
+ * stays pinned while only the item list scrolls, and the playing item is kept
+ * within the panel's own scroll viewport.
  */
 export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     title,
@@ -27,12 +29,40 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     currentToken,
     playlistToken,
 }) => {
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+
+    // Keep the playing item visible inside the panel's own scroll area without
+    // scrolling the page (the list may be long and the user can jump to any
+    // episode, including the last one).
+    useEffect(() => {
+        const container = scrollRef.current;
+        if (!container) return;
+        const active = container.querySelector<HTMLElement>('[data-testid="playlist-panel-current"]');
+        if (!active) return;
+        const top = active.offsetTop;
+        const bottom = top + active.offsetHeight;
+        if (top < container.scrollTop) {
+            container.scrollTop = top;
+        } else if (bottom > container.scrollTop + container.clientHeight) {
+            container.scrollTop = bottom - container.clientHeight;
+        }
+    }, [currentToken, items]);
+
     if (!items || items.length === 0) return null;
 
     return (
-        <div data-testid="playlist-panel" className="bg-card border border-border rounded-xl p-4 space-y-3">
-            {title && <h3 className="font-bold text-foreground text-sm">{title}</h3>}
-            <div className="space-y-1">
+        <div
+            data-testid="playlist-panel"
+            className="bg-card border border-border rounded-xl flex flex-col max-h-[min(60vh,480px)] overflow-hidden"
+        >
+            {title && (
+                <h3 className="font-bold text-foreground text-sm px-4 pt-4 pb-2 shrink-0">{title}</h3>
+            )}
+            <div
+                ref={scrollRef}
+                data-testid="playlist-panel-scroll"
+                className="relative overflow-y-auto overscroll-contain px-4 pb-4 space-y-1"
+            >
                 {items.map((item, index) => {
                     const isActive = item.short_token === currentToken;
                     const search = playlistToken
