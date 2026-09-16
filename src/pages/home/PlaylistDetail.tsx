@@ -8,7 +8,7 @@ import React, {useState} from 'react';
 import {useParams, Link, useNavigate} from '@tanstack/react-router';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal} from 'lucide-react';
+import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
@@ -30,6 +30,7 @@ import {playlistApi, type Playlist, type PlaylistMediaItem} from '@/lib/api/play
 import {formatDate, formatDuration, formatViews} from '@/lib/format';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useAuth} from '@/hooks/useAuth';
+import AddVideosDialog from '@/components/playlist/AddVideosDialog';
 
 const PlaylistDetailPage: React.FC = () => {
     const {token} = useParams({strict: false}) as {token?: string};
@@ -52,6 +53,11 @@ const PlaylistDetailPage: React.FC = () => {
     // Remove media dialog state
     const [removeMediaId, setRemoveMediaId] = useState<string | null>(null);
     const [isRemovingMedia, setIsRemovingMedia] = useState(false);
+
+    // Add-videos dialog + episode ordering (BUG-197 review feedback: a series
+    // used to be editable in name only — its contents could not be changed).
+    const [showAddVideos, setShowAddVideos] = useState(false);
+    const [isReordering, setIsReordering] = useState(false);
 
     const {data: playlistData, isLoading, error} = useQuery({
         queryKey: ['playlist', token],
@@ -123,6 +129,26 @@ const PlaylistDetailPage: React.FC = () => {
             console.error('Failed to remove media from playlist:', err);
         } finally {
             setIsRemovingMedia(false);
+        }
+    };
+
+    // Move an episode one slot up/down. The whole order is submitted at once so
+    // the stored `ordering` values are always a clean sequence.
+    const handleMove = async (from: number, to: number) => {
+        if (!playlist || to < 0 || to >= mediaItems.length || from === to) return;
+        const next = [...mediaItems];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+        const orders: Record<string, number> = {};
+        next.forEach((m, i) => { orders[m.id] = i + 1; });
+        try {
+            setIsReordering(true);
+            await playlistApi.reorderMedia(playlist.id, orders);
+            queryClient.invalidateQueries({queryKey: ['playlist', token]});
+        } catch (err) {
+            console.error('Failed to reorder playlist:', err);
+        } finally {
+            setIsReordering(false);
         }
     };
 
@@ -199,8 +225,8 @@ const PlaylistDetailPage: React.FC = () => {
                         </span>
                         <span>{t('playlists.updated', {date: formatDate(playlist.update_time || playlist.create_time)})}</span>
                     </div>
-                    {mediaItems.length > 0 && (
-                        <div className="flex items-center gap-3 ml-8 mt-3">
+                    <div className="flex flex-wrap items-center gap-3 ml-8 mt-3">
+                        {mediaItems.length > 0 && (
                             <Button
                                 data-testid="playlist-play-all"
                                 onClick={() => navigate({
@@ -217,8 +243,19 @@ const PlaylistDetailPage: React.FC = () => {
                                 <Play className="w-4 h-4" fill="currentColor"/>
                                 {t('playlists.playAll', '播放全部')}
                             </Button>
-                        </div>
-                    )}
+                        )}
+                        {isOwner && (
+                            <Button
+                                variant="outline"
+                                data-testid="playlist-add-videos"
+                                onClick={() => setShowAddVideos(true)}
+                                className="gap-2"
+                            >
+                                <Plus className="w-4 h-4"/>
+                                {t('playlists.addVideos', '添加视频到剧集')}
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Owner actions */}
@@ -292,17 +329,44 @@ const PlaylistDetailPage: React.FC = () => {
                                 </div>
                             </Link>
 
-                            {/* Remove button (owner only) */}
+                            {/* Episode ordering + removal (owner only). Kept always
+                                visible instead of hover-only, so the series clearly
+                                reads as editable. */}
                             {isOwner && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                                    onClick={() => setRemoveMediaId(media.id)}
-                                    title={t('playlists.removeVideo')}
-                                >
-                                    <Trash2 className="w-4 h-4"/>
-                                </Button>
+                                <div className="flex items-center gap-0.5 flex-shrink-0">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground"
+                                        disabled={index === 0 || isReordering}
+                                        onClick={() => handleMove(index, index - 1)}
+                                        title={t('playlists.moveUp', '上移')}
+                                        data-testid="playlist-move-up"
+                                    >
+                                        <ChevronUp className="w-4 h-4"/>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground"
+                                        disabled={index === mediaItems.length - 1 || isReordering}
+                                        onClick={() => handleMove(index, index + 1)}
+                                        title={t('playlists.moveDown', '下移')}
+                                        data-testid="playlist-move-down"
+                                    >
+                                        <ChevronDown className="w-4 h-4"/>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                        onClick={() => setRemoveMediaId(media.id)}
+                                        title={t('playlists.removeVideo')}
+                                        data-testid="playlist-remove-video"
+                                    >
+                                        <Trash2 className="w-4 h-4"/>
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     ))}
@@ -408,6 +472,13 @@ const PlaylistDetailPage: React.FC = () => {
                     </div>
                 </DialogContent>
             </Dialog>
+            <AddVideosDialog
+                open={showAddVideos}
+                onOpenChange={setShowAddVideos}
+                playlistId={playlist.id}
+                existingTokens={mediaItems.map((m) => m.short_token)}
+                onChanged={() => queryClient.invalidateQueries({queryKey: ['playlist', token]})}
+            />
         </div>
     );
 };

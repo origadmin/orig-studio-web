@@ -186,8 +186,10 @@ const Playlists: React.FC = () => {
         setVisibilityFilter('all');
     };
 
-    // Compute per-row metrics
-    const getItemCount = (p: Playlist) => p.media_items?.length ?? p.media_details?.length ?? 0;
+    // Compute per-row metrics. The list endpoint returns `media_count` (protojson
+    // int64 -> string, normalized) but NOT the per-item details, so item counts
+    // must come from `media_count`; views are only known when details are present.
+    const getItemCount = (p: Playlist) => p.media_count ?? p.media_items?.length ?? p.media_details?.length ?? 0;
     const getViewCount = (p: Playlist) =>
         p.media_details?.reduce((s, m) => s + (m.view_count || 0), 0) ?? 0;
     const getThumbnail = (p: Playlist) => p.media_details?.[0]?.thumbnail;
@@ -449,7 +451,7 @@ const Playlists: React.FC = () => {
                                             )}
                                         </TableCell>
                                         <TableCell className="px-6 py-3.5 text-sm text-card-foreground tabular-nums">
-                                            {formatViews(getViewCount(playlist))}
+                                            {playlist.media_details?.length ? formatViews(getViewCount(playlist)) : '—'}
                                         </TableCell>
                                         <TableCell className="px-6 py-3.5 text-sm text-muted-foreground">
                                             {formatDateTime(playlist.update_time || playlist.create_time)}
