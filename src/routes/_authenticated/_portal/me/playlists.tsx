@@ -1,19 +1,9 @@
-import {createFileRoute, redirect} from '@tanstack/react-router';
+import {createFileRoute} from '@tanstack/react-router';
+import PlaylistsPage from '@/pages/home/me/Playlists';
 
+// /me/playlists renders the dedicated playlists management page (create / edit /
+// delete / empty state). It used to redirect to the profile playlists tab, which
+// made the standalone management page unreachable — BUG-197.
 export const Route = createFileRoute('/_authenticated/_portal/me/playlists')({
-    beforeLoad: ({context}) => {
-        const username = context.auth.user?.username;
-        if (username) {
-            throw redirect({
-                to: '/$handle',
-                params: {handle: '@' + username},
-                search: {tab: 'playlists'},
-                replace: true,
-            });
-        }
-        throw redirect({
-            to: '/auth/signin',
-            replace: true,
-        });
-    },
+    component: PlaylistsPage,
 });

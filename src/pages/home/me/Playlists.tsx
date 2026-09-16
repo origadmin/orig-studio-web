@@ -118,6 +118,7 @@ const PlaylistsPage = () => {
                     <span className="text-sm text-gray-500">{t('playlists.listCount', {count: playlists.length})}</span>
                 </div>
                 <Button
+                    data-testid="playlist-create-btn"
                     onClick={() => setShowCreateDialog(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors">
                     <Plus size={16}/> {t('playlists.newList')}
@@ -130,6 +131,7 @@ const PlaylistsPage = () => {
                     {playlists.map((pl) => (
                         <div
                             key={pl.id}
+                            data-testid="playlist-card"
                             className="bg-card rounded-lg overflow-hidden border border-border hover:shadow-lg transition-all group relative"
                         >
                             {/* Cover - clickable to detail */}
@@ -189,11 +191,12 @@ const PlaylistsPage = () => {
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 text-muted-foreground">
+                <div data-testid="playlist-empty-state" className="text-center py-20 text-muted-foreground">
                     <ListVideo size={48} className="mx-auto mb-3 opacity-30"/>
-                    <p className="text-lg mb-1">{t('playlists.empty')}</p>
+                    <p data-testid="playlist-empty-text" className="text-lg mb-1">{t('playlists.empty')}</p>
                     <p className="text-sm mb-4">{t('playlists.emptyDesc')}</p>
                     <Button
+                        data-testid="playlist-create-btn"
                         onClick={() => setShowCreateDialog(true)}
                         className="bg-primary hover:bg-primary/90"
                     >

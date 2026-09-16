@@ -7,6 +7,7 @@ import {
     Tags,
     LayoutGrid,
     Bell,
+    ListVideo,
 } from 'lucide-react';
 import type {NavSection} from '@/types/nav';
 
@@ -53,6 +54,12 @@ export const NAV_CONFIG: NavSection[] = [
                 to: '/@__handle__',
                 icon: UserCircle,
                 isDynamic: true,
+            },
+            {
+                id: 'my-playlists',
+                label: 'nav.myPlaylists',
+                to: '/me/playlists',
+                icon: ListVideo,
             },
             {
                 id: 'notifications',
