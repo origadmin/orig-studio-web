@@ -444,7 +444,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             navigate({to: tab.manageTo, params: {id: profile.slug || profile.username}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
             changeTab(setOwnerTab, 'about');
-        } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'playlists' || tab.key === 'articles') {
+        } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'articles') {
             changeTab(setOwnerTab, tab.key);
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
@@ -687,25 +687,20 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     />
                 );
             case 'playlists':
-                if (playlistsLoading && playlists.length === 0) {
-                    return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {[1,2,3,4].map(i => (
-                                <div key={i} className="animate-pulse">
-                                    <div className="aspect-video bg-muted rounded-lg mb-2"/>
-                                    <div className="h-4 bg-muted rounded w-3/4 mb-1"/>
-                                    <div className="h-3 bg-muted rounded w-1/2"/>
-                                </div>
-                            ))}
-                        </div>
-                    );
-                }
-                if (playlists.length === 0) {
-                    return <EmptyState type="playlists" isOwner={isOwner}/>;
-                }
+                // Preview only. Management (create / edit / reorder) lives on the
+                // canonical /me/playlists page (see three-my-hierarchy-redesign.md).
+                // The "view all" affordance below navigates there via manageTo, so
+                // the profile tab is no longer a second, conflicting management surface.
                 return (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {playlists.map((pl: any) => (
+                    <ContentSection
+                        loading={playlistsLoading}
+                        items={playlists}
+                        tab={OWNER_TABS[4]}
+                        // Pass the playlists tab explicitly: ContentSection calls
+                        // `onManage` with the React event, so binding handleManageClick
+                        // directly would receive the event (not the tab) and no-op.
+                        onManage={() => handleManageClick(OWNER_TABS[4])}
+                        renderItem={(pl: any) => (
                             <PlaylistCard
                                 key={pl.id}
                                 playlist={{
@@ -721,8 +716,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                 }}
                                 isOwner={isOwner}
                             />
-                        ))}
-                    </div>
+                        )}
+                        emptyType="playlists"
+                    />
                 );
             case 'history':
                 return (
@@ -850,10 +846,6 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                             {t('profile.createArticle')}
                                         </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onClick={() => changeTab(setOwnerTab, 'playlists')}>
-                                        <ListVideo className="w-4 h-4 mr-2"/>
-                                        {t('profile.createPlaylist')}
-                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
                                     {/* BUG-348: profile editing has exactly one
                                         destination, /settings/profile. It used to
@@ -1168,7 +1160,7 @@ const ContentSection: React.FC<{
 
             {hasManage && (
                 <div className="mt-4 flex justify-end">
-                    <Button variant="ghost" size="sm" onClick={onManage} className="text-muted-foreground hover:text-foreground">
+                    <Button variant="ghost" size="sm" onClick={onManage} data-testid="tab-view-all" className="text-muted-foreground hover:text-foreground">
                         {t('profile.viewAll')}
                         <ArrowRight className="w-4 h-4 ml-1"/>
                     </Button>
