@@ -712,7 +712,12 @@
     "emptyPlaylist": "このプレイリストは空です",
     "emptyPlaylistDesc": "動画ページからこのプレイリストに動画を追加してください。",
     "removeVideo": "動画を削除",
-    "removeVideoConfirm": "この動画をプレイリストから削除しますか？"
+    "removeVideoConfirm": "この動画をプレイリストから削除しますか？",
+    "usageTitle": "使い方",
+    "usageAdd": "「シリーズに動画を追加」をクリックして動画を選びます。",
+    "usageReorder": "各項目の「上へ移動 / 下へ移動」で再生順を変更します。",
+    "usageRemove": "各項目の「削除」で動画をシリーズから外します。",
+    "usageView": "「すべて再生」をクリックすると視聴ページが開き、右側の「プレイリスト」パネルにこの順序で表示され、再生中の動画が強調されます。"
   },
   "media": {
     "title": "メディアライブラリ",
@@ -2075,7 +2080,7 @@
   },
   "mediaEdit": {
     "editTitle": "タイトルを編集",
-    "pageTitle": "メディア編集",    
+    "pageTitle": "メディア編集",
     "breadcrumbMine": "マイ動画",
     "title": "タイトル",
     "titlePlaceholder": "メディアタイトルを入力...",

@@ -250,9 +250,10 @@ export const playlistApi = {
     removeMedia: (playlistId: string, mediaId: string) =>
         api.del<void>(`/me/playlists/${playlistId}/media/${mediaId}`),
 
-    // Reorder media items in a playlist
-    reorderMedia: (playlistId: string, mediaOrders: Record<string, number>) =>
-        api.patch<void>(`/me/playlists/${playlistId}/media/reorder`, {media_orders: mediaOrders}),
+    // Reorder media items in a playlist. The backend (gRPC ReorderMyPlaylistMedia)
+    // takes an ordered list of media ids, so we send the new order as media_ids.
+    reorderMedia: (playlistId: string, mediaIds: string[]) =>
+        api.patch<void>(`/me/playlists/${playlistId}/media/reorder`, {media_ids: mediaIds}),
 };
 
 // ==================== Admin Playlist API (/admin/playlists - requires JWT + Admin) ====================

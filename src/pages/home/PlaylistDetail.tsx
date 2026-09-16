@@ -8,7 +8,7 @@ import React, {useState} from 'react';
 import {useParams, Link, useNavigate} from '@tanstack/react-router';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown} from 'lucide-react';
+import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
@@ -132,18 +132,16 @@ const PlaylistDetailPage: React.FC = () => {
         }
     };
 
-    // Move an episode one slot up/down. The whole order is submitted at once so
-    // the stored `ordering` values are always a clean sequence.
+    // Move an episode one slot up/down, then submit the whole new order as an
+    // ordered id list (the backend reorders by that sequence).
     const handleMove = async (from: number, to: number) => {
         if (!playlist || to < 0 || to >= mediaItems.length || from === to) return;
         const next = [...mediaItems];
         const [moved] = next.splice(from, 1);
         next.splice(to, 0, moved);
-        const orders: Record<string, number> = {};
-        next.forEach((m, i) => { orders[m.id] = i + 1; });
         try {
             setIsReordering(true);
-            await playlistApi.reorderMedia(playlist.id, orders);
+            await playlistApi.reorderMedia(playlist.id, next.map((m) => m.id));
             queryClient.invalidateQueries({queryKey: ['playlist', token]});
         } catch (err) {
             console.error('Failed to reorder playlist:', err);
@@ -279,6 +277,27 @@ const PlaylistDetailPage: React.FC = () => {
                     </DropdownMenu>
                 )}
             </div>
+
+            {/* Operation manual: how to add / reorder / remove / view the result.
+                The user rejected the previous delivery because the editing entry
+                points were not discoverable and no acceptance proved the flow. */}
+            {isOwner && (
+                <div
+                    data-testid="playlist-usage-guide"
+                    className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground"
+                >
+                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary"/>
+                    <div className="space-y-1">
+                        <p className="font-medium text-foreground">{t('playlists.usageTitle', '使用说明')}</p>
+                        <ul className="list-disc space-y-0.5 pl-4">
+                            <li>{t('playlists.usageAdd', '点击「添加视频到剧集」选择视频加入本剧集。')}</li>
+                            <li>{t('playlists.usageReorder', '用每项的「上移 / 下移」调整播放顺序。')}</li>
+                            <li>{t('playlists.usageRemove', '用每项的「移除」把视频移出本剧集。')}</li>
+                            <li>{t('playlists.usageView', '点击「播放全部」进入观看页，右侧「播放列表」面板按此顺序展示，当前播放项高亮。')}</li>
+                        </ul>
+                    </div>
+                </div>
+            )}
 
             {/* Video list */}
             {mediaItems.length > 0 ? (

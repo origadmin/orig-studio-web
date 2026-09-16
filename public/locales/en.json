@@ -712,7 +712,12 @@
     "emptyPlaylist": "This playlist is empty",
     "emptyPlaylistDesc": "Add videos to this playlist from the video page.",
     "removeVideo": "Remove Video",
-    "removeVideoConfirm": "Remove this video from the playlist?"
+    "removeVideoConfirm": "Remove this video from the playlist?",
+    "usageTitle": "How to use",
+    "usageAdd": "Click \"Add videos to series\" to choose videos for this series.",
+    "usageReorder": "Use \"Move up / Move down\" on each item to set the play order.",
+    "usageRemove": "Use \"Remove\" on each item to take a video out of the series.",
+    "usageView": "Click \"Play all\" to open the watch page; the right-side Playlist panel shows this order and highlights the current video."
   },
   "media": {
     "title": "Media Library",
@@ -2211,7 +2216,7 @@
   },
   "mediaEdit": {
     "editTitle": "Edit title",
-    "pageTitle": "Edit media",    
+    "pageTitle": "Edit media",
     "breadcrumbMine": "My videos",
     "title": "Title",
     "titlePlaceholder": "Enter media title...",
