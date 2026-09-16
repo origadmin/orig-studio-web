@@ -199,6 +199,26 @@ const PlaylistDetailPage: React.FC = () => {
                         </span>
                         <span>{t('playlists.updated', {date: formatDate(playlist.update_time || playlist.create_time)})}</span>
                     </div>
+                    {mediaItems.length > 0 && (
+                        <div className="flex items-center gap-3 ml-8 mt-3">
+                            <Button
+                                data-testid="playlist-play-all"
+                                onClick={() => navigate({
+                                    to: '/watch',
+                                    search: {
+                                        v: mediaItems[0].short_token,
+                                        playlist: playlist.short_token,
+                                        index: '0',
+                                        autoplay: '1',
+                                    },
+                                })}
+                                className="gap-2"
+                            >
+                                <Play className="w-4 h-4" fill="currentColor"/>
+                                {t('playlists.playAll', '播放全部')}
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Owner actions */}

@@ -246,6 +246,7 @@
   },
   "watch": {
     "nextUp": "次の動画",
+    "playlist": "プレイリスト",
     "nextVideos": "おすすめ動画",
     "noRecommendations": "おすすめ動画はありません",
     "favorite": "お気に入り",
@@ -699,6 +700,7 @@
     "editPlaylist": "プレイリストを編集",
     "editPlaylistDesc": "プレイリストの詳細を更新",
     "makePublic": "プレイリストを公開",
+    "playAll": "すべて再生",
     "emptyPlaylist": "このプレイリストは空です",
     "emptyPlaylistDesc": "動画ページからこのプレイリストに動画を追加してください。",
     "removeVideo": "動画を削除",

@@ -704,6 +704,7 @@
     "editPlaylist": "编辑播放列表",
     "editPlaylistDesc": "更新播放列表详情",
     "makePublic": "设为公开",
+    "playAll": "播放全部",
     "emptyPlaylist": "该播放列表为空",
     "emptyPlaylistDesc": "从视频页面添加视频到此播放列表。",
     "removeVideo": "移除视频",

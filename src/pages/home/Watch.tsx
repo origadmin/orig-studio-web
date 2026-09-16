@@ -29,6 +29,7 @@ import ErrorPage from '@/components/common/ErrorPage';
 import SubscribeButton from '@/components/common/SubscribeButton';
 import CommentSection from '@/components/common/CommentSection';
 import InteractionBar from '@/components/common/InteractionBar';
+import PlaylistPanel from '@/components/common/PlaylistPanel';
 import VideoPlayer, {VideoPlayerHandle, NextVideoInfo} from '@/components/common/VideoPlayer';
 import {DeleteConfirmDialog} from '@/components/common/DeleteConfirmDialog';
 import {HashtagText} from '@/components/common/HashtagText';
@@ -134,7 +135,7 @@ const WatchPage = () => {
     // Continuous playback: a playlist context in the URL wins over the
     // site-wide recommendation list (playlist design 2.3, BUG-197).
     const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
-    const {items: playlistItems} = usePlaylistPlayback(urlPlaylist);
+    const {items: playlistItems, title: playlistTitle} = usePlaylistPlayback(urlPlaylist);
     // BUG-183: coerce to string — the search serializer may hand back a number
     // for numeric-looking tokens.
     const shortToken = rawToken != null ? String(rawToken) : undefined;
@@ -685,6 +686,14 @@ const WatchPage = () => {
                                 sidebarDismissedRef.current = true;
                                 setSidebarDismissed(true);
                             }}
+                        />
+                    )}
+                    {urlPlaylist && playlistItems.length > 0 && (
+                        <PlaylistPanel
+                            title={playlistTitle || t('watch.playlist', '播放列表')}
+                            items={playlistItems}
+                            currentToken={shortToken}
+                            playlistToken={urlPlaylist}
                         />
                     )}
                     {recommendations.length === 0 ? (

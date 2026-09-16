@@ -9,15 +9,19 @@ import {playlistApi, type PlaylistMediaItem} from '@/lib/api/playlist';
  */
 export function usePlaylistPlayback(token?: string | null): {
     items: PlaylistMediaItem[];
+    title?: string;
     isLoading: boolean;
 } {
-    const query = useQuery<PlaylistMediaItem[]>({
+    const query = useQuery({
         queryKey: ['playlist', token],
         queryFn: async () => {
             const res = await playlistApi.get(token!);
-            return res?.playlist?.media_details ?? [];
+            return {
+                title: res?.playlist?.title,
+                items: res?.playlist?.media_details ?? [],
+            };
         },
         enabled: !!token,
     });
-    return {items: query.data ?? [], isLoading: query.isLoading};
+    return {items: query.data?.items ?? [], title: query.data?.title, isLoading: query.isLoading};
 }
