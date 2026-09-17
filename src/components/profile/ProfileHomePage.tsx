@@ -704,6 +704,11 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         <PlaylistsPage/>
                     </div>
                 );
+            // BUG-362: a history record is NOT a media object. It carries
+            // duration_seconds / progress_seconds (seconds, not the card's
+            // `duration` / percentage `progress`) and has no `user` / view_count
+            // — so the card rendered an empty title, no duration and a bogus
+            // "U" avatar. Map the record onto the card's shape explicitly.
             case 'history':
                 return (
                     <ContentSection
@@ -711,7 +716,22 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         items={historyItems}
                         tab={OWNER_TABS[6]}
                         onManage={() => {}}
-                        renderItem={(item) => <VideoCard key={item.id || item.media_id} video={item.media || item} isOwner={isOwner} showChannelInfo={false}/>}
+                        renderItem={(item) => (
+                            <VideoCard
+                                key={item.id || item.content_id}
+                                video={{
+                                    ...item,
+                                    id: item.content_id || item.id,
+                                    duration: Number(item.duration_seconds) || 0,
+                                    progress: Number(item.duration_seconds) > 0
+                                        ? Math.min(100, (Number(item.progress_seconds) || 0) / Number(item.duration_seconds) * 100)
+                                        : 0,
+                                }}
+                                isOwner={isOwner}
+                                showChannelInfo
+                                showProgress
+                            />
+                        )}
                         emptyType="history"
                         hideViewAll={true}
                     />
