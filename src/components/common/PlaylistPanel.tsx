@@ -1,9 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {AlignLeft, Hash, Play, Shuffle} from 'lucide-react';
+import {AlignLeft, GalleryHorizontal, Hash, Play, Shuffle} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {type PlaylistMediaItem} from '@/lib/api/playlist';
 import {formatDuration} from '@/lib/format';
+import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useHistoryList} from '@/hooks/queries';
 import {useAuth} from '@/hooks/useAuth';
 
@@ -17,20 +18,24 @@ interface PlaylistPanelProps {
     playlistToken?: string;
 }
 
-type PanelView = 'rows' | 'chips';
+// BUG-366 correction (G5): the multi-view requirement was FOR THE WATCH PANEL
+// — bilibili ss109700 is a watch page and its 集数/标题 toggle lives on the
+// watch page. So the panel carries the FULL mode set: compact text rows
+// (default, the mainstream treatment), thumbnail rows, and numbered chips.
+type PanelView = 'rows' | 'thumbs' | 'chips';
 const VIEW_STORAGE_KEY = 'watch.playlistView';
-// BUG-366: like bilibili's 全X话, very long playlists render a capped window
-// first; rendering 500 chips up front is wasted work nobody scrolls through.
+// Like bilibili's 全X话, very long playlists render a capped window first;
+// rendering 500 chips up front is wasted work nobody scrolls through.
 const INITIAL_VISIBLE = 50;
 
 /**
  * Playlist panel for the watch page sidebar (BUG-197; view modes BUG-366).
  *
- * G5 decision (2026-09-17): the DEFAULT mode is the compact TEXT row — index +
- * title + duration, NO thumbnail — which is what every mainstream watch-page
- * playlist panel does (YouTube, Netflix, bilibili 标题 mode). The previous
- * per-row 96px thumbnail matched none of them and burned vertical space.
- * Second mode = numbered chip grid (bilibili 集数) for jumping long playlists.
+ * Three display modes, switchable and persisted (user-level preference):
+ *   - `rows`  (DEFAULT): index + title + duration + progress, NO thumbnail —
+ *     the treatment every mainstream watch-page playlist panel uses;
+ *   - `thumbs`: index + 96px thumbnail + title + duration + progress;
+ *   - `chips`: numbered chip grid (bilibili 集数) for jumping long playlists.
  *
  * The panel is height-capped and scrolls **inside itself**, so a long playlist
  * never stretches the sidebar (the NextVideo block stays reachable). The header
@@ -48,9 +53,10 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     const {user} = useAuth();
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    const [view, setView] = useState<PanelView>(() =>
-        localStorage.getItem(VIEW_STORAGE_KEY) === 'chips' ? 'chips' : 'rows'
-    );
+    const [view, setView] = useState<PanelView>(() => {
+        const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+        return stored === 'thumbs' || stored === 'chips' ? stored : 'rows';
+    });
     const [showAll, setShowAll] = useState(false);
     useEffect(() => {
         localStorage.setItem(VIEW_STORAGE_KEY, view);
@@ -127,7 +133,8 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                             className="flex items-center rounded-md border border-border overflow-hidden"
                         >
                             {([
-                                {id: 'rows' as PanelView, icon: AlignLeft, label: '行式'},
+                                {id: 'rows' as PanelView, icon: AlignLeft, label: '列表'},
+                                {id: 'thumbs' as PanelView, icon: GalleryHorizontal, label: '缩略图'},
                                 {id: 'chips' as PanelView, icon: Hash, label: '编号'},
                             ]).map(({id, icon: Icon, label}) => (
                                 <button
@@ -219,6 +226,69 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                                             {formatDuration(item.duration)}
                                         </span>
                                     )}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {view === 'thumbs' && (
+                    <div className="space-y-1 pt-2" data-testid="playlist-panel-body-thumbs">
+                        {visible.map((item, index) => {
+                            const isActive = item.short_token === currentToken;
+                            const progress = progressByMediaId.get(item.id) ?? 0;
+                            return (
+                                <Link
+                                    key={item.id}
+                                    to="/watch"
+                                    search={searchFor(item, index)}
+                                    className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                                        isActive
+                                            ? 'bg-primary/10 border border-primary/30'
+                                            : 'hover:bg-muted'
+                                    }`}
+                                    data-testid={isActive ? 'playlist-panel-current' : 'playlist-panel-item'}
+                                >
+                                    <span
+                                        className={`text-xs font-medium w-5 text-center shrink-0 ${
+                                            isActive ? 'text-primary' : 'text-muted-foreground'
+                                        }`}
+                                    >
+                                        {index + 1}
+                                    </span>
+                                    <div className="relative w-24 aspect-video rounded overflow-hidden bg-muted shrink-0">
+                                        {item.thumbnail ? (
+                                            <img
+                                                src={getImageUrl(item.thumbnail, 'thumbnail')}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => handleImageError(e, 'thumbnail')}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Play className="w-6 h-6 text-muted-foreground"/>
+                                            </div>
+                                        )}
+                                        {item.duration > 0 && (
+                                            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] px-1 rounded">
+                                                {formatDuration(item.duration)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4
+                                            className={`text-sm font-medium line-clamp-2 ${
+                                                isActive ? 'text-primary' : 'text-foreground'
+                                            }`}
+                                        >
+                                            {item.title}
+                                        </h4>
+                                        {progress > 0 && (
+                                            <div className="mt-1 h-0.5 w-full rounded bg-muted overflow-hidden">
+                                                <div className="h-full bg-primary" style={{width: `${progress}%`}}/>
+                                            </div>
+                                        )}
+                                    </div>
                                 </Link>
                             );
                         })}
