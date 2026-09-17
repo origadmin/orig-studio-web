@@ -233,6 +233,18 @@ export const playlistApi = {
         return normalizePlaylistDetail(response);
     },
 
+    // Reverse-lookup: find the playlists that contain a given media by its
+    // short_token. The watch page uses this to render the playlist panel even
+    // when the viewer did NOT arrive via a playlist link — a video that belongs
+    // to a series/playlist must show that panel regardless of entry path
+    // (BUG-369).
+    getByMedia: async (mediaToken: string): Promise<PlaylistDetailResponse[]> => {
+        const response = await api.get<unknown>(`/playlists/by-media/${mediaToken}`);
+        const obj = (response ?? {}) as Record<string, unknown>;
+        const list = Array.isArray(obj.playlists) ? obj.playlists : [];
+        return list.map((entry: unknown) => normalizePlaylistDetail(entry));
+    },
+
     // Create a new playlist for the current user
     create: (data: CreatePlaylistRequest) =>
         api.post<{ playlist: Playlist }>("/me/playlists", data),

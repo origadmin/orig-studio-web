@@ -39,6 +39,8 @@ import {generateSlug} from '@/lib/utils/slug';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import {usePlaylistPlayback} from '@/hooks/usePlaylistPlayback';
+import {useQuery} from '@tanstack/react-query';
+import {playlistApi} from '@/lib/api/playlist';
 import {resolveNextPlayback, buildWatchSearch} from '@/lib/utils/playbackOrder';
 import {settingsApi} from '@/lib/api/system';
 import AdDisplay from '@/components/portal/AdDisplay';
@@ -135,13 +137,29 @@ const WatchPage = () => {
     // Continuous playback: a playlist context in the URL wins over the
     // site-wide recommendation list (playlist design 2.3, BUG-197).
     const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
-    const {items: playlistItems, title: playlistTitle, displayMode: playlistDisplayMode} = usePlaylistPlayback(urlPlaylist);
     // BUG-183: coerce to string — the search serializer may hand back a number
     // for numeric-looking tokens.
     const shortToken = rawToken != null ? String(rawToken) : undefined;
     const navigate = useNavigate();
     // ✅ 使用新的 usePublicMediaDetail hook (short_token based)
     const {data: media, isLoading: isMediaLoading, error: mediaError} = usePublicMediaDetail(shortToken as string);
+    // BUG-369: a video that belongs to a series/playlist must show the playlist
+    // panel regardless of entry path. When no explicit playlist link is present,
+    // reverse-lookup the playlists containing this media. The reverse-lookup
+    // response already carries the ordered items + the publisher's display_mode
+    // in a single round-trip, so we consume it directly instead of re-fetching.
+    const mediaToken = media?.short_token;
+    const {data: containingPlaylists} = useQuery({
+        queryKey: ['playlist-by-media', mediaToken],
+        queryFn: () => playlistApi.getByMedia(mediaToken as string),
+        enabled: !urlPlaylist && !!mediaToken,
+    });
+    const linked = usePlaylistPlayback(urlPlaylist);
+    const owningPlaylist = containingPlaylists?.[0];
+    const resolvedPlaylist = urlPlaylist || owningPlaylist?.playlist?.short_token || undefined;
+    const playlistItems = urlPlaylist ? linked.items : (owningPlaylist?.items ?? []);
+    const playlistTitle = urlPlaylist ? linked.title : (owningPlaylist?.playlist?.title);
+    const playlistDisplayMode = urlPlaylist ? linked.displayMode : (owningPlaylist?.playlist?.display_mode);
     const {user, isAdmin} = useAuth();
     const deleteMutation = useDeleteMedia();
     const {autoPlayNext, setAutoPlayNext} = usePlayerSettings();
@@ -688,12 +706,12 @@ const WatchPage = () => {
                             }}
                         />
                     )}
-                    {urlPlaylist && playlistItems.length > 0 && (
+                    {resolvedPlaylist && playlistItems.length > 0 && (
                         <PlaylistPanel
                             title={playlistTitle || t('watch.playlist', '播放列表')}
                             items={playlistItems}
                             currentToken={shortToken}
-                            playlistToken={urlPlaylist}
+                            playlistToken={resolvedPlaylist}
                             displayMode={playlistDisplayMode}
                         />
                     )}
