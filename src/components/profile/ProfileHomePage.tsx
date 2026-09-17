@@ -33,6 +33,7 @@ import VideoCard from '@/components/channel/widgets/VideoCard';
 import PlaylistCard from '@/components/channel/widgets/PlaylistCard';
 import ShareDialog from '@/components/common/ShareDialog';
 import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
+import PlaylistsPage from '@/pages/home/me/Playlists';
 import {
     Pencil,
     Film,
@@ -92,7 +93,7 @@ const OWNER_TABS: {key: OwnerTab; icon: React.ElementType; labelKey: string; man
     {key: 'articles', icon: FileText, labelKey: 'nav.myArticles', manageTo: '/me/articles'},
     {key: 'followers', icon: UserCheck, labelKey: 'profile.myFollowers', manageTo: '/u/$id'},
     {key: 'favorites', icon: Heart, labelKey: 'nav.myFavorites', manageTo: '/me/favorites'},
-    {key: 'playlists', icon: ListVideo, labelKey: 'nav.myPlaylists', manageTo: '/me/playlists'},
+    {key: 'playlists', icon: ListVideo, labelKey: 'nav.myPlaylists', manageTo: ''},
     {key: 'history', icon: History, labelKey: 'nav.history', manageTo: '/me/history'},
     {key: 'about', icon: Info, labelKey: 'profile.tabAbout', manageTo: ''},
 ];
@@ -444,7 +445,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
             navigate({to: tab.manageTo, params: {id: profile.slug || profile.username}, search: {tab: 'followers'} as any});
         } else if (tab.key === 'about') {
             changeTab(setOwnerTab, 'about');
-        } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'articles') {
+        } else if (tab.key === 'videos' || tab.key === 'favorites' || tab.key === 'history' || tab.key === 'articles' || tab.key === 'playlists') {
             changeTab(setOwnerTab, tab.key);
         } else if (tab.manageTo) {
             navigate({to: tab.manageTo});
@@ -687,38 +688,14 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     />
                 );
             case 'playlists':
-                // Preview only. Management (create / edit / reorder) lives on the
-                // canonical /me/playlists page (see three-my-hierarchy-redesign.md).
-                // The "view all" affordance below navigates there via manageTo, so
-                // the profile tab is no longer a second, conflicting management surface.
+                // Single management surface: the playlists tab IS the management
+                // page (create / delete). The redundant standalone /me/playlists
+                // route and its sidebar entry were removed (BUG-197 dual-surface
+                // conflict). No preview, no "view all" redirect — one surface only.
                 return (
-                    <ContentSection
-                        loading={playlistsLoading}
-                        items={playlists}
-                        tab={OWNER_TABS[4]}
-                        // Pass the playlists tab explicitly: ContentSection calls
-                        // `onManage` with the React event, so binding handleManageClick
-                        // directly would receive the event (not the tab) and no-op.
-                        onManage={() => handleManageClick(OWNER_TABS[4])}
-                        renderItem={(pl: any) => (
-                            <PlaylistCard
-                                key={pl.id}
-                                playlist={{
-                                    id: pl.id,
-                                    short_token: pl.short_token,
-                                    title: pl.title,
-                                    description: pl.description,
-                                    thumbnail: pl.thumbnail,
-                                    media_count: pl.media_count || 0,
-                                    video_count: pl.media_count || 0,
-                                    cover_images: pl.media_details?.slice(0, 4).map((m: any) => m.thumbnail) || [],
-                                    update_time: pl.update_time,
-                                }}
-                                isOwner={isOwner}
-                            />
-                        )}
-                        emptyType="playlists"
-                    />
+                    <div className="py-2">
+                        <PlaylistsPage/>
+                    </div>
                 );
             case 'history':
                 return (
@@ -910,6 +887,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                         {visibleOwnerTabs.map(tab => (
                             <button
                                 key={tab.key}
+                                data-testid={`owner-tab-${tab.key}`}
                                 onClick={() => changeTab(setOwnerTab, tab.key)}
                                 className={`flex items-center gap-1.5 px-3 py-2.5 font-medium text-sm border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                                     ownerTab === tab.key

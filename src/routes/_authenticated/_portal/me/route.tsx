@@ -20,9 +20,6 @@ function MeLayout() {
         if (path.startsWith('/me/articles')) {
             return {title: t('nav.myArticles')};
         }
-        if (path.startsWith('/me/playlists')) {
-            return {title: t('nav.playlists')};
-        }
         if (path.startsWith('/me/history')) {
             return {title: t('nav.history')};
         }

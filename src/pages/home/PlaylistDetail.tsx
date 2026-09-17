@@ -172,7 +172,7 @@ const PlaylistDetailPage: React.FC = () => {
                         </Button>
                     </Link>
                 ) : (
-                    <Link to="/me/playlists">
+                    <Link to="/">
                         <Button variant="outline">
                             <ArrowLeft className="w-4 h-4 mr-2"/>
                             {t('playlists.backToList')}
@@ -199,7 +199,7 @@ const PlaylistDetailPage: React.FC = () => {
                                 <ArrowLeft className="w-5 h-5"/>
                             </Link>
                         ) : (
-                            <Link to="/me/playlists" className="text-muted-foreground hover:text-foreground transition-colors">
+                            <Link to="/" className="text-muted-foreground hover:text-foreground transition-colors">
                                 <ArrowLeft className="w-5 h-5"/>
                             </Link>
                         )}

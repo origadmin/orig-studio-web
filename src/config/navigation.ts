@@ -56,12 +56,6 @@ export const NAV_CONFIG: NavSection[] = [
                 isDynamic: true,
             },
             {
-                id: 'my-playlists',
-                label: 'nav.myPlaylists',
-                to: '/me/playlists',
-                icon: ListVideo,
-            },
-            {
                 id: 'notifications',
                 label: 'nav.notifications',
                 to: '/notifications',

@@ -18,6 +18,5 @@ export const ROUTE_MODULE_MAP: Record<string, ModuleKey> = {
     '/featured': 'videos',
     '/latest': 'videos',
     '/me/channels': 'videos',
-    '/me/playlists': 'videos',
     '/subscriptions': 'videos',
 };
