@@ -17,9 +17,9 @@
  * Exit 0 = all pass, 1 = any violation, 2 = setup error.
  */
 import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 const BASE = process.env.FRONTEND_URL || 'http://localhost:8080';
 const OUT = join(tmpdir(), 'dialog-gate');
@@ -27,6 +27,49 @@ mkdirSync(OUT, { recursive: true });
 
 const TOL = 2; // px, left-edge spread
 const MIN_BOTTOM_GAP = 8; // px, dialog bottom edge to the last child's bottom (BUG-363)
+
+// ---------------------------------------------------------------------------
+// Phase 0 — STATIC composition scan (BUG-367).
+//
+// The runtime gate below only measures dialogs it knows how to open, which is
+// exactly why the defect kept coming back: PlaylistDetail shipped THREE more
+// hand-rolled dialogs (edit / delete / remove-media) with no vertical padding
+// AFTER the BUG-363 "fix", and nothing failed. This scan enforces the rule over
+// the WHOLE repo instead: a file that renders a dialog must compose it from the
+// design-system parts (DialogBody/DialogFooter), which carry the padding by
+// construction. Reviewed custom-layout (p-0) shells are allowlisted explicitly.
+// ---------------------------------------------------------------------------
+const STATIC_ALLOWLIST = new Set([
+  'src/components/ui/command.tsx', // cmdk shell, p-0 overlay layout
+  'src/components/common/ThumbnailSelectDialog.tsx', // p-0 shell, own px-6 py-4 footer
+  'src/components/playlist/AddVideosDialog.tsx', // p-0 shell, own px-6 py-4 body
+]);
+
+function walkTsx(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) walkTsx(p, out);
+    else if (p.endsWith('.tsx')) out.push(p);
+  }
+  return out;
+}
+
+const staticViolations = [];
+for (const file of walkTsx('src')) {
+  const src = readFileSync(file, 'utf8');
+  if (!src.includes('<DialogContent')) continue;
+  if (!src.includes('DialogBody') && !src.includes('DialogFooter')) {
+    const rel = relative('.', file).replace(/\\/g, '/');
+    if (!STATIC_ALLOWLIST.has(rel)) staticViolations.push(rel);
+  }
+}
+if (staticViolations.length) {
+  console.error('STATIC FAIL — dialogs NOT composed from the design system (missing DialogBody/DialogFooter):');
+  for (const f of staticViolations) console.error('  ' + f);
+  console.error('Compose dialogs from DialogHeader/DialogBody/DialogFooter (BUG-321/363/367), or add a reviewed allowlist entry for a custom-layout p-0 shell.');
+  process.exit(1);
+}
+console.log(`STATIC PASS — all dialog files compose DialogBody/DialogFooter (${STATIC_ALLOWLIST.size} reviewed allowlist entries).`);
 
 const registry = [
   {
@@ -104,7 +147,55 @@ const registry = [
       }, ctx.id).catch(() => {});
     },
   },
+  {
+    // BUG-367: the playlist DETAIL page shipped three more hand-rolled dialogs
+    // (edit / delete / remove-media) with no vertical padding — the same class,
+    // found by the user after the BUG-363 "fix". Registered so this page cannot
+    // regress either. Requires the seeded UAT playlists to exist.
+    name: 'playlist-edit-dialog',
+    async prepare(page) { return await firstPlaylistToken(page); },
+    async open(page, ctx) {
+      await page.goto(BASE + '/playlist/' + ctx.token, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.locator('[data-testid="playlist-owner-menu"]').click();
+      await page.waitForTimeout(400);
+      await page.locator('[data-testid="playlist-edit-entry"]').click();
+    },
+  },
+  {
+    name: 'playlist-delete-detail-dialog',
+    async prepare(page) { return await firstPlaylistToken(page); },
+    async open(page, ctx) {
+      await page.goto(BASE + '/playlist/' + ctx.token, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.locator('[data-testid="playlist-owner-menu"]').click();
+      await page.waitForTimeout(400);
+      await page.getByRole('menuitem', { name: /删除|Delete/i }).first().click();
+    },
+  },
+  {
+    name: 'playlist-remove-media-dialog',
+    async prepare(page) { return await firstPlaylistToken(page); },
+    async open(page, ctx) {
+      await page.goto(BASE + '/playlist/' + ctx.token, { waitUntil: 'networkidle' });
+      await page.waitForTimeout(1500);
+      await page.locator('[data-testid="playlist-remove-video"]').first().click();
+    },
+  },
 ];
+
+// resolve an existing playlist token (seed data) — never create data for these
+async function firstPlaylistToken(page) {
+  await page.goto(BASE + '/@admin?tab=playlists', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  const tok = await page.evaluate(async () => {
+    const t = localStorage.getItem('origstudio_token') || '';
+    const r = await fetch('/api/v1/me/playlists?page=1&page_size=1', { headers: { Authorization: 'Bearer ' + t } });
+    const j = await r.json().catch(() => ({}));
+    return j?.items?.[0]?.short_token || '';
+  });
+  return tok ? { token: tok } : null;
+}
 
 async function measure(page) {
   return page.evaluate(() => {
@@ -177,7 +268,7 @@ for (const item of registry) {
       ctx = await item.prepare(page);
       if (!ctx) throw new Error('prepare produced no context');
     }
-    await item.open(page);
+    await item.open(page, ctx);
     await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
     await page.waitForTimeout(800);
     const m = await measure(page);

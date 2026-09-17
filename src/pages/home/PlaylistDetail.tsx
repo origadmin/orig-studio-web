@@ -20,7 +20,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
     Dialog,
+    DialogBody,
     DialogContent,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogDescription,
@@ -327,12 +329,12 @@ const PlaylistDetailPage: React.FC = () => {
                 {isOwner && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" data-testid="playlist-owner-menu">
                                 <MoreHorizontal className="w-5 h-5"/>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={handleEdit}>
+                            <DropdownMenuItem onClick={handleEdit} data-testid="playlist-edit-entry">
                                 <Edit3 className="w-4 h-4 mr-2"/>
                                 {t('common.edit')}
                             </DropdownMenuItem>
@@ -562,7 +564,7 @@ const PlaylistDetailPage: React.FC = () => {
                             {t('playlists.editPlaylistDesc')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 mt-4 px-6">
+                    <DialogBody className="space-y-4">
                         <div>
                             <label className="text-sm font-medium mb-1 block">{t('playlists.title')}</label>
                             <Input
@@ -591,17 +593,17 @@ const PlaylistDetailPage: React.FC = () => {
                                 {t('playlists.makePublic')}
                             </label>
                         </div>
-                        <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isUpdating}>
-                                {t('common.cancel')}
-                            </Button>
-                            <Button onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
-                                    className="bg-primary hover:bg-primary/90">
-                                {isUpdating ? <Spinner className="w-4 h-4 mr-1"/> : null}
-                                {t('common.save')}
-                            </Button>
-                        </div>
-                    </div>
+                    </DialogBody>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isUpdating}>
+                            {t('common.cancel')}
+                        </Button>
+                        <Button onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
+                                className="bg-primary hover:bg-primary/90">
+                            {isUpdating ? <Spinner className="w-4 h-4 mr-1"/> : null}
+                            {t('common.save')}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -614,7 +616,7 @@ const PlaylistDetailPage: React.FC = () => {
                             {t('playlists.deleteConfirm')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end gap-2 mt-4">
+                    <DialogFooter>
                         <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
                             {t('common.cancel')}
                         </Button>
@@ -622,7 +624,7 @@ const PlaylistDetailPage: React.FC = () => {
                             {isDeleting ? <Spinner className="w-4 h-4 mr-1"/> : null}
                             {t('common.delete')}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
@@ -635,7 +637,7 @@ const PlaylistDetailPage: React.FC = () => {
                             {t('playlists.removeVideoConfirm')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end gap-2 mt-4">
+                    <DialogFooter>
                         <Button variant="outline" onClick={() => setRemoveMediaId(null)} disabled={isRemovingMedia}>
                             {t('common.cancel')}
                         </Button>
@@ -643,7 +645,7 @@ const PlaylistDetailPage: React.FC = () => {
                             {isRemovingMedia ? <Spinner className="w-4 h-4 mr-1"/> : null}
                             {t('common.remove')}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
             <AddVideosDialog
