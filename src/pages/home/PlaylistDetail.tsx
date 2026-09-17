@@ -587,7 +587,7 @@ const PlaylistDetailPage: React.FC = () => {
                         <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={isUpdating}>
                             {t('common.cancel')}
                         </Button>
-                        <Button onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
+                        <Button data-testid="playlist-edit-save" onClick={handleSaveEdit} disabled={!editTitle.trim() || isUpdating}
                                 className="bg-primary hover:bg-primary/90">
                             {isUpdating ? <Spinner className="w-4 h-4 mr-1"/> : null}
                             {t('common.save')}

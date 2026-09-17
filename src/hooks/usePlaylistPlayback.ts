@@ -13,8 +13,13 @@ export function usePlaylistPlayback(token?: string | null): {
     displayMode?: string;
     isLoading: boolean;
 } {
+    // BUG-368: a DISTINCT key, not ['playlist', token]. The playlist detail page
+    // uses that key with a different queryFn shape, so sharing it meant the
+    // panel silently consumed the detail page's cached object — displayMode was
+    // missing and the panel always fell back to rows, no matter what the
+    // publisher had configured.
     const query = useQuery({
-        queryKey: ['playlist', token],
+        queryKey: ['playlist-playback', token],
         queryFn: async () => {
             const res = await playlistApi.get(token!);
             return {
