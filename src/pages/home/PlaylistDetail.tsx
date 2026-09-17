@@ -4,11 +4,11 @@
  * Accessed via /playlist/:token (portal, public playlists) or /me/playlists -> click (user's own).
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useParams, Link, useNavigate} from '@tanstack/react-router';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info} from 'lucide-react';
+import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info, List, AlignLeft, LayoutGrid, Hash, Shuffle} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
@@ -31,6 +31,17 @@ import {formatDate, formatDuration, formatViews} from '@/lib/format';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useAuth} from '@/hooks/useAuth';
 import AddVideosDialog from '@/components/playlist/AddVideosDialog';
+
+// BUG-366: the playlist body supports four display modes (G5 a). The choice is
+// a user-level preference persisted across visits, not part of any contract.
+type PlaylistView = 'list' | 'compact' | 'grid' | 'chips';
+const VIEW_STORAGE_KEY = 'playlist.view';
+const VIEWS: Array<{id: PlaylistView; icon: React.ElementType; label: string}> = [
+    {id: 'list', icon: List, label: '列表'},
+    {id: 'compact', icon: AlignLeft, label: '紧凑行'},
+    {id: 'grid', icon: LayoutGrid, label: '缩略图'},
+    {id: 'chips', icon: Hash, label: '编号'},
+];
 
 const PlaylistDetailPage: React.FC = () => {
     const {token} = useParams({strict: false}) as {token?: string};
@@ -58,6 +69,15 @@ const PlaylistDetailPage: React.FC = () => {
     // used to be editable in name only — its contents could not be changed).
     const [showAddVideos, setShowAddVideos] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
+
+    // Display mode (BUG-366): list / compact / grid / chips, persisted.
+    const [view, setView] = useState<PlaylistView>(() => {
+        const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+        return stored === 'compact' || stored === 'grid' || stored === 'chips' ? stored : 'list';
+    });
+    useEffect(() => {
+        localStorage.setItem(VIEW_STORAGE_KEY, view);
+    }, [view]);
 
     const {data: playlistData, isLoading, error} = useQuery({
         queryKey: ['playlist', token],
@@ -225,22 +245,46 @@ const PlaylistDetailPage: React.FC = () => {
                     </div>
                     <div className="flex flex-wrap items-center gap-3 ml-8 mt-3">
                         {mediaItems.length > 0 && (
-                            <Button
-                                data-testid="playlist-play-all"
-                                onClick={() => navigate({
-                                    to: '/watch',
-                                    search: {
-                                        v: mediaItems[0].short_token,
-                                        playlist: playlist.short_token,
-                                        index: '0',
-                                        autoplay: '1',
-                                    },
-                                })}
-                                className="gap-2"
-                            >
-                                <Play className="w-4 h-4" fill="currentColor"/>
-                                {t('playlists.playAll', '播放全部')}
-                            </Button>
+                            <>
+                                <Button
+                                    data-testid="playlist-play-all"
+                                    onClick={() => navigate({
+                                        to: '/watch',
+                                        search: {
+                                            v: mediaItems[0].short_token,
+                                            playlist: playlist.short_token,
+                                            index: '0',
+                                            autoplay: '1',
+                                        },
+                                    })}
+                                    className="gap-2"
+                                >
+                                    <Play className="w-4 h-4" fill="currentColor"/>
+                                    {t('playlists.playAll', '播放全部')}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    data-testid="playlist-shuffle"
+                                    onClick={() => {
+                                        // BUG-366: land on a RANDOM episode with the
+                                        // playlist context preserved (YouTube's shuffle).
+                                        const i = Math.floor(Math.random() * mediaItems.length);
+                                        navigate({
+                                            to: '/watch',
+                                            search: {
+                                                v: mediaItems[i].short_token,
+                                                playlist: playlist.short_token,
+                                                index: String(i),
+                                                autoplay: '1',
+                                            },
+                                        });
+                                    }}
+                                    className="gap-2"
+                                >
+                                    <Shuffle className="w-4 h-4"/>
+                                    {t('playlists.shuffle', '随机播放')}
+                                </Button>
+                            </>
                         )}
                         {isOwner && (
                             <Button
@@ -253,6 +297,29 @@ const PlaylistDetailPage: React.FC = () => {
                                 {t('playlists.addVideos', '添加视频到剧集')}
                             </Button>
                         )}
+                        {/* Display-mode switcher (BUG-366): a user preference, so it
+                            lives in the page header next to the other page-level actions. */}
+                        <div
+                            data-testid="playlist-view-switcher"
+                            className="ml-auto flex items-center rounded-lg border border-border overflow-hidden"
+                        >
+                            {VIEWS.map(({id, icon: Icon, label}) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    data-testid={`playlist-view-${id}`}
+                                    title={t(`playlists.view_${id}`, label)}
+                                    onClick={() => setView(id)}
+                                    className={`px-2.5 py-1.5 flex items-center transition-colors ${
+                                        view === id
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'text-muted-foreground hover:bg-muted'
+                                    }`}
+                                >
+                                    <Icon className="w-4 h-4"/>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -299,9 +366,13 @@ const PlaylistDetailPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Video list */}
+            {/* Video list — four display modes (BUG-366); the mode switcher lives
+                in the page header, and the owner's reorder controls stay in the
+                list view only (ordering has no meaning in grids). */}
             {mediaItems.length > 0 ? (
-                <div className="space-y-2">
+                <>
+                    {view === 'list' && (
+                        <div className="space-y-2" data-testid="playlist-body-list">
                     {mediaItems.map((media, index) => (
                         <div
                             key={media.id}
@@ -389,7 +460,91 @@ const PlaylistDetailPage: React.FC = () => {
                             )}
                         </div>
                     ))}
-                </div>
+                        </div>
+                    )}
+
+                    {/* Compact rows: index + title + duration, NO thumbnails — the
+                        YouTube watch-panel row treatment, fastest way to scan titles. */}
+                    {view === 'compact' && (
+                        <div className="space-y-1" data-testid="playlist-body-compact">
+                            {mediaItems.map((media, index) => (
+                                <Link
+                                    key={media.id}
+                                    to="/watch"
+                                    search={{v: media.short_token}}
+                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors group"
+                                >
+                                    <span className="text-xs text-muted-foreground w-6 text-center shrink-0">{index + 1}</span>
+                                    <span className="flex-1 min-w-0 truncate text-sm text-foreground group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
+                                        {media.title}
+                                    </span>
+                                    {media.duration > 0 && (
+                                        <span className="text-xs text-muted-foreground shrink-0">{formatDuration(media.duration)}</span>
+                                    )}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Poster grid: thumbnail cards with an index badge. */}
+                    {view === 'grid' && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" data-testid="playlist-body-grid">
+                            {mediaItems.map((media, index) => (
+                                <Link
+                                    key={media.id}
+                                    to="/watch"
+                                    search={{v: media.short_token}}
+                                    className="group rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all"
+                                >
+                                    <div className="relative aspect-video bg-gray-100 dark:bg-gray-700">
+                                        {media.thumbnail ? (
+                                            <img
+                                                src={getImageUrl(media.thumbnail, 'thumbnail')}
+                                                alt={media.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                onError={(e) => handleImageError(e, 'thumbnail')}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Play className="w-8 h-8 text-gray-300 dark:text-gray-600"/>
+                                            </div>
+                                        )}
+                                        <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                                            {index + 1}
+                                        </span>
+                                        {media.duration > 0 && (
+                                            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
+                                                {formatDuration(media.duration)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-2">
+                                        <h3 className="text-sm font-medium text-foreground line-clamp-2">{media.title}</h3>
+                                        <p className="text-xs text-muted-foreground mt-0.5">{formatViews(media.view_count)} {t('common.views')}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Numbered chips: the densest mode (bilibili 集数), built for
+                        jumping around long playlists. */}
+                    {view === 'chips' && (
+                        <div className="flex flex-wrap gap-2" data-testid="playlist-body-chips">
+                            {mediaItems.map((media, index) => (
+                                <Link
+                                    key={media.id}
+                                    to="/watch"
+                                    search={{v: media.short_token}}
+                                    title={media.title}
+                                    className="h-9 w-9 flex items-center justify-center rounded-md border border-border text-sm text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
+                                >
+                                    {index + 1}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </>
             ) : (
                 <div className="text-center py-20 text-muted-foreground">
                     <Video size={48} className="mx-auto mb-3 opacity-30"/>
