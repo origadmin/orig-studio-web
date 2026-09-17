@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {AlignLeft, GalleryHorizontal, Hash, Play, Shuffle} from 'lucide-react';
+import {Play, Shuffle} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {type PlaylistMediaItem} from '@/lib/api/playlist';
 import {formatDuration} from '@/lib/format';
@@ -16,14 +16,19 @@ interface PlaylistPanelProps {
     currentToken?: string;
     /** The playlist short_token used to keep the URL context. */
     playlistToken?: string;
+    /**
+     * BUG-366 (G5 correction): the display mode is configured by the playlist's
+     * PUBLISHER and travels with the playlist — the watch page deliberately has
+     * NO viewer-side display option (mainstream logic: YouTube/Netflix render
+     * the publisher's presentation). One of list | thumbs | chips.
+     */
+    displayMode?: string;
 }
 
 // BUG-366 correction (G5): the multi-view requirement was FOR THE WATCH PANEL
 // — bilibili ss109700 is a watch page and its 集数/标题 toggle lives on the
 // watch page. So the panel carries the FULL mode set: compact text rows
 // (default, the mainstream treatment), thumbnail rows, and numbered chips.
-type PanelView = 'rows' | 'thumbs' | 'chips';
-const VIEW_STORAGE_KEY = 'watch.playlistView';
 // Like bilibili's 全X话, very long playlists render a capped window first;
 // rendering 500 chips up front is wasted work nobody scrolls through.
 const INITIAL_VISIBLE = 50;
@@ -47,20 +52,14 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     items,
     currentToken,
     playlistToken,
+    displayMode,
 }) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
     const {user} = useAuth();
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    const [view, setView] = useState<PanelView>(() => {
-        const stored = localStorage.getItem(VIEW_STORAGE_KEY);
-        return stored === 'thumbs' || stored === 'chips' ? stored : 'rows';
-    });
     const [showAll, setShowAll] = useState(false);
-    useEffect(() => {
-        localStorage.setItem(VIEW_STORAGE_KEY, view);
-    }, [view]);
 
     // Watch progress per item, best effort: matched by media id from the
     // existing history endpoint. Absent history simply means no bar.
@@ -97,7 +96,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
         } else if (bottom > container.scrollTop + container.clientHeight) {
             container.scrollTop = bottom - container.clientHeight;
         }
-    }, [currentToken, items, view]);
+    }, [currentToken, items, displayMode]);
 
     if (!items || items.length === 0) return null;
 
@@ -111,6 +110,8 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
         search: {...searchFor(items[index], index), autoplay: '1'},
     });
 
+    // the publisher's choice drives the rendering; anything unknown => rows
+    const mode = displayMode === 'thumbs' || displayMode === 'chips' ? displayMode : 'rows';
     const visible = showAll ? items : items.slice(0, INITIAL_VISIBLE);
 
     return (
@@ -128,31 +129,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {items.length} {t('common.videos_count')}
                         </span>
-                        <div
-                            data-testid="playlist-panel-view-switcher"
-                            className="flex items-center rounded-md border border-border overflow-hidden"
-                        >
-                            {([
-                                {id: 'rows' as PanelView, icon: AlignLeft, label: '列表'},
-                                {id: 'thumbs' as PanelView, icon: GalleryHorizontal, label: '缩略图'},
-                                {id: 'chips' as PanelView, icon: Hash, label: '编号'},
-                            ]).map(({id, icon: Icon, label}) => (
-                                <button
-                                    key={id}
-                                    type="button"
-                                    data-testid={`playlist-panel-view-${id}`}
-                                    title={t(`playlists.view_${id}`, label)}
-                                    onClick={() => setView(id)}
-                                    className={`px-2 py-1 flex items-center transition-colors ${
-                                        view === id
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'text-muted-foreground hover:bg-muted'
-                                    }`}
-                                >
-                                    <Icon className="w-3.5 h-3.5"/>
-                                </button>
-                            ))}
-                        </div>
+                        
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -182,7 +159,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                 data-testid="playlist-panel-scroll"
                 className="relative overflow-y-auto overscroll-contain px-4 pb-4"
             >
-                {view === 'rows' && (
+                {mode === 'rows' && (
                     <div className="space-y-0.5 pt-2" data-testid="playlist-panel-body-rows">
                         {visible.map((item, index) => {
                             const isActive = item.short_token === currentToken;
@@ -232,7 +209,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                     </div>
                 )}
 
-                {view === 'thumbs' && (
+                {mode === 'thumbs' && (
                     <div className="space-y-1 pt-2" data-testid="playlist-panel-body-thumbs">
                         {visible.map((item, index) => {
                             const isActive = item.short_token === currentToken;
@@ -295,7 +272,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                     </div>
                 )}
 
-                {view === 'chips' && (
+                {mode === 'chips' && (
                     <div className="flex flex-wrap gap-1.5 pt-3" data-testid="playlist-panel-body-chips">
                         {visible.map((item, index) => {
                             const isActive = item.short_token === currentToken;

@@ -27,6 +27,7 @@ export interface Playlist {
     privacy?: string;
     is_public: boolean;
     status?: string;
+    display_mode?: string;
     thumbnail?: string;
     media_count?: number;
     video_count?: number;
@@ -201,12 +202,14 @@ export interface CreatePlaylistRequest {
     title: string;
     description?: string;
     is_public?: boolean;
+    display_mode?: string;
 }
 
 export interface UpdatePlaylistRequest {
     title?: string;
     description?: string;
     is_public?: boolean;
+    display_mode?: string;
 }
 
 // ==================== User Playlist API (/me/playlists - requires JWT) ====================

@@ -10,6 +10,7 @@ import {playlistApi, type PlaylistMediaItem} from '@/lib/api/playlist';
 export function usePlaylistPlayback(token?: string | null): {
     items: PlaylistMediaItem[];
     title?: string;
+    displayMode?: string;
     isLoading: boolean;
 } {
     const query = useQuery({
@@ -18,10 +19,16 @@ export function usePlaylistPlayback(token?: string | null): {
             const res = await playlistApi.get(token!);
             return {
                 title: res?.playlist?.title,
+                displayMode: res?.playlist?.display_mode,
                 items: res?.playlist?.media_details ?? [],
             };
         },
         enabled: !!token,
     });
-    return {items: query.data?.items ?? [], title: query.data?.title, isLoading: query.isLoading};
+    return {
+        items: query.data?.items ?? [],
+        title: query.data?.title,
+        displayMode: query.data?.displayMode,
+        isLoading: query.isLoading,
+    };
 }

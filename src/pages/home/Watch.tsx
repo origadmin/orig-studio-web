@@ -135,7 +135,7 @@ const WatchPage = () => {
     // Continuous playback: a playlist context in the URL wins over the
     // site-wide recommendation list (playlist design 2.3, BUG-197).
     const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
-    const {items: playlistItems, title: playlistTitle} = usePlaylistPlayback(urlPlaylist);
+    const {items: playlistItems, title: playlistTitle, displayMode: playlistDisplayMode} = usePlaylistPlayback(urlPlaylist);
     // BUG-183: coerce to string — the search serializer may hand back a number
     // for numeric-looking tokens.
     const shortToken = rawToken != null ? String(rawToken) : undefined;
@@ -694,6 +694,7 @@ const WatchPage = () => {
                             items={playlistItems}
                             currentToken={shortToken}
                             playlistToken={urlPlaylist}
+                            displayMode={playlistDisplayMode}
                         />
                     )}
                     {recommendations.length === 0 ? (

@@ -4,11 +4,11 @@
  * Accessed via /playlist/:token (portal, public playlists) or /me/playlists -> click (user's own).
  */
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useParams, Link, useNavigate} from '@tanstack/react-router';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info, List, AlignLeft, LayoutGrid, Hash, Shuffle} from 'lucide-react';
+import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info, Shuffle} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
@@ -34,16 +34,18 @@ import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useAuth} from '@/hooks/useAuth';
 import AddVideosDialog from '@/components/playlist/AddVideosDialog';
 
-// BUG-366: the playlist body supports four display modes (G5 a). The choice is
-// a user-level preference persisted across visits, not part of any contract.
-type PlaylistView = 'list' | 'compact' | 'grid' | 'chips';
-const VIEW_STORAGE_KEY = 'playlist.view';
-const VIEWS: Array<{id: PlaylistView; icon: React.ElementType; label: string}> = [
-    {id: 'list', icon: List, label: '列表'},
-    {id: 'compact', icon: AlignLeft, label: '紧凑行'},
-    {id: 'grid', icon: LayoutGrid, label: '缩略图'},
-    {id: 'chips', icon: Hash, label: '编号'},
+// BUG-366 (G5 correction): the display mode is a PUBLISHER setting on the
+// playlist (edit dialog), not a viewer preference — mainstream logic: the
+// presentation travels with the content (YouTube/Netflix). list -> thumbnail
+// rows, thumbs -> poster grid, chips -> numbered chips.
+type PlaylistDisplayMode = 'list' | 'thumbs' | 'chips';
+const DISPLAY_MODES: Array<{id: PlaylistDisplayMode; label: string}> = [
+    {id: 'list', label: '列表'},
+    {id: 'thumbs', label: '缩略图'},
+    {id: 'chips', label: '编号格子'},
 ];
+const normalizeDisplayMode = (v?: string | null): PlaylistDisplayMode =>
+    v === 'thumbs' || v === 'chips' ? v : 'list';
 
 const PlaylistDetailPage: React.FC = () => {
     const {token} = useParams({strict: false}) as {token?: string};
@@ -72,14 +74,8 @@ const PlaylistDetailPage: React.FC = () => {
     const [showAddVideos, setShowAddVideos] = useState(false);
     const [isReordering, setIsReordering] = useState(false);
 
-    // Display mode (BUG-366): list / compact / grid / chips, persisted.
-    const [view, setView] = useState<PlaylistView>(() => {
-        const stored = localStorage.getItem(VIEW_STORAGE_KEY);
-        return stored === 'compact' || stored === 'grid' || stored === 'chips' ? stored : 'list';
-    });
-    useEffect(() => {
-        localStorage.setItem(VIEW_STORAGE_KEY, view);
-    }, [view]);
+    // display mode being edited in the publisher dialog (defaults to the current one)
+    const [editDisplayMode, setEditDisplayMode] = useState<PlaylistDisplayMode>('list');
 
     const {data: playlistData, isLoading, error} = useQuery({
         queryKey: ['playlist', token],
@@ -95,12 +91,15 @@ const PlaylistDetailPage: React.FC = () => {
     const playlist: Playlist | undefined = playlistData?.playlist;
     const isOwner = isAuthenticated && user && playlist && String(user.id) === String(playlist.user_id);
     const mediaItems: PlaylistMediaItem[] = playlistData?.items ?? [];
+    // the publisher's chosen presentation drives the whole page (BUG-366)
+    const publisherMode = normalizeDisplayMode(playlist?.display_mode);
 
     const handleEdit = () => {
         if (!playlist) return;
         setEditTitle(playlist.title);
         setEditDescription(playlist.description || '');
         setEditIsPublic(playlist.is_public);
+        setEditDisplayMode(normalizeDisplayMode(playlist.display_mode));
         setShowEditDialog(true);
     };
 
@@ -112,6 +111,7 @@ const PlaylistDetailPage: React.FC = () => {
                 title: editTitle,
                 description: editDescription,
                 is_public: editIsPublic,
+                display_mode: editDisplayMode,
             });
             setShowEditDialog(false);
             queryClient.invalidateQueries({queryKey: ['playlist', token]});
@@ -301,27 +301,7 @@ const PlaylistDetailPage: React.FC = () => {
                         )}
                         {/* Display-mode switcher (BUG-366): a user preference, so it
                             lives in the page header next to the other page-level actions. */}
-                        <div
-                            data-testid="playlist-view-switcher"
-                            className="ml-auto flex items-center rounded-lg border border-border overflow-hidden"
-                        >
-                            {VIEWS.map(({id, icon: Icon, label}) => (
-                                <button
-                                    key={id}
-                                    type="button"
-                                    data-testid={`playlist-view-${id}`}
-                                    title={t(`playlists.view_${id}`, label)}
-                                    onClick={() => setView(id)}
-                                    className={`px-2.5 py-1.5 flex items-center transition-colors ${
-                                        view === id
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'text-muted-foreground hover:bg-muted'
-                                    }`}
-                                >
-                                    <Icon className="w-4 h-4"/>
-                                </button>
-                            ))}
-                        </div>
+                        
                     </div>
                 </div>
 
@@ -368,12 +348,12 @@ const PlaylistDetailPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Video list — four display modes (BUG-366); the mode switcher lives
-                in the page header, and the owner's reorder controls stay in the
-                list view only (ordering has no meaning in grids). */}
+            {/* Video list — rendered in the PUBLISHER's chosen display mode
+                (BUG-366); the owner's reorder controls stay in the list view
+                only (ordering has no meaning in grids). */}
             {mediaItems.length > 0 ? (
                 <>
-                    {view === 'list' && (
+                    {publisherMode === 'list' && (
                         <div className="space-y-2" data-testid="playlist-body-list">
                     {mediaItems.map((media, index) => (
                         <div
@@ -465,31 +445,8 @@ const PlaylistDetailPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Compact rows: index + title + duration, NO thumbnails — the
-                        YouTube watch-panel row treatment, fastest way to scan titles. */}
-                    {view === 'compact' && (
-                        <div className="space-y-1" data-testid="playlist-body-compact">
-                            {mediaItems.map((media, index) => (
-                                <Link
-                                    key={media.id}
-                                    to="/watch"
-                                    search={{v: media.short_token}}
-                                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors group"
-                                >
-                                    <span className="text-xs text-muted-foreground w-6 text-center shrink-0">{index + 1}</span>
-                                    <span className="flex-1 min-w-0 truncate text-sm text-foreground group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
-                                        {media.title}
-                                    </span>
-                                    {media.duration > 0 && (
-                                        <span className="text-xs text-muted-foreground shrink-0">{formatDuration(media.duration)}</span>
-                                    )}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-
                     {/* Poster grid: thumbnail cards with an index badge. */}
-                    {view === 'grid' && (
+                    {publisherMode === 'thumbs' && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" data-testid="playlist-body-grid">
                             {mediaItems.map((media, index) => (
                                 <Link
@@ -531,7 +488,7 @@ const PlaylistDetailPage: React.FC = () => {
 
                     {/* Numbered chips: the densest mode (bilibili 集数), built for
                         jumping around long playlists. */}
-                    {view === 'chips' && (
+                    {publisherMode === 'chips' && (
                         <div className="flex flex-wrap gap-2" data-testid="playlist-body-chips">
                             {mediaItems.map((media, index) => (
                                 <Link
@@ -592,6 +549,31 @@ const PlaylistDetailPage: React.FC = () => {
                             <label htmlFor="edit-is-public" className="text-sm">
                                 {t('playlists.makePublic')}
                             </label>
+                        </div>
+                        {/* BUG-366: the publisher chooses how viewers see this
+                            playlist everywhere (watch panel included) — there is
+                            deliberately NO viewer-side display switcher. */}
+                        <div>
+                            <label className="text-sm font-medium mb-1 block">
+                                {t('playlists.displayMode', '显示方式')}
+                            </label>
+                            <div className="flex items-center gap-2" data-testid="playlist-display-mode">
+                                {DISPLAY_MODES.map(({id, label}) => (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        data-testid={`playlist-display-mode-${id}`}
+                                        onClick={() => setEditDisplayMode(id)}
+                                        className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+                                            editDisplayMode === id
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'border-border text-muted-foreground hover:bg-muted'
+                                        }`}
+                                    >
+                                        {t(`playlists.displayMode_${id}`, label)}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </DialogBody>
                     <DialogFooter>
