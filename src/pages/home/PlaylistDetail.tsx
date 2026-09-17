@@ -94,6 +94,13 @@ const PlaylistDetailPage: React.FC = () => {
     // the publisher's chosen presentation drives the whole page (BUG-366)
     const publisherMode = normalizeDisplayMode(playlist?.display_mode);
 
+    // BUG-368: opening an item must CARRY the playlist context, otherwise the
+    // watch page has no playlist token, renders no playlist panel and continuous
+    // playback is dead (the whole point of BUG-197).
+    const itemSearch = (media: PlaylistMediaItem, index: number) => (playlist?.short_token
+        ? {v: media.short_token, playlist: playlist.short_token, index: String(index)}
+        : {v: media.short_token});
+
     const handleEdit = () => {
         if (!playlist) return;
         setEditTitle(playlist.title);
@@ -364,7 +371,7 @@ const PlaylistDetailPage: React.FC = () => {
                             <span className="text-sm text-muted-foreground w-6 text-center flex-shrink-0">{index + 1}</span>
 
                             {/* Thumbnail */}
-                            <Link to="/watch" search={{v: media.short_token}} className="flex-shrink-0">
+                            <Link to="/watch" search={itemSearch(media, index)} className="flex-shrink-0">
                                 <div className="relative w-40 aspect-video rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
                                     {media.thumbnail ? (
                                         <img
@@ -391,7 +398,7 @@ const PlaylistDetailPage: React.FC = () => {
                             </Link>
 
                             {/* Info */}
-                            <Link to="/watch" search={{v: media.short_token}} className="flex-1 min-w-0">
+                            <Link to="/watch" search={itemSearch(media, index)} className="flex-1 min-w-0">
                                 <h3 className="font-medium text-foreground line-clamp-2 group-hover:text-primary dark:group-hover:text-emerald-400 transition-colors">
                                     {media.title}
                                 </h3>
@@ -452,7 +459,7 @@ const PlaylistDetailPage: React.FC = () => {
                                 <Link
                                     key={media.id}
                                     to="/watch"
-                                    search={{v: media.short_token}}
+                                    search={itemSearch(media, index)}
                                     className="group rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all"
                                 >
                                     <div className="relative aspect-video bg-gray-100 dark:bg-gray-700">
@@ -494,7 +501,7 @@ const PlaylistDetailPage: React.FC = () => {
                                 <Link
                                     key={media.id}
                                     to="/watch"
-                                    search={{v: media.short_token}}
+                                    search={itemSearch(media, index)}
                                     title={media.title}
                                     className="h-9 w-9 flex items-center justify-center rounded-md border border-border text-sm text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
                                 >
