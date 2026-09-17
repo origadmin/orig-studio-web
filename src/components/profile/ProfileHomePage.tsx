@@ -510,7 +510,14 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-x-4 gap-y-6">
                         {videoItems.map(item => (
-                            <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo={selectedChannelId === 'all'}/>
+                            // BUG-360: this grid only ever holds the profile owner's
+                            // own videos, so the per-card owner avatar is redundant
+                            // (the header already names the owner). Worse, it stole
+                            // ~46px from the meta row and squeezed the username into
+                            // `@a…` whenever a channel was selected. Suppress it in
+                            // both the all-channels and the channel-scoped view so the
+                            // card reads identically to the "全部频道" grid.
+                            <VideoCard key={item.id} video={item} isOwner={true} showChannelInfo/>
                         ))}
                     </div>
                     <div ref={videoSentinelRef} className="flex flex-col items-center py-8">
