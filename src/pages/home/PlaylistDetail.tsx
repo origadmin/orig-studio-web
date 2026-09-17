@@ -28,6 +28,16 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog';
 import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {Switch} from '@/components/ui/switch';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {playlistApi, type Playlist, type PlaylistMediaItem} from '@/lib/api/playlist';
 import {formatDate, formatDuration, formatViews} from '@/lib/format';
 import {getImageUrl, handleImageError} from '@/lib/imageUtils';
@@ -528,59 +538,54 @@ const PlaylistDetailPage: React.FC = () => {
                             {t('playlists.editPlaylistDesc')}
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogBody className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.title')}</label>
+                    {/* Form layout follows the project standard (see
+                        CreateChannelDialog / MediaEditForm): `grid gap-4` body,
+                        one `grid gap-2` block per field, Label + control. */}
+                    <DialogBody className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="playlist-title">{t('playlists.title')}</Label>
                             <Input
+                                id="playlist-title"
                                 value={editTitle}
                                 onChange={(e) => setEditTitle(e.target.value)}
                                 placeholder={t('playlists.titlePlaceholder')}
                             />
                         </div>
-                        <div>
-                            <label className="text-sm font-medium mb-1 block">{t('playlists.description')}</label>
-                            <Input
+                        <div className="grid gap-2">
+                            <Label htmlFor="playlist-description">{t('playlists.description')}</Label>
+                            <Textarea
+                                id="playlist-description"
                                 value={editDescription}
                                 onChange={(e) => setEditDescription(e.target.value)}
                                 placeholder={t('playlists.descriptionPlaceholder')}
+                                rows={3}
                             />
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                id="edit-is-public"
-                                checked={editIsPublic}
-                                onChange={(e) => setEditIsPublic(e.target.checked)}
-                                className="rounded border-gray-300"
-                            />
-                            <label htmlFor="edit-is-public" className="text-sm">
-                                {t('playlists.makePublic')}
-                            </label>
                         </div>
                         {/* BUG-366: the publisher chooses how viewers see this
                             playlist everywhere (watch panel included) — there is
                             deliberately NO viewer-side display switcher. */}
-                        <div>
-                            <label className="text-sm font-medium mb-1 block">
-                                {t('playlists.displayMode', '显示方式')}
-                            </label>
-                            <div className="flex items-center gap-2" data-testid="playlist-display-mode">
-                                {DISPLAY_MODES.map(({id, label}) => (
-                                    <button
-                                        key={id}
-                                        type="button"
-                                        data-testid={`playlist-display-mode-${id}`}
-                                        onClick={() => setEditDisplayMode(id)}
-                                        className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
-                                            editDisplayMode === id
-                                                ? 'bg-primary text-primary-foreground border-primary'
-                                                : 'border-border text-muted-foreground hover:bg-muted'
-                                        }`}
-                                    >
-                                        {t(`playlists.displayMode_${id}`, label)}
-                                    </button>
-                                ))}
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="playlist-display-mode">{t('playlists.displayMode', '显示方式')}</Label>
+                            <Select value={editDisplayMode} onValueChange={(v) => setEditDisplayMode(normalizeDisplayMode(v))}>
+                                <SelectTrigger id="playlist-display-mode" data-testid="playlist-display-mode">
+                                    <SelectValue placeholder={t('playlists.displayMode', '显示方式')}/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {DISPLAY_MODES.map(({id, label}) => (
+                                        <SelectItem key={id} value={id} data-testid={`playlist-display-mode-${id}`}>
+                                            {t(`playlists.displayMode_${id}`, label)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="edit-is-public"
+                                checked={editIsPublic}
+                                onCheckedChange={setEditIsPublic}
+                            />
+                            <Label htmlFor="edit-is-public">{t('playlists.makePublic')}</Label>
                         </div>
                     </DialogBody>
                     <DialogFooter>

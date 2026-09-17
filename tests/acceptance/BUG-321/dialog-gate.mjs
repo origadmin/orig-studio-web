@@ -175,11 +175,48 @@ const registry = [
   },
   {
     name: 'playlist-remove-media-dialog',
-    async prepare(page) { return await firstPlaylistToken(page); },
+    // the per-item remove control only exists in the publisher's LIST mode;
+    // temporarily switch the playlist to list, then restore the original mode.
+    async prepare(page) {
+      const ctx = await firstPlaylistToken(page);
+      if (!ctx) return null;
+      const original = await page.evaluate(async (tok) => {
+        const t = localStorage.getItem('origstudio_token') || '';
+        const r = await fetch('/api/v1/playlists/' + tok, {headers: {Authorization: 'Bearer ' + t}});
+        return (await r.json())?.playlist?.display_mode || 'list';
+      }, ctx.token);
+      await page.evaluate(async ({tok, t}) => {
+        const me = await (await fetch('/api/v1/me/playlists?page=1&page_size=1', {headers: {Authorization: 'Bearer ' + t}})).json();
+        const pl = me.items?.[0];
+        if (pl) {
+          await fetch('/api/v1/me/playlists/' + pl.id, {
+            method: 'PATCH',
+            headers: {Authorization: 'Bearer ' + t, 'Content-Type': 'application/json'},
+            body: JSON.stringify({title: pl.title, description: pl.description, is_public: pl.is_public, display_mode: 'list'}),
+          });
+        }
+      }, {tok: ctx.token, t: await page.evaluate(() => localStorage.getItem('origstudio_token') || '')});
+      return {token: ctx.token, originalMode: original};
+    },
     async open(page, ctx) {
       await page.goto(BASE + '/playlist/' + ctx.token, { waitUntil: 'networkidle' });
       await page.waitForTimeout(1500);
       await page.locator('[data-testid="playlist-remove-video"]').first().click();
+    },
+    async cleanup(page, ctx) {
+      if (!ctx?.token) return;
+      await page.evaluate(async ({tok, mode}) => {
+        const t = localStorage.getItem('origstudio_token') || '';
+        const me = await (await fetch('/api/v1/me/playlists?page=1&page_size=1', {headers: {Authorization: 'Bearer ' + t}})).json();
+        const pl = me.items?.[0];
+        if (pl) {
+          await fetch('/api/v1/me/playlists/' + pl.id, {
+            method: 'PATCH',
+            headers: {Authorization: 'Bearer ' + t, 'Content-Type': 'application/json'},
+            body: JSON.stringify({title: pl.title, description: pl.description, is_public: pl.is_public, display_mode: mode}),
+          });
+        }
+      }, {tok: ctx.token, mode: ctx.originalMode || 'list'}).catch(() => {});
     },
   },
 ];
