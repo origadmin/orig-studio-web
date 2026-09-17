@@ -2448,6 +2448,7 @@
   "profileReset": "リセット",
   "profileSave": "保存",
   "avatarChange": "アバターを変更",
+  "avatarHint": "JPG / PNG / WebP・最大5MB・最小200×200",
   "avatarUpload": "アバターをアップロード",
   "avatarTooSmall": "アバター画像が小さすぎます",
   "cropAvatar": "アバターをトリミング",

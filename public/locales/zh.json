@@ -3072,6 +3072,7 @@
   "profileReset": "重置",
   "profileSave": "保存",
   "avatarChange": "更换头像",
+  "avatarHint": "支持 JPG / PNG / WebP，最大 5MB，最小 200×200",
   "avatarUpload": "上传头像",
   "avatarTooSmall": "头像图片过小",
   "cropAvatar": "裁剪头像",

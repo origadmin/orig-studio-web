@@ -2590,6 +2590,7 @@
   "profileReset": "Reset",
   "profileSave": "Save",
   "avatarChange": "Change avatar",
+  "avatarHint": "JPG, PNG or WebP · up to 5 MB · at least 200×200",
   "avatarUpload": "Upload avatar",
   "avatarTooSmall": "Avatar image is too small",
   "cropAvatar": "Crop avatar",

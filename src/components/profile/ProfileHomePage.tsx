@@ -34,6 +34,7 @@ import PlaylistCard from '@/components/channel/widgets/PlaylistCard';
 import ShareDialog from '@/components/common/ShareDialog';
 import {useShareBaseUrl} from '@/hooks/useShareBaseUrl';
 import PlaylistsPage from '@/pages/home/me/Playlists';
+import CreatePlaylistDialog from '@/components/playlist/CreatePlaylistDialog';
 import {
     Pencil,
     Film,
@@ -233,6 +234,9 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
     const bannerTargetBanner = primaryChannel?.banner || '';
     const bannerTargetName = primaryChannel?.name || '';
     const [bannerOpen, setBannerOpen] = useState(false);
+    // BUG-363: page-level create action — hosted with the profile header actions,
+    // never inside a tab (a tab renders content only).
+    const [createPlaylistOpen, setCreatePlaylistOpen] = useState(false);
 
     const profileBannerUrl = useMemo(() => {
         // BUG-320: the profile has no banner field of its own and channels have
@@ -777,6 +781,7 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                     channelName={bannerTargetName}
                     current={bannerTargetBanner}
                 />
+                <CreatePlaylistDialog open={createPlaylistOpen} onOpenChange={setCreatePlaylistOpen}/>
             </div>
 
             {/* Profile info section — canonical 嵌入一半 mode: avatar overlaps the banner
@@ -850,6 +855,15 @@ const ProfileHomePage: React.FC<ProfileHomePageProps> = ({username}) => {
                                             {t('profile.createArticle')}
                                         </DropdownMenuItem>
                                     )}
+                                    {/* BUG-363: the create-playlist entry belongs to the
+                                        page actions (here), not inside the playlist tab. */}
+                                    <DropdownMenuItem
+                                        data-testid="create-playlist-entry"
+                                        onClick={() => setCreatePlaylistOpen(true)}
+                                    >
+                                        <ListVideo className="w-4 h-4 mr-2"/>
+                                        {t('profile.createPlaylist')}
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
                                     {/* BUG-348: profile editing has exactly one
                                         destination, /settings/profile. It used to

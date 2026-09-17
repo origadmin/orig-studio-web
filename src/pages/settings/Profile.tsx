@@ -238,23 +238,34 @@ export default function ProfilePage() {
             <CardDescription>{t('profileDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                <Avatar className="w-24 h-24">
+            {/* Identity row — compact and left-aligned onto the form axis (BUG-364).
+                The previous centered 96px avatar + caption filled a whole row,
+                floating in empty space and breaking the form's left axis. The
+                hint also tells the format/size rules before the picker opens. */}
+            <div className="flex items-center gap-4">
+              <div
+                className="relative group cursor-pointer flex-shrink-0"
+                onClick={handleAvatarClick}
+                data-testid="avatar-edit"
+              >
+                <Avatar className="w-16 h-16">
                   <AvatarImage src={avatarUrl} alt={user.nickname || user.username} />
-                  <AvatarFallback className="text-2xl">
+                  <AvatarFallback className="text-lg">
                     {(user.nickname || user.username || '?').charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
                   {uploading ? (
-                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
                   ) : (
-                    <Camera className="w-6 h-6 text-white" />
+                    <Camera className="w-5 h-5 text-white" />
                   )}
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">{t('avatarChange')}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">{t('avatarChange')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('avatarHint')}</p>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
