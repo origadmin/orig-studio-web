@@ -18,9 +18,23 @@ export const Route = createFileRoute('/_portal/watch')({
         playlist?: string | undefined;
         /** 0-based position inside the playlist. */
         index?: string | undefined;
+        /** Shuffle mode: play the playlist in a seeded random order (BUG-371). */
+        shuffle?: string | undefined;
+        /** Loop mode: wrap to the first item after the last (BUG-371). */
+        loop?: string | undefined;
+        /** Deterministic shuffle seed so the order is stable across navigations. */
+        shuffleSeed?: string | undefined;
     } => {
         const strip = (value: unknown) => (value ? String(value).replace(/["']/g, '').trim() : undefined);
-        return {v: strip(search.v), autoplay: strip(search.autoplay), playlist: strip(search.playlist), index: strip(search.index)};
+        return {
+            v: strip(search.v),
+            autoplay: strip(search.autoplay),
+            playlist: strip(search.playlist),
+            index: strip(search.index),
+            shuffle: strip(search.shuffle),
+            loop: strip(search.loop),
+            shuffleSeed: strip(search.shuffleSeed),
+        };
     },
     component: () => <Suspense fallback={<PageLoader />}><Page /></Suspense>,
 });

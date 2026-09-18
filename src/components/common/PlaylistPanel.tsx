@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {Play, Shuffle} from 'lucide-react';
+import {Play, Shuffle, Repeat} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {type PlaylistMediaItem} from '@/lib/api/playlist';
 import {formatDuration} from '@/lib/format';
@@ -23,6 +23,16 @@ interface PlaylistPanelProps {
      * the publisher's presentation). One of list | thumbs | chips.
      */
     displayMode?: string;
+    /** BUG-371: shuffle mode is on (panel + autoplay-next follow a seeded order). */
+    isShuffle?: boolean;
+    /** BUG-371: loop mode is on (wrap to first after the last item). */
+    isLoop?: boolean;
+    /** BUG-371: the active shuffle seed, preserved across navigations. */
+    shuffleSeed?: string;
+    /** BUG-371: toggle shuffle on/off. */
+    onToggleShuffle?: (enabled: boolean) => void;
+    /** BUG-371: toggle loop on/off. */
+    onToggleLoop?: (enabled: boolean) => void;
 }
 
 // BUG-366 correction (G5): the multi-view requirement was FOR THE WATCH PANEL
@@ -36,10 +46,13 @@ const INITIAL_VISIBLE = 50;
 /**
  * Playlist panel for the watch page sidebar (BUG-197; view modes BUG-366).
  *
- * Three display modes, switchable and persisted (user-level preference):
- *   - `rows`  (DEFAULT): index + title + duration + progress, NO thumbnail —
- *     the treatment every mainstream watch-page playlist panel uses;
- *   - `thumbs`: index + 96px thumbnail + title + duration + progress;
+ * The publisher's display_mode drives the rendering (BUG-366): 'list' | 'thumbs'
+ * | 'chips'. Watch collapses the vocabulary to rows|thumbs|chips, where `rows`
+ * IS the publisher's 'list' — thumbnail rows, identical to the detail page's
+ * 'list' mode so the viewer sees one consistent presentation on both surfaces:
+ *   - `rows`  (DEFAULT, == publisher 'list'): index + thumbnail + title +
+ *     duration + progress (thumbnail rows, matches detail page 'list');
+ *   - `thumbs`: larger thumbnail rows (poster-style);
  *   - `chips`: numbered chip grid (bilibili 集数) for jumping long playlists.
  *
  * The panel is height-capped and scrolls **inside itself**, so a long playlist
@@ -53,6 +66,11 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     currentToken,
     playlistToken,
     displayMode,
+    isShuffle,
+    isLoop,
+    shuffleSeed,
+    onToggleShuffle,
+    onToggleLoop,
 }) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
@@ -100,17 +118,29 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
 
     if (!items || items.length === 0) return null;
 
-    const searchFor = (item: PlaylistMediaItem, index: number) =>
-        playlistToken
+    // Build the /watch search for an item, preserving the active shuffle/loop
+    // mode so clicking an item keeps the playback mode (BUG-371).
+    const searchFor = (item: PlaylistMediaItem, index: number): Record<string, string> => {
+        const base: Record<string, string> = playlistToken
             ? {v: item.short_token, playlist: playlistToken, index: String(index)}
             : {v: item.short_token};
+        return {
+            ...base,
+            ...(isShuffle ? {shuffle: '1', ...(shuffleSeed ? {shuffleSeed} : {})} : {}),
+            ...(isLoop ? {loop: '1'} : {}),
+        };
+    };
 
     const playAt = (index: number) => navigate({
         to: '/watch',
-        search: {...searchFor(items[index], index), autoplay: '1'},
+        search: {...searchFor(items[index], index), autoplay: '1'} as never,
     });
 
-    // the publisher's choice drives the rendering; anything unknown => rows
+    // The publisher's choice drives the rendering. The display_mode vocabulary
+    // is 'list' | 'thumbs' | 'chips' (PlaylistDetail.tsx); 'list' is the default
+    // and is rendered by the `rows` branch as thumbnail rows — identical to the
+    // detail page's 'list' mode. Anything unknown also falls back to 'rows' so
+    // the publisher's default presentation is always honored on Watch.
     const mode = displayMode === 'thumbs' || displayMode === 'chips' ? displayMode : 'rows';
     const visible = showAll ? items : items.slice(0, INITIAL_VISIBLE);
 
@@ -132,7 +162,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                         
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <button
                         type="button"
                         data-testid="playlist-panel-play-all"
@@ -142,15 +172,38 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                         <Play className="w-3 h-3" fill="currentColor"/>
                         {t('playlists.playAll', '播放全部')}
                     </button>
-                    <button
-                        type="button"
-                        data-testid="playlist-panel-shuffle"
-                        onClick={() => playAt(Math.floor(Math.random() * items.length))}
-                        className="flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md border border-border text-muted-foreground hover:bg-muted transition-colors"
-                    >
-                        <Shuffle className="w-3 h-3"/>
-                        {t('playlists.shuffle', '随机播放')}
-                    </button>
+                    {playlistToken && onToggleShuffle && (
+                        <button
+                            type="button"
+                            data-testid="playlist-panel-shuffle"
+                            aria-pressed={!!isShuffle}
+                            onClick={() => onToggleShuffle(!isShuffle)}
+                            className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+                                isShuffle
+                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                    : 'border border-border text-muted-foreground hover:bg-muted'
+                            }`}
+                        >
+                            <Shuffle className="w-3 h-3"/>
+                            {t('playlists.shuffle', '随机播放')}
+                        </button>
+                    )}
+                    {playlistToken && onToggleLoop && (
+                        <button
+                            type="button"
+                            data-testid="playlist-panel-loop"
+                            aria-pressed={!!isLoop}
+                            onClick={() => onToggleLoop(!isLoop)}
+                            className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${
+                                isLoop
+                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                    : 'border border-border text-muted-foreground hover:bg-muted'
+                            }`}
+                        >
+                            <Repeat className="w-3 h-3"/>
+                            {t('playlists.loop', '循环播放')}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -159,8 +212,13 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                 data-testid="playlist-panel-scroll"
                 className="relative overflow-y-auto overscroll-contain px-4 pb-4"
             >
+                {/* BUG-366 consistency fix (regression): the publisher's 'list'
+                    mode now renders thumbnail rows here, identical to the detail
+                    page's 'list' mode — Watch had collapsed it to no-thumbnail
+                    compact rows, which contradicted the detail page. The
+                    thumbnail now travels with the playlist on both surfaces. */}
                 {mode === 'rows' && (
-                    <div className="space-y-0.5 pt-2" data-testid="playlist-panel-body-rows">
+                    <div className="space-y-1 pt-2" data-testid="playlist-panel-body-rows">
                         {visible.map((item, index) => {
                             const isActive = item.short_token === currentToken;
                             const progress = progressByMediaId.get(item.id) ?? 0;
@@ -169,7 +227,7 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                                     key={item.id}
                                     to="/watch"
                                     search={searchFor(item, index)}
-                                    className={`relative flex items-center gap-3 px-2 py-2 rounded-lg transition-colors ${
+                                    className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
                                         isActive
                                             ? 'bg-primary/10 border border-primary/30'
                                             : 'hover:bg-muted'
@@ -183,9 +241,28 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                                     >
                                         {index + 1}
                                     </span>
+                                    <div className="relative w-20 aspect-video rounded overflow-hidden bg-muted shrink-0">
+                                        {item.thumbnail ? (
+                                            <img
+                                                src={getImageUrl(item.thumbnail, 'thumbnail')}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => handleImageError(e, 'thumbnail')}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <Play className="w-5 h-5 text-muted-foreground"/>
+                                            </div>
+                                        )}
+                                        {item.duration > 0 && (
+                                            <div className="absolute bottom-0.5 right-0.5 bg-black/80 text-white text-[10px] px-1 rounded">
+                                                {formatDuration(item.duration)}
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="flex-1 min-w-0">
                                         <h4
-                                            className={`text-sm font-medium truncate ${
+                                            className={`text-sm font-medium line-clamp-2 ${
                                                 isActive ? 'text-primary' : 'text-foreground'
                                             }`}
                                         >
@@ -198,11 +275,6 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
                                             </div>
                                         )}
                                     </div>
-                                    {item.duration > 0 && (
-                                        <span className="text-[11px] text-muted-foreground shrink-0">
-                                            {formatDuration(item.duration)}
-                                        </span>
-                                    )}
                                 </Link>
                             );
                         })}

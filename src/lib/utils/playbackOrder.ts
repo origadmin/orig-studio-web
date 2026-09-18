@@ -33,6 +33,9 @@ export interface ResolveNextInput {
     items?: PlaybackItem[] | null;
     recommendations?: PlaybackItem[] | null;
     currentToken?: string | null;
+    /** Loop mode: after the last item, wrap back to the first instead of
+     * falling through to recommendations (BUG-371). */
+    loop?: boolean;
 }
 
 /**
@@ -44,14 +47,18 @@ export interface ResolveNextInput {
  * - Without a playlist: recommendations, skipping the item being played.
  */
 export function resolveNextPlayback(input: ResolveNextInput): ResolvedNext | null {
-    const {playlistToken, index, items, recommendations, currentToken} = input;
+    const {playlistToken, index, items, recommendations, currentToken, loop} = input;
     const list = items ?? [];
 
     if (playlistToken && list.length > 0) {
         const knownIndex = typeof index === 'number' && index >= 0
             ? index
             : list.findIndex((i) => i.short_token === currentToken);
-        const nextIndex = (knownIndex < 0 ? -1 : knownIndex) + 1;
+        let nextIndex = (knownIndex < 0 ? -1 : knownIndex) + 1;
+        // Loop mode wraps past the last item back to the first (BUG-371).
+        if (nextIndex >= list.length) {
+            nextIndex = loop ? 0 : -1;
+        }
         const candidate = nextIndex >= 0 && nextIndex < list.length ? list[nextIndex] : undefined;
         if (candidate && candidate.short_token && candidate.short_token !== currentToken) {
             return {item: candidate, source: 'playlist', index: nextIndex};
