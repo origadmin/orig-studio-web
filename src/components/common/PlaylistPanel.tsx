@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Link, useNavigate} from '@tanstack/react-router';
-import {Play, Shuffle, Repeat} from 'lucide-react';
+import {Play} from 'lucide-react';
 import {useTranslation} from 'react-i18next';
 import {type PlaylistMediaItem} from '@/lib/api/playlist';
 import {formatDuration} from '@/lib/format';
@@ -23,24 +23,10 @@ interface PlaylistPanelProps {
      * the publisher's presentation). One of list | thumbs | chips.
      */
     displayMode?: string;
-    /** BUG-371: shuffle mode is on (panel + autoplay-next follow a seeded order). */
-    isShuffle?: boolean;
-    /** BUG-371: loop mode is on (wrap to first after the last item). */
-    isLoop?: boolean;
-    /** BUG-371: the active shuffle seed, preserved across navigations. */
-    shuffleSeed?: string;
-    /** BUG-371: toggle shuffle on/off. */
-    onToggleShuffle?: (enabled: boolean) => void;
-    /** BUG-371: toggle loop on/off. */
-    onToggleLoop?: (enabled: boolean) => void;
 }
 
-// BUG-366 correction (G5): the multi-view requirement was FOR THE WATCH PANEL
-// — bilibili ss109700 is a watch page and its 集数/标题 toggle lives on the
-// watch page. So the panel carries the FULL mode set: compact text rows
-// (default, the mainstream treatment), thumbnail rows, and numbered chips.
-// Like bilibili's 全X话, very long playlists render a capped window first;
-// rendering 500 chips up front is wasted work nobody scrolls through.
+// Very long playlists render a capped window first; rendering 500 chips up
+// front is wasted work nobody scrolls through (bilibili 全X话 treatment).
 const INITIAL_VISIBLE = 50;
 
 /**
@@ -66,11 +52,6 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
     currentToken,
     playlistToken,
     displayMode,
-    isShuffle,
-    isLoop,
-    shuffleSeed,
-    onToggleShuffle,
-    onToggleLoop,
 }) => {
     const {t} = useTranslation();
     const navigate = useNavigate();
@@ -118,18 +99,12 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
 
     if (!items || items.length === 0) return null;
 
-    // Build the /watch search for an item, preserving the active shuffle/loop
-    // mode so clicking an item keeps the playback mode (BUG-371).
-    const searchFor = (item: PlaylistMediaItem, index: number): Record<string, string> => {
-        const base: Record<string, string> = playlistToken
+    // Build the /watch search for an item, carrying the playlist context so
+    // clicking an item stays inside the same playlist.
+    const searchFor = (item: PlaylistMediaItem, index: number): Record<string, string> =>
+        playlistToken
             ? {v: item.short_token, playlist: playlistToken, index: String(index)}
             : {v: item.short_token};
-        return {
-            ...base,
-            ...(isShuffle ? {shuffle: '1', ...(shuffleSeed ? {shuffleSeed} : {})} : {}),
-            ...(isLoop ? {loop: '1'} : {}),
-        };
-    };
 
     const playAt = (index: number) => navigate({
         to: '/watch',
@@ -149,61 +124,23 @@ export const PlaylistPanel: React.FC<PlaylistPanelProps> = ({
             data-testid="playlist-panel"
             className="bg-card border border-border rounded-xl flex flex-col max-h-[min(60vh,480px)] overflow-hidden"
         >
-            {/* Panel header (BUG-366): identity + count + view toggle + play/shuffle. */}
-            <div className="px-4 pt-3 pb-2 shrink-0 space-y-2 border-b border-border">
+            {/* Panel header: identity + play. The per-item count carried no
+                action and was removed; the slot now holds the play button
+                (option-3 cleanup, BUG-372 tracks the shuffle/loop redesign). */}
+            <div className="px-4 pt-3 pb-2 shrink-0 border-b border-border">
                 <div className="flex items-center justify-between gap-2">
                     {title && (
                         <h3 className="font-bold text-foreground text-sm truncate min-w-0">{title}</h3>
                     )}
-                    <div className="flex items-center gap-2 shrink-0 ml-auto">
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                            {items.length} {t('common.videos_count')}
-                        </span>
-                        
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
                     <button
                         type="button"
                         data-testid="playlist-panel-play-all"
                         onClick={() => playAt(0)}
-                        className="flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                        className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shrink-0 ml-auto"
                     >
                         <Play className="w-3 h-3" fill="currentColor"/>
                         {t('playlists.playAll', '播放全部')}
                     </button>
-                    {playlistToken && onToggleShuffle && (
-                        <button
-                            type="button"
-                            data-testid="playlist-panel-shuffle"
-                            aria-pressed={!!isShuffle}
-                            onClick={() => onToggleShuffle(!isShuffle)}
-                            className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${
-                                isShuffle
-                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                    : 'border border-border text-muted-foreground hover:bg-muted'
-                            }`}
-                        >
-                            <Shuffle className="w-3 h-3"/>
-                            {t('playlists.shuffle', '随机播放')}
-                        </button>
-                    )}
-                    {playlistToken && onToggleLoop && (
-                        <button
-                            type="button"
-                            data-testid="playlist-panel-loop"
-                            aria-pressed={!!isLoop}
-                            onClick={() => onToggleLoop(!isLoop)}
-                            className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md transition-colors ${
-                                isLoop
-                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                    : 'border border-border text-muted-foreground hover:bg-muted'
-                            }`}
-                        >
-                            <Repeat className="w-3 h-3"/>
-                            {t('playlists.loop', '循环播放')}
-                        </button>
-                    )}
                 </div>
             </div>
 

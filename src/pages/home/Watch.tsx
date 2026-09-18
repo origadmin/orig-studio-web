@@ -80,19 +80,6 @@ const clearWatchedHistory = () => {
     }
 };
 
-// Deterministic Fisher–Yates shuffle driven by a numeric seed, so a shuffled
-// playlist order is stable across navigations (BUG-371). Same seed => same order.
-const shuffleWithSeed = <T,>(arr: T[], seed: number): T[] => {
-    const out = arr.slice();
-    let s = seed >>> 0;
-    for (let i = out.length - 1; i > 0; i--) {
-        s = (s * 1664525 + 1013904223) >>> 0;
-        const j = s % (i + 1);
-        [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
-};
-
 // Recommendation video card with proper image placeholder
 const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, recUser}) => {
     const [imgError, setImgError] = useState(false);
@@ -146,7 +133,7 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
 
 const WatchPage = () => {
     const {t} = useTranslation();
-    const {v: rawToken, autoplay: urlAutoPlay, playlist: urlPlaylist, index: urlIndex, shuffle: urlShuffle, loop: urlLoop, shuffleSeed: urlShuffleSeed} = useSearch({strict: false});
+    const {v: rawToken, autoplay: urlAutoPlay, playlist: urlPlaylist, index: urlIndex} = useSearch({strict: false});
     // Continuous playback: a playlist context in the URL wins over the
     // site-wide recommendation list (playlist design 2.3, BUG-197).
     const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
@@ -173,49 +160,6 @@ const WatchPage = () => {
     const playlistItems = urlPlaylist ? linked.items : (owningPlaylist?.items ?? []);
     const playlistTitle = urlPlaylist ? linked.title : (owningPlaylist?.playlist?.title);
     const playlistDisplayMode = urlPlaylist ? linked.displayMode : (owningPlaylist?.playlist?.display_mode);
-    // BUG-371: shuffle/loop are first-class, URL-persisted playback modes.
-    //   shuffleOn  -> the panel + autoplay-next follow a seeded random order;
-    //   loopOn     -> after the last item, autoplay-next wraps to the first.
-    const shuffleOn = urlShuffle === '1';
-    const loopOn = urlLoop === '1';
-    const shuffleSeedNum = shuffleOn && urlShuffleSeed ? Number(urlShuffleSeed) : 1;
-    const effectiveItems = React.useMemo(() => {
-        if (!shuffleOn || playlistItems.length === 0) return playlistItems;
-        return shuffleWithSeed(playlistItems, shuffleSeedNum);
-    }, [shuffleOn, playlistItems, shuffleSeedNum]);
-
-    // Toggle shuffle: enable -> jump to the first item of a freshly seeded
-    // random order; disable -> resume from the current position.
-    const handleToggleShuffle = (enabled: boolean) => {
-        const seed = enabled ? String(Math.floor(Math.random() * 1_000_000_000)) : undefined;
-        const startItems = enabled ? shuffleWithSeed(playlistItems, Number(seed) || 1) : playlistItems;
-        const target = enabled ? startItems[0] : null;
-        navigate({
-            to: '/watch',
-            search: {
-                v: enabled && target ? target.short_token : (shortToken as string),
-                playlist: resolvedPlaylist,
-                index: enabled ? '0' : (playlistIndex != null ? String(playlistIndex) : undefined),
-                autoplay: '1',
-                ...(enabled ? {shuffle: '1', shuffleSeed: seed} : {}),
-                ...(loopOn ? {loop: '1'} : {}),
-            } as never,
-        });
-    };
-    // Toggle loop only; the current video/position is preserved.
-    const handleToggleLoop = (enabled: boolean) => {
-        navigate({
-            to: '/watch',
-            search: {
-                v: shortToken as string,
-                playlist: resolvedPlaylist,
-                index: playlistIndex != null ? String(playlistIndex) : undefined,
-                autoplay: '1',
-                ...(shuffleOn ? {shuffle: '1', shuffleSeed: urlShuffleSeed} : {}),
-                ...(enabled ? {loop: '1'} : {}),
-            } as never,
-        });
-    };
     const {user, isAdmin} = useAuth();
     const deleteMutation = useDeleteMedia();
     const {autoPlayNext, setAutoPlayNext} = usePlayerSettings();
@@ -395,12 +339,11 @@ const WatchPage = () => {
         () => resolveNextPlayback({
             playlistToken: resolvedPlaylist,
             index: playlistIndex,
-            items: resolvedPlaylist ? effectiveItems : null,
+            items: resolvedPlaylist ? playlistItems : null,
             recommendations: recommendations as unknown as Array<{short_token: string}>,
             currentToken: rawToken,
-            loop: loopOn,
         }),
-        [resolvedPlaylist, playlistIndex, effectiveItems, recommendations, rawToken, loopOn],
+        [resolvedPlaylist, playlistIndex, playlistItems, recommendations, rawToken],
     );
     const nextVideoSource: NextVideoInfo | null = nextPlayback ? {
         title: (nextPlayback.item as any).title ?? '',
@@ -517,15 +460,11 @@ const WatchPage = () => {
                             if (!nextPlayback) return;
                             navigate({
                                 to: '/watch',
-                                search: {
-                                    ...buildWatchSearch({
-                                        token: nextPlayback.item.short_token,
-                                        playlistToken: nextPlayback.source === 'playlist' ? resolvedPlaylist : null,
-                                        index: nextPlayback.index,
-                                    }),
-                                    ...(shuffleOn ? {shuffle: '1', shuffleSeed: urlShuffleSeed} : {}),
-                                    ...(loopOn ? {loop: '1'} : {}),
-                                } as never,
+                                search: buildWatchSearch({
+                                    token: nextPlayback.item.short_token,
+                                    playlistToken: nextPlayback.source === 'playlist' ? resolvedPlaylist : null,
+                                    index: nextPlayback.index,
+                                }) as never,
                             });
                         }}
                         autoPlay={urlAutoPlay === '1'}
@@ -755,18 +694,13 @@ const WatchPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {resolvedPlaylist && effectiveItems.length > 0 && (
+                    {resolvedPlaylist && playlistItems.length > 0 && (
                         <PlaylistPanel
                             title={playlistTitle || t('watch.playlist', '播放列表')}
-                            items={effectiveItems}
+                            items={playlistItems}
                             currentToken={shortToken}
                             playlistToken={resolvedPlaylist}
                             displayMode={playlistDisplayMode}
-                            isShuffle={shuffleOn}
-                            isLoop={loopOn}
-                            shuffleSeed={urlShuffleSeed}
-                            onToggleShuffle={handleToggleShuffle}
-                            onToggleLoop={handleToggleLoop}
                         />
                     )}
                     {!sidebarDismissed && sidebarAds.length > 0 && (
