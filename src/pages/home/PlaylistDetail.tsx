@@ -8,7 +8,7 @@ import React, {useState} from 'react';
 import {useParams, Link, useNavigate} from '@tanstack/react-router';
 import {useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, MoreHorizontal, Plus, ChevronUp, ChevronDown, Info, Shuffle} from 'lucide-react';
+import {ListVideo, Play, Video, Trash2, Edit3, Globe, Lock, ArrowLeft, Settings2, Plus, ChevronUp, ChevronDown, Info} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Spinner} from '@/components/ui/spinner';
 import {Badge} from '@/components/ui/badge';
@@ -44,15 +44,26 @@ import {getImageUrl, handleImageError} from '@/lib/imageUtils';
 import {useAuth} from '@/hooks/useAuth';
 import AddVideosDialog from '@/components/playlist/AddVideosDialog';
 
-// BUG-366 (G5 correction): the display mode is a PUBLISHER setting on the
-// playlist (edit dialog), not a viewer preference — mainstream logic: the
-// presentation travels with the content (YouTube/Netflix). list -> thumbnail
-// rows, thumbs -> poster grid, chips -> numbered chips.
+// BUG-373: `display_mode` is a PUBLISHER setting stored on the playlist (edit
+// dialog). It is NOT a viewer preference — there is deliberately no viewer-side
+// switcher and no localStorage view preference anywhere in the app: readers do
+// not restyle the publisher's content (mainstream logic: YouTube/Netflix).
+//
+// Scope: it drives ONLY the Watch page's right-hand "播放列表" panel
+// (see components/common/PlaylistPanel.tsx):
+//   list   -> compact text rows (no thumbnail);
+//   thumbs -> thumbnail rows;
+//   chips  -> numbered chip grid.
+//
+// This /playlist/:token detail page is deliberately DECOUPLED from the field:
+// it always renders the information-complete list view, so the owner's
+// "上移 / 下移 / 移除" controls stay available whatever mode is configured.
+// (Previously a non-list mode stripped those controls and hid every title.)
 type PlaylistDisplayMode = 'list' | 'thumbs' | 'chips';
 const DISPLAY_MODES: Array<{id: PlaylistDisplayMode; label: string}> = [
-    {id: 'list', label: '列表'},
-    {id: 'thumbs', label: '缩略图'},
-    {id: 'chips', label: '编号格子'},
+    {id: 'list', label: '紧凑列表 — 适合快速扫标题'},
+    {id: 'thumbs', label: '缩略图行 — 适合看画面挑集'},
+    {id: 'chips', label: '编号格子 — 适合长列表快跳'},
 ];
 const normalizeDisplayMode = (v?: string | null): PlaylistDisplayMode =>
     v === 'thumbs' || v === 'chips' ? v : 'list';
@@ -101,8 +112,8 @@ const PlaylistDetailPage: React.FC = () => {
     const playlist: Playlist | undefined = playlistData?.playlist;
     const isOwner = isAuthenticated && user && playlist && String(user.id) === String(playlist.user_id);
     const mediaItems: PlaylistMediaItem[] = playlistData?.items ?? [];
-    // the publisher's chosen presentation drives the whole page (BUG-366)
-    const publisherMode = normalizeDisplayMode(playlist?.display_mode);
+    // BUG-373: no `publisherMode` branch here. The detail page renders ONE
+    // information-complete list view; display_mode only drives the Watch panel.
 
     // BUG-368: opening an item must CARRY the playlist context, otherwise the
     // watch page has no playlist token, renders no playlist panel and continuous
@@ -262,86 +273,66 @@ const PlaylistDetailPage: React.FC = () => {
                         </span>
                         <span>{t('playlists.updated', {date: formatDate(playlist.update_time || playlist.create_time)})}</span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3 ml-8 mt-3">
-                        {mediaItems.length > 0 && (
-                            <>
-                                <Button
-                                    data-testid="playlist-play-all"
-                                    onClick={() => navigate({
-                                        to: '/watch',
-                                        search: {
-                                            v: mediaItems[0].short_token,
-                                            playlist: playlist.short_token,
-                                            index: '0',
-                                            autoplay: '1',
-                                        },
-                                    })}
-                                    className="gap-2"
-                                >
-                                    <Play className="w-4 h-4" fill="currentColor"/>
-                                    {t('playlists.playAll', '播放全部')}
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    data-testid="playlist-shuffle"
-                                    onClick={() => {
-                                        // BUG-366: land on a RANDOM episode with the
-                                        // playlist context preserved (YouTube's shuffle).
-                                        const i = Math.floor(Math.random() * mediaItems.length);
-                                        navigate({
-                                            to: '/watch',
-                                            search: {
-                                                v: mediaItems[i].short_token,
-                                                playlist: playlist.short_token,
-                                                index: String(i),
-                                                autoplay: '1',
-                                            },
-                                        });
-                                    }}
-                                    className="gap-2"
-                                >
-                                    <Shuffle className="w-4 h-4"/>
-                                    {t('playlists.shuffle', '随机播放')}
-                                </Button>
-                            </>
-                        )}
-                        {isOwner && (
-                            <Button
-                                variant="outline"
-                                data-testid="playlist-add-videos"
-                                onClick={() => setShowAddVideos(true)}
-                                className="gap-2"
-                            >
-                                <Plus className="w-4 h-4"/>
-                                {t('playlists.addVideos', '添加视频到剧集')}
-                            </Button>
-                        )}
-                        {/* Display-mode switcher (BUG-366): a user preference, so it
-                            lives in the page header next to the other page-level actions. */}
-                        
-                    </div>
                 </div>
 
-                {/* Owner actions */}
-                {isOwner && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" data-testid="playlist-owner-menu">
-                                <MoreHorizontal className="w-5 h-5"/>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={handleEdit} data-testid="playlist-edit-entry">
-                                <Edit3 className="w-4 h-4 mr-2"/>
-                                {t('common.edit')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
-                                <Trash2 className="w-4 h-4 mr-2"/>
-                                {t('common.delete')}
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                {/* GOV-UX-001 §1 按钮分区硬约束：页面级动作只允许出现在 ①标题右侧 ②行内。
+                    标题右侧动作区与标题下方按钮行不可同时存在 —— 原先「播放全部」+
+                    「添加视频到剧集」并列在描述下方，已整体迁移到此处：
+                    「播放全部」= 右侧主操作；「添加视频」= 并入「管理」下拉。 */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    {mediaItems.length > 0 && (
+                        /* BUG-373: the design anchor §3.1 (current spec, 2026-09-20)
+                           states the header keeps 播放全部 and must NOT carry 随机播放
+                           — BUG-372 already ruled shuffle/loop out (plan 3, removal).
+                           The old button also used the exact anti-pattern BUG-372
+                           §1.1 condemns: it teleported the viewer to a random
+                           episode on click. */
+                        <Button
+                            data-testid="playlist-play-all"
+                            onClick={() => navigate({
+                                to: '/watch',
+                                search: {
+                                    v: mediaItems[0].short_token,
+                                    playlist: playlist.short_token,
+                                    index: '0',
+                                    autoplay: '1',
+                                },
+                            })}
+                            className="gap-2"
+                        >
+                            <Play className="w-4 h-4" fill="currentColor"/>
+                            {t('playlists.playAll', '播放全部')}
+                        </Button>
+                    )}
+
+                    {/* Owner actions */}
+                    {isOwner && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                {/* GOV-UX-001 强制标准：禁止裸 `...` 动作菜单 —— 使用 ICON + 名称并保留下拉 */}
+                                <Button variant="outline" size="sm" data-testid="playlist-owner-menu" className="gap-2">
+                                    <Settings2 className="w-4 h-4"/>
+                                    {t('playlists.manage', '管理')}
+                                    <ChevronDown className="w-3.5 h-3.5 opacity-70"/>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => setShowAddVideos(true)} data-testid="playlist-add-videos">
+                                    <Plus className="w-4 h-4 mr-2"/>
+                                    {t('playlists.addVideos', '添加视频')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleEdit} data-testid="playlist-edit-entry">
+                                    <Edit3 className="w-4 h-4 mr-2"/>
+                                    {t('common.edit')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setShowDeleteDialog(true)}>
+                                    <Trash2 className="w-4 h-4 mr-2"/>
+                                    {t('common.delete')}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
             </div>
 
             {/* Operation manual: how to add / reorder / remove / view the result.
@@ -356,22 +347,23 @@ const PlaylistDetailPage: React.FC = () => {
                     <div className="space-y-1">
                         <p className="font-medium text-foreground">{t('playlists.usageTitle', '使用说明')}</p>
                         <ul className="list-disc space-y-0.5 pl-4">
-                            <li>{t('playlists.usageAdd', '点击「添加视频到剧集」选择视频加入本剧集。')}</li>
+                            <li>{t('playlists.usageAdd', '点击标题右侧「管理 ▸ 添加视频」选择视频加入本播放列表。')}</li>
                             <li>{t('playlists.usageReorder', '用每项的「上移 / 下移」调整播放顺序。')}</li>
-                            <li>{t('playlists.usageRemove', '用每项的「移除」把视频移出本剧集。')}</li>
-                            <li>{t('playlists.usageView', '点击「播放全部」进入观看页，右侧「播放列表」面板按此顺序展示，当前播放项高亮。')}</li>
+                            <li>{t('playlists.usageRemove', '用每项的「移除」把视频移出本播放列表。')}</li>
+                            <li>{t('playlists.usageView', '点击标题右侧「播放全部」进入观看页，右侧「播放列表」面板按此顺序展示，当前播放项高亮。')}</li>
                         </ul>
                     </div>
                 </div>
             )}
 
-            {/* Video list — rendered in the PUBLISHER's chosen display mode
-                (BUG-366); the owner's reorder controls stay in the list view
-                only (ordering has no meaning in grids). */}
+            {/* Video list — BUG-373: ONE information-complete list view,
+                decoupled from display_mode. This page is where the owner edits
+                the series, so every item keeps its index, thumbnail, title,
+                stats and its 上移 / 下移 / 移除 controls in every mode (in the
+                old grid/chips branches those controls and the titles were
+                simply gone). display_mode only drives the Watch page panel. */}
             {mediaItems.length > 0 ? (
-                <>
-                    {publisherMode === 'list' && (
-                        <div className="space-y-2" data-testid="playlist-body-list">
+                <div className="space-y-2" data-testid="playlist-body-list">
                     {mediaItems.map((media, index) => (
                         <div
                             key={media.id}
@@ -382,7 +374,7 @@ const PlaylistDetailPage: React.FC = () => {
 
                             {/* Thumbnail */}
                             <Link to="/watch" search={itemSearch(media, index)} className="flex-shrink-0">
-                                <div className="relative w-40 aspect-video rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                <div className="relative w-28 sm:w-40 aspect-video rounded overflow-hidden bg-gray-100 dark:bg-gray-700">
                                     {media.thumbnail ? (
                                         <img
                                             src={getImageUrl(media.thumbnail, 'thumbnail')}
@@ -420,7 +412,8 @@ const PlaylistDetailPage: React.FC = () => {
 
                             {/* Episode ordering + removal (owner only). Kept always
                                 visible instead of hover-only, so the series clearly
-                                reads as editable. */}
+                                reads as editable — and always available now that
+                                this page no longer switches layouts. */}
                             {isOwner && (
                                 <div className="flex items-center gap-0.5 flex-shrink-0">
                                     <Button
@@ -459,68 +452,7 @@ const PlaylistDetailPage: React.FC = () => {
                             )}
                         </div>
                     ))}
-                        </div>
-                    )}
-
-                    {/* Poster grid: thumbnail cards with an index badge. */}
-                    {publisherMode === 'thumbs' && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" data-testid="playlist-body-grid">
-                            {mediaItems.map((media, index) => (
-                                <Link
-                                    key={media.id}
-                                    to="/watch"
-                                    search={itemSearch(media, index)}
-                                    className="group rounded-lg overflow-hidden border border-border bg-card hover:shadow-md transition-all"
-                                >
-                                    <div className="relative aspect-video bg-gray-100 dark:bg-gray-700">
-                                        {media.thumbnail ? (
-                                            <img
-                                                src={getImageUrl(media.thumbnail, 'thumbnail')}
-                                                alt={media.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                onError={(e) => handleImageError(e, 'thumbnail')}
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Play className="w-8 h-8 text-gray-300 dark:text-gray-600"/>
-                                            </div>
-                                        )}
-                                        <span className="absolute top-2 left-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
-                                            {index + 1}
-                                        </span>
-                                        {media.duration > 0 && (
-                                            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
-                                                {formatDuration(media.duration)}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="p-2">
-                                        <h3 className="text-sm font-medium text-foreground line-clamp-2">{media.title}</h3>
-                                        <p className="text-xs text-muted-foreground mt-0.5">{formatViews(media.view_count)} {t('common.views')}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Numbered chips: the densest mode (bilibili 集数), built for
-                        jumping around long playlists. */}
-                    {publisherMode === 'chips' && (
-                        <div className="flex flex-wrap gap-2" data-testid="playlist-body-chips">
-                            {mediaItems.map((media, index) => (
-                                <Link
-                                    key={media.id}
-                                    to="/watch"
-                                    search={itemSearch(media, index)}
-                                    title={media.title}
-                                    className="h-9 w-9 flex items-center justify-center rounded-md border border-border text-sm text-muted-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors"
-                                >
-                                    {index + 1}
-                                </Link>
-                            ))}
-                        </div>
-                    )}
-                </>
+                </div>
             ) : (
                 <div className="text-center py-20 text-muted-foreground">
                     <Video size={48} className="mx-auto mb-3 opacity-30"/>
@@ -561,14 +493,15 @@ const PlaylistDetailPage: React.FC = () => {
                                 rows={3}
                             />
                         </div>
-                        {/* BUG-366: the publisher chooses how viewers see this
-                            playlist everywhere (watch panel included) — there is
-                            deliberately NO viewer-side display switcher. */}
+                        {/* BUG-373: the publisher's setting — it drives the Watch
+                            page's playlist panel only. Viewers cannot change it
+                            (no viewer-side switcher anywhere), and this detail
+                            page is unaffected: it always renders the full list. */}
                         <div className="grid gap-2">
-                            <Label htmlFor="playlist-display-mode">{t('playlists.displayMode', '显示方式')}</Label>
+                            <Label htmlFor="playlist-display-mode">{t('playlists.displayMode', '观看页面板显示方式')}</Label>
                             <Select value={editDisplayMode} onValueChange={(v) => setEditDisplayMode(normalizeDisplayMode(v))}>
                                 <SelectTrigger id="playlist-display-mode" data-testid="playlist-display-mode">
-                                    <SelectValue placeholder={t('playlists.displayMode', '显示方式')}/>
+                                    <SelectValue placeholder={t('playlists.displayMode', '观看页面板显示方式')}/>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {DISPLAY_MODES.map(({id, label}) => (
@@ -578,6 +511,12 @@ const PlaylistDetailPage: React.FC = () => {
                                     ))}
                                 </SelectContent>
                             </Select>
+                            <p
+                                data-testid="playlist-display-mode-help"
+                                className="text-xs text-muted-foreground"
+                            >
+                                {t('playlists.displayModeHelp', '仅影响观看页右侧「播放列表」面板的显示方式，本页始终为列表视图，不受影响。')}
+                            </p>
                         </div>
                         <div className="flex items-center gap-2">
                             <Switch

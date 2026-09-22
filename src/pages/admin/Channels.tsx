@@ -13,9 +13,10 @@ import {
     Clock,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     RotateCcw,
     TrendingUp,
-    MoreHorizontal,
+    Settings2,
 } from 'lucide-react';
 import {adminApi, Channel} from '@/lib/api/admin';
 import {statsApi} from '@/lib/api/stats';
@@ -475,17 +476,22 @@ const Channels: React.FC = () => {
                                         <TableCell className="px-6 py-4">{getStatusBadge(channel.status ?? 'active', isVerified)}</TableCell>
                                         <TableCell className="px-6 py-4">
                                             <div className="relative">
+                                                {/* GOV-UX-001 强制标准：禁止裸 `...` 动作菜单 —— ICON + 名称 + 下拉 */}
                                                 <Button
                                                     variant="ghost"
-                                                    size="icon-sm"
+                                                    size="sm"
                                                     title={t('admin.actions', '操作')}
+                                                    aria-label={t('admin.actions', '操作')}
+                                                    className="gap-1.5"
                                                     onClick={() =>
                                                         setActionMenuFor(
                                                             actionMenuFor?.id === channel.id ? null : channel,
                                                         )
                                                     }
                                                 >
-                                                    <MoreHorizontal className="w-4 h-4"/>
+                                                    <Settings2 className="w-4 h-4"/>
+                                                    <span>{t('admin.actions', '操作')}</span>
+                                                    <ChevronDown className="w-3.5 h-3.5 opacity-70"/>
                                                 </Button>
                                                 {actionMenuFor?.id === channel.id && (
                                                     <div

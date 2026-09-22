@@ -142,7 +142,7 @@ const CategoryChips: React.FC<CategoryChipsProps> = ({embedded = false}) => {
 
     const content = (
         <div className="bg-background">
-            <div className="relative flex items-center gap-1 px-4 py-2">
+            <div className="relative flex items-center gap-1 px-4 md:px-6 py-2">
                 <button
                     type="button"
                     aria-label="向左"

@@ -7,7 +7,7 @@ const Footer = () => {
     const {user: currentUser} = useAuth();
     return (
         <footer className="border-t border-border py-8">
-            <div className="container mx-auto px-4">
+            <div className="mx-auto max-w-[1440px] px-4 md:px-6">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
                     <div className="space-y-3">
                         <Link to="/" className="flex items-center space-x-2">

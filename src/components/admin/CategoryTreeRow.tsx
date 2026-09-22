@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  MoreHorizontal,
+  FolderCog,
   Eye,
   Edit,
   Plus,
@@ -113,9 +113,10 @@ export const CategoryTreeRow: React.FC<CategoryTreeRowProps> = React.memo(
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                title="More Actions"
+                title={t('admin.manage', '管理')}
+                aria-label={t('admin.manage', '管理')}
               >
-                <MoreHorizontal className="h-3 w-3" />
+                <FolderCog className="h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

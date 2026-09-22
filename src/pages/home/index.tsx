@@ -381,7 +381,6 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
                 on an inner full-width div so AutoFitRow's clientWidth-based card
                 sizing is preserved (was 961 when PortalLayout padded 32px each
                 side; wrapping here yields the same effective content width). */}
-            <div className="px-4 md:px-6 lg:px-8">
             <div ref={containerRef} className="w-full space-y-8">
                 {featuredVideos.length > 0 && (
                     <section>
@@ -469,7 +468,6 @@ const AdCardSection: React.FC<{placement: {name: string; ads: (Ad | AdCreative)[
                         <p className="text-sm text-muted-foreground py-4">— {t('common.allLoaded', '已加载全部')} —</p>
                     )}
                 </div>
-            </div>
             </div>
         </div>
     );

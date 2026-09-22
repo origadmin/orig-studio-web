@@ -2,7 +2,7 @@
  * Copyright (c) 2024 OrigAdmin. All rights reserved.
  */
 
-import React, {useState, useMemo, memo, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, memo, useCallback} from 'react';
 import {Outlet, Link, useRouterState, useNavigate} from '@tanstack/react-router';
 import {
     LayoutDashboard,
@@ -302,19 +302,31 @@ const AdminTopBar = memo(function AdminTopBar({collapsed, onToggleCollapse}: Top
 
 const AdminLayout = () => {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+
+    // BUG-375: 移动端（<768px）强制侧栏收起为图标模式（w-20），避免 240px 固定侧栏挤压内容区
+    // 导致筛选框 / 标题 / 操作按钮超出视口（按钮超模）。桌面端（≥768px）维持用户折叠偏好。
+    const collapsed = isMobile ? true : sidebarCollapsed;
 
     return (
         <div className="h-screen bg-background text-foreground flex overflow-hidden">
             <AdminSidebar
-                collapsed={sidebarCollapsed}
+                collapsed={collapsed}
                 onToggleCollapse={() => setSidebarCollapsed(c => !c)}
             />
-            <div className={`${sidebarCollapsed ? 'pl-20' : 'pl-[240px]'} pt-14 flex-grow flex flex-col min-w-0 transition-all duration-300`}>
+            <div className={`${collapsed ? 'pl-20' : 'pl-[240px]'} pt-14 flex-grow flex flex-col min-w-0 transition-all duration-300`}>
                 <AdminTopBar
-                    collapsed={sidebarCollapsed}
+                    collapsed={collapsed}
                     onToggleCollapse={() => setSidebarCollapsed(c => !c)}
                 />
-                <main className="flex-grow min-h-0 overflow-auto bg-muted/30">
+                <main className="flex-grow min-h-0 overflow-auto bg-muted/30 px-4 md:px-6">
                     <Outlet/>
                 </main>
             </div>

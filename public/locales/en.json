@@ -482,7 +482,17 @@
       "pending_review": "Pending Review"
     },
     "shareDescription": "Share {{channel}} with your friends",
-    "shareCopyFailed": "Failed to copy link"
+    "shareCopyFailed": "Failed to copy link",
+    "banner_label": "Channel banner",
+    "manageVideos": "Manage videos",
+    "manageArticles": "Manage articles",
+    "viewChannelHome": "View channel page",
+    "copyLink": "Copy link",
+    "deleteChannel": "Delete channel",
+    "deleteChannelTitle": "Delete this channel?",
+    "deleteChannelConfirm": "“{{name}}” and all of its content will be permanently deleted. This cannot be undone.",
+    "deleteChannelSuccess": "Channel deleted",
+    "deleteChannelFailed": "Failed to delete the channel. Please try again later."
   },
   "profile": {
     "tabAbout": "About",
@@ -701,8 +711,8 @@
     "editPlaylistDesc": "Update your playlist details",
     "makePublic": "Make playlist public",
     "playAll": "Play all",
-    "addVideos": "Add videos to series",
-    "addVideosDesc": "Pick the videos to include, then reorder them in the list.",
+    "addVideos": "Add videos",
+    "addVideosDesc": "Pick the videos to add to this playlist, then reorder them.",
     "searchVideos": "Search videos...",
     "noVideos": "No videos available",
     "add": "Add",
@@ -714,10 +724,10 @@
     "removeVideo": "Remove Video",
     "removeVideoConfirm": "Remove this video from the playlist?",
     "usageTitle": "How to use",
-    "usageAdd": "Click \"Add videos to series\" to choose videos for this series.",
+    "usageAdd": "Click header-right \"Manage ▸ Add videos\" to pick videos for this playlist.",
     "usageReorder": "Use \"Move up / Move down\" on each item to set the play order.",
-    "usageRemove": "Use \"Remove\" on each item to take a video out of the series.",
-    "usageView": "Click \"Play all\" to open the watch page; the right-side Playlist panel shows this order and highlights the current video."
+    "usageRemove": "Use \"Remove\" on each item to take a video out of this playlist.",
+    "usageView": "Click header-right \"Play all\" to open the watch page; the right-side Playlist panel shows this order and highlights the current video."
   },
   "media": {
     "title": "Media Library",
@@ -2352,6 +2362,7 @@
     "approved": "Approved",
     "rejected": "Rejected",
     "pendingReview": "Pending Review",
+    "notSubmitted": "Not submitted",
     "reviewApproved": "APPROVED",
     "reviewRejected": "REJECTED",
     "reviewPending": "PENDING",

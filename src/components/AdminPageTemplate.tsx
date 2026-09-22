@@ -174,7 +174,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
   const titleIconColor = (themeColor && THEME_COLOR_MAP[themeColor]) ? THEME_COLOR_MAP[themeColor] : 'text-primary';
 
   return (
-    <div className={cn('space-y-6 p-6', className)}>
+    <div className={cn('space-y-6 py-6', className)}>
       {showBreadcrumbs && (
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
@@ -199,7 +199,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
         </Breadcrumb>
       )}
 
-      <div className="flex justify-between items-end gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0 flex-1">
           {titleIcon && (
             <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
@@ -232,7 +232,7 @@ export const AdminPageTemplate: React.FC<AdminPageTemplateProps> = ({
             <p className="text-sm font-medium text-foreground/80 mt-1">{subtitle}</p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
 
       {stats}

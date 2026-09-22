@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import {
     Megaphone, Plus, Edit, Trash2, Tag, ChevronLeft, ChevronRight, Calendar,
-    Search, Filter, Download, MoreVertical, ArrowRight, CheckCircle, X,
+    Search, Filter, Download, Settings2, ChevronDown, ArrowRight, CheckCircle, X,
     Send, MessageCircle, TrendingUp, Smartphone, Sparkles,
     LayoutTemplate, CheckSquare, History, Globe, HelpCircle, Settings,
 } from 'lucide-react';
@@ -318,8 +318,17 @@ const ChannelsTab: React.FC = () => {
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-right">
-                                    <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-foreground">
-                                        <MoreVertical size={18} />
+                                    {/* GOV-UX-001 强制标准：禁止裸 `...` 动作菜单 —— ICON + 名称 + 下拉 */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-1.5 text-muted-foreground hover:text-foreground"
+                                        title={t('admin.actions', '操作')}
+                                        aria-label={t('admin.actions', '操作')}
+                                    >
+                                        <Settings2 size={16} />
+                                        <span>{t('admin.actions', '操作')}</span>
+                                        <ChevronDown size={14} className="opacity-70" />
                                     </Button>
                                 </TableCell>
                             </TableRow>

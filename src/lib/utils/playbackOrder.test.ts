@@ -80,4 +80,20 @@ describe('buildWatchSearch', () => {
     it('drops the playlist context for a recommendation', () => {
         expect(buildWatchSearch({token: 'r1'})).toEqual({v: 'r1', autoplay: '1'});
     });
+
+    // Group D gap (2026-09-21): in-panel navigation and auto-next must write the
+    // context into the parameter that OWNS it. Emitting `playlist` for a series
+    // context made the next page resolve from the wrong field, so the panel
+    // vanished one click later.
+    it('carries a series context as `series`, not `playlist`', () => {
+        const search = buildWatchSearch({token: 'e2', seriesToken: 's1', index: 1});
+        expect(search).toEqual({v: 'e2', autoplay: '1', series: 's1', index: '1'});
+        expect(search).not.toHaveProperty('playlist');
+    });
+
+    it('prefers the series context when both are supplied', () => {
+        const search = buildWatchSearch({token: 'e2', seriesToken: 's1', playlistToken: 'p1'});
+        expect(search.series).toBe('s1');
+        expect(search).not.toHaveProperty('playlist');
+    });
 });

@@ -371,7 +371,10 @@ export default function MediaEditPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+            {/* Full-width container (no max-w-7xl cap): the admin edit page
+                renders full-bleed with `p-6`, so the portal must not centre a
+                capped column and leave side gaps on wide screens. */}
+            <div className="px-4 sm:px-6 py-6 space-y-6">
                 <EditPageHeader
                     title={form.title || 'Untitled Media'}
                     editableTitle={form.title}

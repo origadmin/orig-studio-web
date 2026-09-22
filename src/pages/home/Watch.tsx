@@ -39,9 +39,11 @@ import {generateSlug} from '@/lib/utils/slug';
 import {useWatchProgress} from '@/hooks/useWatchProgress';
 import {usePublicAdPlacements} from '@/hooks/queries';
 import {usePlaylistPlayback} from '@/hooks/usePlaylistPlayback';
+import {type PlaylistMediaItem} from '@/lib/api/playlist';
 import {useQuery} from '@tanstack/react-query';
-import {playlistApi} from '@/lib/api/playlist';
+import {seriesApi} from '@/lib/api/series';
 import {resolveNextPlayback, buildWatchSearch} from '@/lib/utils/playbackOrder';
+import {resolvePlaybackContext} from '@/lib/utils/playbackContext';
 import {settingsApi} from '@/lib/api/system';
 import AdDisplay from '@/components/portal/AdDisplay';
 import {toast} from 'sonner';
@@ -133,8 +135,14 @@ const RecommendationVideoCard: React.FC<{item: Media; recUser?: any}> = ({item, 
 
 const WatchPage = () => {
     const {t} = useTranslation();
-    const {v: rawToken, autoplay: urlAutoPlay, playlist: urlPlaylist, index: urlIndex} = useSearch({strict: false});
-    // Continuous playback: a playlist context in the URL wins over the
+    const {
+        v: rawToken,
+        autoplay: urlAutoPlay,
+        playlist: urlPlaylist,
+        series: urlSeries,
+        index: urlIndex,
+    } = useSearch({strict: false});
+    // Continuous playback: an explicit context in the URL wins over the
     // site-wide recommendation list (playlist design 2.3, BUG-197).
     const playlistIndex = urlIndex !== undefined && urlIndex !== '' ? Number(urlIndex) : null;
     // BUG-183: coerce to string — the search serializer may hand back a number
@@ -143,24 +151,50 @@ const WatchPage = () => {
     const navigate = useNavigate();
     // ✅ 使用新的 usePublicMediaDetail hook (short_token based)
     const {data: media, isLoading: isMediaLoading, error: mediaError} = usePublicMediaDetail(shortToken as string);
-    // BUG-369: a video that belongs to a series/playlist must show the playlist
-    // panel regardless of entry path. When no explicit playlist link is present,
-    // reverse-lookup the playlists containing this media. The reverse-lookup
-    // response already carries the ordered items + the publisher's display_mode
-    // in a single round-trip, so we consume it directly instead of re-fetching.
+    // Playback context (2026-09-21 ruling) — replaces the five-tier
+    // `pickOwningPlaylist` vote. A video can belong to many playlists created by
+    // many DIFFERENT users, so "which playlist must the panel show" has no
+    // correct answer; voting only made the wrong answer predictable. Decided
+    // model: explicit URL intent > objective series membership > no panel.
+    // Playlist membership never participates.
+    //
+    // The series lookup is single-valued by design (`SeriesEpisode.media_id`
+    // UNIQUE), so no ranking or tie-break is needed. It is not fetched until
+    // the series model lands; until then `owningSeries` stays undefined and the
+    // page falls through to "no panel" — which is the correct behaviour for a
+    // plain video and already removes the hijacking bug.
     const mediaToken = media?.short_token;
-    const {data: containingPlaylists} = useQuery({
-        queryKey: ['playlist-by-media', mediaToken],
-        queryFn: () => playlistApi.getByMedia(mediaToken as string),
-        enabled: !urlPlaylist && !!mediaToken,
+    const {data: owningSeries} = useQuery({
+        queryKey: ['series-by-media', mediaToken],
+        queryFn: () => seriesApi.getByMedia(mediaToken as string),
+        enabled: !urlSeries && !urlPlaylist && !!mediaToken,
     });
-    const linked = usePlaylistPlayback(urlPlaylist);
-    const owningPlaylist = containingPlaylists?.[0];
-    const resolvedPlaylist = urlPlaylist || owningPlaylist?.playlist?.short_token || undefined;
-    const playlistItems = urlPlaylist ? linked.items : (owningPlaylist?.items ?? []);
-    const playlistTitle = urlPlaylist ? linked.title : (owningPlaylist?.playlist?.title);
-    const playlistDisplayMode = urlPlaylist ? linked.displayMode : (owningPlaylist?.playlist?.display_mode);
     const {user, isAdmin} = useAuth();
+    const playback = resolvePlaybackContext({
+        urlSeries,
+        urlPlaylist,
+        urlIndex,
+        owningSeries,
+    });
+    const linked = usePlaylistPlayback(playback.kind === 'playlist' ? playback.token : null);
+    // `linked` drives the panel whenever the resolved context is a playlist;
+    // an explicit `?playlist=` and a looked-up one take the same path now.
+    //
+    // Series context: the panel needs `items`, which `seriesApi.getByMedia`
+    // already forward-declares (fail-soft `items: []` until the series model
+    // lands). Declared as a variable so the gate below works verbatim, and so
+    // wiring the real series payload later is a one-line change here.
+    const seriesItems: PlaylistMediaItem[] = playback.kind === 'series' ? [] : [];
+    const seriesTitle = playback.kind === 'series' ? owningSeries?.title : undefined;
+    const seriesDisplayMode = playback.kind === 'series' ? owningSeries?.display_mode : undefined;
+    const panelToken = playback.token;
+    const playlistItems = playback.kind === 'playlist'
+        ? linked.items
+        : playback.kind === 'series' ? seriesItems : [];
+    const playlistTitle = playback.kind === 'playlist' ? linked.title : seriesTitle;
+    // BUG-373: the publisher's setting, read-only here — the viewer never
+    // restyles the panel (no switcher, no localStorage preference).
+    const playlistDisplayMode = playback.kind === 'playlist' ? linked.displayMode : seriesDisplayMode;
     const deleteMutation = useDeleteMedia();
     const {autoPlayNext, setAutoPlayNext} = usePlayerSettings();
 
@@ -335,15 +369,18 @@ const WatchPage = () => {
     }, [sidebarDecision, watchSidebarItems]);
 
     // Next video for YouTube-style autoplay countdown.
+    // A resolved playlist context chains inside that playlist; with no context
+    // (or a series context, whose chain is not wired yet) it falls through to
+    // site-wide recommendations, exactly as before.
     const nextPlayback = React.useMemo(
         () => resolveNextPlayback({
-            playlistToken: resolvedPlaylist,
+            playlistToken: playback.kind === 'playlist' ? panelToken : null,
             index: playlistIndex,
-            items: resolvedPlaylist ? playlistItems : null,
+            items: playback.kind === 'playlist' ? playlistItems : null,
             recommendations: recommendations as unknown as Array<{short_token: string}>,
             currentToken: rawToken,
         }),
-        [resolvedPlaylist, playlistIndex, playlistItems, recommendations, rawToken],
+        [playback.kind, panelToken, playlistIndex, playlistItems, recommendations, rawToken],
     );
     const nextVideoSource: NextVideoInfo | null = nextPlayback ? {
         title: (nextPlayback.item as any).title ?? '',
@@ -458,11 +495,18 @@ const WatchPage = () => {
                         }}
                         onAutoPlayNext={() => {
                             if (!nextPlayback) return;
+                            // Group D gap: the context must be written back into
+                            // the parameter that OWNS it. Emitting `playlist` for
+                            // a series context would make the next page resolve
+                            // from the wrong field and the panel would vanish
+                            // mid-playback.
+                            const carriesContext = playback.kind === 'playlist' || playback.kind === 'series';
                             navigate({
                                 to: '/watch',
                                 search: buildWatchSearch({
                                     token: nextPlayback.item.short_token,
-                                    playlistToken: nextPlayback.source === 'playlist' ? resolvedPlaylist : null,
+                                    playlistToken: carriesContext && playback.kind === 'playlist' ? panelToken : null,
+                                    seriesToken: carriesContext && playback.kind === 'series' ? panelToken : null,
                                     index: nextPlayback.index,
                                 }) as never,
                             });
@@ -600,7 +644,7 @@ const WatchPage = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                             {/* BUG-290: download entry only when the per-media
                                 switch allows it (and platform mode isn't disabled). */}
                             {canDownload && (
@@ -694,13 +738,22 @@ const WatchPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                    {resolvedPlaylist && playlistItems.length > 0 && (
+                    {/* Playback panel — rendered only when a context resolved.
+                        2026-09-21 ruling: NO panel for a plain video. The panel
+                        must never be guessed from playlist membership (a video
+                        can sit in N playlists owned by N different users), so a
+                        standalone video honestly shows nothing here rather than
+                        someone else's private organisation. With no panel the
+                        ad slot simply moves up; no placeholder is drawn. */}
+                    {(playback.kind === 'playlist' || playback.kind === 'series')
+                        && panelToken && playlistItems.length > 0 && (
                         <PlaylistPanel
                             title={playlistTitle || t('watch.playlist', '播放列表')}
                             items={playlistItems}
                             currentToken={shortToken}
-                            playlistToken={resolvedPlaylist}
-                            displayMode={playlistDisplayMode}
+                            playlistToken={panelToken}
+                            contextKind={playback.kind}
+                            publisherMode={playlistDisplayMode}
                         />
                     )}
                     {!sidebarDismissed && sidebarAds.length > 0 && (

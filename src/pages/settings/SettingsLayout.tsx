@@ -20,7 +20,7 @@ export default function SettingsLayout() {
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
+    <div className="mx-auto py-8 max-w-5xl">
       <h1 className="text-2xl font-bold mb-6">{t('settingsTitle')}</h1>
       <div className="flex flex-col md:flex-row gap-8">
         <nav className="md:w-48 shrink-0">

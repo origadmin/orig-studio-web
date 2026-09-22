@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  MoreHorizontal,
   Check,
   X,
   ShieldOff,
@@ -57,9 +56,10 @@ export const CommentActionMenu: React.FC<CommentActionMenuProps> = React.memo(
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            title="More Actions"
+            title={t('admin.review', '审核')}
+            aria-label={t('admin.review', '审核')}
           >
-            <MoreHorizontal className="h-3 w-3" />
+            <ShieldCheck className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

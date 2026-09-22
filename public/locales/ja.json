@@ -701,8 +701,8 @@
     "editPlaylistDesc": "プレイリストの詳細を更新",
     "makePublic": "プレイリストを公開",
     "playAll": "すべて再生",
-    "addVideos": "シリーズに動画を追加",
-    "addVideosDesc": "追加する動画を選択し、リストで並べ替えできます。",
+    "addVideos": "動画を追加",
+    "addVideosDesc": "プレイリストに追加する動画を選び、順序を並べ替えます。",
     "searchVideos": "動画を検索...",
     "noVideos": "利用可能な動画がありません",
     "add": "追加",
@@ -714,10 +714,10 @@
     "removeVideo": "動画を削除",
     "removeVideoConfirm": "この動画をプレイリストから削除しますか？",
     "usageTitle": "使い方",
-    "usageAdd": "「シリーズに動画を追加」をクリックして動画を選びます。",
+    "usageAdd": "右上の「管理 ▸ 動画を追加」をクリックして動画を追加します。",
     "usageReorder": "各項目の「上へ移動 / 下へ移動」で再生順を変更します。",
-    "usageRemove": "各項目の「削除」で動画をシリーズから外します。",
-    "usageView": "「すべて再生」をクリックすると視聴ページが開き、右側の「プレイリスト」パネルにこの順序で表示され、再生中の動画が強調されます。"
+    "usageRemove": "各項目の「削除」で動画をこのプレイリストから外します。",
+    "usageView": "右上の「すべて再生」をクリックすると視聴ページが開き、右側の「プレイリスト」パネルにこの順序で表示され、再生中の動画が強調されます。"
   },
   "media": {
     "title": "メディアライブラリ",
@@ -2186,6 +2186,7 @@
     "approved": "承認済み",
     "rejected": "拒否済み",
     "pendingReview": "レビュー待ち",
+    "notSubmitted": "未提出",
     "reviewApproved": "APPROVED",
     "reviewRejected": "REJECTED",
     "reviewPending": "PENDING",

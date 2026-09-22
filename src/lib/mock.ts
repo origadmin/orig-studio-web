@@ -124,6 +124,43 @@ function genChannel(i: number) {
     return {id: uid(), name: chs[i % chs.length], slug: chs[i % chs.length].toLowerCase().replace(/ /g, '-'), description: `Description for ${chs[i % chs.length]}`, media_count: randInt(10, 1000), is_active: Math.random() > 0.2, created_at: randDate(180)};
 }
 
+/**
+ * Owner-aware channel mock for /me/channels (the page redesigned on 2026-09-20).
+ * Returns 6 channels with the full Channel proto surface so the redesigned card row
+ * (banner strip / soft-* status badge / DropdownMenu actions) can render in mock mode.
+ * Mock-only — never reached in real builds (__MOCK_MODE__ is build-time false).
+ */
+function genMyChannel(i: number) {
+    const names = ['OrigStudio Picks', 'Tech Talks', 'Indie Cinema', 'World Music', 'Cooking Lab', 'Daily Vlogs'];
+    const statuses = ['CHANNEL_STATUS_ACTIVE', 'CHANNEL_STATUS_ACTIVE', 'CHANNEL_STATUS_PENDING', 'CHANNEL_STATUS_SUSPENDED'];
+    const status = statuses[i % statuses.length];
+    const banners = [
+        '/assets/images/banners/banner-ocean.svg',
+        '/assets/images/banners/banner-forest.svg',
+        '/assets/images/banners/banner-sunset.svg',
+        '/assets/images/banners/banner-slate.svg',
+    ];
+    return {
+        id: uid(),
+        short_token: `tok${i + 1}`,
+        name: names[i % names.length],
+        slug: names[i % names.length].toLowerCase().replace(/ /g, '-'),
+        description: i === 0 ? '官方推荐频道：每周精选高质量视频与文章。' : (i === 2 ? '独立电影短片合集，关注导演视角。' : ''),
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(names[i % names.length])}`,
+        banner: banners[i % banners.length],
+        subscriber_count: randInt(50, 12000),
+        media_count: randInt(0, 240),
+        article_count: randInt(0, 30),
+        total_views: randInt(500, 250000),
+        is_default: i === 0,
+        is_verified: i === 0 || i === 1,
+        status,
+        handle: names[i % names.length].toLowerCase().replace(/ /g, ''),
+        create_time: randDate(180),
+        update_time: randDate(7),
+    };
+}
+
 function genTag(i: number) {
     const tags = ['trending', 'featured', 'new-release', 'popular', 'classic', 'award-winning', 'exclusive', '4k', 'hdr', 'dolby', 'subtitled', 'live'];
     return {id: uid(), name: tags[i % tags.length], slug: tags[i % tags.length], color: pick(['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899']), usage_count: randInt(10, 5000), created_at: randDate(180)};
@@ -374,6 +411,28 @@ const mockRoutes: [RegExp, MockHandler][] = [
 
     // Channels
     [/\/admin\/channels(\?|$)/, () => Array.from({length: 8}, (_, i) => genChannel(i))],
+
+    // Owner channel list — /channels?user_id=me (BUG-314 proto ListChannels contract).
+    // Mock-only path for /me/channels redesign preview (2026-09-20).
+    [/\/channels(\?|$)/, () => ({
+        items: Array.from({length: 6}, (_, i) => genMyChannel(i)),
+        total: 6,
+        page: 1,
+        page_size: 20,
+    })],
+
+    // Channel limits — owner quota for /me/channels。
+    // 真实接口是 GET /system/config/channel-limits（见 channelApi.getChannelLimits），
+    // 响应为 {limits: {...}} 包装（useChannelLimits 按 'limits' in res 分支解析）。
+    // 此前 mock 挂在 /channels/limits 且返回裸对象，永远命中不了 → 页面一直显示
+    // 「当前 0/无限制 个」，配额条也因此不渲染。
+    [/\/system\/config\/channel-limits(\?|$)/, () => ({
+        limits: {
+            can_create: true,
+            current_count: 6,
+            max_channels: 10,
+        },
+    })],
 
     // Tags
     [/\/admin\/tags(\?|$)/, () => paginate(Array.from({length: 24}, (_, i) => genTag(i)), 1, 20)],

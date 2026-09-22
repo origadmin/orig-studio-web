@@ -69,10 +69,16 @@ export function resolveNextPlayback(input: ResolveNextInput): ResolvedNext | nul
 export function buildWatchSearch(next: {
     token: string;
     playlistToken?: string | null;
+    /** Series context (2026-09-21 ruling) — carried the same way as a playlist. */
+    seriesToken?: string | null;
     index?: number | null;
 }): Record<string, string> {
     const search: Record<string, string> = {v: next.token, autoplay: '1'};
-    if (next.playlistToken) search.playlist = next.playlistToken;
+    // Mutually exclusive by construction: the decision chain picks one context.
+    // Series is emitted first so a caller that wrongly supplies both still
+    // produces a series link (series outranks playlist in the chain).
+    if (next.seriesToken) search.series = next.seriesToken;
+    else if (next.playlistToken) search.playlist = next.playlistToken;
     if (typeof next.index === 'number') search.index = String(next.index);
     return search;
 }

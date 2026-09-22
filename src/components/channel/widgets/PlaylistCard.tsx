@@ -1,7 +1,7 @@
 import React from 'react';
 import {useNavigate} from '@tanstack/react-router';
 import {useTranslation} from 'react-i18next';
-import {ListVideo, Clock, MoreVertical, Play, Pencil, Trash2} from 'lucide-react';
+import {ListVideo, Clock, Settings2, Play, Pencil, Trash2} from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -116,9 +116,11 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
                             <DropdownMenuTrigger asChild>
                                 <button
                                     onClick={(e) => e.stopPropagation()}
+                                    title={t('common.manage', '管理')}
+                                    aria-label={t('common.manage', '管理')}
                                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded-full transition-all flex-shrink-0 h-6 w-6 flex items-center justify-center"
                                 >
-                                    <MoreVertical className="h-3 w-3"/>
+                                    <Settings2 className="h-3.5 w-3.5"/>
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-40">

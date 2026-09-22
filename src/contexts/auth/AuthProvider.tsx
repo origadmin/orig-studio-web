@@ -9,6 +9,7 @@ import {
     api,
 } from '@/lib/request';
 import {resolveUserRoles, isUserAdmin, isUserSuperuser} from '@/lib/role-utils';
+import {isMockMode} from '@/lib/mock';
 import {Spinner} from '@/components/ui/spinner';
 import type {User, AuthContextValue, AuthProviderProps} from './types';
 
@@ -88,14 +89,47 @@ async function refreshUserFromMe(storedUser: User): Promise<User> {
  * route guards read from.
  */
 export function AuthProvider({children}: AuthProviderProps) {
-    const [token, setToken] = useState<string | null>(null);
-    const [user, setUser] = useState<User | null>(null);
+    // Mock mode (build-time __MOCK_MODE__): auto-login as a demo owner so
+    // auth-gated routes like /me/channels render in headless screenshots
+    // and dev:mock sessions without needing a real sign-in flow.
+    // The state is initialized synchronously (useState lazy initializer) so
+    // TanStack Router's beforeLoad guard sees isAuthenticated=true on the
+    // first render — useEffect would run too late.
+    const mockAuth = isMockMode() ? (() => {
+        const demoUser = {
+            id: 'mock-owner',
+            username: 'admin',
+            displayName: 'Mock Owner',
+            roles: ['owner', 'admin'],
+            isSuperuser: true,
+        } as User;
+        const demoToken = 'mock-token';
+        // 必须落盘：request.ts 的 isTokenExpired() 只读 localStorage，不读 React
+        // state。只写 state 的话路由守卫（_authenticated.tsx beforeLoad）会判定
+        // 未登录并把页面重定向到 /auth/signin，headless 截图永远拍不到内容页。
+        try {
+            localStorage.setItem(TOKEN_KEY, demoToken);
+            localStorage.setItem(REFRESH_TOKEN_KEY, demoToken);
+            localStorage.setItem(USER_KEY, JSON.stringify(demoUser));
+            localStorage.setItem(EXPIRES_KEY, String(Date.now() + 365 * 24 * 60 * 60 * 1000));
+        } catch {
+            // localStorage 不可用（隐私模式等）时退回纯内存态
+        }
+        return {token: demoToken, user: demoUser};
+    })() : null;
+
+    const [token, setToken] = useState<string | null>(mockAuth?.token ?? null);
+    const [user, setUser] = useState<User | null>(mockAuth?.user ?? null);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(!!mockAuth);
     const refreshingRef = useRef(false);
 
     // Initialize: restore state from localStorage, then refresh from /me
     useEffect(() => {
+        if (isMockMode()) {
+            // Already initialised synchronously above.
+            return;
+        }
         const storedToken = getStoredToken();
         if (!storedToken) {
             setIsInitialized(true);

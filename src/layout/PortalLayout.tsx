@@ -65,8 +65,10 @@ const PortalLayout = () => {
                         <CategoryChips embedded={true}/>
                     </div>
                 )}
-                <div className="py-4 md:py-6 flex-1">
-                    <Outlet/>
+                <div className="py-4 md:py-6 flex-1 min-w-0 w-full">
+                    <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+                        <Outlet/>
+                    </div>
                 </div>
                 <Footer/>
             </main>

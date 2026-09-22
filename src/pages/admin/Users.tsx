@@ -269,7 +269,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="py-6">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -284,7 +284,7 @@ export default function UsersPage() {
         </BreadcrumbList>
       </Breadcrumb>
       {/* 页面标题区 */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('admin.users') || 'Users Management'}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('admin.manageUsers') || 'Manage user accounts, roles, permissions, and account status across the network.'}</p>
@@ -358,7 +358,7 @@ export default function UsersPage() {
       </div>
 
       {/* Table Filters — BUG-200: unified FilterBar (search-as-you-type + role select + reset) */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
         <FilterBar
           searchValue={searchParams.keyword}
           onSearchChange={(v) => setSearchParams((prev) => ({...prev, keyword: v, page: 1}))}

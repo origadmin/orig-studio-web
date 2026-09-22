@@ -195,7 +195,7 @@ const Playlists: React.FC = () => {
     const getThumbnail = (p: Playlist) => p.media_details?.[0]?.thumbnail;
 
     return (
-        <div className="p-8">
+        <div className="py-6">
             <Breadcrumb className="mb-4">
                 <BreadcrumbList>
                     <BreadcrumbItem>
@@ -210,7 +210,7 @@ const Playlists: React.FC = () => {
                 </BreadcrumbList>
             </Breadcrumb>
             {/* Page Title Area */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
                 <div>
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">

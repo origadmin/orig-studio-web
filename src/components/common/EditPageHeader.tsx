@@ -1,7 +1,7 @@
 import {Fragment, memo, useMemo, type ReactNode} from 'react';
 import {useTranslation} from 'react-i18next';
 import {Link} from '@tanstack/react-router';
-import {ArrowLeft, Save, Eye, MoreHorizontal, Trash2, CheckCircle, XCircle, Loader2} from 'lucide-react';
+import {ArrowLeft, Save, CheckCircle, XCircle, Loader2} from 'lucide-react';
 import {Button} from '@/components/ui/button';
 import {Badge} from '@/components/ui/badge';
 import {
@@ -12,12 +12,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -62,8 +56,6 @@ export interface EditPageHeaderProps {
   saveState: SaveState;
   onBack: () => void;
   onSave: () => void;
-  onPreview?: () => void;
-  onDelete: () => void;
   badges: HeaderBadgeConfig[];
   encodingStatus?: EncodingStatusConfig;
   /** Editable media title — rendered as text + pencil (see EditableHeading). */
@@ -150,35 +142,25 @@ const HeaderActions = memo(function HeaderActions({
   isDirty,
   onBack,
   onSave,
-  onPreview,
-  onDelete,
-  hasPreview,
 }: {
   saveState: SaveState;
   isDirty: boolean;
   onBack: () => void;
   onSave: () => void;
-  onPreview?: () => void;
-  onDelete: () => void;
-  hasPreview: boolean;
 }) {
   const {t} = useTranslation();
   const saveDisabled = saveState === 'saving';
 
   return (
-    // 返回 / 预览 / 保存 (primary last) — identical to the admin media header.
+    // 返回 / 保存 (primary last) — matches the admin media header, which has
+    // neither a preview button nor an overflow menu. The portal's "预览" opened
+    // the same URL as 返回 (redundant), and the "⋯" menu held only a delete
+    // (the admin keeps delete in the page body, not the header). Both removed.
     <div className="flex items-center gap-2 shrink-0">
       <Button variant="outline" onClick={onBack} aria-label={t('mediaEdit.backAria')}>
         <ArrowLeft className="w-4 h-4 mr-2"/>
         {t('common.back')}
       </Button>
-
-      {hasPreview && onPreview && (
-        <Button variant="outline" onClick={onPreview} aria-label={t('mediaEdit.previewAria')}>
-          <Eye className="w-4 h-4 mr-2"/>
-          {t('mediaEdit.preview')}
-        </Button>
-      )}
 
       {/* Same button as the admin media header: icon (carrying mr-2) + label,
           default variant, no tooltip wrapper. Ctrl+S is bound by the header
@@ -194,24 +176,6 @@ const HeaderActions = memo(function HeaderActions({
         <SaveButtonIcon saveState={saveState}/>
         {getSaveButtonText(saveState, t)}
       </Button>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" aria-label={t('mediaEdit.moreActionsAria')}>
-            <MoreHorizontal className="w-4 h-4"/>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={onDelete}
-            className="text-destructive focus:text-destructive"
-            aria-label={t('mediaEdit.deleteAria')}
-          >
-            <Trash2 className="w-4 h-4 mr-2"/>
-            {t('common.delete')}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 });
@@ -222,8 +186,6 @@ export function EditPageHeader({
   saveState,
   onBack,
   onSave,
-  onPreview,
-  onDelete,
   badges,
   encodingStatus,
   editableTitle,
@@ -361,9 +323,6 @@ export function EditPageHeader({
           isDirty={isDirty}
           onBack={onBack}
           onSave={onSave}
-          onPreview={onPreview}
-          onDelete={onDelete}
-          hasPreview={!!onPreview}
         />
       </div>
     </header>

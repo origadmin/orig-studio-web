@@ -44,7 +44,7 @@ const DocPortalLayout: React.FC = () => {
           <DocSidebar />
 
           {/* Content area */}
-          <main className="flex-1 min-w-0 md:ml-64 xl:mr-48 px-6 lg:px-8">
+          <main className="flex-1 min-w-0 md:ml-64 xl:mr-48 px-4 md:px-6">
             <div className="max-w-4xl mx-auto py-8">
               <Outlet />
             </div>

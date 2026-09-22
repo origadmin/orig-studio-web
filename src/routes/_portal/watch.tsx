@@ -16,7 +16,12 @@ export const Route = createFileRoute('/_portal/watch')({
         autoplay?: string | undefined;
         /** Playlist context for continuous playback (BUG-197, playlist design 2.3). */
         playlist?: string | undefined;
-        /** 0-based position inside the playlist. */
+        /**
+         * Series context (2026-09-21 ruling). Explicit and highest priority:
+         * it outranks both `?playlist=` and the implicit series lookup.
+         */
+        series?: string | undefined;
+        /** 0-based position inside the playlist, or the episode's position inside the series. */
         index?: string | undefined;
     } => {
         const strip = (value: unknown) => (value ? String(value).replace(/["']/g, '').trim() : undefined);
@@ -24,6 +29,7 @@ export const Route = createFileRoute('/_portal/watch')({
             v: strip(search.v),
             autoplay: strip(search.autoplay),
             playlist: strip(search.playlist),
+            series: strip(search.series),
             index: strip(search.index),
         };
     },

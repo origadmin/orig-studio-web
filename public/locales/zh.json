@@ -486,7 +486,17 @@
       "pending_review": "待审核"
     },
     "shareDescription": "分享 {{channel}} 频道给你的朋友",
-    "shareCopyFailed": "复制链接失败"
+    "shareCopyFailed": "复制链接失败",
+    "banner_label": "频道条图",
+    "manageVideos": "管理视频",
+    "manageArticles": "管理文章",
+    "viewChannelHome": "查看频道主页",
+    "copyLink": "复制链接",
+    "deleteChannel": "删除频道",
+    "deleteChannelTitle": "删除频道？",
+    "deleteChannelConfirm": "频道「{{name}}」及其内容将被永久删除，此操作无法撤销。",
+    "deleteChannelSuccess": "频道已删除",
+    "deleteChannelFailed": "删除频道失败，请稍后重试"
   },
   "profile": {
     "tabAbout": "关于",
@@ -705,8 +715,8 @@
     "editPlaylistDesc": "更新播放列表详情",
     "makePublic": "设为公开",
     "playAll": "播放全部",
-    "addVideos": "添加视频到剧集",
-    "addVideosDesc": "选择要加入该剧集的视频，加入后可按顺序调整。",
+    "addVideos": "添加视频",
+    "addVideosDesc": "选择要加入该播放列表的视频，加入后可按顺序调整。",
     "searchVideos": "搜索视频...",
     "noVideos": "没有可用视频",
     "add": "添加",
@@ -718,10 +728,10 @@
     "removeVideo": "移除视频",
     "removeVideoConfirm": "确定要从播放列表中移除这个视频吗？",
     "usageTitle": "使用说明",
-    "usageAdd": "点击「添加视频到剧集」选择视频加入本剧集。",
+    "usageAdd": "点击标题右侧「管理 ▸ 添加视频」选择视频加入本播放列表。",
     "usageReorder": "用每项的「上移 / 下移」调整播放顺序。",
-    "usageRemove": "用每项的「移除」把视频移出本剧集。",
-    "usageView": "点击「播放全部」进入观看页，右侧「播放列表」面板按此顺序展示，当前播放项高亮。"
+    "usageRemove": "用每项的「移除」把视频移出本播放列表。",
+    "usageView": "点击标题右侧「播放全部」进入观看页，右侧「播放列表」面板按此顺序展示，当前播放项高亮。"
   },
   "media": {
     "title": "媒体库",
@@ -2294,6 +2304,9 @@
     "stateAria": "状态",
     "state": "生命周期",
     "pendingReview": "待审核",
+    "approved": "已通过",
+    "rejected": "已拒绝",
+    "notSubmitted": "未提交",
     "language": "语言",
     "selectLanguage": "选择语言",
     "contentRating": "内容分级",
